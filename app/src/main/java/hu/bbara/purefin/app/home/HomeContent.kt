@@ -40,7 +40,7 @@ fun HomeContent(
             )
         }
         items(
-            items = libraries,
+            items = libraries.filter { libraryContent[it.id]?.isEmpty() != true },
             key = { it.id }
         ) { item ->
             LibraryPosterSection(

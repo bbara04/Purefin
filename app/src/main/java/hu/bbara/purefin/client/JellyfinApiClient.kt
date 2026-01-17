@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.first
 import org.jellyfin.sdk.api.client.Response
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.itemsApi
-import org.jellyfin.sdk.api.client.extensions.libraryApi
 import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
+import org.jellyfin.sdk.api.client.extensions.userViewsApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
@@ -92,7 +92,10 @@ class JellyfinApiClient @Inject constructor(
         if (!ensureConfigured()) {
             return emptyList()
         }
-        val response = api.libraryApi.getMediaFolders(isHidden = false)
+        val response = api.userViewsApi.getUserViews(
+            userId = getUserId(),
+            includeHidden = false
+        )
         Log.d("getLibraries response: {}", response.content.toString())
         return response.content.items
     }

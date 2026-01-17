@@ -14,7 +14,8 @@ data class ContinueWatchingItem(
 
 data class LibraryItem(
     val name: String,
-    val id: UUID
+    val id: UUID,
+    val isEmpty: Boolean
 )
 
 data class PosterItem(

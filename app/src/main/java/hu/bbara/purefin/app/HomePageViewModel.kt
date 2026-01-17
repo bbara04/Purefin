@@ -79,7 +79,8 @@ class HomePageViewModel @Inject constructor(
         val mappedLibraries = libraries.map {
             LibraryItem(
                 name = it.name!!,
-                id = it.id
+                id = it.id,
+                isEmpty = it.childCount!! == 0
             )
         }
         _libraries.value = mappedLibraries
