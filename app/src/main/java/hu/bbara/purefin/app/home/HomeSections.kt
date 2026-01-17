@@ -50,7 +50,10 @@ fun ContinueWatchingSection(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(items) { item ->
+        items(
+            items = items,
+            key = { it.id }
+        ) { item ->
             ContinueWatchingCard(
                 item = item,
                 colors = colors
@@ -145,7 +148,10 @@ fun LibraryPosterSection(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(items) { item ->
+        items(
+            items = items,
+            key = { it.id }
+        ) { item ->
             PosterCard(
                 item = item,
                 colors = colors

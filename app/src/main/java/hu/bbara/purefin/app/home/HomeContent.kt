@@ -39,7 +39,10 @@ fun HomeContent(
                 colors = colors
             )
         }
-        items(libraries) { item ->
+        items(
+            items = libraries,
+            key = { it.id }
+        ) { item ->
             LibraryPosterSection(
                 title = item.name,
                 items = libraryContent[item.id] ?: emptyList(),
