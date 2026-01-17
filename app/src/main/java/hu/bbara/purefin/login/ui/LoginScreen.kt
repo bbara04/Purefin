@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    loginViewModel: LoginViewModel = hiltViewModel(),
+    viewModel: LoginViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val JellyfinOrange = Color(0xFFBD542E)
@@ -51,9 +51,9 @@ fun LoginScreen(
     val TextSecondary = Color(0xFF9EA3A8)
 
     // Observe ViewModel state
-    val serverUrl by loginViewModel.url.collectAsState(initial = "")
-    val username by loginViewModel.username.collectAsState()
-    val password by loginViewModel.password.collectAsState()
+    val serverUrl by viewModel.url.collectAsState("")
+    val username by viewModel.username.collectAsState()
+    val password by viewModel.password.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -118,7 +118,7 @@ fun LoginScreen(
         PurefinComplexTextField(
             label = "Server URL",
             value = serverUrl,
-            onValueChange = { coroutineScope.launch { loginViewModel.setUrl(it) } },
+            onValueChange = { coroutineScope.launch { viewModel.setUrl(it) } },
             placeholder = "http://192.168.1.100:8096",
             leadingIcon = Icons.Default.Storage
         )
@@ -128,7 +128,7 @@ fun LoginScreen(
         PurefinComplexTextField(
             label = "Username",
             value = username,
-            onValueChange = { loginViewModel.setUsername(it) },
+            onValueChange = { viewModel.setUsername(it) },
             placeholder = "Enter your username",
             leadingIcon = Icons.Default.Person
         )
@@ -138,7 +138,7 @@ fun LoginScreen(
         PurefinPasswordField(
             label = "Password",
             value = password,
-            onValueChange = { loginViewModel.setPassword(it) },
+            onValueChange = { viewModel.setPassword(it) },
             placeholder = "••••••••",
             leadingIcon = Icons.Default.Lock,
         )
@@ -149,7 +149,7 @@ fun LoginScreen(
             content = { Text("Connect") },
             onClick = {
                 coroutineScope.launch {
-                    loginViewModel.login()
+                    viewModel.login()
                 }
             }
         )

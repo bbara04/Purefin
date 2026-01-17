@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 import javax.inject.Inject
 
 class UserSessionRepository @Inject constructor(
@@ -14,31 +15,38 @@ class UserSessionRepository @Inject constructor(
 
     val serverUrl: Flow<String> = session
         .map { it.url }
-        .distinctUntilChanged()
 
-    suspend fun getUrl(): String = serverUrl.first()
+    suspend fun setServerUrl(serverUrl: String) {
+        userSessionDataStore.updateData {
+            it.copy(url = serverUrl)
+        }
+    }
 
     val accessToken: Flow<String> = session
         .map { it.accessToken }
-        .distinctUntilChanged()
 
-    suspend fun updateAccessToken(accessToken: String) {
+    suspend fun setAccessToken(accessToken: String) {
         userSessionDataStore.updateData {
             it.copy(accessToken = accessToken)
         }
     }
+
+    val userId: Flow<UUID?> = session
+        .map { it.userId }
+
+    suspend fun setUserId(userId: UUID?) {
+        userSessionDataStore.updateData {
+            it.copy(userId = userId)
+        }
+    }
+
+    suspend fun getUserId(): UUID? = userId.first()
 
     val isLoggedIn: Flow<Boolean> = session.map { it.loggedIn }.distinctUntilChanged()
 
     suspend fun setLoggedIn(isLoggedIn: Boolean) {
         userSessionDataStore.updateData {
             it.copy(loggedIn = isLoggedIn)
-        }
-    }
-
-    suspend fun updateServerUrl(serverUrl: String) {
-        userSessionDataStore.updateData {
-            it.copy(url = serverUrl)
         }
     }
 }

@@ -1,35 +1,40 @@
 package hu.bbara.purefin.login.viewmodel
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.session.UserSessionRepository
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val jellyfinApiClient: JellyfinApiClient,
-    @ApplicationContext private val currentContext: Context
 ) : ViewModel() {
     private val _username = MutableStateFlow("")
     val username: StateFlow<String> = _username.asStateFlow()
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password.asStateFlow()
 
-    val url: Flow<String> = userSessionRepository.session.map {
+    val url: StateFlow<String> = userSessionRepository.session.map {
         it.url
-    }
+    }.onStart { }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ""
+    )
 
     suspend fun setUrl(url: String) {
-        userSessionRepository.updateServerUrl(url)
+        userSessionRepository.setServerUrl(url)
     }
 
     fun setUsername(username: String) {
@@ -41,13 +46,13 @@ class LoginViewModel @Inject constructor(
     }
 
     suspend fun clearFields() {
-        userSessionRepository.updateServerUrl("");
+        userSessionRepository.setServerUrl("");
         _username.value = ""
         _password.value = ""
     }
 
     suspend fun login(): Boolean {
-        return jellyfinApiClient.login(username.value, password.value)
+        return jellyfinApiClient.login(url.value, username.value, password.value)
     }
 
 }
