@@ -64,8 +64,7 @@ class JellyfinApiClient @Inject constructor(
             userId = userId,
             startIndex = 0,
             //TODO remove this limit if needed
-            limit = 10,
-            enableImages = false,
+            limit = 10
         )
         val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
         Log.d("getContinueWatching response: {}", response.content.toString())

@@ -46,13 +46,15 @@ class HomePageViewModel @Inject constructor(
             _continueWatching.value = continueWatching.map {
                 if (it.type == BaseItemKind.EPISODE) {
                     ContinueWatchingItem(
+                        id = it.id,
                         primaryText = it.seriesName!!,
                         secondaryText = it.name!!,
                         progress = it.userData!!.playedPercentage!!.toFloat(),
-                        colors = listOf(Color.Red, Color.Green)
+                        colors = listOf(Color.Red, Color.Green),
                     )
                 } else {
                     ContinueWatchingItem(
+                        id = it.id,
                         primaryText = it.name!!,
                         secondaryText = it.premiereDate!!.format(DateTimeFormatter.ofLocalizedDate(
                             FormatStyle.MEDIUM)),
@@ -86,6 +88,7 @@ class HomePageViewModel @Inject constructor(
             val libraryItems = jellyfinApiClient.getLibrary(libraryId)
             val posterItems = libraryItems.map {
                 PosterItem(
+                    id = it.id,
                     title = it.name ?: "Unknown",
                     colors = listOf(Color.Blue, Color.Cyan),
                     isLatest = false

@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import org.jellyfin.sdk.model.UUID
 
 data class ContinueWatchingItem(
+    val id: UUID,
     val primaryText: String,
     val secondaryText: String,
     val progress: Float,
@@ -17,6 +18,7 @@ data class LibraryItem(
 )
 
 data class PosterItem(
+    val id: UUID,
     val title: String,
     val isLatest: Boolean,
     val colors: List<Color>

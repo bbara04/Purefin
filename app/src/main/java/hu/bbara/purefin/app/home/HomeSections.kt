@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,12 +24,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import hu.bbara.purefin.image.JellyfinImageHelper
+import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 fun ContinueWatchingSection(
@@ -73,10 +77,15 @@ fun ContinueWatchingCard(
                 .clip(RoundedCornerShape(16.dp))
                 .background(colors.card)
         ) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(Brush.linearGradient(item.colors))
+            AsyncImage(
+                model = JellyfinImageHelper.toImageUrl(
+                    url = "https://jellyfin.bbara.hu",
+                    itemId = item.id,
+                    type = ImageType.PRIMARY
+                ),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
             Box(
                 modifier = Modifier
@@ -159,36 +168,11 @@ fun PosterCard(
             .clip(RoundedCornerShape(14.dp))
             .background(colors.card)
     ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(Brush.linearGradient(item.colors))
-        )
-        if (item.isLatest) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(colors.primary)
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = "LATEST",
-                    color = colors.onPrimary,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f))
-                    )
-                )
+        AsyncImage(
+            model = JellyfinImageHelper.toImageUrl(url = "https://jellyfin.bbara.hu", itemId = item.id, type = ImageType.PRIMARY),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
         Text(
             text = item.title,
