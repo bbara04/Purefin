@@ -35,8 +35,23 @@ class JellyfinApiClient @Inject constructor(
     
     private suspend fun getUserId(): UUID? = userSessionRepository.userId.first()
 
+    private suspend fun ensureConfigured(): Boolean {
+        val serverUrl = userSessionRepository.serverUrl.first().trim()
+        val accessToken = userSessionRepository.accessToken.first().trim()
+        if (serverUrl.isBlank() || accessToken.isBlank()) {
+            userSessionRepository.setLoggedIn(false)
+            return false
+        }
+        api.update(baseUrl = serverUrl, accessToken = accessToken)
+        return true
+    }
+
     suspend fun login(url: String, username: String, password: String): Boolean {
-        api.update(baseUrl = url)
+        val trimmedUrl = url.trim()
+        if (trimmedUrl.isBlank()) {
+            return false
+        }
+        api.update(baseUrl = trimmedUrl)
         val response = api.userApi.authenticateUserByName(username = username, password = password)
         val authResult = response.content
 
@@ -50,12 +65,13 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun updateApiClient() {
-        val serverUrl = userSessionRepository.serverUrl.first()
-        val accessToken = userSessionRepository.accessToken.first()
-        api.update(baseUrl = serverUrl, accessToken = accessToken)
+        ensureConfigured()
     }
 
     suspend fun getContinueWatching(): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
         val userId = getUserId()
         if (userId == null) {
             return emptyList()
@@ -64,7 +80,7 @@ class JellyfinApiClient @Inject constructor(
             userId = userId,
             startIndex = 0,
             //TODO remove this limit if needed
-            limit = 10
+//            limit = 10
         )
         val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
         Log.d("getContinueWatching response: {}", response.content.toString())
@@ -72,21 +88,27 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getLibraries(): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
         val response = api.libraryApi.getMediaFolders(isHidden = false)
         Log.d("getLibraries response: {}", response.content.toString())
         return response.content.items
     }
 
     suspend fun getLibrary(libraryId: UUID): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
         val getItemsRequest = GetItemsRequest(
             userId = getUserId(),
             enableImages = false,
             parentId = libraryId,
             enableUserData = false,
             includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-            recursive = true,
+//            recursive = true,
             // TODO remove this limit
-            limit = 10
+//            limit = 10
         )
         val response = api.itemsApi.getItems(getItemsRequest)
         Log.d("getLibrary response: {}", response.content.toString())
