@@ -8,7 +8,7 @@ data class ContinueWatchingItem(
     val id: UUID,
     val primaryText: String,
     val secondaryText: String,
-    val progress: Float,
+    val progress: Double,
     val colors: List<Color>
 )
 

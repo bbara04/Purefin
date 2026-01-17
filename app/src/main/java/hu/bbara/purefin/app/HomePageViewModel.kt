@@ -49,7 +49,7 @@ class HomePageViewModel @Inject constructor(
                         id = it.id,
                         primaryText = it.seriesName!!,
                         secondaryText = it.name!!,
-                        progress = it.userData!!.playedPercentage!!.toFloat(),
+                        progress = it.userData!!.playedPercentage!!,
                         colors = listOf(Color.Red, Color.Green),
                     )
                 } else {
@@ -58,7 +58,7 @@ class HomePageViewModel @Inject constructor(
                         primaryText = it.name!!,
                         secondaryText = it.premiereDate!!.format(DateTimeFormatter.ofLocalizedDate(
                             FormatStyle.MEDIUM)),
-                        progress = it.userData!!.playedPercentage!!.toFloat(),
+                        progress = it.userData!!.playedPercentage!!,
                         colors = listOf(Color.Red, Color.Green)
                     )
                 }

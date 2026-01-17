@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import hu.bbara.purefin.image.JellyfinImageHelper
 import org.jellyfin.sdk.model.api.ImageType
+import kotlin.math.nextUp
 
 @Composable
 fun ContinueWatchingSection(
@@ -105,7 +106,7 @@ fun ContinueWatchingCard(
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(item.progress)
+                        .fillMaxWidth(item.progress.toFloat().nextUp().div(100))
                         .background(colors.primary)
                 )
             }
