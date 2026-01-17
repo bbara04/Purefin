@@ -23,7 +23,7 @@ fun HomeContent(
 ) {
 
     val libraries by viewModel.libraries.collectAsState()
-    val libraryContent by viewModel.libraryContent.collectAsState()
+    val libraryContent by viewModel.latestLibraryContent.collectAsState()
 
     LazyColumn(
         modifier = modifier

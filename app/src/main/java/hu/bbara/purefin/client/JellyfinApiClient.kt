@@ -10,6 +10,7 @@ import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.extensions.libraryApi
 import org.jellyfin.sdk.api.client.extensions.userApi
+import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
@@ -113,6 +114,26 @@ class JellyfinApiClient @Inject constructor(
         val response = api.itemsApi.getItems(getItemsRequest)
         Log.d("getLibrary response: {}", response.content.toString())
         return response.content.items
+    }
+
+    /**
+     * Fetches the latest media items from a specified library including Movie, Episode, Season.
+     *
+     * @param libraryId The UUID of the library to fetch from
+     * @return A list of [BaseItemDto] representing the latest media items that includes Movie, Episode, Season, or an empty list if not configured
+     */
+    suspend fun getLatestFromLibrary(libraryId: UUID): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
+        val response = api.userLibraryApi.getLatestMedia(
+            userId = getUserId(),
+            parentId = libraryId,
+            includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
+            limit = 10
+        )
+        Log.d("getLatestFromLibrary response: {}", response.content.toString())
+        return response.content
     }
 
 }

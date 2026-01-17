@@ -19,9 +19,7 @@ data class LibraryItem(
 
 data class PosterItem(
     val id: UUID,
-    val title: String,
-    val isLatest: Boolean,
-    val colors: List<Color>
+    val title: String
 )
 
 data class HomeNavItem(
