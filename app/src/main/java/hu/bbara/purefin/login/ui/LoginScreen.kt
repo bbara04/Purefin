@@ -51,7 +51,7 @@ fun LoginScreen(
     val TextSecondary = Color(0xFF9EA3A8)
 
     // Observe ViewModel state
-    val serverUrl by viewModel.url.collectAsState("")
+    val serverUrl by viewModel.url.collectAsState()
     val username by viewModel.username.collectAsState()
     val password by viewModel.password.collectAsState()
 
@@ -118,7 +118,7 @@ fun LoginScreen(
         PurefinComplexTextField(
             label = "Server URL",
             value = serverUrl,
-            onValueChange = { coroutineScope.launch { viewModel.setUrl(it) } },
+            onValueChange = { viewModel.setUrl(it) },
             placeholder = "http://192.168.1.100:8096",
             leadingIcon = Icons.Default.Storage
         )

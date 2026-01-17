@@ -6,12 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,18 +21,17 @@ class LoginViewModel @Inject constructor(
     val username: StateFlow<String> = _username.asStateFlow()
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password.asStateFlow()
+    private val _url = MutableStateFlow("")
+    val url: StateFlow<String> = _url.asStateFlow()
 
-    val url: StateFlow<String> = userSessionRepository.session.map {
-        it.url
-    }.onStart { }
-    .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ""
-    )
+    init {
+        viewModelScope.launch {
+            _url.value = userSessionRepository.serverUrl.first()
+        }
+    }
 
-    suspend fun setUrl(url: String) {
-        userSessionRepository.setServerUrl(url)
+    fun setUrl(url: String) {
+        _url.value = url
     }
 
     fun setUsername(username: String) {
@@ -52,6 +49,7 @@ class LoginViewModel @Inject constructor(
     }
 
     suspend fun login(): Boolean {
+        userSessionRepository.setServerUrl(url.value)
         return jellyfinApiClient.login(url.value, username.value, password.value)
     }
 
