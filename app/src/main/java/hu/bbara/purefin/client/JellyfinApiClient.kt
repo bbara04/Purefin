@@ -8,14 +8,21 @@ import kotlinx.coroutines.flow.first
 import org.jellyfin.sdk.api.client.Response
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.itemsApi
+import org.jellyfin.sdk.api.client.extensions.mediaInfoApi
 import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.api.client.extensions.userViewsApi
+import org.jellyfin.sdk.api.client.extensions.videosApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.DeviceProfile
+import org.jellyfin.sdk.model.api.MediaSourceInfo
+import org.jellyfin.sdk.model.api.PlaybackInfoDto
+import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod
+import org.jellyfin.sdk.model.api.SubtitleProfile
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
 import org.jellyfin.sdk.model.api.request.GetResumeItemsRequest
 import java.util.UUID
@@ -138,5 +145,48 @@ class JellyfinApiClient @Inject constructor(
         Log.d("getLatestFromLibrary response: {}", response.content.toString())
         return response.content
     }
+
+    suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> {
+        val result = api.mediaInfoApi
+            .getPostedPlaybackInfo(
+                mediaId,
+                PlaybackInfoDto(
+                    userId = getUserId(),
+                    deviceProfile =
+                        //TODO check this
+                        DeviceProfile(
+                            name = "Direct play all",
+                            maxStaticBitrate = 1_000_000_000,
+                            maxStreamingBitrate = 1_000_000_000,
+                            codecProfiles = emptyList(),
+                            containerProfiles = emptyList(),
+                            directPlayProfiles = emptyList(),
+                            transcodingProfiles = emptyList(),
+                            subtitleProfiles =
+                                listOf(
+                                    SubtitleProfile("srt", SubtitleDeliveryMethod.EXTERNAL),
+                                    SubtitleProfile("ass", SubtitleDeliveryMethod.EXTERNAL),
+                                ),
+                        ),
+                    maxStreamingBitrate = 1_000_000_000,
+                ),
+            )
+        Log.d("getMediaSources result: {}", result.toString())
+        return result.content.mediaSources
+    }
+
+    suspend fun getMediaPlaybackInfo(mediaId: UUID, mediaSourceId: String? = null): String? {
+        if (!ensureConfigured()) {
+            return null
+        }
+        val response = api.videosApi.getVideoStreamUrl(
+            itemId = mediaId,
+            static = true,
+            mediaSourceId = mediaSourceId,
+        )
+        Log.d("getMediaPlaybackInfo response: {}", response.toString())
+        return response
+    }
+
 
 }

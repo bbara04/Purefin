@@ -126,7 +126,6 @@ class HomePageViewModel @Inject constructor(
 
     fun loadLatestLibraryItems(libraryId: UUID) {
         if (_libraryItems.value.containsKey(libraryId)) return
-        val libraryItems = _libraryItems.value[libraryId]
         viewModelScope.launch {
             val latestLibraryItems = jellyfinApiClient.getLatestFromLibrary(libraryId)
             val latestLibraryPosterItem = latestLibraryItems.mapNotNull {
@@ -146,7 +145,7 @@ class HomePageViewModel @Inject constructor(
                     )
                     else -> null
                 }
-            }
+            }.distinctBy { it.id }
             _latestLibraryContent.update { currentMap ->
                 currentMap + (libraryId to latestLibraryPosterItem)
             }
