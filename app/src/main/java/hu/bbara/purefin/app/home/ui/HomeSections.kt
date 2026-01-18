@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app.home
+package hu.bbara.purefin.app.home.ui
 
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -36,9 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import hu.bbara.purefin.app.home.HomePageViewModel
 import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.player.PlayerActivity
+import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
 import kotlin.math.nextUp
 
@@ -122,9 +125,9 @@ fun ContinueWatchingCard(
             Button(
                 modifier = Modifier.align(Alignment.BottomEnd),
                 onClick = {
-                val intent = Intent(context, PlayerActivity::class.java)
-                intent.putExtra("MEDIA_ID", item.id.toString())
-                context.startActivity(intent)
+                    val intent = Intent(context, PlayerActivity::class.java)
+                    intent.putExtra("MEDIA_ID", item.id.toString())
+                    context.startActivity(intent)
             }) {
                 Icon(imageVector = Icons.Outlined.PlayArrow, contentDescription = "Play")
             }
@@ -173,7 +176,7 @@ fun LibraryPosterSection(
         ) { item ->
             PosterCard(
                 item = item,
-                colors = colors
+                colors = colors,
             )
         }
     }
@@ -183,8 +186,18 @@ fun LibraryPosterSection(
 fun PosterCard(
     item: PosterItem,
     colors: HomeColors,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: HomePageViewModel = hiltViewModel()
 ) {
+    fun openItem(posterItem: PosterItem)
+    {
+        when (posterItem.type) {
+            BaseItemKind.MOVIE -> viewModel.onMovieSelected(posterItem.id.toString())
+            else -> {}
+        }
+
+    }
+
     Box(
         modifier = modifier
             .width(144.dp)
@@ -192,6 +205,7 @@ fun PosterCard(
             .shadow(10.dp, RoundedCornerShape(14.dp))
             .clip(RoundedCornerShape(14.dp))
             .background(colors.card)
+            .clickable(onClick = { openItem(item) })
     ) {
         AsyncImage(
             model = JellyfinImageHelper.toImageUrl(url = "https://jellyfin.bbara.hu", itemId = item.id, type = ImageType.PRIMARY),

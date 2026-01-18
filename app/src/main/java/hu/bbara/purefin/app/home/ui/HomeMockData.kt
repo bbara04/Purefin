@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app.home
+package hu.bbara.purefin.app.home.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home

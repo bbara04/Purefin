@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app
+package hu.bbara.purefin.app.home
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,11 +14,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.home.HomeContent
-import hu.bbara.purefin.app.home.HomeDrawerContent
-import hu.bbara.purefin.app.home.HomeMockData
-import hu.bbara.purefin.app.home.HomeTopBar
-import hu.bbara.purefin.app.home.rememberHomeColors
+import hu.bbara.purefin.app.home.ui.HomeContent
+import hu.bbara.purefin.app.home.ui.HomeDrawerContent
+import hu.bbara.purefin.app.home.ui.HomeMockData
+import hu.bbara.purefin.app.home.ui.HomeTopBar
+import hu.bbara.purefin.app.home.ui.rememberHomeColors
 import kotlinx.coroutines.launch
 
 @Composable

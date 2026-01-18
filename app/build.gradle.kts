@@ -11,12 +11,12 @@ plugins {
 
 android {
     namespace = "hu.bbara.purefin"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "hu.bbara.purefin"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -70,6 +71,8 @@ dependencies {
     implementation(libs.medi3.ui)
     implementation(libs.medi3.exoplayer)
     implementation(libs.medi3.ui.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

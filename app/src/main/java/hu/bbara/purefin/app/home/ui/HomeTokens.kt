@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app.home
+package hu.bbara.purefin.app.home.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable

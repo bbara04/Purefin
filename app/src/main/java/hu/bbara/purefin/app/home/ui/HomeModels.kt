@@ -1,8 +1,9 @@
-package hu.bbara.purefin.app.home
+package hu.bbara.purefin.app.home.ui
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.jellyfin.sdk.model.UUID
+import org.jellyfin.sdk.model.api.BaseItemKind
 
 data class ContinueWatchingItem(
     val id: UUID,
@@ -20,7 +21,8 @@ data class LibraryItem(
 
 data class PosterItem(
     val id: UUID,
-    val title: String
+    val title: String,
+    val type: BaseItemKind
 )
 
 data class HomeNavItem(

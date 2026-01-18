@@ -1,13 +1,15 @@
-package hu.bbara.purefin.app
+package hu.bbara.purefin.app.home
 
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.app.home.ContinueWatchingItem
-import hu.bbara.purefin.app.home.LibraryItem
-import hu.bbara.purefin.app.home.PosterItem
+import hu.bbara.purefin.app.home.ui.ContinueWatchingItem
+import hu.bbara.purefin.app.home.ui.LibraryItem
+import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.navigation.NavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomePageViewModel @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
+    private val navigationManager: NavigationManager,
     private val jellyfinApiClient: JellyfinApiClient
 ) : ViewModel() {
 
@@ -41,6 +44,19 @@ class HomePageViewModel @Inject constructor(
     init {
         loadHomePageData()
     }
+
+    fun onMovieSelected(movieId: String) {
+        navigationManager.navigate(Route.Movie(movieId))
+    }
+
+    fun onBack() {
+        navigationManager.pop()
+    }
+
+    fun onGoHome() {
+        navigationManager.replaceAll(Route.Home)
+    }
+
 
     fun loadContinueWatching() {
         viewModelScope.launch {
@@ -103,7 +119,8 @@ class HomePageViewModel @Inject constructor(
             val libraryPosterItems = libraryItems.map {
                 PosterItem(
                     id = it.id,
-                    title = it.name ?: "Unknown"
+                    title = it.name ?: "Unknown",
+                    type = it.type
                 )
             }
             _libraryItems.update { currentMap ->
@@ -132,16 +149,19 @@ class HomePageViewModel @Inject constructor(
                 when (it.type) {
                     BaseItemKind.MOVIE -> PosterItem(
                         id = it.id,
-                        title = it.name ?: "Unknown"
+                        title = it.name ?: "Unknown",
+                        type = it.type
                     )
                     BaseItemKind.EPISODE -> PosterItem(
                         id = it.seriesId!!,
-                        title = it.seriesName ?: "Unknown"
+                        title = it.seriesName ?: "Unknown",
+                        type = it.type
                     )
             
                     BaseItemKind.SEASON -> PosterItem(
                         id = it.seriesId!!,
-                        title = it.seriesName ?: "Unknown"
+                        title = it.seriesName ?: "Unknown",
+                        type = it.type
                     )
                     else -> null
                 }

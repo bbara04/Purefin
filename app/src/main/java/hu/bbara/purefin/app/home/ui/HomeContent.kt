@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app.home
+package hu.bbara.purefin.app.home.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.HomePageViewModel
+import hu.bbara.purefin.app.home.HomePageViewModel
 
 @Composable
 fun HomeContent(

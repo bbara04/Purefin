@@ -6,6 +6,4 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class PurefinApplication : Application() {
 
-
-
 }

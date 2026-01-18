@@ -9,6 +9,7 @@ import org.jellyfin.sdk.api.client.Response
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.extensions.mediaInfoApi
+import org.jellyfin.sdk.api.client.extensions.tvShowsApi
 import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.api.client.extensions.userViewsApi
@@ -24,6 +25,7 @@ import org.jellyfin.sdk.model.api.PlaybackInfoDto
 import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod
 import org.jellyfin.sdk.model.api.SubtitleProfile
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
+import org.jellyfin.sdk.model.api.request.GetNextUpRequest
 import org.jellyfin.sdk.model.api.request.GetResumeItemsRequest
 import java.util.UUID
 import javax.inject.Inject
@@ -144,6 +146,31 @@ class JellyfinApiClient @Inject constructor(
         )
         Log.d("getLatestFromLibrary response: {}", response.content.toString())
         return response.content
+    }
+
+    suspend fun getItemInfo(mediaId: UUID): BaseItemDto? {
+        if (!ensureConfigured()) {
+            return null
+        }
+        val result = api.userLibraryApi.getItem(
+            itemId = mediaId,
+            userId = getUserId()
+        )
+        Log.d("getItemInfo response: {}", result.content.toString())
+        return result.content
+    }
+
+    suspend fun getNextUpEpisode(mediaId: UUID): BaseItemDto {
+        if (!ensureConfigured()) {
+            throw IllegalStateException("Not configured")
+        }
+        val getNextUpRequest = GetNextUpRequest(
+            userId = getUserId(),
+            seriesId = mediaId,
+        )
+        val result = api.tvShowsApi.getNextUp(getNextUpRequest)
+        Log.d("getNextUpEpisode response: {}", result.content.toString())
+        return result.content.items.first()
     }
 
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> {

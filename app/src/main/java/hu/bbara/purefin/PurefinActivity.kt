@@ -5,9 +5,21 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
@@ -16,10 +28,13 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dagger.hilt.android.AndroidEntryPoint
-import hu.bbara.purefin.app.HomePage
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.client.JellyfinAuthInterceptor
 import hu.bbara.purefin.login.ui.LoginScreen
+import hu.bbara.purefin.navigation.LocalNavigationManager
+import hu.bbara.purefin.navigation.NavigationCommand
+import hu.bbara.purefin.navigation.NavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
 import hu.bbara.purefin.ui.theme.PurefinTheme
 import kotlinx.coroutines.launch
@@ -31,7 +46,12 @@ import javax.inject.Inject
 class PurefinActivity : ComponentActivity() {
 
     @Inject
+    lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<Route>.() -> Unit>
+    @Inject
     lateinit var userSessionRepository: UserSessionRepository
+
+    @Inject
+    lateinit var navigationManager: NavigationManager
 
     @Inject
     lateinit var jellyfinApiClient: JellyfinApiClient
@@ -47,18 +67,16 @@ class PurefinActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         lifecycleScope.launch { init() }
         configureImageLoader()
         enableEdgeToEdge()
         setContent {
-            PurefinTheme {
-                val isLoggedIn by userSessionRepository.isLoggedIn.collectAsState(initial = false)
-                if (isLoggedIn) {
-                    HomePage()
-                } else {
-                    LoginScreen()
-                }
+            PurefinTheme() {
+                MainApp(
+                    userSessionRepository = userSessionRepository,
+                    entryBuilders = entryBuilders,
+                    navigationManager = navigationManager
+                )
             }
         }
     }
@@ -100,5 +118,51 @@ class PurefinActivity : ComponentActivity() {
 
     private fun isDebuggable(): Boolean {
         return (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    }
+
+    @Composable
+    fun MainApp(
+        userSessionRepository: UserSessionRepository,
+        entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<Route>.() -> Unit>,
+        navigationManager: NavigationManager
+    ) {
+
+        val isLoggedIn by userSessionRepository.isLoggedIn.collectAsState(initial = false)
+        if (isLoggedIn) {
+            @Suppress("UNCHECKED_CAST")
+            val backStack = rememberNavBackStack(Route.Home) as NavBackStack<Route>
+            val appEntryProvider =
+                entryProvider {
+                    entryBuilders.forEach { builder -> builder() }
+                }
+
+            LaunchedEffect(navigationManager, backStack) {
+                navigationManager.commands.collect { command ->
+                    when (command) {
+                        NavigationCommand.Pop -> backStack.removeLastOrNull()
+                        is NavigationCommand.Navigate -> backStack.add(command.route)
+                        is NavigationCommand.ReplaceAll -> {
+                            backStack.clear()
+                            backStack.add(command.route)
+                        }
+                    }
+                }
+            }
+
+            CompositionLocalProvider(LocalNavigationManager provides navigationManager) {
+                NavDisplay(
+                    backStack = backStack,
+                    modifier = Modifier.fillMaxSize(),
+                    entryDecorators =
+                        listOf(
+                            rememberSaveableStateHolderNavEntryDecorator(),
+                            rememberViewModelStoreNavEntryDecorator(),
+                        ),
+                    entryProvider = appEntryProvider
+                )
+            }
+        } else {
+            LoginScreen()
+        }
     }
 }
