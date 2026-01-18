@@ -69,6 +69,7 @@ class HomePageViewModel @Inject constructor(
                 if (it.type == BaseItemKind.EPISODE) {
                     ContinueWatchingItem(
                         id = it.id,
+                        type = BaseItemKind.EPISODE,
                         primaryText = it.seriesName!!,
                         secondaryText = it.name!!,
                         progress = it.userData!!.playedPercentage!!,
@@ -77,6 +78,7 @@ class HomePageViewModel @Inject constructor(
                 } else {
                     ContinueWatchingItem(
                         id = it.id,
+                        type = BaseItemKind.MOVIE,
                         primaryText = it.name!!,
                         secondaryText = it.premiereDate!!.format(DateTimeFormatter.ofLocalizedDate(
                             FormatStyle.MEDIUM)),

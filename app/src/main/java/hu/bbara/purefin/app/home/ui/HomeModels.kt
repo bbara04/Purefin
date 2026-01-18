@@ -7,6 +7,7 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 
 data class ContinueWatchingItem(
     val id: UUID,
+    val type: BaseItemKind,
     val primaryText: String,
     val secondaryText: String,
     val progress: Double,

@@ -78,8 +78,17 @@ fun ContinueWatchingCard(
     item: ContinueWatchingItem,
     colors: HomeColors,
     modifier: Modifier = Modifier,
+    viewModel: HomePageViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+
+    fun openItem(item: ContinueWatchingItem) {
+        when (item.type) {
+            BaseItemKind.MOVIE -> viewModel.onMovieSelected(item.id.toString())
+            BaseItemKind.EPISODE -> viewModel.onSeriesSelected(item.id.toString())
+            else -> {}
+        }
+    }
 
     Column(
         modifier = modifier
@@ -100,8 +109,12 @@ fun ContinueWatchingCard(
                     type = ImageType.PRIMARY
                 ),
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                modifier = Modifier.fillMaxSize()
+                    .clickable {
+                        openItem(item)
+                    },
+                contentScale = ContentScale.Crop,
+
             )
             Box(
                 modifier = Modifier
