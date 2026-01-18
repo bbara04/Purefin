@@ -1,5 +1,7 @@
 package hu.bbara.purefin.app.content.movie
 
+import org.jellyfin.sdk.model.UUID
+
 data class CastMember(
     val name: String,
     val role: String,
@@ -7,6 +9,7 @@ data class CastMember(
 )
 
 data class MovieUiModel(
+    val id: UUID,
     val title: String,
     val year: String,
     val rating: String,

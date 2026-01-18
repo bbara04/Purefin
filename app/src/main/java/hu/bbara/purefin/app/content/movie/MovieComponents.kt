@@ -1,5 +1,6 @@
 package hu.bbara.purefin.app.content.movie
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,12 +48,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
 internal fun MovieTopBar(modifier: Modifier = Modifier) {
@@ -414,14 +419,23 @@ private fun CastRow(cast: List<CastMember>) {
 @Composable
 private fun PlayButton(
     size: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: MovieScreenViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val movieId = viewModel.movie.collectAsState()
+
     Box(
         modifier = modifier
             .size(size)
             .shadow(24.dp, CircleShape)
             .clip(CircleShape)
-            .background(MoviePrimary),
+            .background(MoviePrimary)
+            .clickable{
+                val intent = Intent(context, PlayerActivity::class.java)
+                intent.putExtra("MEDIA_ID", movieId.value!!.id.toString())
+                context.startActivity(intent)
+            },
         contentAlignment = Alignment.Center
     ) {
         Icon(

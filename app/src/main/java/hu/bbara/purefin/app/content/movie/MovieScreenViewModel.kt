@@ -55,6 +55,7 @@ class MovieScreenViewModel @Inject constructor(
         } ?: ""
         val cast = people.orEmpty().map { it.toCastMember() }
         return MovieUiModel(
+            id = id,
             title = name ?: "Unknown title",
             year = year,
             rating = rating,
