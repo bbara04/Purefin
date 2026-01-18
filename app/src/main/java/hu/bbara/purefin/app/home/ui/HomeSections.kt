@@ -193,6 +193,7 @@ fun PosterCard(
     {
         when (posterItem.type) {
             BaseItemKind.MOVIE -> viewModel.onMovieSelected(posterItem.id.toString())
+            BaseItemKind.SERIES -> viewModel.onSeriesSelected(posterItem.id.toString())
             else -> {}
         }
 

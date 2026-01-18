@@ -49,6 +49,10 @@ class HomePageViewModel @Inject constructor(
         navigationManager.navigate(Route.Movie(movieId))
     }
 
+    fun onSeriesSelected(seriesId: String) {
+        navigationManager.navigate(Route.Episode(seriesId))
+    }
+
     fun onBack() {
         navigationManager.pop()
     }
@@ -140,7 +144,6 @@ class HomePageViewModel @Inject constructor(
         }
     }
 
-
     fun loadLatestLibraryItems(libraryId: UUID) {
         if (_libraryItems.value.containsKey(libraryId)) return
         viewModelScope.launch {
@@ -150,18 +153,18 @@ class HomePageViewModel @Inject constructor(
                     BaseItemKind.MOVIE -> PosterItem(
                         id = it.id,
                         title = it.name ?: "Unknown",
-                        type = it.type
+                        type = BaseItemKind.MOVIE
                     )
                     BaseItemKind.EPISODE -> PosterItem(
                         id = it.seriesId!!,
                         title = it.seriesName ?: "Unknown",
-                        type = it.type
+                        type = BaseItemKind.SERIES
                     )
             
                     BaseItemKind.SEASON -> PosterItem(
                         id = it.seriesId!!,
                         title = it.seriesName ?: "Unknown",
-                        type = it.type
+                        type = BaseItemKind.SERIES
                     )
                     else -> null
                 }

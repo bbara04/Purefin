@@ -9,4 +9,7 @@ sealed interface Route : NavKey {
 
     @Serializable
     data class Movie(val movieId: String) : Route
+
+    @Serializable
+    data class Episode(val seriesId: String) : Route
 }
