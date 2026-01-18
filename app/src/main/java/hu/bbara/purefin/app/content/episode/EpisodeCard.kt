@@ -21,17 +21,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.jellyfin.sdk.model.UUID
+import hu.bbara.purefin.navigation.ItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
 
 @Composable
 fun EpisodeCard(
-    seriesId: String,
+    item: ItemDto,
     modifier: Modifier = Modifier,
     viewModel: EpisodeScreenViewModel = hiltViewModel()
 ) {
 
-    LaunchedEffect(seriesId) {
-        viewModel.selectNextUpEpisodeForSeries(UUID.fromString(seriesId))
+    LaunchedEffect(item) {
+        when (item.type) {
+            BaseItemKind.EPISODE -> viewModel.selectEpisode(item.id)
+            else -> return@LaunchedEffect
+        }
     }
 
     val episodeItem = viewModel.episode.collectAsState()

@@ -23,8 +23,11 @@ data class LibraryItem(
 data class PosterItem(
     val id: UUID,
     val title: String,
-    val type: BaseItemKind
-)
+    val type: BaseItemKind,
+    val parentId: UUID? = null
+) {
+    val imageItemId: UUID get() = parentId ?: id
+}
 
 data class HomeNavItem(
     val label: String,

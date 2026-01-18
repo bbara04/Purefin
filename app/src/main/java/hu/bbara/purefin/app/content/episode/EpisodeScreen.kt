@@ -2,21 +2,15 @@ package hu.bbara.purefin.app.content.episode
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import hu.bbara.purefin.navigation.ItemDto
 
 @Composable
 fun EpisodeScreen(
-    seriesId: String,
+    episode: ItemDto,
     modifier: Modifier = Modifier
 ) {
     EpisodeCard(
-        seriesId = seriesId,
+        item = episode,
         modifier = modifier
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun EpisodeScreenPreview() {
-    EpisodeScreen(seriesId = "test")
 }

@@ -8,6 +8,7 @@ import hu.bbara.purefin.app.home.ui.ContinueWatchingItem
 import hu.bbara.purefin.app.home.ui.LibraryItem
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.navigation.ItemDto
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
@@ -46,21 +47,29 @@ class HomePageViewModel @Inject constructor(
     }
 
     fun onMovieSelected(movieId: String) {
-        navigationManager.navigate(Route.Movie(movieId))
+        navigationManager.navigate(Route.Movie(ItemDto(UUID.fromString(movieId), BaseItemKind.MOVIE)))
     }
 
     fun onSeriesSelected(seriesId: String) {
-        navigationManager.navigate(Route.Episode(seriesId))
+        viewModelScope.launch {
+            navigationManager.navigate(Route.Series(ItemDto(UUID.fromString(seriesId), BaseItemKind.SERIES)))
+        }
+    }
+
+    fun onSelectEpisode(episodeId: String) {
+        viewModelScope.launch {
+            navigationManager.navigate(Route.Episode(ItemDto(UUID.fromString(episodeId), BaseItemKind.EPISODE)))
+        }
     }
 
     fun onBack() {
         navigationManager.pop()
     }
 
+
     fun onGoHome() {
         navigationManager.replaceAll(Route.Home)
     }
-
 
     fun loadContinueWatching() {
         viewModelScope.launch {
@@ -122,6 +131,7 @@ class HomePageViewModel @Inject constructor(
     private fun loadLibraryItems(libraryId: UUID) {
         viewModelScope.launch {
             val libraryItems: List<BaseItemDto> = jellyfinApiClient.getLibrary(libraryId)
+            // It return only Movie or Series
             val libraryPosterItems = libraryItems.map {
                 PosterItem(
                     id = it.id,
@@ -158,15 +168,16 @@ class HomePageViewModel @Inject constructor(
                         type = BaseItemKind.MOVIE
                     )
                     BaseItemKind.EPISODE -> PosterItem(
-                        id = it.seriesId!!,
+                        id = it.id,
                         title = it.seriesName ?: "Unknown",
-                        type = BaseItemKind.SERIES
+                        type = BaseItemKind.EPISODE,
+                        parentId = it.seriesId!!
                     )
-            
                     BaseItemKind.SEASON -> PosterItem(
                         id = it.seriesId!!,
                         title = it.seriesName ?: "Unknown",
-                        type = BaseItemKind.SERIES
+                        type = BaseItemKind.SERIES,
+                        parentId = it.seriesId
                     )
                     else -> null
                 }

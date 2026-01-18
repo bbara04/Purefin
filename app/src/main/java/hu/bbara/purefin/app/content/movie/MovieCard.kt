@@ -21,17 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.jellyfin.sdk.model.UUID
+import hu.bbara.purefin.navigation.ItemDto
 
 @Composable
 fun MovieCard(
-    movieId: String,
+    movie: ItemDto,
     modifier: Modifier = Modifier,
     viewModel: MovieScreenViewModel = hiltViewModel()
 ) {
 
-    LaunchedEffect(movieId) {
-        viewModel.selectMovie(UUID.fromString(movieId))
+    LaunchedEffect(movie.id) {
+        viewModel.selectMovie(movie.id)
     }
 
     val movieItem = viewModel.movie.collectAsState()

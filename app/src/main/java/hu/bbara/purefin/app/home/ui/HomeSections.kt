@@ -85,7 +85,7 @@ fun ContinueWatchingCard(
     fun openItem(item: ContinueWatchingItem) {
         when (item.type) {
             BaseItemKind.MOVIE -> viewModel.onMovieSelected(item.id.toString())
-            BaseItemKind.EPISODE -> viewModel.onSeriesSelected(item.id.toString())
+            BaseItemKind.EPISODE -> viewModel.onSelectEpisode(item.id.toString())
             else -> {}
         }
     }
@@ -207,9 +207,9 @@ fun PosterCard(
         when (posterItem.type) {
             BaseItemKind.MOVIE -> viewModel.onMovieSelected(posterItem.id.toString())
             BaseItemKind.SERIES -> viewModel.onSeriesSelected(posterItem.id.toString())
+            BaseItemKind.EPISODE -> viewModel.onSelectEpisode(posterItem.id.toString())
             else -> {}
         }
-
     }
 
     Box(
@@ -222,7 +222,7 @@ fun PosterCard(
             .clickable(onClick = { openItem(item) })
     ) {
         AsyncImage(
-            model = JellyfinImageHelper.toImageUrl(url = "https://jellyfin.bbara.hu", itemId = item.id, type = ImageType.PRIMARY),
+            model = JellyfinImageHelper.toImageUrl(url = "https://jellyfin.bbara.hu", itemId = item.imageItemId, type = ImageType.PRIMARY),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop

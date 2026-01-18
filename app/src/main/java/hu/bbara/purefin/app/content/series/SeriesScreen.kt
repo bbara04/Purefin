@@ -1,16 +1,16 @@
-package hu.bbara.purefin.app.content.movie
+package hu.bbara.purefin.app.content.series
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import hu.bbara.purefin.navigation.ItemDto
 
 @Composable
-fun MovieScreen(
-    movie: ItemDto,
+fun SeriesScreen(
+    series: ItemDto,
     modifier: Modifier = Modifier
 ) {
-    MovieCard(
-        movie = movie,
+    SeriesCard(
+        series = series,
         modifier = modifier
     )
 }

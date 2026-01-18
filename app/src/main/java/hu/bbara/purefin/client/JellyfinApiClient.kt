@@ -160,6 +160,32 @@ class JellyfinApiClient @Inject constructor(
         return result.content
     }
 
+    suspend fun getSeasons(seriesId: UUID): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
+        val result = api.tvShowsApi.getSeasons(
+            userId = getUserId(),
+            seriesId = seriesId,
+        )
+        Log.d("getSeasons response: {}", result.content.toString())
+        return result.content.items
+    }
+
+    suspend fun getEpisodesInSeason(seriesId: UUID, seasonId: UUID): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
+        val result = api.tvShowsApi.getEpisodes(
+            userId = getUserId(),
+            seriesId = seriesId,
+            seasonId = seasonId,
+            enableUserData = true
+        )
+        Log.d("getEpisodesInSeason response: {}", result.content.toString())
+        return result.content.items
+    }
+
     suspend fun getNextUpEpisode(mediaId: UUID): BaseItemDto {
         if (!ensureConfigured()) {
             throw IllegalStateException("Not configured")
