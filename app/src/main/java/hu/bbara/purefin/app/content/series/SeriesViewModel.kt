@@ -32,7 +32,7 @@ class SeriesViewModel @Inject constructor(
 
     fun onSelectEpisode(episodeId: String) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.Episode(ItemDto(UUID.fromString(episodeId), BaseItemKind.EPISODE)))
+            navigationManager.navigate(Route.Episode(ItemDto(id = UUID.fromString(episodeId), type = BaseItemKind.EPISODE)))
         }
     }
 

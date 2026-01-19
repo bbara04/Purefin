@@ -36,7 +36,7 @@ class EpisodeScreenViewModel @Inject constructor(
 
     fun onSeriesSelected(seriesId: String) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.Series(ItemDto(UUID.fromString(seriesId), BaseItemKind.SERIES)))
+            navigationManager.navigate(Route.Series(ItemDto(id = UUID.fromString(seriesId), type = BaseItemKind.SERIES)))
         }
     }
 
