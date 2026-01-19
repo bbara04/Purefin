@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.image.JellyfinImageHelper
+import hu.bbara.purefin.navigation.ItemDto
+import hu.bbara.purefin.navigation.NavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.BaseItemPerson
 import org.jellyfin.sdk.model.api.ImageType
 import javax.inject.Inject
@@ -19,11 +23,27 @@ import javax.inject.Inject
 @HiltViewModel
 class SeriesViewModel @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
+    private val navigationManager: NavigationManager,
     private val userSessionRepository: UserSessionRepository
 ) : ViewModel() {
 
     private val _series = MutableStateFlow<SeriesUiModel?>(null)
     val series = _series.asStateFlow()
+
+    fun onSelectEpisode(episodeId: String) {
+        viewModelScope.launch {
+            navigationManager.navigate(Route.Episode(ItemDto(UUID.fromString(episodeId), BaseItemKind.EPISODE)))
+        }
+    }
+
+    fun onBack() {
+        navigationManager.pop()
+    }
+
+
+    fun onGoHome() {
+        navigationManager.replaceAll(Route.Home)
+    }
 
     fun selectSeries(seriesId: UUID) {
         viewModelScope.launch {
@@ -35,7 +55,13 @@ class SeriesViewModel @Inject constructor(
             val episodesItemResult = seasonsItemResult.associate { season ->
                 season.id to jellyfinApiClient.getEpisodesInSeason(seriesId, season.id)
             }
-            _series.value = mapToSeriesUiModel(serverUrl, seriesItemResult, seasonsItemResult, episodesItemResult)
+            val seriesUiModel = mapToSeriesUiModel(
+                serverUrl,
+                seriesItemResult,
+                seasonsItemResult,
+                episodesItemResult
+            )
+            _series.value = seriesUiModel
         }
     }
 
@@ -49,25 +75,20 @@ class SeriesViewModel @Inject constructor(
             val episodeItemResult = episodesItemResult[season.id] ?: emptyList()
             val episodeItemUiModels = episodeItemResult.map { episode ->
                 SeriesEpisodeUiModel(
+                    id = episode.id.toString(),
                     title = episode.name ?: "Unknown",
                     description = episode.overview ?: "",
                     duration = "58m",
-                    imageUrl = ""
+                    imageUrl = JellyfinImageHelper.toImageUrl(url = serverUrl, itemId = episode.id, type = ImageType.PRIMARY)
                 )
             }
             SeriesSeasonUiModel(
                 name = season.name ?: "Unknown",
                 episodes = episodeItemUiModels,
+                // TODO add actual logic or remove
                 isSelected = false,
             )
         }
-        val heroImageUrl = seriesItemResult?.let { series ->
-            JellyfinImageHelper.toImageUrl(
-                url = serverUrl,
-                itemId = series.id,
-                type = ImageType.BACKDROP
-            )
-        } ?: ""
         return SeriesUiModel(
             title = seriesItemResult?.name ?: "Unknown",
             format = seriesItemResult?.container ?: "VIDEO",
@@ -75,7 +96,11 @@ class SeriesViewModel @Inject constructor(
             year = seriesItemResult!!.productionYear?.toString() ?: seriesItemResult!!.premiereDate?.year?.toString().orEmpty(),
             seasons = "3 Seasons",
             synopsis = seriesItemResult.overview ?: "No synopsis available.",
-            heroImageUrl = "",
+            heroImageUrl = JellyfinImageHelper.toImageUrl(
+                url = serverUrl,
+                itemId = seriesItemResult.id,
+                type = ImageType.BACKDROP
+            ),
             seasonTabs = seasonUiModels,
             cast = seriesItemResult.people.orEmpty().map { it.toCastMember() }
         )

@@ -50,16 +50,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 
 @Composable
-internal fun SeriesTopBar(modifier: Modifier = Modifier) {
+internal fun SeriesTopBar(
+    viewModel: SeriesViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GhostIconButton(icon = Icons.Outlined.ArrowBack, contentDescription = "Back")
+        GhostIconButton(
+            onClick = { viewModel.onBack() },
+            icon = Icons.Outlined.ArrowBack,
+            contentDescription = "Back")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast")
             GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More")
@@ -69,6 +76,7 @@ internal fun SeriesTopBar(modifier: Modifier = Modifier) {
 
 @Composable
 private fun GhostIconButton(
+    onClick: () -> Unit = {},
     icon: ImageVector,
     contentDescription: String,
     modifier: Modifier = Modifier
@@ -78,7 +86,7 @@ private fun GhostIconButton(
             .size(40.dp)
             .clip(CircleShape)
             .background(SeriesBackgroundDark.copy(alpha = 0.4f))
-            .clickable { },
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -267,7 +275,10 @@ internal fun EpisodeCarousel(episodes: List<SeriesEpisodeUiModel>, modifier: Mod
 }
 
 @Composable
-private fun EpisodeCard(episode: SeriesEpisodeUiModel) {
+private fun EpisodeCard(
+    viewModel: SeriesViewModel = hiltViewModel(),
+    episode: SeriesEpisodeUiModel
+) {
     Column(
         modifier = Modifier
             .width(260.dp)
@@ -275,7 +286,7 @@ private fun EpisodeCard(episode: SeriesEpisodeUiModel) {
             .background(SeriesSurfaceDark.copy(alpha = 0.3f))
             .border(1.dp, SeriesSurfaceBorder, RoundedCornerShape(16.dp))
             .padding(12.dp)
-            .clickable { },
+            .clickable { viewModel.onSelectEpisode(episode.id) },
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(

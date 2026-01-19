@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.image.JellyfinImageHelper
+import hu.bbara.purefin.navigation.ItemDto
+import hu.bbara.purefin.navigation.NavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.BaseItemPerson
 import org.jellyfin.sdk.model.api.ImageType
 import java.time.LocalDateTime
@@ -23,11 +27,27 @@ import javax.inject.Inject
 @HiltViewModel
 class EpisodeScreenViewModel @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
+    private val navigationManager: NavigationManager,
     private val userSessionRepository: UserSessionRepository
 ): ViewModel() {
 
     private val _episode = MutableStateFlow<EpisodeUiModel?>(null)
     val episode = _episode.asStateFlow()
+
+    fun onSeriesSelected(seriesId: String) {
+        viewModelScope.launch {
+            navigationManager.navigate(Route.Series(ItemDto(UUID.fromString(seriesId), BaseItemKind.SERIES)))
+        }
+    }
+
+    fun onBack() {
+        navigationManager.pop()
+    }
+
+
+    fun onGoHome() {
+        navigationManager.replaceAll(Route.Home)
+    }
 
     fun selectNextUpEpisodeForSeries(seriesId: UUID) {
         viewModelScope.launch {

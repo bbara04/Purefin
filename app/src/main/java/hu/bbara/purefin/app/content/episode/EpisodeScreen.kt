@@ -1,16 +1,32 @@
 package hu.bbara.purefin.app.content.episode
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.navigation.ItemDto
 
 @Composable
 fun EpisodeScreen(
     episode: ItemDto,
+    viewModel: EpisodeScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    EpisodeCard(
-        item = episode,
-        modifier = modifier
-    )
+
+    LaunchedEffect(episode) {
+        viewModel.selectEpisode(episode.id)
+    }
+
+    val episode = viewModel.episode.collectAsState()
+
+    if (episode.value != null) {
+        EpisodeCard(
+            episode = episode.value!!,
+            modifier = modifier
+        )
+    } else {
+        PurefinWaitingScreen()
+    }
 }

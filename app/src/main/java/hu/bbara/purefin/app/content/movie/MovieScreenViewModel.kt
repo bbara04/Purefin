@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.image.JellyfinImageHelper
+import hu.bbara.purefin.navigation.NavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,11 +22,21 @@ import javax.inject.Inject
 @HiltViewModel
 class MovieScreenViewModel @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
+    private val navigationManager: NavigationManager,
     private val userSessionRepository: UserSessionRepository
 ): ViewModel() {
 
     private val _movie = MutableStateFlow<MovieUiModel?>(null)
     val movie = _movie.asStateFlow()
+
+    fun onBack() {
+        navigationManager.pop()
+    }
+
+
+    fun onGoHome() {
+        navigationManager.replaceAll(Route.Home)
+    }
 
     fun selectMovie(movieId: UUID) {
         viewModelScope.launch {

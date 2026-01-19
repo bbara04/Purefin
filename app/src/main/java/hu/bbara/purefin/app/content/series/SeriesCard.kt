@@ -1,7 +1,6 @@
 package hu.bbara.purefin.app.content.series
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,61 +13,54 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.navigation.ItemDto
 
 @Composable
 fun SeriesCard(
-    series: ItemDto,
+    series: SeriesUiModel,
     modifier: Modifier = Modifier,
-    viewModel: SeriesViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(series.id) {
-        viewModel.selectSeries(series.id)
-    }
 
-    val series = viewModel.series.collectAsState()
-
-    if (series.value != null) {
-        BoxWithConstraints(
-            modifier = modifier
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .background(SeriesBackgroundDark)
+    ) {
+        val heroHeight = maxHeight * 0.6f
+        Column(
+            modifier = Modifier
                 .fillMaxSize()
-                .background(SeriesBackgroundDark)
+                .verticalScroll(rememberScrollState())
         ) {
-            val heroHeight = maxHeight * 0.6f
+            SeriesHero(
+                imageUrl = series.heroImageUrl,
+                height = heroHeight
+            )
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+                    .fillMaxWidth()
+                    .offset(y = (-96).dp)
             ) {
-                SeriesHero(
-                    imageUrl = series.value!!.heroImageUrl,
-                    height = heroHeight
-                )
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset(y = (-96).dp)
                         .padding(horizontal = 20.dp)
-                        .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = series.value!!.title,
+                        text = series.title,
                         color = Color.White,
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 36.sp
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    SeriesMetaChips(series = series.value!!)
+                    SeriesMetaChips(series = series)
                     Spacer(modifier = Modifier.height(24.dp))
                     SeriesActionButtons()
                     Spacer(modifier = Modifier.height(24.dp))
@@ -80,20 +72,32 @@ fun SeriesCard(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = series.value!!.synopsis,
+                        text = series.synopsis,
                         color = SeriesMutedStrong,
                         fontSize = 13.sp,
-                        lineHeight = 20.sp
                     )
                     Spacer(modifier = Modifier.height(28.dp))
-                    SeasonTabs(seasons = series.value!!.seasonTabs)
+                    Text(
+                        text = "Episodes",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(28.dp))
+                    SeasonTabs(seasons = series.seasonTabs)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
-                EpisodeCarousel(episodes = series.value!!.seasonTabs.firstOrNull { it.isSelected }?.episodes.orEmpty())
+
+                EpisodeCarousel(
+                    episodes = series.seasonTabs.firstOrNull { it.isSelected }?.episodes
+                        ?: series.seasonTabs.firstOrNull()?.episodes
+                        ?: emptyList()
+                )
+                Spacer(modifier = Modifier.height(32.dp))
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp, bottom = 32.dp)
+                        .padding(top = 0.dp, bottom = 0.dp)
                 ) {
                     Text(
                         text = "Cast",
@@ -103,28 +107,22 @@ fun SeriesCard(
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    CastRow(cast = series.value!!.cast)
+                    CastRow(cast = series.cast)
                 }
             }
+        }
 
-            SeriesTopBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-                    .align(Alignment.TopCenter)
-            )
-        }
-    } else {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(SeriesBackgroundDark),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Loading...",
-                color = Color.White
-            )
-        }
+        SeriesTopBar(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .align(Alignment.TopCenter)
+        )
     }
+}
+
+@Preview
+@Composable
+fun SeriesCardPreview() {
+    SeriesCard(series = SeriesMockData.series())
 }

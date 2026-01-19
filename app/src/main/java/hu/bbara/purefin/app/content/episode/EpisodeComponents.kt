@@ -59,13 +59,20 @@ import coil3.compose.AsyncImage
 import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
-internal fun EpisodeTopBar(modifier: Modifier = Modifier) {
+internal fun EpisodeTopBar(
+    viewModel: EpisodeScreenViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GhostIconButton(icon = Icons.Outlined.ArrowBack, contentDescription = "Back")
+        GhostIconButton(
+            onClick = { viewModel.onBack() },
+            icon = Icons.Outlined.ArrowBack,
+            contentDescription = "Back"
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast")
             GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More")
@@ -75,6 +82,7 @@ internal fun EpisodeTopBar(modifier: Modifier = Modifier) {
 
 @Composable
 private fun GhostIconButton(
+    onClick: () -> Unit = {},
     icon: ImageVector,
     contentDescription: String,
     modifier: Modifier = Modifier
@@ -84,7 +92,7 @@ private fun GhostIconButton(
             .size(40.dp)
             .clip(CircleShape)
             .background(EpisodeBackgroundDark.copy(alpha = 0.4f))
-            .clickable { },
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(

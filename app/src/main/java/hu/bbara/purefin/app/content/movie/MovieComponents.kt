@@ -59,13 +59,20 @@ import coil3.compose.AsyncImage
 import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
-internal fun MovieTopBar(modifier: Modifier = Modifier) {
+internal fun MovieTopBar(
+    viewModel: MovieScreenViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GhostIconButton(icon = Icons.Outlined.ArrowBack, contentDescription = "Back")
+        GhostIconButton(
+            onClick = { viewModel.onBack() },
+            icon = Icons.Outlined.ArrowBack,
+            contentDescription = "Back"
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast")
             GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More")
@@ -77,6 +84,7 @@ internal fun MovieTopBar(modifier: Modifier = Modifier) {
 private fun GhostIconButton(
     icon: ImageVector,
     contentDescription: String,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -84,7 +92,7 @@ private fun GhostIconButton(
             .size(40.dp)
             .clip(CircleShape)
             .background(MovieBackgroundDark.copy(alpha = 0.4f))
-            .clickable { },
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -133,8 +141,7 @@ internal fun MovieHero(
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
-                                Color.Transparent,
-                                MovieBackgroundDark.copy(alpha = 0.8f)
+                                Color.Transparent, MovieBackgroundDark.copy(alpha = 0.8f)
                             )
                         )
                     )
@@ -431,7 +438,7 @@ private fun PlayButton(
             .shadow(24.dp, CircleShape)
             .clip(CircleShape)
             .background(MoviePrimary)
-            .clickable{
+            .clickable {
                 val intent = Intent(context, PlayerActivity::class.java)
                 intent.putExtra("MEDIA_ID", movieId.value!!.id.toString())
                 context.startActivity(intent)
