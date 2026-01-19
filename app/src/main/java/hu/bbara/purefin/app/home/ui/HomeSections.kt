@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import hu.bbara.purefin.app.home.HomePageViewModel
+import hu.bbara.purefin.common.ui.PosterCard
 import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.player.PlayerActivity
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -47,14 +48,10 @@ import kotlin.math.nextUp
 
 @Composable
 fun ContinueWatchingSection(
-    items: List<ContinueWatchingItem>,
-    colors: HomeColors,
-    modifier: Modifier = Modifier
+    items: List<ContinueWatchingItem>, colors: HomeColors, modifier: Modifier = Modifier
 ) {
     SectionHeader(
-        title = "Continue Watching",
-        action = null,
-        colors = colors
+        title = "Continue Watching", action = null, colors = colors
     )
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -62,12 +59,9 @@ fun ContinueWatchingSection(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(
-            items = items,
-            key = { it.id }
-        ) { item ->
+            items = items, key = { it.id }) { item ->
             ContinueWatchingCard(
-                item = item,
-                colors = colors
+                item = item, colors = colors
             )
         }
     }
@@ -104,18 +98,17 @@ fun ContinueWatchingCard(
         ) {
             AsyncImage(
                 model = JellyfinImageHelper.toImageUrl(
-                    url = "https://jellyfin.bbara.hu",
-                    itemId = item.id,
-                    type = ImageType.PRIMARY
+                    url = "https://jellyfin.bbara.hu", itemId = item.id, type = ImageType.PRIMARY
                 ),
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .clickable {
                         openItem(item)
                     },
                 contentScale = ContentScale.Crop,
 
-            )
+                )
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -136,12 +129,11 @@ fun ContinueWatchingCard(
                 )
             }
             Button(
-                modifier = Modifier.align(Alignment.BottomEnd),
-                onClick = {
+                modifier = Modifier.align(Alignment.BottomEnd), onClick = {
                     val intent = Intent(context, PlayerActivity::class.java)
                     intent.putExtra("MEDIA_ID", item.id.toString())
                     context.startActivity(intent)
-            }) {
+                }) {
                 Icon(imageVector = Icons.Outlined.PlayArrow, contentDescription = "Play")
             }
         }
@@ -174,9 +166,7 @@ fun LibraryPosterSection(
     modifier: Modifier = Modifier
 ) {
     SectionHeader(
-        title = title,
-        action = action,
-        colors = colors
+        title = title, action = action, colors = colors
     )
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -184,60 +174,12 @@ fun LibraryPosterSection(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(
-            items = items,
-            key = { it.id }
-        ) { item ->
+            items = items, key = { it.id }) { item ->
             PosterCard(
                 item = item,
                 colors = colors,
             )
         }
-    }
-}
-
-@Composable
-fun PosterCard(
-    item: PosterItem,
-    colors: HomeColors,
-    modifier: Modifier = Modifier,
-    viewModel: HomePageViewModel = hiltViewModel()
-) {
-    fun openItem(posterItem: PosterItem)
-    {
-        when (posterItem.type) {
-            BaseItemKind.MOVIE -> viewModel.onMovieSelected(posterItem.id.toString())
-            BaseItemKind.SERIES -> viewModel.onSeriesSelected(posterItem.id.toString())
-            BaseItemKind.EPISODE -> viewModel.onSelectEpisode(posterItem.id.toString())
-            else -> {}
-        }
-    }
-
-    Box(
-        modifier = modifier
-            .width(144.dp)
-            .aspectRatio(2f / 3f)
-            .shadow(10.dp, RoundedCornerShape(14.dp))
-            .clip(RoundedCornerShape(14.dp))
-            .background(colors.card)
-            .clickable(onClick = { openItem(item) })
-    ) {
-        AsyncImage(
-            model = JellyfinImageHelper.toImageUrl(url = "https://jellyfin.bbara.hu", itemId = item.imageItemId, type = ImageType.PRIMARY),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        Text(
-            text = item.title,
-            color = colors.textPrimary,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(10.dp),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }
 
@@ -257,10 +199,7 @@ fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = title,
-            color = colors.textPrimary,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            text = title, color = colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold
         )
         if (action != null) {
             Text(
@@ -268,8 +207,7 @@ fun SectionHeader(
                 color = colors.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable { onActionClick() }
-            )
+                modifier = Modifier.clickable { onActionClick() })
         }
     }
 }
