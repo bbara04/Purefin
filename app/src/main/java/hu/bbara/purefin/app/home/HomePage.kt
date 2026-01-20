@@ -3,6 +3,10 @@ package hu.bbara.purefin.app.home
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Collections
+import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -17,9 +21,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.app.home.ui.HomeContent
 import hu.bbara.purefin.app.home.ui.HomeDrawerContent
 import hu.bbara.purefin.app.home.ui.HomeMockData
+import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.HomeTopBar
 import hu.bbara.purefin.app.home.ui.rememberHomeColors
 import kotlinx.coroutines.launch
+import org.jellyfin.sdk.model.api.CollectionType
 
 @Composable
 fun HomePage(
@@ -30,6 +36,17 @@ fun HomePage(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
+    val libraries = viewModel.libraries.collectAsState().value.map {
+        HomeNavItem(
+            id = it.id,
+            label = it.name,
+            icon = when (it.type) {
+                CollectionType.MOVIES -> Icons.Outlined.Movie
+                CollectionType.TVSHOWS -> Icons.Outlined.Tv
+                else -> Icons.Outlined.Collections
+            },
+        )
+    }
     val continueWatching = viewModel.continueWatching.collectAsState()
 
     ModalNavigationDrawer(
@@ -46,9 +63,9 @@ fun HomePage(
                     title = "Jellyfin",
                     subtitle = "Library Dashboard",
                     colors = colors,
-                    primaryNavItems = HomeMockData.primaryNavItems,
+                    primaryNavItems = libraries,
                     secondaryNavItems = HomeMockData.secondaryNavItems,
-                    user = HomeMockData.user
+                    user = HomeMockData.user,
                 )
             }
         }

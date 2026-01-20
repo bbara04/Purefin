@@ -127,12 +127,6 @@ internal fun SeriesHero(
                     )
                 )
         )
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            PlayButton(size = 80.dp)
-        }
     }
 }
 

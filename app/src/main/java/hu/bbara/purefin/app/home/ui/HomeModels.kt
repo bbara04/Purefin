@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
 
 data class ContinueWatchingItem(
     val id: UUID,
@@ -15,8 +16,9 @@ data class ContinueWatchingItem(
 )
 
 data class LibraryItem(
-    val name: String,
     val id: UUID,
+    val name: String,
+    val type: CollectionType,
     val isEmpty: Boolean
 )
 
@@ -30,6 +32,7 @@ data class PosterItem(
 }
 
 data class HomeNavItem(
+    val id: UUID,
     val label: String,
     val icon: ImageVector,
     val selected: Boolean = false

@@ -79,7 +79,7 @@ fun ContinueWatchingCard(
     fun openItem(item: ContinueWatchingItem) {
         when (item.type) {
             BaseItemKind.MOVIE -> viewModel.onMovieSelected(item.id.toString())
-            BaseItemKind.EPISODE -> viewModel.onSelectEpisode(item.id.toString())
+            BaseItemKind.EPISODE -> viewModel.onEpisodeSelected(item.id.toString())
             else -> {}
         }
     }

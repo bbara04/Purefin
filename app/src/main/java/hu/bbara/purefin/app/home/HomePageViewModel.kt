@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.app.home.ui.ContinueWatchingItem
+import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.LibraryItem
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.navigation.ItemDto
+import hu.bbara.purefin.navigation.LibraryDto
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
@@ -46,6 +48,12 @@ class HomePageViewModel @Inject constructor(
         loadHomePageData()
     }
 
+    fun onLibrarySelected(library : HomeNavItem) {
+        viewModelScope.launch {
+            navigationManager.navigate(Route.Library(library = LibraryDto(id = library.id, name = library.label)))
+        }
+    }
+
     fun onMovieSelected(movieId: String) {
         navigationManager.navigate(Route.Movie(ItemDto(id = UUID.fromString(movieId), type = BaseItemKind.MOVIE)))
     }
@@ -56,7 +64,7 @@ class HomePageViewModel @Inject constructor(
         }
     }
 
-    fun onSelectEpisode(episodeId: String) {
+    fun onEpisodeSelected(episodeId: String) {
         viewModelScope.launch {
             navigationManager.navigate(Route.Episode(ItemDto(id = UUID.fromString(episodeId), type = BaseItemKind.EPISODE)))
         }
@@ -111,7 +119,8 @@ class HomePageViewModel @Inject constructor(
             LibraryItem(
                 name = it.name!!,
                 id = it.id,
-                isEmpty = it.childCount!! == 0
+                isEmpty = it.childCount!! == 0,
+                type = it.collectionType!!
             )
         }
         _libraries.value = mappedLibraries

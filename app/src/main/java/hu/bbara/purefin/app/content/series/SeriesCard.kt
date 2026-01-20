@@ -32,7 +32,7 @@ fun SeriesCard(
             .fillMaxSize()
             .background(SeriesBackgroundDark)
     ) {
-        val heroHeight = maxHeight * 0.6f
+        val heroHeight = maxHeight * 0.4f
         Column(
             modifier = Modifier
                 .fillMaxSize()

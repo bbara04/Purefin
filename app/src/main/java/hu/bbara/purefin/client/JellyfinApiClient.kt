@@ -103,7 +103,7 @@ class JellyfinApiClient @Inject constructor(
         }
         val response = api.userViewsApi.getUserViews(
             userId = getUserId(),
-            includeHidden = false
+            includeHidden = false,
         )
         Log.d("getLibraries response: {}", response.content.toString())
         return response.content.items

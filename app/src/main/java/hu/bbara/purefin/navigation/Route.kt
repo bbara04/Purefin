@@ -15,4 +15,10 @@ sealed interface Route : NavKey {
 
     @Serializable
     data class Episode(val item : ItemDto) : Route
+
+    @Serializable
+    data class Library(val library : LibraryDto) : Route
+
+    @Serializable
+    data object Login : Route
 }

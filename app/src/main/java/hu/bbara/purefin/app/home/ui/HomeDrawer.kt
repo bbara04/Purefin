@@ -37,7 +37,6 @@ fun HomeDrawerContent(
     secondaryNavItems: List<HomeNavItem>,
     user: HomeUser,
     modifier: Modifier = Modifier,
-    onNavItemClick: (HomeNavItem) -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         HomeDrawerHeader(
@@ -49,7 +48,6 @@ fun HomeDrawerContent(
             primaryItems = primaryNavItems,
             secondaryItems = secondaryNavItems,
             colors = colors,
-            onNavItemClick = onNavItemClick
         )
         Spacer(modifier = Modifier.weight(1f))
         HomeDrawerFooter(user = user, colors = colors)
@@ -105,7 +103,6 @@ fun HomeDrawerNav(
     secondaryItems: List<HomeNavItem>,
     colors: HomeColors,
     modifier: Modifier = Modifier,
-    onNavItemClick: (HomeNavItem) -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -113,7 +110,7 @@ fun HomeDrawerNav(
             .padding(vertical = 16.dp)
     ) {
         primaryItems.forEach { item ->
-            HomeDrawerNavItem(item = item, colors = colors) { onNavItemClick(item) }
+            HomeDrawerNavItem(item = item, colors = colors)
         }
         if (secondaryItems.isNotEmpty()) {
             HorizontalDivider(
@@ -122,7 +119,7 @@ fun HomeDrawerNav(
                 color = colors.divider
             )
             secondaryItems.forEach { item ->
-                HomeDrawerNavItem(item = item, colors = colors) { onNavItemClick(item) }
+                HomeDrawerNavItem(item = item, colors = colors)
             }
         }
     }
@@ -133,7 +130,7 @@ fun HomeDrawerNavItem(
     item: HomeNavItem,
     colors: HomeColors,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
+    viewModel: HomePageViewModel = hiltViewModel(),
 ) {
     val background = if (item.selected) colors.primary.copy(alpha = 0.12f) else Color.Transparent
     val tint = if (item.selected) colors.primary else colors.textSecondary
@@ -142,7 +139,7 @@ fun HomeDrawerNavItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .background(background, RoundedCornerShape(12.dp))
-            .clickable { onClick() }
+            .clickable { viewModel.onLibrarySelected(item) }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

@@ -22,6 +22,7 @@ import coil3.compose.AsyncImage
 import hu.bbara.purefin.app.home.HomePageViewModel
 import hu.bbara.purefin.app.home.ui.HomeColors
 import hu.bbara.purefin.app.home.ui.PosterItem
+import hu.bbara.purefin.app.home.ui.rememberHomeColors
 import hu.bbara.purefin.image.JellyfinImageHelper
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
@@ -29,7 +30,7 @@ import org.jellyfin.sdk.model.api.ImageType
 @Composable
 fun PosterCard(
     item: PosterItem,
-    colors: HomeColors,
+    colors: HomeColors = rememberHomeColors(),
     modifier: Modifier = Modifier,
     viewModel: HomePageViewModel = hiltViewModel()
 ) {
@@ -37,7 +38,7 @@ fun PosterCard(
         when (posterItem.type) {
             BaseItemKind.MOVIE -> viewModel.onMovieSelected(posterItem.id.toString())
             BaseItemKind.SERIES -> viewModel.onSeriesSelected(posterItem.id.toString())
-            BaseItemKind.EPISODE -> viewModel.onSelectEpisode(posterItem.id.toString())
+            BaseItemKind.EPISODE -> viewModel.onEpisodeSelected(posterItem.id.toString())
             else -> {}
         }
     }
