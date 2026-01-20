@@ -1,10 +1,38 @@
 package hu.bbara.purefin.app.content.series
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 
-internal val SeriesPrimary = Color(0xFFDDA73C)
-internal val SeriesBackgroundDark = Color(0xFF141414)
-internal val SeriesSurfaceDark = Color(0xFF1F1F1F)
-internal val SeriesSurfaceBorder = Color(0x1AFFFFFF)
-internal val SeriesMuted = Color(0xB3FFFFFF)
-internal val SeriesMutedStrong = Color(0x99FFFFFF)
+internal data class SeriesColors(
+    val primary: Color,
+    val onPrimary: Color,
+    val background: Color,
+    val surface: Color,
+    val surfaceAlt: Color,
+    val surfaceBorder: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textMuted: Color,
+    val textMutedStrong: Color
+)
+
+@Composable
+internal fun rememberSeriesColors(): SeriesColors {
+    val scheme = MaterialTheme.colorScheme
+    return remember(scheme) {
+        SeriesColors(
+            primary = scheme.primary,
+            onPrimary = scheme.onPrimary,
+            background = scheme.background,
+            surface = scheme.surface,
+            surfaceAlt = scheme.surfaceVariant,
+            surfaceBorder = scheme.outlineVariant,
+            textPrimary = scheme.onBackground,
+            textSecondary = scheme.onSurface,
+            textMuted = scheme.onSurfaceVariant,
+            textMutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
+        )
+    }
+}

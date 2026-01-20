@@ -22,11 +22,12 @@ fun MovieCard(
     movie: MovieUiModel,
     modifier: Modifier = Modifier,
 ) {
+    val colors = rememberMovieColors()
 
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(MovieBackgroundDark)
+            .background(colors.background)
     ) {
         val isWide = maxWidth >= 900.dp
         val contentPadding = if (isWide) 32.dp else 20.dp

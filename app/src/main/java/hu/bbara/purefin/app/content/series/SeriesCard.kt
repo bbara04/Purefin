@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,11 +25,12 @@ fun SeriesCard(
     series: SeriesUiModel,
     modifier: Modifier = Modifier,
 ) {
+    val colors = rememberSeriesColors()
 
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(SeriesBackgroundDark)
+            .background(colors.background)
     ) {
         val heroHeight = maxHeight * 0.4f
         Column(
@@ -54,7 +54,7 @@ fun SeriesCard(
                 ) {
                     Text(
                         text = series.title,
-                        color = Color.White,
+                        color = colors.textPrimary,
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 36.sp
@@ -66,20 +66,20 @@ fun SeriesCard(
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
                         text = "Synopsis",
-                        color = Color.White,
+                        color = colors.textPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = series.synopsis,
-                        color = SeriesMutedStrong,
+                        color = colors.textMutedStrong,
                         fontSize = 13.sp,
                     )
                     Spacer(modifier = Modifier.height(28.dp))
                     Text(
                         text = "Episodes",
-                        color = Color.White,
+                        color = colors.textPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -101,7 +101,7 @@ fun SeriesCard(
                 ) {
                     Text(
                         text = "Cast",
-                        color = Color.White,
+                        color = colors.textPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 20.dp)

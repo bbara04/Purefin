@@ -87,18 +87,19 @@ private fun GhostIconButton(
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberMovieColors()
     Box(
         modifier = modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(MovieBackgroundDark.copy(alpha = 0.4f))
+            .background(colors.background.copy(alpha = 0.4f))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = Color.White
+            tint = colors.textPrimary
         )
     }
 }
@@ -110,10 +111,11 @@ internal fun MovieHero(
     isWide: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberMovieColors()
     Box(
         modifier = modifier
             .height(height)
-            .background(MovieBackgroundDark)
+            .background(colors.background)
     ) {
         AsyncImage(
             model = movie.heroImageUrl,
@@ -128,8 +130,8 @@ internal fun MovieHero(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            MovieBackgroundDark.copy(alpha = 0.4f),
-                            MovieBackgroundDark
+                            colors.background.copy(alpha = 0.4f),
+                            colors.background
                         )
                     )
                 )
@@ -141,7 +143,7 @@ internal fun MovieHero(
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
-                                Color.Transparent, MovieBackgroundDark.copy(alpha = 0.8f)
+                                Color.Transparent, colors.background.copy(alpha = 0.8f)
                             )
                         )
                     )
@@ -162,10 +164,11 @@ internal fun MovieDetails(
     movie: MovieUiModel,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberMovieColors()
     Column(modifier = modifier) {
         Text(
             text = movie.title,
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             lineHeight = 38.sp
@@ -180,9 +183,9 @@ internal fun MovieDetails(
             MetaChip(text = movie.runtime)
             MetaChip(
                 text = movie.format,
-                background = MoviePrimary.copy(alpha = 0.2f),
-                border = MoviePrimary.copy(alpha = 0.3f),
-                textColor = MoviePrimary
+                background = colors.primary.copy(alpha = 0.2f),
+                border = colors.primary.copy(alpha = 0.3f),
+                textColor = colors.primary
             )
         }
 
@@ -192,14 +195,14 @@ internal fun MovieDetails(
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Synopsis",
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = movie.synopsis,
-            color = MovieMuted,
+            color = colors.textMuted,
             fontSize = 15.sp,
             lineHeight = 22.sp
         )
@@ -210,7 +213,7 @@ internal fun MovieDetails(
         Spacer(modifier = Modifier.height(28.dp))
         Text(
             text = "Cast",
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
@@ -222,23 +225,27 @@ internal fun MovieDetails(
 @Composable
 private fun MetaChip(
     text: String,
-    background: Color = Color.White.copy(alpha = 0.1f),
-    border: Color = Color.Transparent,
-    textColor: Color = Color.White
+    background: Color? = null,
+    border: Color? = null,
+    textColor: Color? = null
 ) {
+    val colors = rememberMovieColors()
+    val resolvedBackground = background ?: colors.surfaceAlt
+    val resolvedBorder = border ?: Color.Transparent
+    val resolvedTextColor = textColor ?: colors.textSecondary
     Box(
         modifier = Modifier
             .height(28.dp)
             .wrapContentHeight(Alignment.CenterVertically)
             .clip(RoundedCornerShape(6.dp))
-            .background(background)
-            .border(width = 1.dp, color = border, shape = RoundedCornerShape(6.dp))
+            .background(resolvedBackground)
+            .border(width = 1.dp, color = resolvedBorder, shape = RoundedCornerShape(6.dp))
             .padding(horizontal = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = textColor,
+            color = resolvedTextColor,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
@@ -247,12 +254,13 @@ private fun MetaChip(
 
 @Composable
 private fun PlaybackSettings(movie: MovieUiModel) {
+    val colors = rememberMovieColors()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(MovieSurfaceDark)
-            .border(1.dp, MovieSurfaceBorder, RoundedCornerShape(16.dp))
+            .background(colors.surfaceAlt)
+            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(16.dp))
             .padding(20.dp)
     ) {
         Row(
@@ -261,12 +269,12 @@ private fun PlaybackSettings(movie: MovieUiModel) {
             Icon(
                 imageVector = Icons.Outlined.Tune,
                 contentDescription = null,
-                tint = MoviePrimary
+                tint = colors.primary
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Playback Settings",
-                color = MovieMuted,
+                color = colors.textMuted,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp
@@ -294,10 +302,11 @@ private fun SettingDropdown(
     icon: ImageVector,
     value: String
 ) {
+    val colors = rememberMovieColors()
     Column {
         Text(
             text = label,
-            color = MovieMutedStrong,
+            color = colors.textMutedStrong,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
@@ -307,18 +316,18 @@ private fun SettingDropdown(
                 .fillMaxWidth()
                 .height(48.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(MovieBackgroundDark)
-                .border(1.dp, MovieSurfaceBorder, RoundedCornerShape(12.dp))
+                .background(colors.surface)
+                .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = icon, contentDescription = null, tint = MovieMutedStrong)
+                Icon(imageVector = icon, contentDescription = null, tint = colors.textMutedStrong)
                 Spacer(modifier = Modifier.width(10.dp))
-                Text(text = value, color = Color.White, fontSize = 14.sp)
+                Text(text = value, color = colors.textPrimary, fontSize = 14.sp)
             }
-            Icon(imageVector = Icons.Outlined.ExpandMore, contentDescription = null, tint = MovieMutedStrong)
+            Icon(imageVector = Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.textMutedStrong)
         }
     }
 }
@@ -350,24 +359,26 @@ private fun ActionButton(
     icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberMovieColors()
     Row(
         modifier = modifier
             .height(48.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(1.dp, MovieSurfaceBorder, RoundedCornerShape(12.dp))
+            .background(colors.surfaceAlt.copy(alpha = 0.6f))
+            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
             .clickable { },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = Color.White)
+        Icon(imageVector = icon, contentDescription = null, tint = colors.textPrimary)
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(text = text, color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
 private fun CastRow(cast: List<CastMember>) {
+    val colors = rememberMovieColors()
     LazyRow(
         contentPadding = PaddingValues(horizontal = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -378,19 +389,19 @@ private fun CastRow(cast: List<CastMember>) {
                     modifier = Modifier
                         .aspectRatio(4f / 5f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MovieSurfaceDark)
+                        .background(colors.surfaceAlt)
                 ) {
                     if (member.imageUrl == null) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.White.copy(alpha = 0.05f)),
+                                .background(colors.surfaceAlt.copy(alpha = 0.6f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Person,
                                 contentDescription = null,
-                                tint = MovieMutedStrong
+                                tint = colors.textMutedStrong
                             )
                         }
                     } else {
@@ -405,7 +416,7 @@ private fun CastRow(cast: List<CastMember>) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = member.name,
-                    color = Color.White,
+                    color = colors.textPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -413,7 +424,7 @@ private fun CastRow(cast: List<CastMember>) {
                 )
                 Text(
                     text = member.role,
-                    color = MovieMutedStrong,
+                    color = colors.textMutedStrong,
                     fontSize = 10.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -429,6 +440,7 @@ private fun PlayButton(
     modifier: Modifier = Modifier,
     viewModel: MovieScreenViewModel = hiltViewModel()
 ) {
+    val colors = rememberMovieColors()
     val context = LocalContext.current
     val movieId = viewModel.movie.collectAsState()
 
@@ -437,7 +449,7 @@ private fun PlayButton(
             .size(size)
             .shadow(24.dp, CircleShape)
             .clip(CircleShape)
-            .background(MoviePrimary)
+            .background(colors.primary)
             .clickable {
                 val intent = Intent(context, PlayerActivity::class.java)
                 intent.putExtra("MEDIA_ID", movieId.value!!.id.toString())
@@ -448,7 +460,7 @@ private fun PlayButton(
         Icon(
             imageVector = Icons.Filled.PlayArrow,
             contentDescription = "Play",
-            tint = MovieBackgroundDark,
+            tint = colors.onPrimary,
             modifier = Modifier.size(42.dp)
         )
     }
@@ -456,18 +468,19 @@ private fun PlayButton(
 
 @Composable
 internal fun FloatingPlayButton(modifier: Modifier = Modifier) {
+    val colors = rememberMovieColors()
     Box(
         modifier = modifier
             .size(56.dp)
             .shadow(20.dp, CircleShape)
             .clip(CircleShape)
-            .background(MoviePrimary),
+            .background(colors.primary),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.PlayArrow,
             contentDescription = "Play",
-            tint = MovieBackgroundDark
+            tint = colors.onPrimary
         )
     }
 }

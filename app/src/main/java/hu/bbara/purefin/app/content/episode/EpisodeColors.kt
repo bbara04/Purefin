@@ -1,10 +1,38 @@
 package hu.bbara.purefin.app.content.episode
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 
-internal val EpisodePrimary = Color(0xFFDDA73C)
-internal val EpisodeBackgroundDark = Color(0xFF141414)
-internal val EpisodeSurfaceDark = Color(0xFF1F1F1F)
-internal val EpisodeSurfaceBorder = Color(0x1AFFFFFF)
-internal val EpisodeMuted = Color(0x99FFFFFF)
-internal val EpisodeMutedStrong = Color(0x66FFFFFF)
+internal data class EpisodeColors(
+    val primary: Color,
+    val onPrimary: Color,
+    val background: Color,
+    val surface: Color,
+    val surfaceAlt: Color,
+    val surfaceBorder: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textMuted: Color,
+    val textMutedStrong: Color
+)
+
+@Composable
+internal fun rememberEpisodeColors(): EpisodeColors {
+    val scheme = MaterialTheme.colorScheme
+    return remember(scheme) {
+        EpisodeColors(
+            primary = scheme.primary,
+            onPrimary = scheme.onPrimary,
+            background = scheme.background,
+            surface = scheme.surface,
+            surfaceAlt = scheme.surfaceVariant,
+            surfaceBorder = scheme.outlineVariant,
+            textPrimary = scheme.onBackground,
+            textSecondary = scheme.onSurface,
+            textMuted = scheme.onSurfaceVariant,
+            textMutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
+        )
+    }
+}

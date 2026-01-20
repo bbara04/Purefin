@@ -81,18 +81,19 @@ private fun GhostIconButton(
     contentDescription: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberSeriesColors()
     Box(
         modifier = modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(SeriesBackgroundDark.copy(alpha = 0.4f))
+            .background(colors.background.copy(alpha = 0.4f))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = Color.White
+            tint = colors.textPrimary
         )
     }
 }
@@ -103,10 +104,11 @@ internal fun SeriesHero(
     height: Dp,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberSeriesColors()
     Box(
         modifier = modifier
             .height(height)
-            .background(SeriesBackgroundDark)
+            .background(colors.background)
     ) {
         AsyncImage(
             model = imageUrl,
@@ -121,8 +123,8 @@ internal fun SeriesHero(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            SeriesBackgroundDark.copy(alpha = 0.4f),
-                            SeriesBackgroundDark
+                            colors.background.copy(alpha = 0.4f),
+                            colors.background
                         )
                     )
                 )
@@ -133,6 +135,7 @@ internal fun SeriesHero(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SeriesMetaChips(series: SeriesUiModel) {
+    val colors = rememberSeriesColors()
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -142,9 +145,9 @@ internal fun SeriesMetaChips(series: SeriesUiModel) {
         MetaChip(text = series.seasons)
         MetaChip(
             text = series.format,
-            background = SeriesPrimary.copy(alpha = 0.2f),
-            border = SeriesPrimary.copy(alpha = 0.3f),
-            textColor = SeriesPrimary
+            background = colors.primary.copy(alpha = 0.2f),
+            border = colors.primary.copy(alpha = 0.3f),
+            textColor = colors.primary
         )
     }
 }
@@ -152,23 +155,27 @@ internal fun SeriesMetaChips(series: SeriesUiModel) {
 @Composable
 private fun MetaChip(
     text: String,
-    background: Color = Color.White.copy(alpha = 0.1f),
-    border: Color = Color.White.copy(alpha = 0.05f),
-    textColor: Color = Color.White
+    background: Color? = null,
+    border: Color? = null,
+    textColor: Color? = null
 ) {
+    val colors = rememberSeriesColors()
+    val resolvedBackground = background ?: colors.surfaceAlt
+    val resolvedBorder = border ?: colors.surfaceBorder
+    val resolvedTextColor = textColor ?: colors.textSecondary
     Box(
         modifier = Modifier
             .height(28.dp)
             .wrapContentHeight(Alignment.CenterVertically)
             .clip(RoundedCornerShape(6.dp))
-            .background(background)
-            .border(width = 1.dp, color = border, shape = RoundedCornerShape(6.dp))
+            .background(resolvedBackground)
+            .border(width = 1.dp, color = resolvedBorder, shape = RoundedCornerShape(6.dp))
             .padding(horizontal = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = textColor,
+            color = resolvedTextColor,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
@@ -200,19 +207,20 @@ private fun ActionButton(
     icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberSeriesColors()
     Row(
         modifier = modifier
             .height(44.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.1f))
-            .border(1.dp, SeriesSurfaceBorder, RoundedCornerShape(12.dp))
+            .background(colors.surfaceAlt.copy(alpha = 0.6f))
+            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
             .clickable { },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+        Icon(imageVector = icon, contentDescription = null, tint = colors.textPrimary, modifier = Modifier.size(18.dp))
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Text(text = text, color = colors.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -232,8 +240,9 @@ internal fun SeasonTabs(seasons: List<SeriesSeasonUiModel>, modifier: Modifier =
 
 @Composable
 private fun SeasonTab(name: String, isSelected: Boolean) {
-    val color = if (isSelected) SeriesPrimary else SeriesMutedStrong
-    val borderColor = if (isSelected) SeriesPrimary else Color.Transparent
+    val colors = rememberSeriesColors()
+    val color = if (isSelected) colors.primary else colors.textMutedStrong
+    val borderColor = if (isSelected) colors.primary else Color.Transparent
     Column(
         modifier = Modifier
             .padding(bottom = 8.dp)
@@ -273,12 +282,13 @@ private fun EpisodeCard(
     viewModel: SeriesViewModel = hiltViewModel(),
     episode: SeriesEpisodeUiModel
 ) {
+    val colors = rememberSeriesColors()
     Column(
         modifier = Modifier
             .width(260.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(SeriesSurfaceDark.copy(alpha = 0.3f))
-            .border(1.dp, SeriesSurfaceBorder, RoundedCornerShape(16.dp))
+            .background(colors.surfaceAlt.copy(alpha = 0.6f))
+            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(16.dp))
             .padding(12.dp)
             .clickable { viewModel.onSelectEpisode(episode.id) },
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -288,8 +298,8 @@ private fun EpisodeCard(
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(12.dp))
-                .background(SeriesSurfaceDark)
-                .border(1.dp, SeriesSurfaceBorder, RoundedCornerShape(12.dp))
+                .background(colors.surface)
+                .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
         ) {
             AsyncImage(
                 model = episode.imageUrl,
@@ -300,12 +310,12 @@ private fun EpisodeCard(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.2f))
+                    .background(colors.background.copy(alpha = 0.2f))
             )
             Icon(
                 imageVector = Icons.Outlined.PlayCircle,
                 contentDescription = null,
-                tint = Color.White,
+                tint = colors.textPrimary,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(32.dp)
@@ -314,12 +324,12 @@ private fun EpisodeCard(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(6.dp)
-                    .background(Color.Black.copy(alpha = 0.8f), RoundedCornerShape(6.dp))
+                    .background(colors.background.copy(alpha = 0.8f), RoundedCornerShape(6.dp))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
                     text = episode.duration,
-                    color = Color.White,
+                    color = colors.textPrimary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -330,7 +340,7 @@ private fun EpisodeCard(
         ) {
             Text(
                 text = episode.title,
-                color = Color.White,
+                color = colors.textPrimary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -338,7 +348,7 @@ private fun EpisodeCard(
             )
             Text(
                 text = episode.description,
-                color = SeriesMutedStrong,
+                color = colors.textMutedStrong,
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
                 maxLines = 2,
@@ -363,6 +373,7 @@ internal fun CastRow(cast: List<SeriesCastMemberUiModel>, modifier: Modifier = M
 
 @Composable
 private fun CastCard(member: SeriesCastMemberUiModel) {
+    val colors = rememberSeriesColors()
     Column(
         modifier = Modifier.width(84.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -371,20 +382,20 @@ private fun CastCard(member: SeriesCastMemberUiModel) {
             modifier = Modifier
                 .aspectRatio(4f / 5f)
                 .clip(RoundedCornerShape(12.dp))
-                .background(SeriesSurfaceDark)
-                .border(1.dp, SeriesSurfaceBorder, RoundedCornerShape(12.dp))
+                .background(colors.surfaceAlt)
+                .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
         ) {
             if (member.imageUrl == null) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White.copy(alpha = 0.05f)),
+                        .background(colors.surfaceAlt.copy(alpha = 0.6f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Person,
                         contentDescription = null,
-                        tint = SeriesMutedStrong
+                        tint = colors.textMutedStrong
                     )
                 }
             } else {
@@ -398,7 +409,7 @@ private fun CastCard(member: SeriesCastMemberUiModel) {
         }
         Text(
             text = member.name,
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -406,7 +417,7 @@ private fun CastCard(member: SeriesCastMemberUiModel) {
         )
         Text(
             text = member.role,
-            color = SeriesMutedStrong,
+            color = colors.textMutedStrong,
             fontSize = 10.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -416,19 +427,20 @@ private fun CastCard(member: SeriesCastMemberUiModel) {
 
 @Composable
 private fun PlayButton(size: Dp, modifier: Modifier = Modifier) {
+    val colors = rememberSeriesColors()
     Box(
         modifier = modifier
             .size(size)
             .shadow(24.dp, CircleShape)
             .clip(CircleShape)
-            .background(SeriesPrimary)
+            .background(colors.primary)
             .clickable { },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.PlayArrow,
             contentDescription = "Play",
-            tint = SeriesBackgroundDark,
+            tint = colors.onPrimary,
             modifier = Modifier.size(36.dp)
         )
     }

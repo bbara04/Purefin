@@ -87,18 +87,19 @@ private fun GhostIconButton(
     contentDescription: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberEpisodeColors()
     Box(
         modifier = modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(EpisodeBackgroundDark.copy(alpha = 0.4f))
+            .background(colors.background.copy(alpha = 0.4f))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = Color.White
+            tint = colors.textPrimary
         )
     }
 }
@@ -110,10 +111,11 @@ internal fun EpisodeHero(
     isWide: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberEpisodeColors()
     Box(
         modifier = modifier
             .height(height)
-            .background(EpisodeBackgroundDark)
+            .background(colors.background)
     ) {
         AsyncImage(
             model = episode.heroImageUrl,
@@ -128,8 +130,8 @@ internal fun EpisodeHero(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            EpisodeBackgroundDark.copy(alpha = 0.4f),
-                            EpisodeBackgroundDark
+                            colors.background.copy(alpha = 0.4f),
+                            colors.background
                         )
                     )
                 )
@@ -142,7 +144,7 @@ internal fun EpisodeHero(
                         Brush.horizontalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                EpisodeBackgroundDark.copy(alpha = 0.8f)
+                                colors.background.copy(alpha = 0.8f)
                             )
                         )
                     )
@@ -163,10 +165,11 @@ internal fun EpisodeDetails(
     episode: EpisodeUiModel,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberEpisodeColors()
     Column(modifier = modifier) {
         Text(
             text = episode.title,
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             lineHeight = 38.sp
@@ -181,9 +184,9 @@ internal fun EpisodeDetails(
             MetaChip(text = episode.runtime)
             MetaChip(
                 text = episode.format,
-                background = EpisodePrimary.copy(alpha = 0.2f),
-                border = EpisodePrimary.copy(alpha = 0.3f),
-                textColor = EpisodePrimary
+                background = colors.primary.copy(alpha = 0.2f),
+                border = colors.primary.copy(alpha = 0.3f),
+                textColor = colors.primary
             )
         }
 
@@ -193,14 +196,14 @@ internal fun EpisodeDetails(
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Synopsis",
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = episode.synopsis,
-            color = EpisodeMuted,
+            color = colors.textMuted,
             fontSize = 15.sp,
             lineHeight = 22.sp
         )
@@ -211,7 +214,7 @@ internal fun EpisodeDetails(
         Spacer(modifier = Modifier.height(28.dp))
         Text(
             text = "Cast",
-            color = Color.White,
+            color = colors.textPrimary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
@@ -223,23 +226,27 @@ internal fun EpisodeDetails(
 @Composable
 private fun MetaChip(
     text: String,
-    background: Color = Color.White.copy(alpha = 0.1f),
-    border: Color = Color.Transparent,
-    textColor: Color = Color.White
+    background: Color? = null,
+    border: Color? = null,
+    textColor: Color? = null
 ) {
+    val colors = rememberEpisodeColors()
+    val resolvedBackground = background ?: colors.surfaceAlt
+    val resolvedBorder = border ?: Color.Transparent
+    val resolvedTextColor = textColor ?: colors.textSecondary
     Box(
         modifier = Modifier
             .height(28.dp)
             .wrapContentHeight(Alignment.CenterVertically)
             .clip(RoundedCornerShape(6.dp))
-            .background(background)
-            .border(width = 1.dp, color = border, shape = RoundedCornerShape(6.dp))
+            .background(resolvedBackground)
+            .border(width = 1.dp, color = resolvedBorder, shape = RoundedCornerShape(6.dp))
             .padding(horizontal = 12.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = textColor,
+            color = resolvedTextColor,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
@@ -248,12 +255,13 @@ private fun MetaChip(
 
 @Composable
 private fun PlaybackSettings(episode: EpisodeUiModel) {
+    val colors = rememberEpisodeColors()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(EpisodeSurfaceDark)
-            .border(1.dp, EpisodeSurfaceBorder, RoundedCornerShape(16.dp))
+            .background(colors.surfaceAlt)
+            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(16.dp))
             .padding(20.dp)
     ) {
         Row(
@@ -262,12 +270,12 @@ private fun PlaybackSettings(episode: EpisodeUiModel) {
             Icon(
                 imageVector = Icons.Outlined.Tune,
                 contentDescription = null,
-                tint = EpisodePrimary
+                tint = colors.primary
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Playback Settings",
-                color = EpisodeMuted,
+                color = colors.textMuted,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp
@@ -295,10 +303,11 @@ private fun SettingDropdown(
     icon: ImageVector,
     value: String
 ) {
+    val colors = rememberEpisodeColors()
     Column {
         Text(
             text = label,
-            color = EpisodeMutedStrong,
+            color = colors.textMutedStrong,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
@@ -308,18 +317,18 @@ private fun SettingDropdown(
                 .fillMaxWidth()
                 .height(48.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(EpisodeBackgroundDark)
-                .border(1.dp, EpisodeSurfaceBorder, RoundedCornerShape(12.dp))
+                .background(colors.surface)
+                .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = icon, contentDescription = null, tint = EpisodeMutedStrong)
+                Icon(imageVector = icon, contentDescription = null, tint = colors.textMutedStrong)
                 Spacer(modifier = Modifier.width(10.dp))
-                Text(text = value, color = Color.White, fontSize = 14.sp)
+                Text(text = value, color = colors.textPrimary, fontSize = 14.sp)
             }
-            Icon(imageVector = Icons.Outlined.ExpandMore, contentDescription = null, tint = EpisodeMutedStrong)
+            Icon(imageVector = Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.textMutedStrong)
         }
     }
 }
@@ -351,24 +360,26 @@ private fun ActionButton(
     icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberEpisodeColors()
     Row(
         modifier = modifier
             .height(48.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(1.dp, EpisodeSurfaceBorder, RoundedCornerShape(12.dp))
+            .background(colors.surfaceAlt.copy(alpha = 0.6f))
+            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
             .clickable { },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = Color.White)
+        Icon(imageVector = icon, contentDescription = null, tint = colors.textPrimary)
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(text = text, color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
 private fun CastRow(cast: List<CastMember>) {
+    val colors = rememberEpisodeColors()
     LazyRow(
         contentPadding = PaddingValues(horizontal = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -379,19 +390,19 @@ private fun CastRow(cast: List<CastMember>) {
                     modifier = Modifier
                         .aspectRatio(4f / 5f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(EpisodeSurfaceDark)
+                        .background(colors.surfaceAlt)
                 ) {
                     if (member.imageUrl == null) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.White.copy(alpha = 0.05f)),
+                                .background(colors.surfaceAlt.copy(alpha = 0.6f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Person,
                                 contentDescription = null,
-                                tint = EpisodeMutedStrong
+                                tint = colors.textMutedStrong
                             )
                         }
                     } else {
@@ -406,7 +417,7 @@ private fun CastRow(cast: List<CastMember>) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = member.name,
-                    color = Color.White,
+                    color = colors.textPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -414,7 +425,7 @@ private fun CastRow(cast: List<CastMember>) {
                 )
                 Text(
                     text = member.role,
-                    color = EpisodeMutedStrong,
+                    color = colors.textMutedStrong,
                     fontSize = 10.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -430,6 +441,7 @@ private fun PlayButton(
     modifier: Modifier = Modifier,
     viewModel: EpisodeScreenViewModel = hiltViewModel()
 ) {
+    val colors = rememberEpisodeColors()
     val context = LocalContext.current
     val episodeItem = viewModel.episode.collectAsState()
 
@@ -438,7 +450,7 @@ private fun PlayButton(
             .size(size)
             .shadow(24.dp, CircleShape)
             .clip(CircleShape)
-            .background(EpisodePrimary)
+            .background(colors.primary)
             .clickable {
                 val intent = Intent(context, PlayerActivity::class.java)
                 intent.putExtra("MEDIA_ID", episodeItem.value!!.id.toString())
@@ -449,7 +461,7 @@ private fun PlayButton(
         Icon(
             imageVector = Icons.Filled.PlayArrow,
             contentDescription = "Play",
-            tint = EpisodeBackgroundDark,
+            tint = colors.onPrimary,
             modifier = Modifier.size(42.dp)
         )
     }
@@ -457,18 +469,19 @@ private fun PlayButton(
 
 @Composable
 internal fun FloatingPlayButton(modifier: Modifier = Modifier) {
+    val colors = rememberEpisodeColors()
     Box(
         modifier = modifier
             .size(56.dp)
             .shadow(20.dp, CircleShape)
             .clip(CircleShape)
-            .background(EpisodePrimary),
+            .background(colors.primary),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.PlayArrow,
             contentDescription = "Play",
-            tint = EpisodeBackgroundDark
+            tint = colors.onPrimary
         )
     }
 }

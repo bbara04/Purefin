@@ -22,11 +22,12 @@ fun EpisodeCard(
     episode: EpisodeUiModel,
     modifier: Modifier = Modifier,
 ) {
+    val colors = rememberEpisodeColors()
 
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(EpisodeBackgroundDark)
+            .background(colors.background)
     ) {
         val isWide = maxWidth >= 900.dp
         val contentPadding = if (isWide) 32.dp else 20.dp
