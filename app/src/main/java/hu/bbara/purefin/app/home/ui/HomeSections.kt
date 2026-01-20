@@ -39,7 +39,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import hu.bbara.purefin.app.home.HomePageViewModel
 import hu.bbara.purefin.common.ui.PosterCard
-import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.player.PlayerActivity
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
@@ -96,9 +95,7 @@ fun ContinueWatchingCard(
                 .background(colors.card)
         ) {
             AsyncImage(
-                model = JellyfinImageHelper.toImageUrl(
-                    url = "https://jellyfin.bbara.hu", itemId = item.id, type = ImageType.PRIMARY
-                ),
+                model = viewModel.getImageUrl(itemId = item.id, type = ImageType.PRIMARY),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()

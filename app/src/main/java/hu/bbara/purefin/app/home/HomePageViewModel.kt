@@ -9,6 +9,7 @@ import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.LibraryItem
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.navigation.ItemDto
 import hu.bbara.purefin.navigation.LibraryDto
 import hu.bbara.purefin.navigation.NavigationManager
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ImageType
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import javax.inject.Inject
@@ -31,6 +33,8 @@ class HomePageViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
     private val jellyfinApiClient: JellyfinApiClient
 ) : ViewModel() {
+
+    private val _url = MutableStateFlow("")
 
     private val _continueWatching = MutableStateFlow<List<ContinueWatchingItem>>(emptyList())
     val continueWatching = _continueWatching.asStateFlow()
@@ -45,6 +49,11 @@ class HomePageViewModel @Inject constructor(
     val latestLibraryContent = _latestLibraryContent.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            userSessionRepository.serverUrl.collect {
+                _url.value = it
+            }
+        }
         loadHomePageData()
     }
 
@@ -202,6 +211,14 @@ class HomePageViewModel @Inject constructor(
         loadLibraries()
         loadAllLibraryItems()
         loadAllShownLibraryItems()
+    }
+
+    fun getImageUrl(itemId: UUID, type: ImageType): String {
+        return JellyfinImageHelper.toImageUrl(
+            url = _url.value,
+            itemId = itemId,
+            type = type
+        )
     }
 
     fun logout() {

@@ -23,7 +23,6 @@ import hu.bbara.purefin.app.home.HomePageViewModel
 import hu.bbara.purefin.app.home.ui.HomeColors
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.app.home.ui.rememberHomeColors
-import hu.bbara.purefin.image.JellyfinImageHelper
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
 
@@ -48,11 +47,7 @@ fun PosterCard(
     ) {
 
         AsyncImage(
-            model = JellyfinImageHelper.toImageUrl(
-                url = "https://jellyfin.bbara.hu",
-                itemId = item.imageItemId,
-                type = ImageType.PRIMARY
-            ),
+            model = viewModel.getImageUrl(item.id, ImageType.PRIMARY),
             contentDescription = null,
             modifier = Modifier
                 .aspectRatio(2f / 3f)
