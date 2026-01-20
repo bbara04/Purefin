@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,11 +40,12 @@ import androidx.compose.ui.unit.sp
 fun PurefinWaitingScreen(
     modifier: Modifier = Modifier
 ) {
-    val accentColor = Color(0xFFBD542E)
-    val backgroundColor = Color(0xFF141517)
-    val surfaceColor = Color(0xFF1E2124)
-    val textPrimary = Color.White
-    val textSecondary = Color(0xFF9EA3A8)
+    val scheme = MaterialTheme.colorScheme
+    val accentColor = scheme.primary
+    val backgroundColor = scheme.background
+    val surfaceColor = scheme.surface
+    val textPrimary = scheme.onSurface
+    val textSecondary = scheme.onSurfaceVariant
 
     val transition = rememberInfiniteTransition(label = "waiting-pulse")
     val pulseScale = transition.animateFloat(
@@ -112,7 +114,7 @@ fun PurefinWaitingScreen(
                     Icon(
                         imageVector = Icons.Outlined.Movie,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = scheme.onPrimary,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -121,13 +123,13 @@ fun PurefinWaitingScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Connecting",
+                text = "Just a moment",
                 color = textPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Summoning the media gnomes...",
+                text = "I am doing all I can...",
                 color = textSecondary,
                 fontSize = 14.sp
             )

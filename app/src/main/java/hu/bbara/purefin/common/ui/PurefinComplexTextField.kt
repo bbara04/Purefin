@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -30,15 +31,12 @@ fun PurefinComplexTextField(
     trailingIcon: ImageVector? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
-    val JellyfinOrange = Color(0xFFBD542E)
-    val JellyfinBg = Color(0xFF141517)
-    val JellyfinSurface = Color(0xFF1E2124)
-    val TextSecondary = Color(0xFF9EA3A8)
+    val scheme = MaterialTheme.colorScheme
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            color = Color.White,
+            color = scheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -49,22 +47,22 @@ fun PurefinComplexTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp)),
-            placeholder = { Text(placeholder, color = TextSecondary) },
+            placeholder = { Text(placeholder, color = scheme.onSurfaceVariant) },
             leadingIcon = if (leadingIcon != null) {
-                { Icon(leadingIcon, contentDescription = null, tint = TextSecondary) }
+                { Icon(leadingIcon, contentDescription = null, tint = scheme.onSurfaceVariant) }
             } else null,
             trailingIcon = if (trailingIcon != null) {
-                { Icon(Icons.Default.Visibility, contentDescription = null, tint = TextSecondary) }
+                { Icon(Icons.Default.Visibility, contentDescription = null, tint = scheme.onSurfaceVariant) }
             } else null,
             visualTransformation = visualTransformation,
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = JellyfinSurface,
-                unfocusedContainerColor = JellyfinSurface,
+                focusedContainerColor = scheme.surfaceVariant,
+                unfocusedContainerColor = scheme.surfaceVariant,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                cursorColor = JellyfinOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                cursorColor = scheme.primary,
+                focusedTextColor = scheme.onSurface,
+                unfocusedTextColor = scheme.onSurface
             ))
     }
 }

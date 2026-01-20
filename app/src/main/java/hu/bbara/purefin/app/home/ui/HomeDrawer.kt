@@ -176,10 +176,10 @@ fun HomeDrawerFooter (
         HomeAvatar(
             size = 32.dp,
             borderWidth = 1.dp,
-            borderColor = Color.White.copy(alpha = 0.1f),
+            borderColor = colors.divider,
             backgroundColor = colors.avatarBackground,
             icon = Icons.Outlined.Person,
-            iconTint = Color.White
+            iconTint = colors.textPrimary
         )
         Column(modifier = Modifier.padding(start = 12.dp)
             .clickable {viewModel.logout()}) {

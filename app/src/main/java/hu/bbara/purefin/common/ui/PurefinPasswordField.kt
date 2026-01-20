@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -32,17 +33,14 @@ fun PurefinPasswordField(
     placeholder: String,
     leadingIcon: ImageVector,
 ) {
-    val JellyfinOrange = Color(0xFFBD542E)
-    val JellyfinBg = Color(0xFF141517)
-    val JellyfinSurface = Color(0xFF1E2124)
-    val TextSecondary = Color(0xFF9EA3A8)
+    val scheme = MaterialTheme.colorScheme
 
     val showField = remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            color = Color.White,
+            color = scheme.onBackground,
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -53,25 +51,25 @@ fun PurefinPasswordField(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp)),
-            placeholder = { Text(placeholder, color = TextSecondary) },
-            leadingIcon = { Icon(leadingIcon, contentDescription = null, tint = TextSecondary) },
+            placeholder = { Text(placeholder, color = scheme.onSurfaceVariant) },
+            leadingIcon = { Icon(leadingIcon, contentDescription = null, tint = scheme.onSurfaceVariant) },
             trailingIcon =
                 {
                     IconButton(
                         onClick = { showField.value = !showField.value },
                     ) {
-                        Icon(Icons.Default.Visibility, contentDescription = null, tint = TextSecondary)
+                        Icon(Icons.Default.Visibility, contentDescription = null, tint = scheme.onSurfaceVariant)
                     }
                 },
             visualTransformation = if (showField.value) VisualTransformation.None else PasswordVisualTransformation(),
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = JellyfinSurface,
-                unfocusedContainerColor = JellyfinSurface,
+                focusedContainerColor = scheme.surfaceVariant,
+                unfocusedContainerColor = scheme.surfaceVariant,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                cursorColor = JellyfinOrange,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+                cursorColor = scheme.primary,
+                focusedTextColor = scheme.onSurface,
+                unfocusedTextColor = scheme.onSurface
             )
         )
     }

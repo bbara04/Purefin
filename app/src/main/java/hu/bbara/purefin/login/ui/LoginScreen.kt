@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,7 +33,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,9 +49,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val JellyfinOrange = Color(0xFFBD542E)
-    val JellyfinBg = Color(0xFF141517)
-    val TextSecondary = Color(0xFF9EA3A8)
+    val scheme = MaterialTheme.colorScheme
 
     // Observe ViewModel state
     val serverUrl by viewModel.url.collectAsState()
@@ -67,7 +65,7 @@ fun LoginScreen(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .background(JellyfinBg)
+                .background(scheme.background)
                 .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -78,27 +76,27 @@ fun LoginScreen(
             Box(
                 modifier = Modifier
                     .size(100.dp)
-                    .background(JellyfinOrange, RoundedCornerShape(24.dp)),
+                    .background(scheme.primary, RoundedCornerShape(24.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Movie, // Replace with actual logo resource
                     contentDescription = "Logo",
-                    tint = Color.White,
+                    tint = scheme.onPrimary,
                     modifier = Modifier.size(60.dp)
                 )
             }
 
             Text(
                 text = "Jellyfin",
-                color = Color.White,
+                color = scheme.onBackground,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 16.dp)
             )
             Text(
                 text = "PERSONAL MEDIA SYSTEM",
-                color = TextSecondary,
+                color = scheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 letterSpacing = 2.sp
             )
@@ -108,14 +106,14 @@ fun LoginScreen(
             // Form Section
             Text(
                 text = "Connect to Server",
-                color = Color.White,
+                color = scheme.onBackground,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.Start)
             )
             Text(
                 text = "Enter your details to access your library",
-                color = TextSecondary,
+                color = scheme.onSurfaceVariant,
                 fontSize = 14.sp,
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -175,12 +173,12 @@ fun LoginScreen(
             ) {
                 TextButton(onClick = {}) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(18.dp))
-                        Text(" Discover Servers", color = TextSecondary)
+                        Icon(Icons.Default.Search, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                        Text(" Discover Servers", color = scheme.onSurfaceVariant)
                     }
                 }
                 TextButton(onClick = {}) {
-                    Text("Need Help?", color = TextSecondary)
+                    Text("Need Help?", color = scheme.onSurfaceVariant)
                 }
             }
 

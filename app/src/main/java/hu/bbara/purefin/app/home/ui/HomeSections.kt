@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -112,14 +111,14 @@ fun ContinueWatchingCard(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.2f))
+                    .background(colors.textPrimary.copy(alpha = 0.2f))
             )
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
                     .height(4.dp)
-                    .background(Color.White.copy(alpha = 0.2f))
+                    .background(colors.textPrimary.copy(alpha = 0.2f))
             ) {
                 Box(
                     modifier = Modifier
