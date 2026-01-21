@@ -19,20 +19,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -40,10 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,49 +43,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import hu.bbara.purefin.common.ui.MediaActionButtons
+import hu.bbara.purefin.common.ui.MediaCastMember
+import hu.bbara.purefin.common.ui.MediaCastRow
+import hu.bbara.purefin.common.ui.MediaGhostIconButton
+import hu.bbara.purefin.common.ui.MediaHero
+import hu.bbara.purefin.common.ui.MediaMetaChip
+import hu.bbara.purefin.common.ui.toMediaDetailColors
 
 @Composable
 internal fun SeriesTopBar(
     viewModel: SeriesViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberSeriesColors().toMediaDetailColors()
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GhostIconButton(
+        MediaGhostIconButton(
+            colors = colors,
             onClick = { viewModel.onBack() },
             icon = Icons.Outlined.ArrowBack,
             contentDescription = "Back")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast")
-            GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More")
+            MediaGhostIconButton(colors = colors, icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
+            MediaGhostIconButton(colors = colors, icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
-    }
-}
-
-@Composable
-private fun GhostIconButton(
-    onClick: () -> Unit = {},
-    icon: ImageVector,
-    contentDescription: String,
-    modifier: Modifier = Modifier
-) {
-    val colors = rememberSeriesColors()
-    Box(
-        modifier = modifier
-            .size(40.dp)
-            .clip(CircleShape)
-            .background(colors.background.copy(alpha = 0.4f))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = colors.textPrimary
-        )
     }
 }
 
@@ -104,46 +80,31 @@ internal fun SeriesHero(
     height: Dp,
     modifier: Modifier = Modifier
 ) {
-    val colors = rememberSeriesColors()
-    Box(
-        modifier = modifier
-            .height(height)
-            .background(colors.background)
-    ) {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            colors.background.copy(alpha = 0.4f),
-                            colors.background
-                        )
-                    )
-                )
-        )
-    }
+    val colors = rememberSeriesColors().toMediaDetailColors()
+    MediaHero(
+        imageUrl = imageUrl,
+        colors = colors,
+        height = height,
+        isWide = false,
+        modifier = modifier,
+        showPlayButton = false,
+        horizontalGradientOnWide = false
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SeriesMetaChips(series: SeriesUiModel) {
-    val colors = rememberSeriesColors()
+    val colors = rememberSeriesColors().toMediaDetailColors()
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        MetaChip(text = series.year)
-        MetaChip(text = series.rating)
-        MetaChip(text = series.seasons)
-        MetaChip(
+        MediaMetaChip(colors = colors, text = series.year)
+        MediaMetaChip(colors = colors, text = series.rating)
+        MediaMetaChip(colors = colors, text = series.seasons)
+        MediaMetaChip(
+            colors = colors,
             text = series.format,
             background = colors.primary.copy(alpha = 0.2f),
             border = colors.primary.copy(alpha = 0.3f),
@@ -153,75 +114,14 @@ internal fun SeriesMetaChips(series: SeriesUiModel) {
 }
 
 @Composable
-private fun MetaChip(
-    text: String,
-    background: Color? = null,
-    border: Color? = null,
-    textColor: Color? = null
-) {
-    val colors = rememberSeriesColors()
-    val resolvedBackground = background ?: colors.surfaceAlt
-    val resolvedBorder = border ?: colors.surfaceBorder
-    val resolvedTextColor = textColor ?: colors.textSecondary
-    Box(
-        modifier = Modifier
-            .height(28.dp)
-            .wrapContentHeight(Alignment.CenterVertically)
-            .clip(RoundedCornerShape(6.dp))
-            .background(resolvedBackground)
-            .border(width = 1.dp, color = resolvedBorder, shape = RoundedCornerShape(6.dp))
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = resolvedTextColor,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
 internal fun SeriesActionButtons(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        ActionButton(
-            text = "Watchlist",
-            icon = Icons.Outlined.Add,
-            modifier = Modifier.weight(1f)
-        )
-        ActionButton(
-            text = "Download",
-            icon = Icons.Outlined.Download,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun ActionButton(
-    text: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier
-) {
-    val colors = rememberSeriesColors()
-    Row(
-        modifier = modifier
-            .height(44.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(colors.surfaceAlt.copy(alpha = 0.6f))
-            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
-            .clickable { },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Icon(imageVector = icon, contentDescription = null, tint = colors.textPrimary, modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, color = colors.textPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-    }
+    val colors = rememberSeriesColors().toMediaDetailColors()
+    MediaActionButtons(
+        colors = colors,
+        modifier = modifier,
+        height = 44.dp,
+        textSize = 13.sp
+    )
 }
 
 @Composable
@@ -360,88 +260,19 @@ private fun EpisodeCard(
 
 @Composable
 internal fun CastRow(cast: List<SeriesCastMemberUiModel>, modifier: Modifier = Modifier) {
-    LazyRow(
+    val colors = rememberSeriesColors().toMediaDetailColors()
+    MediaCastRow(
+        colors = colors,
+        cast = cast.map { it.toMediaCastMember() },
         modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(cast) { member ->
-            CastCard(member = member)
-        }
-    }
+        cardWidth = 84.dp,
+        nameSize = 11.sp,
+        roleSize = 10.sp
+    )
 }
 
-@Composable
-private fun CastCard(member: SeriesCastMemberUiModel) {
-    val colors = rememberSeriesColors()
-    Column(
-        modifier = Modifier.width(84.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .aspectRatio(4f / 5f)
-                .clip(RoundedCornerShape(12.dp))
-                .background(colors.surfaceAlt)
-                .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
-        ) {
-            if (member.imageUrl == null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(colors.surfaceAlt.copy(alpha = 0.6f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = colors.textMutedStrong
-                    )
-                }
-            } else {
-                AsyncImage(
-                    model = member.imageUrl,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
-        }
-        Text(
-            text = member.name,
-            color = colors.textPrimary,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = member.role,
-            color = colors.textMutedStrong,
-            fontSize = 10.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-private fun PlayButton(size: Dp, modifier: Modifier = Modifier) {
-    val colors = rememberSeriesColors()
-    Box(
-        modifier = modifier
-            .size(size)
-            .shadow(24.dp, CircleShape)
-            .clip(CircleShape)
-            .background(colors.primary)
-            .clickable { },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.PlayArrow,
-            contentDescription = "Play",
-            tint = colors.onPrimary,
-            modifier = Modifier.size(36.dp)
-        )
-    }
-}
+private fun SeriesCastMemberUiModel.toMediaCastMember() = MediaCastMember(
+    name = name,
+    role = role,
+    imageUrl = imageUrl
+)

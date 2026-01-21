@@ -45,7 +45,6 @@ fun PosterCard(
         modifier = Modifier
             .width(144.dp)
     ) {
-
         AsyncImage(
             model = viewModel.getImageUrl(item.id, ImageType.PRIMARY),
             contentDescription = null,

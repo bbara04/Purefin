@@ -2,60 +2,46 @@ package hu.bbara.purefin.app.content.movie
 
 import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
-import androidx.compose.material.icons.outlined.ClosedCaption
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.VolumeUp
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.AsyncImage
+import hu.bbara.purefin.common.ui.MediaActionButtons
+import hu.bbara.purefin.common.ui.MediaCastMember
+import hu.bbara.purefin.common.ui.MediaCastRow
+import hu.bbara.purefin.common.ui.MediaFloatingPlayButton
+import hu.bbara.purefin.common.ui.MediaGhostIconButton
+import hu.bbara.purefin.common.ui.MediaHero
+import hu.bbara.purefin.common.ui.MediaMetaChip
+import hu.bbara.purefin.common.ui.MediaPlaybackSettings
+import hu.bbara.purefin.common.ui.toMediaDetailColors
 import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
@@ -63,44 +49,22 @@ internal fun MovieTopBar(
     viewModel: MovieScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
+    val colors = rememberMovieColors().toMediaDetailColors()
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GhostIconButton(
-            onClick = { viewModel.onBack() },
+        MediaGhostIconButton(
+            colors = colors,
             icon = Icons.Outlined.ArrowBack,
-            contentDescription = "Back"
+            contentDescription = "Back",
+            onClick = { viewModel.onBack() }
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast")
-            GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More")
+            MediaGhostIconButton(colors = colors, icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
+            MediaGhostIconButton(colors = colors, icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
-    }
-}
-
-@Composable
-private fun GhostIconButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    val colors = rememberMovieColors()
-    Box(
-        modifier = modifier
-            .size(40.dp)
-            .clip(CircleShape)
-            .background(colors.background.copy(alpha = 0.4f))
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = colors.textPrimary
-        )
     }
 }
 
@@ -109,53 +73,20 @@ internal fun MovieHero(
     movie: MovieUiModel,
     height: Dp,
     isWide: Boolean,
+    onPlayClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colors = rememberMovieColors()
-    Box(
-        modifier = modifier
-            .height(height)
-            .background(colors.background)
-    ) {
-        AsyncImage(
-            model = movie.heroImageUrl,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            colors.background.copy(alpha = 0.4f),
-                            colors.background
-                        )
-                    )
-                )
-        )
-        if (isWide) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Transparent, colors.background.copy(alpha = 0.8f)
-                            )
-                        )
-                    )
-            )
-        }
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            PlayButton(size = if (isWide) 96.dp else 80.dp)
-        }
-    }
+    val colors = rememberMovieColors().toMediaDetailColors()
+    MediaHero(
+        imageUrl = movie.heroImageUrl,
+        colors = colors,
+        height = height,
+        isWide = isWide,
+        modifier = modifier,
+        showPlayButton = true,
+        playButtonSize = if (isWide) 96.dp else 80.dp,
+        onPlayClick = onPlayClick
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -164,7 +95,7 @@ internal fun MovieDetails(
     movie: MovieUiModel,
     modifier: Modifier = Modifier
 ) {
-    val colors = rememberMovieColors()
+    val colors = rememberMovieColors().toMediaDetailColors()
     Column(modifier = modifier) {
         Text(
             text = movie.title,
@@ -178,10 +109,11 @@ internal fun MovieDetails(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MetaChip(text = movie.year)
-            MetaChip(text = movie.rating)
-            MetaChip(text = movie.runtime)
-            MetaChip(
+            MediaMetaChip(colors = colors, text = movie.year)
+            MediaMetaChip(colors = colors, text = movie.rating)
+            MediaMetaChip(colors = colors, text = movie.runtime)
+            MediaMetaChip(
+                colors = colors,
                 text = movie.format,
                 background = colors.primary.copy(alpha = 0.2f),
                 border = colors.primary.copy(alpha = 0.3f),
@@ -190,7 +122,11 @@ internal fun MovieDetails(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        PlaybackSettings(movie = movie)
+        MediaPlaybackSettings(
+            colors = colors,
+            audioTrack = movie.audioTrack,
+            subtitles = movie.subtitles
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
         Text(
@@ -208,7 +144,7 @@ internal fun MovieDetails(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-        ActionButtons()
+        MediaActionButtons(colors = colors)
 
         Spacer(modifier = Modifier.height(28.dp))
         Text(
@@ -218,269 +154,108 @@ internal fun MovieDetails(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(12.dp))
-        CastRow(cast = movie.cast)
-    }
-}
-
-@Composable
-private fun MetaChip(
-    text: String,
-    background: Color? = null,
-    border: Color? = null,
-    textColor: Color? = null
-) {
-    val colors = rememberMovieColors()
-    val resolvedBackground = background ?: colors.surfaceAlt
-    val resolvedBorder = border ?: Color.Transparent
-    val resolvedTextColor = textColor ?: colors.textSecondary
-    Box(
-        modifier = Modifier
-            .height(28.dp)
-            .wrapContentHeight(Alignment.CenterVertically)
-            .clip(RoundedCornerShape(6.dp))
-            .background(resolvedBackground)
-            .border(width = 1.dp, color = resolvedBorder, shape = RoundedCornerShape(6.dp))
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = resolvedTextColor,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
+        MediaCastRow(
+            colors = colors,
+            cast = movie.cast.map { it.toMediaCastMember() }
         )
     }
 }
 
 @Composable
-private fun PlaybackSettings(movie: MovieUiModel) {
-    val colors = rememberMovieColors()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(colors.surfaceAlt)
-            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(16.dp))
-            .padding(20.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Tune,
-                contentDescription = null,
-                tint = colors.primary
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Playback Settings",
-                color = colors.textMuted,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            SettingDropdown(
-                label = "Audio Track",
-                icon = Icons.Outlined.VolumeUp,
-                value = movie.audioTrack
-            )
-            SettingDropdown(
-                label = "Subtitles",
-                icon = Icons.Outlined.ClosedCaption,
-                value = movie.subtitles
-            )
-        }
-    }
-}
-
-@Composable
-private fun SettingDropdown(
-    label: String,
-    icon: ImageVector,
-    value: String
-) {
-    val colors = rememberMovieColors()
-    Column {
-        Text(
-            text = label,
-            color = colors.textMutedStrong,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(colors.surface)
-                .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = icon, contentDescription = null, tint = colors.textMutedStrong)
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(text = value, color = colors.textPrimary, fontSize = 14.sp)
-            }
-            Icon(imageVector = Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.textMutedStrong)
-        }
-    }
-}
-
-@Composable
-private fun ActionButtons() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        ActionButton(
-            text = "Watchlist",
-            icon = Icons.Outlined.Add,
-            modifier = Modifier.weight(1f)
-        )
-        ActionButton(
-            text = "Download",
-            icon = Icons.Outlined.Download,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun ActionButton(
-    text: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier
-) {
-    val colors = rememberMovieColors()
-    Row(
-        modifier = modifier
-            .height(48.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(colors.surfaceAlt.copy(alpha = 0.6f))
-            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
-            .clickable { },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Icon(imageVector = icon, contentDescription = null, tint = colors.textPrimary)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, color = colors.textPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-private fun CastRow(cast: List<CastMember>) {
-    val colors = rememberMovieColors()
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(cast) { member ->
-            Column(modifier = Modifier.width(96.dp)) {
-                Box(
-                    modifier = Modifier
-                        .aspectRatio(4f / 5f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(colors.surfaceAlt)
-                ) {
-                    if (member.imageUrl == null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(colors.surfaceAlt.copy(alpha = 0.6f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Person,
-                                contentDescription = null,
-                                tint = colors.textMutedStrong
-                            )
-                        }
-                    } else {
-                        AsyncImage(
-                            model = member.imageUrl,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = member.name,
-                    color = colors.textPrimary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = member.role,
-                    color = colors.textMutedStrong,
-                    fontSize = 10.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PlayButton(
-    size: Dp,
+fun MovieCard(
+    movie: MovieUiModel,
     modifier: Modifier = Modifier,
-    viewModel: MovieScreenViewModel = hiltViewModel()
 ) {
-    val colors = rememberMovieColors()
+    val colors = rememberMovieColors().toMediaDetailColors()
     val context = LocalContext.current
-    val movieId = viewModel.movie.collectAsState()
-
-    Box(
-        modifier = modifier
-            .size(size)
-            .shadow(24.dp, CircleShape)
-            .clip(CircleShape)
-            .background(colors.primary)
-            .clickable {
-                val intent = Intent(context, PlayerActivity::class.java)
-                intent.putExtra("MEDIA_ID", movieId.value!!.id.toString())
-                context.startActivity(intent)
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.PlayArrow,
-            contentDescription = "Play",
-            tint = colors.onPrimary,
-            modifier = Modifier.size(42.dp)
-        )
+    val playAction = remember(movie.id) {
+        {
+            val intent = Intent(context, PlayerActivity::class.java)
+            intent.putExtra("MEDIA_ID", movie.id.toString())
+            context.startActivity(intent)
+        }
     }
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.background)
+    ) {
+        val isWide = maxWidth >= 900.dp
+        val contentPadding = if (isWide) 32.dp else 20.dp
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isWide) {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    MovieHero(
+                        movie = movie,
+                        height = 300.dp,
+                        isWide = true,
+                        onPlayClick = playAction,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(0.5f)
+                    )
+                    MovieDetails(
+                        movie = movie,
+                        modifier = Modifier
+                            .weight(0.5f)
+                            .fillMaxHeight()
+                            .verticalScroll(rememberScrollState())
+                            .padding(
+                                start = contentPadding,
+                                end = contentPadding,
+                                top = 96.dp,
+                                bottom = 32.dp
+                            )
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    MovieHero(
+                        movie = movie,
+                        height = 400.dp,
+                        isWide = false,
+                        onPlayClick = playAction,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    MovieDetails(
+                        movie = movie,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = contentPadding)
+                            .offset(y = (-48).dp)
+                            .padding(bottom = 96.dp)
+                    )
+                }
+            }
+
+            MovieTopBar(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
+            )
+
+            if (!isWide) {
+                MediaFloatingPlayButton(
+                    colors = colors,
+                    onClick = playAction,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(20.dp)
+                )
+            }
+        }
+    }
+
 }
 
-@Composable
-internal fun FloatingPlayButton(modifier: Modifier = Modifier) {
-    val colors = rememberMovieColors()
-    Box(
-        modifier = modifier
-            .size(56.dp)
-            .shadow(20.dp, CircleShape)
-            .clip(CircleShape)
-            .background(colors.primary),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.PlayArrow,
-            contentDescription = "Play",
-            tint = colors.onPrimary
-        )
-    }
-}
+private fun CastMember.toMediaCastMember() = MediaCastMember(
+    name = name,
+    role = role,
+    imageUrl = imageUrl
+)
