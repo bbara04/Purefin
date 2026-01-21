@@ -1,34 +1,20 @@
 package hu.bbara.purefin.app.content.movie
 
-import android.content.Intent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,13 +22,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaActionButtons
 import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
-import hu.bbara.purefin.common.ui.MediaFloatingPlayButton
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaPlaybackSettings
-import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.toMediaDetailColors
-import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
 internal fun MovieTopBar(
@@ -138,100 +121,6 @@ internal fun MovieDetails(
             cast = movie.cast.map { it.toMediaCastMember() }
         )
     }
-}
-
-
-
-@Composable
-fun MovieCard(
-    movie: MovieUiModel,
-    modifier: Modifier = Modifier,
-) {
-    val context = LocalContext.current
-    val playAction = remember(movie.id) {
-        {
-            val intent = Intent(context, PlayerActivity::class.java)
-            intent.putExtra("MEDIA_ID", movie.id.toString())
-            context.startActivity(intent)
-        }
-    }
-
-    BoxWithConstraints(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        val isWide = maxWidth >= 900.dp
-        val contentPadding = if (isWide) 32.dp else 20.dp
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (isWide) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    MediaHero(
-                        imageUrl = movie.heroImageUrl,
-                        backgroundColor = MaterialTheme.colorScheme.background,
-                        height = 300.dp,
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(0.5f)
-                    )
-                    MovieDetails(
-                        movie = movie,
-                        modifier = Modifier
-                            .weight(0.5f)
-                            .fillMaxHeight()
-                            .verticalScroll(rememberScrollState())
-                            .padding(
-                                start = contentPadding,
-                                end = contentPadding,
-                                top = 96.dp,
-                                bottom = 32.dp
-                            )
-                    )
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    MediaHero(
-                        imageUrl = movie.heroImageUrl,
-                        height = 400.dp,
-                        backgroundColor = MaterialTheme.colorScheme.background,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    MovieDetails(
-                        movie = movie,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = contentPadding)
-                            .offset(y = (-48).dp)
-                            .padding(bottom = 96.dp)
-                    )
-                }
-            }
-
-            MovieTopBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-            )
-
-            if (!isWide) {
-                MediaFloatingPlayButton(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    onContainerColor = MaterialTheme.colorScheme.onPrimary,
-
-                    onClick = playAction,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(20.dp)
-                )
-            }
-        }
-    }
-
 }
 
 private fun CastMember.toMediaCastMember() = MediaCastMember(
