@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -125,71 +124,6 @@ fun MediaGhostIconButton(
             contentDescription = contentDescription,
             tint = colors.textPrimary
         )
-    }
-}
-
-@Composable
-fun MediaHero(
-    imageUrl: String,
-    colors: MediaDetailColors,
-    height: Dp,
-    isWide: Boolean,
-    modifier: Modifier = Modifier,
-    showPlayButton: Boolean = false,
-    playButtonSize: Dp = 80.dp,
-    onPlayClick: (() -> Unit)? = null,
-    horizontalGradientOnWide: Boolean = true
-) {
-    Box(
-        modifier = modifier
-            .height(height)
-            .background(colors.background)
-    ) {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            colors.background.copy(alpha = 0.4f),
-                            colors.background
-                        )
-                    )
-                )
-        )
-        if (horizontalGradientOnWide && isWide) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                colors.background.copy(alpha = 0.8f)
-                            )
-                        )
-                    )
-            )
-        }
-        if (showPlayButton && onPlayClick != null) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                MediaPlayButton(
-                    colors = colors,
-                    size = playButtonSize,
-                    onClick = onPlayClick
-                )
-            }
-        }
     }
 }
 
@@ -469,7 +403,8 @@ fun MediaPlayButton(
 
 @Composable
 fun MediaFloatingPlayButton(
-    colors: MediaDetailColors,
+    containerColor: Color,
+    onContainerColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -478,14 +413,14 @@ fun MediaFloatingPlayButton(
             .size(56.dp)
             .shadow(20.dp, CircleShape)
             .clip(CircleShape)
-            .background(colors.primary)
+            .background(containerColor)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.PlayArrow,
             contentDescription = "Play",
-            tint = colors.onPrimary
+            tint = onContainerColor
         )
     }
 }

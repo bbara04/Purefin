@@ -27,9 +27,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,9 +38,9 @@ import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaFloatingPlayButton
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
-import hu.bbara.purefin.common.ui.MediaHero
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaPlaybackSettings
+import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.toMediaDetailColors
 import hu.bbara.purefin.player.PlayerActivity
 
@@ -66,27 +66,6 @@ internal fun EpisodeTopBar(
             MediaGhostIconButton(colors = colors, icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
     }
-}
-
-@Composable
-internal fun EpisodeHero(
-    episode: EpisodeUiModel,
-    height: Dp,
-    isWide: Boolean,
-    onPlayClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val colors = rememberEpisodeColors().toMediaDetailColors()
-    MediaHero(
-        imageUrl = episode.heroImageUrl,
-        colors = colors,
-        height = height,
-        isWide = isWide,
-        modifier = modifier,
-        showPlayButton = true,
-        playButtonSize = if (isWide) 96.dp else 80.dp,
-        onPlayClick = onPlayClick
-    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -164,6 +143,7 @@ internal fun EpisodeDetails(
 @Composable
 fun EpisodeCard(
     episode: EpisodeUiModel,
+    backGroundColor: Color,
     modifier: Modifier = Modifier,
 ) {
     val colors = rememberEpisodeColors().toMediaDetailColors()
@@ -187,11 +167,10 @@ fun EpisodeCard(
         Box(modifier = Modifier.fillMaxSize()) {
             if (isWide) {
                 Row(modifier = Modifier.fillMaxSize()) {
-                    EpisodeHero(
-                        episode = episode,
+                    MediaHero(
+                        imageUrl = episode.heroImageUrl,
                         height = 300.dp,
-                        isWide = true,
-                        onPlayClick = playAction,
+                        backgroundColor = backGroundColor,
                         modifier = Modifier
                             .fillMaxHeight()
                             .weight(0.5f)
@@ -216,11 +195,10 @@ fun EpisodeCard(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    EpisodeHero(
-                        episode = episode,
+                    MediaHero(
+                        imageUrl = episode.heroImageUrl,
+                        backgroundColor = backGroundColor,
                         height = 400.dp,
-                        isWide = false,
-                        onPlayClick = playAction,
                         modifier = Modifier.fillMaxWidth()
                     )
                     EpisodeDetails(
@@ -242,7 +220,8 @@ fun EpisodeCard(
 
             if (!isWide) {
                 MediaFloatingPlayButton(
-                    colors = colors,
+                    containerColor = colors.primary,
+                    onContainerColor = colors.onPrimary,
                     onClick = playAction,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)

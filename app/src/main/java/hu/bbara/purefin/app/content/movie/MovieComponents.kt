@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -29,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,9 +38,9 @@ import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaFloatingPlayButton
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
-import hu.bbara.purefin.common.ui.MediaHero
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaPlaybackSettings
+import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.toMediaDetailColors
 import hu.bbara.purefin.player.PlayerActivity
 
@@ -66,27 +66,6 @@ internal fun MovieTopBar(
             MediaGhostIconButton(colors = colors, icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
     }
-}
-
-@Composable
-internal fun MovieHero(
-    movie: MovieUiModel,
-    height: Dp,
-    isWide: Boolean,
-    onPlayClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val colors = rememberMovieColors().toMediaDetailColors()
-    MediaHero(
-        imageUrl = movie.heroImageUrl,
-        colors = colors,
-        height = height,
-        isWide = isWide,
-        modifier = modifier,
-        showPlayButton = true,
-        playButtonSize = if (isWide) 96.dp else 80.dp,
-        onPlayClick = onPlayClick
-    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -161,12 +140,13 @@ internal fun MovieDetails(
     }
 }
 
+
+
 @Composable
 fun MovieCard(
     movie: MovieUiModel,
     modifier: Modifier = Modifier,
 ) {
-    val colors = rememberMovieColors().toMediaDetailColors()
     val context = LocalContext.current
     val playAction = remember(movie.id) {
         {
@@ -179,7 +159,7 @@ fun MovieCard(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         val isWide = maxWidth >= 900.dp
         val contentPadding = if (isWide) 32.dp else 20.dp
@@ -187,11 +167,10 @@ fun MovieCard(
         Box(modifier = Modifier.fillMaxSize()) {
             if (isWide) {
                 Row(modifier = Modifier.fillMaxSize()) {
-                    MovieHero(
-                        movie = movie,
+                    MediaHero(
+                        imageUrl = movie.heroImageUrl,
+                        backgroundColor = MaterialTheme.colorScheme.background,
                         height = 300.dp,
-                        isWide = true,
-                        onPlayClick = playAction,
                         modifier = Modifier
                             .fillMaxHeight()
                             .weight(0.5f)
@@ -216,11 +195,10 @@ fun MovieCard(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    MovieHero(
-                        movie = movie,
+                    MediaHero(
+                        imageUrl = movie.heroImageUrl,
                         height = 400.dp,
-                        isWide = false,
-                        onPlayClick = playAction,
+                        backgroundColor = MaterialTheme.colorScheme.background,
                         modifier = Modifier.fillMaxWidth()
                     )
                     MovieDetails(
@@ -242,7 +220,9 @@ fun MovieCard(
 
             if (!isWide) {
                 MediaFloatingPlayButton(
-                    colors = colors,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    onContainerColor = MaterialTheme.colorScheme.onPrimary,
+
                     onClick = playAction,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)

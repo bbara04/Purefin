@@ -1,5 +1,6 @@
 package hu.bbara.purefin.app.content.episode
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,7 +25,8 @@ fun EpisodeScreen(
     if (episode.value != null) {
         EpisodeCard(
             episode = episode.value!!,
-            modifier = modifier
+            modifier = modifier,
+            backGroundColor = MaterialTheme.colorScheme.background
         )
     } else {
         PurefinWaitingScreen()

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,8 +48,8 @@ import hu.bbara.purefin.common.ui.MediaActionButtons
 import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
-import hu.bbara.purefin.common.ui.MediaHero
 import hu.bbara.purefin.common.ui.MediaMetaChip
+import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.toMediaDetailColors
 
 @Composable
@@ -83,12 +84,9 @@ internal fun SeriesHero(
     val colors = rememberSeriesColors().toMediaDetailColors()
     MediaHero(
         imageUrl = imageUrl,
-        colors = colors,
+        backgroundColor = MaterialTheme.colorScheme.background,
         height = height,
-        isWide = false,
         modifier = modifier,
-        showPlayButton = false,
-        horizontalGradientOnWide = false
     )
 }
 
