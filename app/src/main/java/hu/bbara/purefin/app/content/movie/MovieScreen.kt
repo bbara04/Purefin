@@ -1,24 +1,18 @@
 package hu.bbara.purefin.app.content.movie
 
 import android.content.Intent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,7 +37,9 @@ fun MovieScreen(
 
     if (movieItem.value != null) {
         MovieScreenInternal(
-            movie = movieItem.value!!, modifier = modifier
+            movie = movieItem.value!!,
+            onBack = viewModel::onBack,
+            modifier = modifier
         )
     } else {
         PurefinWaitingScreen()
@@ -53,6 +49,7 @@ fun MovieScreen(
 @Composable
 private fun MovieScreenInternal(
     movie: MovieUiModel,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -64,85 +61,53 @@ private fun MovieScreenInternal(
         }
     }
 
-    BoxWithConstraints(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        val isWide = maxWidth >= 900.dp
-        val contentPadding = if (isWide) 32.dp else 20.dp
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (isWide) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    MediaHero(
-                        imageUrl = movie.heroImageUrl,
-                        backgroundColor = MaterialTheme.colorScheme.background,
-                        height = 300.dp,
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(0.5f)
-                    )
-                    MovieDetails(
-                        movie = movie,
-                        modifier = Modifier
-                            .weight(0.5f)
-                            .fillMaxHeight()
-                            .verticalScroll(rememberScrollState())
-                            .padding(
-                                start = contentPadding,
-                                end = contentPadding,
-                                top = 96.dp,
-                                bottom = 32.dp
-                            )
-                    )
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    MediaHero(
-                        imageUrl = movie.heroImageUrl,
-                        height = 400.dp,
-                        backgroundColor = MaterialTheme.colorScheme.background,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    MovieDetails(
-                        movie = movie,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = contentPadding)
-                            .offset(y = (-48).dp)
-                            .padding(bottom = 96.dp)
-                    )
-                }
-            }
-
+    Scaffold(
+        modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
             MovieTopBar(
+                onBack = onBack,
+                modifier = Modifier
+            )
+        },
+        floatingActionButton = {
+            MediaFloatingPlayButton(
+                containerColor = MaterialTheme.colorScheme.primary,
+                onContainerColor = MaterialTheme.colorScheme.onPrimary,
+                onClick = playAction,
+                modifier = Modifier
+                    .padding(16.dp)
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            MediaHero(
+                imageUrl = movie.heroImageUrl,
+                backgroundColor = MaterialTheme.colorScheme.background,
+                height = 200.dp,
+                modifier = Modifier.fillMaxWidth()
+            )
+            MovieDetails(
+                movie = movie,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = innerPadding.calculateBottomPadding())
             )
-
-            if (!isWide) {
-                MediaFloatingPlayButton(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    onContainerColor = MaterialTheme.colorScheme.onPrimary,
-
-                    onClick = playAction,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(20.dp)
-                )
-            }
         }
     }
 }
 
+
 @Preview
 @Composable
 fun MovieScreenPreview() {
-    MovieScreenInternal(movie = ContentMockData.movie())
+    MovieScreenInternal(
+        movie = ContentMockData.movie(),
+        onBack = {}
+    )
 }

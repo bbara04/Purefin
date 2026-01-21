@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
@@ -18,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaActionButtons
 import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
@@ -29,12 +31,15 @@ import hu.bbara.purefin.common.ui.toMediaDetailColors
 
 @Composable
 internal fun EpisodeTopBar(
-    viewModel: EpisodeScreenViewModel = hiltViewModel(),
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colors = rememberEpisodeColors().toMediaDetailColors()
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -42,7 +47,7 @@ internal fun EpisodeTopBar(
             colors = colors,
             icon = Icons.Outlined.ArrowBack,
             contentDescription = "Back",
-            onClick = { viewModel.onBack() }
+            onClick = onBack
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MediaGhostIconButton(colors = colors, icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })

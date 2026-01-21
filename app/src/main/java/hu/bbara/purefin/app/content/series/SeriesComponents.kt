@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -54,18 +55,21 @@ import hu.bbara.purefin.common.ui.toMediaDetailColors
 
 @Composable
 internal fun SeriesTopBar(
-    viewModel: SeriesViewModel = hiltViewModel(),
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colors = rememberSeriesColors().toMediaDetailColors()
     Row(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         MediaGhostIconButton(
             colors = colors,
-            onClick = { viewModel.onBack() },
+            onClick = onBack,
             icon = Icons.Outlined.ArrowBack,
             contentDescription = "Back")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
