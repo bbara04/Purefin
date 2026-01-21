@@ -79,7 +79,7 @@ class SeriesViewModel @Inject constructor(
                     title = episode.name ?: "Unknown",
                     description = episode.overview ?: "",
                     duration = "58m",
-                    imageUrl = JellyfinImageHelper.toImageUrl(url = serverUrl, itemId = episode.id, type = ImageType.BACKDROP)
+                    imageUrl = JellyfinImageHelper.toImageUrl(url = serverUrl, itemId = episode.id, type = ImageType.PRIMARY)
                 )
             }
             SeriesSeasonUiModel(
