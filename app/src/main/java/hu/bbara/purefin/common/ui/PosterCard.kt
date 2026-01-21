@@ -46,7 +46,7 @@ fun PosterCard(
             .width(144.dp)
     ) {
         AsyncImage(
-            model = viewModel.getImageUrl(item.id, ImageType.PRIMARY),
+            model = viewModel.getImageUrl(item.imageItemId, ImageType.PRIMARY),
             contentDescription = null,
             modifier = Modifier
                 .aspectRatio(2f / 3f)
