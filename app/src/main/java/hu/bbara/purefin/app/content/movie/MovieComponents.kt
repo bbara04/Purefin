@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,11 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.common.ui.MediaActionButtons
 import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
+import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.toMediaDetailColors
 
@@ -113,7 +116,23 @@ internal fun MovieDetails(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-        MediaActionButtons(colors = colors)
+
+
+        Row() {
+            MediaActionButton(
+                backgroundColor = MaterialTheme.colorScheme.secondary,
+                iconColor = MaterialTheme.colorScheme.onSecondary,
+                icon = Icons.Outlined.Add,
+                height = 32.dp
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            MediaActionButton(
+                backgroundColor = MaterialTheme.colorScheme.secondary,
+                iconColor = MaterialTheme.colorScheme.onSecondary,
+                icon = Icons.Outlined.Download,
+                height = 32.dp
+            )
+        }
 
         Spacer(modifier = Modifier.height(28.dp))
         Text(

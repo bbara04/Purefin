@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,8 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -148,65 +144,6 @@ fun MediaMetaChip(
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
-    }
-}
-
-@Composable
-fun MediaActionButtons(
-    colors: MediaDetailColors,
-    modifier: Modifier = Modifier,
-    height: Dp = 48.dp,
-    textSize: TextUnit = 14.sp,
-    watchlistIcon: ImageVector = Icons.Outlined.Add,
-    downloadIcon: ImageVector = Icons.Outlined.Download
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        MediaActionButton(
-            colors = colors,
-            text = "Watchlist",
-            icon = watchlistIcon,
-            modifier = Modifier.weight(1f),
-            height = height,
-            textSize = textSize
-        )
-        MediaActionButton(
-            colors = colors,
-            text = "Download",
-            icon = downloadIcon,
-            modifier = Modifier.weight(1f),
-            height = height,
-            textSize = textSize
-        )
-    }
-}
-
-@Composable
-private fun MediaActionButton(
-    colors: MediaDetailColors,
-    text: String,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
-    height: Dp,
-    textSize: TextUnit
-) {
-    Row(
-        modifier = modifier
-            .height(height)
-            .clip(RoundedCornerShape(12.dp))
-            .background(colors.surfaceAlt.copy(alpha = 0.6f))
-            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
-            .clickable { },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Icon(imageVector = icon, contentDescription = null, tint = colors.textPrimary)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, color = colors.textPrimary, fontSize = textSize, fontWeight = FontWeight.Bold)
     }
 }
 

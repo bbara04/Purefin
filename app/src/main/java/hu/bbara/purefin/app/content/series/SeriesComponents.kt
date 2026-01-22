@@ -25,8 +25,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.Icon
@@ -45,11 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
-import hu.bbara.purefin.common.ui.MediaActionButtons
 import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
+import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.toMediaDetailColors
 
@@ -118,12 +120,21 @@ internal fun SeriesMetaChips(series: SeriesUiModel) {
 @Composable
 internal fun SeriesActionButtons(modifier: Modifier = Modifier) {
     val colors = rememberSeriesColors().toMediaDetailColors()
-    MediaActionButtons(
-        colors = colors,
-        modifier = modifier,
-        height = 44.dp,
-        textSize = 13.sp
-    )
+    Row() {
+        MediaActionButton(
+            backgroundColor = MaterialTheme.colorScheme.secondary,
+            iconColor = MaterialTheme.colorScheme.onSecondary,
+            icon = Icons.Outlined.Add,
+            height = 32.dp
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        MediaActionButton(
+            backgroundColor = MaterialTheme.colorScheme.secondary,
+            iconColor = MaterialTheme.colorScheme.onSecondary,
+            icon = Icons.Outlined.Download,
+            height = 32.dp
+        )
+    }
 }
 
 @Composable
