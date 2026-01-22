@@ -30,6 +30,7 @@ fun MediaHero(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+        // Vertical gradient for transition to content
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -37,20 +38,8 @@ fun MediaHero(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            backgroundColor.copy(alpha = 0.4f),
+                            backgroundColor.copy(alpha = 0.5f),
                             backgroundColor
-                        )
-                    )
-                )
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            backgroundColor.copy(alpha = 0.8f)
                         )
                     )
                 )

@@ -24,12 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.ClosedCaption
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -152,97 +148,6 @@ fun MediaMetaChip(
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
-    }
-}
-
-@Composable
-fun MediaPlaybackSettings(
-    colors: MediaDetailColors,
-    audioTrack: String,
-    subtitles: String,
-    headerIcon: ImageVector = Icons.Outlined.Tune,
-    audioIcon: ImageVector = Icons.Outlined.VolumeUp,
-    subtitleIcon: ImageVector = Icons.Outlined.ClosedCaption,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(colors.surfaceAlt)
-            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(16.dp))
-            .padding(20.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = headerIcon,
-                contentDescription = null,
-                tint = colors.primary
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Playback Settings",
-                color = colors.textMuted,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            MediaSettingDropdown(
-                colors = colors,
-                label = "Audio Track",
-                value = audioTrack,
-                icon = audioIcon
-            )
-            MediaSettingDropdown(
-                colors = colors,
-                label = "Subtitles",
-                value = subtitles,
-                icon = subtitleIcon
-            )
-        }
-    }
-}
-
-@Composable
-private fun MediaSettingDropdown(
-    colors: MediaDetailColors,
-    label: String,
-    value: String,
-    icon: ImageVector? = null
-) {
-    Column {
-        Text(
-            text = label,
-            color = colors.textMutedStrong,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(colors.surface)
-                .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (icon != null) {
-                    Icon(imageVector = icon, contentDescription = null, tint = colors.textMutedStrong)
-                    Spacer(modifier = Modifier.width(10.dp))
-                }
-                Text(text = value, color = colors.textPrimary, fontSize = 14.sp)
-            }
-            Icon(imageVector = Icons.Outlined.ExpandMore, contentDescription = null, tint = colors.textMutedStrong)
-        }
     }
 }
 

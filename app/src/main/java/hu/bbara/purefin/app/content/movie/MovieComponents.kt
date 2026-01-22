@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,7 +27,7 @@ import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.MediaPlaybackSettings
+import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.toMediaDetailColors
 
 @Composable
@@ -90,7 +91,8 @@ internal fun MovieDetails(
 
         Spacer(modifier = Modifier.height(24.dp))
         MediaPlaybackSettings(
-            colors = colors,
+            backgroundColor = MaterialTheme.colorScheme.background,
+            foregroundColor = MaterialTheme.colorScheme.onBackground,
             audioTrack = movie.audioTrack,
             subtitles = movie.subtitles
         )

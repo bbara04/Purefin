@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,7 +27,7 @@ import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.MediaPlaybackSettings
+import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.toMediaDetailColors
 
 @Composable
@@ -87,33 +88,34 @@ internal fun EpisodeDetails(
                 textColor = colors.primary
             )
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-        MediaPlaybackSettings(
-            colors = colors,
-            audioTrack = episode.audioTrack,
-            subtitles = episode.subtitles
-        )
 
-        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Synopsis",
             color = colors.textPrimary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = episode.synopsis,
             color = colors.textMuted,
             fontSize = 15.sp,
             lineHeight = 22.sp
         )
-
         Spacer(modifier = Modifier.height(24.dp))
-        MediaActionButtons(colors = colors)
 
-        Spacer(modifier = Modifier.height(28.dp))
+        MediaActionButtons(colors = colors)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        MediaPlaybackSettings(
+            backgroundColor = MaterialTheme.colorScheme.surface,
+            foregroundColor = MaterialTheme.colorScheme.onSurface,
+            audioTrack = episode.audioTrack,
+            subtitles = episode.subtitles
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
         Text(
             text = "Cast",
             color = colors.textPrimary,
