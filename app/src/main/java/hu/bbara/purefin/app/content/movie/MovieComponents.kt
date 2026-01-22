@@ -1,5 +1,6 @@
 package hu.bbara.purefin.app.content.movie
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -19,9 +20,12 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,8 +34,10 @@ import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.MediaActionButton
+import hu.bbara.purefin.common.ui.components.MediaPlayButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.toMediaDetailColors
+import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
 internal fun MovieTopBar(
@@ -66,6 +72,15 @@ internal fun MovieDetails(
     movie: MovieUiModel,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val playAction = remember(movie.id) {
+        {
+            val intent = Intent(context, PlayerActivity::class.java)
+            intent.putExtra("MEDIA_ID", movie.id.toString())
+            context.startActivity(intent)
+        }
+    }
+
     val colors = rememberMovieColors().toMediaDetailColors()
     Column(modifier = modifier) {
         Text(
@@ -91,50 +106,63 @@ internal fun MovieDetails(
                 textColor = colors.primary
             )
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-        MediaPlaybackSettings(
-            backgroundColor = MaterialTheme.colorScheme.background,
-            foregroundColor = MaterialTheme.colorScheme.onBackground,
-            audioTrack = movie.audioTrack,
-            subtitles = movie.subtitles
-        )
 
-        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Synopsis",
             color = colors.textPrimary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = movie.synopsis,
             color = colors.textMuted,
             fontSize = 15.sp,
             lineHeight = 22.sp
         )
-
         Spacer(modifier = Modifier.height(24.dp))
 
-
         Row() {
-            MediaActionButton(
-                backgroundColor = MaterialTheme.colorScheme.secondary,
-                iconColor = MaterialTheme.colorScheme.onSecondary,
-                icon = Icons.Outlined.Add,
-                height = 32.dp
+            MediaPlayButton(
+                backgroundColor = MaterialTheme.colorScheme.primary,
+                foregroundColor = MaterialTheme.colorScheme.onPrimary,
+                size = 48.dp,
+                onClick = playAction
             )
-            Spacer(modifier = Modifier.width(12.dp))
-            MediaActionButton(
-                backgroundColor = MaterialTheme.colorScheme.secondary,
-                iconColor = MaterialTheme.colorScheme.onSecondary,
-                icon = Icons.Outlined.Download,
-                height = 32.dp
+            VerticalDivider(
+                color = MaterialTheme.colorScheme.secondary,
+                thickness = 4.dp,
+                modifier = Modifier
+                    .height(48.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             )
+            Row() {
+                MediaActionButton(
+                    backgroundColor = MaterialTheme.colorScheme.secondary,
+                    iconColor = MaterialTheme.colorScheme.onSecondary,
+                    icon = Icons.Outlined.Add,
+                    height = 48.dp
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                MediaActionButton(
+                    backgroundColor = MaterialTheme.colorScheme.secondary,
+                    iconColor = MaterialTheme.colorScheme.onSecondary,
+                    icon = Icons.Outlined.Download,
+                    height = 48.dp
+                )
+            }
         }
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Spacer(modifier = Modifier.height(28.dp))
+        MediaPlaybackSettings(
+            backgroundColor = MaterialTheme.colorScheme.surface,
+            foregroundColor = MaterialTheme.colorScheme.onSurface,
+            audioTrack = movie.audioTrack,
+            subtitles = movie.subtitles
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Cast",
             color = colors.textPrimary,

@@ -1,6 +1,5 @@
 package hu.bbara.purefin.app.content.episode
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,18 +11,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.app.content.ContentMockData
-import hu.bbara.purefin.common.ui.MediaFloatingPlayButton
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.navigation.ItemDto
-import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
 fun EpisodeScreen(
@@ -56,14 +51,6 @@ private fun EpisodeScreenInternal(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val playAction = remember(episode.id) {
-        {
-            val intent = Intent(context, PlayerActivity::class.java)
-            intent.putExtra("MEDIA_ID", episode.id.toString())
-            context.startActivity(intent)
-        }
-    }
 
     Scaffold(
         modifier = modifier,
@@ -72,15 +59,6 @@ private fun EpisodeScreenInternal(
             EpisodeTopBar(
                 onBack = onBack,
                 modifier = Modifier
-            )
-        },
-        floatingActionButton = {
-            MediaFloatingPlayButton(
-                containerColor = MaterialTheme.colorScheme.primary,
-                onContainerColor = MaterialTheme.colorScheme.onPrimary,
-                onClick = playAction,
-                modifier = Modifier
-                    .padding(16.dp)
             )
         }
     ) { innerPadding ->

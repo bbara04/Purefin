@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -28,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -215,54 +213,5 @@ fun MediaCastRow(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun MediaPlayButton(
-    colors: MediaDetailColors,
-    size: Dp,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .shadow(24.dp, CircleShape)
-            .clip(CircleShape)
-            .background(colors.primary)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.PlayArrow,
-            contentDescription = "Play",
-            tint = colors.onPrimary,
-            modifier = Modifier.size(42.dp)
-        )
-    }
-}
-
-@Composable
-fun MediaFloatingPlayButton(
-    containerColor: Color,
-    onContainerColor: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(56.dp)
-            .shadow(20.dp, CircleShape)
-            .clip(CircleShape)
-            .background(containerColor)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.PlayArrow,
-            contentDescription = "Play",
-            tint = onContainerColor
-        )
     }
 }
