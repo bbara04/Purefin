@@ -36,7 +36,6 @@ import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaPlayButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
-import hu.bbara.purefin.common.ui.toMediaDetailColors
 import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
@@ -44,7 +43,7 @@ internal fun MovieTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colors = rememberMovieColors().toMediaDetailColors()
+    val scheme = MaterialTheme.colorScheme
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -54,14 +53,13 @@ internal fun MovieTopBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         MediaGhostIconButton(
-            colors = colors,
             icon = Icons.Outlined.ArrowBack,
             contentDescription = "Back",
             onClick = onBack
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MediaGhostIconButton(colors = colors, icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
-            MediaGhostIconButton(colors = colors, icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
+            MediaGhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
+            MediaGhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
     }
 }
@@ -72,6 +70,8 @@ internal fun MovieDetails(
     movie: MovieUiModel,
     modifier: Modifier = Modifier
 ) {
+    val scheme = MaterialTheme.colorScheme
+
     val context = LocalContext.current
     val playAction = remember(movie.id) {
         {
@@ -81,11 +81,10 @@ internal fun MovieDetails(
         }
     }
 
-    val colors = rememberMovieColors().toMediaDetailColors()
     Column(modifier = modifier) {
         Text(
             text = movie.title,
-            color = colors.textPrimary,
+            color = scheme.onBackground,
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             lineHeight = 38.sp
@@ -95,29 +94,28 @@ internal fun MovieDetails(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MediaMetaChip(colors = colors, text = movie.year)
-            MediaMetaChip(colors = colors, text = movie.rating)
-            MediaMetaChip(colors = colors, text = movie.runtime)
+            MediaMetaChip(text = movie.year)
+            MediaMetaChip(text = movie.rating)
+            MediaMetaChip(text = movie.runtime)
             MediaMetaChip(
-                colors = colors,
                 text = movie.format,
-                background = colors.primary.copy(alpha = 0.2f),
-                border = colors.primary.copy(alpha = 0.3f),
-                textColor = colors.primary
+                background = scheme.primary.copy(alpha = 0.2f),
+                border = scheme.primary.copy(alpha = 0.3f),
+                textColor = scheme.primary
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             text = "Synopsis",
-            color = colors.textPrimary,
+            color = scheme.onBackground,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = movie.synopsis,
-            color = colors.textMuted,
+            color = scheme.onSurfaceVariant,
             fontSize = 15.sp,
             lineHeight = 22.sp
         )
@@ -165,13 +163,12 @@ internal fun MovieDetails(
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Cast",
-            color = colors.textPrimary,
+            color = scheme.onBackground,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(12.dp))
         MediaCastRow(
-            colors = colors,
             cast = movie.cast.map { it.toMediaCastMember() }
         )
     }

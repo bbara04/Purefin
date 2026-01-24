@@ -46,21 +46,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.AsyncImage
 import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaHero
-import hu.bbara.purefin.common.ui.toMediaDetailColors
+import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 
 @Composable
 internal fun SeriesTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colors = rememberSeriesColors().toMediaDetailColors()
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -70,13 +68,12 @@ internal fun SeriesTopBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         MediaGhostIconButton(
-            colors = colors,
             onClick = onBack,
             icon = Icons.Outlined.ArrowBack,
             contentDescription = "Back")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MediaGhostIconButton(colors = colors, icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
-            MediaGhostIconButton(colors = colors, icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
+            MediaGhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
+            MediaGhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
     }
 }
@@ -87,7 +84,6 @@ internal fun SeriesHero(
     height: Dp,
     modifier: Modifier = Modifier
 ) {
-    val colors = rememberSeriesColors().toMediaDetailColors()
     MediaHero(
         imageUrl = imageUrl,
         backgroundColor = MaterialTheme.colorScheme.background,
@@ -99,27 +95,25 @@ internal fun SeriesHero(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SeriesMetaChips(series: SeriesUiModel) {
-    val colors = rememberSeriesColors().toMediaDetailColors()
+    val scheme = MaterialTheme.colorScheme
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        MediaMetaChip(colors = colors, text = series.year)
-        MediaMetaChip(colors = colors, text = series.rating)
-        MediaMetaChip(colors = colors, text = series.seasons)
+        MediaMetaChip(text = series.year)
+        MediaMetaChip(text = series.rating)
+        MediaMetaChip(text = series.seasons)
         MediaMetaChip(
-            colors = colors,
             text = series.format,
-            background = colors.primary.copy(alpha = 0.2f),
-            border = colors.primary.copy(alpha = 0.3f),
-            textColor = colors.primary
+            background = scheme.primary.copy(alpha = 0.2f),
+            border = scheme.primary.copy(alpha = 0.3f),
+            textColor = scheme.primary
         )
     }
 }
 
 @Composable
 internal fun SeriesActionButtons(modifier: Modifier = Modifier) {
-    val colors = rememberSeriesColors().toMediaDetailColors()
     Row() {
         MediaActionButton(
             backgroundColor = MaterialTheme.colorScheme.secondary,
@@ -153,9 +147,10 @@ internal fun SeasonTabs(seasons: List<SeriesSeasonUiModel>, modifier: Modifier =
 
 @Composable
 private fun SeasonTab(name: String, isSelected: Boolean) {
-    val colors = rememberSeriesColors()
-    val color = if (isSelected) colors.primary else colors.textMutedStrong
-    val borderColor = if (isSelected) colors.primary else Color.Transparent
+    val scheme = MaterialTheme.colorScheme
+    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
+    val color = if (isSelected) scheme.primary else mutedStrong
+    val borderColor = if (isSelected) scheme.primary else Color.Transparent
     Column(
         modifier = Modifier
             .padding(bottom = 8.dp)
@@ -195,13 +190,14 @@ private fun EpisodeCard(
     viewModel: SeriesViewModel = hiltViewModel(),
     episode: SeriesEpisodeUiModel
 ) {
-    val colors = rememberSeriesColors()
+    val scheme = MaterialTheme.colorScheme
+    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
     Column(
         modifier = Modifier
             .width(260.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(colors.surfaceAlt.copy(alpha = 0.6f))
-            .border(1.dp, colors.surfaceBorder, RoundedCornerShape(16.dp))
+            .background(scheme.surfaceVariant.copy(alpha = 0.6f))
+            .border(1.dp, scheme.outlineVariant, RoundedCornerShape(16.dp))
             .padding(12.dp)
             .clickable { viewModel.onSelectEpisode(episode.id) },
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -211,10 +207,10 @@ private fun EpisodeCard(
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(12.dp))
-                .background(colors.surface)
-                .border(1.dp, colors.surfaceBorder, RoundedCornerShape(12.dp))
+                .background(scheme.surface)
+                .border(1.dp, scheme.outlineVariant, RoundedCornerShape(12.dp))
         ) {
-            AsyncImage(
+            PurefinAsyncImage(
                 model = episode.imageUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
@@ -223,12 +219,12 @@ private fun EpisodeCard(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(colors.background.copy(alpha = 0.2f))
+                    .background(scheme.background.copy(alpha = 0.2f))
             )
             Icon(
                 imageVector = Icons.Outlined.PlayCircle,
                 contentDescription = null,
-                tint = colors.textPrimary,
+                tint = scheme.onBackground,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(32.dp)
@@ -237,12 +233,12 @@ private fun EpisodeCard(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(6.dp)
-                    .background(colors.background.copy(alpha = 0.8f), RoundedCornerShape(6.dp))
+                    .background(scheme.background.copy(alpha = 0.8f), RoundedCornerShape(6.dp))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
                     text = episode.duration,
-                    color = colors.textPrimary,
+                    color = scheme.onBackground,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -253,7 +249,7 @@ private fun EpisodeCard(
         ) {
             Text(
                 text = episode.title,
-                color = colors.textPrimary,
+                color = scheme.onBackground,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -261,7 +257,7 @@ private fun EpisodeCard(
             )
             Text(
                 text = episode.description,
-                color = colors.textMutedStrong,
+                color = mutedStrong,
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
                 maxLines = 2,
@@ -273,9 +269,7 @@ private fun EpisodeCard(
 
 @Composable
 internal fun CastRow(cast: List<SeriesCastMemberUiModel>, modifier: Modifier = Modifier) {
-    val colors = rememberSeriesColors().toMediaDetailColors()
     MediaCastRow(
-        colors = colors,
         cast = cast.map { it.toMediaCastMember() },
         modifier = modifier,
         cardWidth = 84.dp,

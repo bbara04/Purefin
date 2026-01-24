@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +33,6 @@ import hu.bbara.purefin.app.home.HomePageViewModel
 fun HomeDrawerContent(
     title: String,
     subtitle: String,
-    colors: HomeColors,
     primaryNavItems: List<HomeNavItem>,
     secondaryNavItems: List<HomeNavItem>,
     user: HomeUser,
@@ -41,16 +41,14 @@ fun HomeDrawerContent(
     Column(modifier = modifier.fillMaxSize()) {
         HomeDrawerHeader(
             title = title,
-            subtitle = subtitle,
-            colors = colors
+            subtitle = subtitle
         )
         HomeDrawerNav(
             primaryItems = primaryNavItems,
-            secondaryItems = secondaryNavItems,
-            colors = colors,
+            secondaryItems = secondaryNavItems
         )
         Spacer(modifier = Modifier.weight(1f))
-        HomeDrawerFooter(user = user, colors = colors)
+        HomeDrawerFooter(user = user)
     }
 }
 
@@ -58,9 +56,10 @@ fun HomeDrawerContent(
 fun HomeDrawerHeader(
     title: String,
     subtitle: String,
-    colors: HomeColors,
     modifier: Modifier = Modifier
 ) {
+    val scheme = MaterialTheme.colorScheme
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -70,38 +69,37 @@ fun HomeDrawerHeader(
         Row(
             modifier = Modifier
                 .size(40.dp)
-                .background(colors.primary, RoundedCornerShape(12.dp)),
+                .background(scheme.primary, RoundedCornerShape(12.dp)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = Icons.Filled.PlayArrow,
                 contentDescription = "Play",
-                tint = colors.onPrimary
+                tint = scheme.onPrimary
             )
         }
         Column(modifier = Modifier.padding(start = 12.dp)) {
             Text(
                 text = title,
-                color = colors.textPrimary,
+                color = scheme.onBackground,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = subtitle,
-                color = colors.textSecondary,
+                color = scheme.onSurfaceVariant,
                 fontSize = 12.sp
             )
         }
     }
-    HorizontalDivider(color = colors.textSecondary.copy(alpha = 0.2f))
+    HorizontalDivider(color = scheme.onSurfaceVariant.copy(alpha = 0.2f))
 }
 
 @Composable
 fun HomeDrawerNav(
     primaryItems: List<HomeNavItem>,
     secondaryItems: List<HomeNavItem>,
-    colors: HomeColors,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -110,16 +108,16 @@ fun HomeDrawerNav(
             .padding(vertical = 16.dp)
     ) {
         primaryItems.forEach { item ->
-            HomeDrawerNavItem(item = item, colors = colors)
+            HomeDrawerNavItem(item = item)
         }
         if (secondaryItems.isNotEmpty()) {
             HorizontalDivider(
                 modifier = Modifier
                     .padding(horizontal = 20.dp, vertical = 12.dp),
-                color = colors.divider
+                color = MaterialTheme.colorScheme.outlineVariant
             )
             secondaryItems.forEach { item ->
-                HomeDrawerNavItem(item = item, colors = colors)
+                HomeDrawerNavItem(item = item)
             }
         }
     }
@@ -128,12 +126,12 @@ fun HomeDrawerNav(
 @Composable
 fun HomeDrawerNavItem(
     item: HomeNavItem,
-    colors: HomeColors,
     modifier: Modifier = Modifier,
     viewModel: HomePageViewModel = hiltViewModel(),
 ) {
-    val background = if (item.selected) colors.primary.copy(alpha = 0.12f) else Color.Transparent
-    val tint = if (item.selected) colors.primary else colors.textSecondary
+    val scheme = MaterialTheme.colorScheme
+    val background = if (item.selected) scheme.primary.copy(alpha = 0.12f) else Color.Transparent
+    val tint = if (item.selected) scheme.primary else scheme.onSurfaceVariant
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -150,7 +148,7 @@ fun HomeDrawerNavItem(
         )
         Text(
             text = item.label,
-            color = if (item.selected) colors.primary else colors.textPrimary,
+            color = if (item.selected) scheme.primary else scheme.onBackground,
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(start = 12.dp)
@@ -162,30 +160,31 @@ fun HomeDrawerNavItem(
 fun HomeDrawerFooter (
     viewModel: HomePageViewModel = hiltViewModel(),
     user: HomeUser,
-    colors: HomeColors,
     modifier: Modifier = Modifier,
 ) {
+    val scheme = MaterialTheme.colorScheme
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(colors.drawerFooterBackground, RoundedCornerShape(12.dp))
+            .background(scheme.surfaceVariant, RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         HomeAvatar(
             size = 32.dp,
             borderWidth = 1.dp,
-            borderColor = colors.divider,
-            backgroundColor = colors.avatarBackground,
+            borderColor = scheme.outlineVariant,
+            backgroundColor = scheme.primaryContainer,
             icon = Icons.Outlined.Person,
-            iconTint = colors.textPrimary
+            iconTint = scheme.onBackground
         )
         Column(modifier = Modifier.padding(start = 12.dp)
             .clickable {viewModel.logout()}) {
             Text(
                 text = user.name,
-                color = colors.textPrimary,
+                color = scheme.onBackground,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -193,7 +192,7 @@ fun HomeDrawerFooter (
             )
             Text(
                 text = user.plan,
-                color = colors.textSecondary,
+                color = scheme.onSurfaceVariant,
                 fontSize = 11.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -23,7 +24,6 @@ import hu.bbara.purefin.app.home.ui.HomeDrawerContent
 import hu.bbara.purefin.app.home.ui.HomeMockData
 import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.HomeTopBar
-import hu.bbara.purefin.app.home.ui.rememberHomeColors
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.CollectionType
 
@@ -32,7 +32,6 @@ fun HomePage(
     viewModel: HomePageViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val colors = rememberHomeColors()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
@@ -56,13 +55,12 @@ fun HomePage(
                 modifier = Modifier
                     .width(280.dp)
                     .fillMaxSize(),
-                drawerContainerColor = colors.drawerBackground,
-                drawerContentColor = colors.textPrimary
+                drawerContainerColor = MaterialTheme.colorScheme.surface,
+                drawerContentColor = MaterialTheme.colorScheme.onBackground
             ) {
                 HomeDrawerContent(
                     title = "Jellyfin",
                     subtitle = "Library Dashboard",
-                    colors = colors,
                     primaryNavItems = libraries,
                     secondaryNavItems = HomeMockData.secondaryNavItems,
                     user = HomeMockData.user,
@@ -72,18 +70,16 @@ fun HomePage(
     ) {
         Scaffold(
             modifier = modifier.fillMaxSize(),
-            containerColor = colors.background,
-            contentColor = colors.textPrimary,
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground,
             topBar = {
                 HomeTopBar(
                     title = "Home",
-                    colors = colors,
                     onMenuClick = { coroutineScope.launch { drawerState.open() } }
                 )
             }
         ) { innerPadding ->
             HomeContent(
-                colors = colors,
                 continueWatching = continueWatching.value,
                 modifier = Modifier.padding(innerPadding)
             )

@@ -24,7 +24,7 @@ class PlayerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            PurefinTheme {
+            PurefinTheme(darkTheme = false) {
                 val viewModel = hiltViewModel<PlayerViewModel>()
                 Box(
                     modifier = Modifier.fillMaxSize()

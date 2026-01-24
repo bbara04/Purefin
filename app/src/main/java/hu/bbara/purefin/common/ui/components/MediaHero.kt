@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
-import coil3.compose.AsyncImage
 
 @Composable
 fun MediaHero(
@@ -24,7 +23,7 @@ fun MediaHero(
             .height(height)
             .background(backgroundColor)
     ) {
-        AsyncImage(
+        PurefinAsyncImage(
             model = imageUrl,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),

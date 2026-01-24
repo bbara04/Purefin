@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,94 +37,39 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
-import hu.bbara.purefin.app.content.episode.EpisodeColors
-import hu.bbara.purefin.app.content.movie.MovieColors
-import hu.bbara.purefin.app.content.series.SeriesColors
-
-data class MediaDetailColors(
-    val primary: Color,
-    val onPrimary: Color,
-    val background: Color,
-    val surface: Color,
-    val surfaceAlt: Color,
-    val surfaceBorder: Color,
-    val textPrimary: Color,
-    val textSecondary: Color,
-    val textMuted: Color,
-    val textMutedStrong: Color
-)
-
-internal fun MovieColors.toMediaDetailColors() = MediaDetailColors(
-    primary = primary,
-    onPrimary = onPrimary,
-    background = background,
-    surface = surface,
-    surfaceAlt = surfaceAlt,
-    surfaceBorder = surfaceBorder,
-    textPrimary = textPrimary,
-    textSecondary = textSecondary,
-    textMuted = textMuted,
-    textMutedStrong = textMutedStrong
-)
-
-internal fun EpisodeColors.toMediaDetailColors() = MediaDetailColors(
-    primary = primary,
-    onPrimary = onPrimary,
-    background = background,
-    surface = surface,
-    surfaceAlt = surfaceAlt,
-    surfaceBorder = surfaceBorder,
-    textPrimary = textPrimary,
-    textSecondary = textSecondary,
-    textMuted = textMuted,
-    textMutedStrong = textMutedStrong
-)
-
-internal fun SeriesColors.toMediaDetailColors() = MediaDetailColors(
-    primary = primary,
-    onPrimary = onPrimary,
-    background = background,
-    surface = surface,
-    surfaceAlt = surfaceAlt,
-    surfaceBorder = surfaceBorder,
-    textPrimary = textPrimary,
-    textSecondary = textSecondary,
-    textMuted = textMuted,
-    textMutedStrong = textMutedStrong
-)
+import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 
 @Composable
 fun MediaGhostIconButton(
-    colors: MediaDetailColors,
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scheme = MaterialTheme.colorScheme
+
     Box(
         modifier = modifier
             .size(40.dp)
             .clip(CircleShape)
-            .background(colors.background.copy(alpha = 0.4f))
+            .background(scheme.background.copy(alpha = 0.4f))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = colors.textPrimary
+            tint = scheme.onBackground
         )
     }
 }
 
 @Composable
 fun MediaMetaChip(
-    colors: MediaDetailColors,
     text: String,
-    background: Color = colors.surfaceAlt,
+    background: Color = MaterialTheme.colorScheme.surfaceVariant,
     border: Color = Color.Transparent,
-    textColor: Color = colors.textSecondary,
+    textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -153,13 +99,15 @@ data class MediaCastMember(
 
 @Composable
 fun MediaCastRow(
-    colors: MediaDetailColors,
     cast: List<MediaCastMember>,
     modifier: Modifier = Modifier,
     cardWidth: Dp = 96.dp,
     nameSize: TextUnit = 12.sp,
     roleSize: TextUnit = 10.sp
 ) {
+    val scheme = MaterialTheme.colorScheme
+    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
+
     LazyRow(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 4.dp),
@@ -171,23 +119,23 @@ fun MediaCastRow(
                     modifier = Modifier
                         .aspectRatio(4f / 5f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(colors.surfaceAlt)
+                        .background(scheme.surfaceVariant)
                 ) {
                     if (member.imageUrl == null) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(colors.surfaceAlt.copy(alpha = 0.6f)),
+                                .background(scheme.surfaceVariant.copy(alpha = 0.6f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Person,
                                 contentDescription = null,
-                                tint = colors.textMutedStrong
+                                tint = mutedStrong
                             )
                         }
                     } else {
-                        AsyncImage(
+                        PurefinAsyncImage(
                             model = member.imageUrl,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
@@ -198,7 +146,7 @@ fun MediaCastRow(
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = member.name,
-                    color = colors.textPrimary,
+                    color = scheme.onBackground,
                     fontSize = nameSize,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -206,7 +154,7 @@ fun MediaCastRow(
                 )
                 Text(
                     text = member.role,
-                    color = colors.textMutedStrong,
+                    color = mutedStrong,
                     fontSize = roleSize,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

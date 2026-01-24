@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,7 +18,6 @@ import hu.bbara.purefin.app.home.HomePageViewModel
 @Composable
 fun HomeContent(
     viewModel: HomePageViewModel = hiltViewModel(),
-    colors: HomeColors,
     continueWatching: List<ContinueWatchingItem>,
     modifier: Modifier = Modifier
 ) {
@@ -28,15 +28,14 @@ fun HomeContent(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
         }
         item {
             ContinueWatchingSection(
-                items = continueWatching,
-                colors = colors
+                items = continueWatching
             )
         }
         items(
@@ -47,7 +46,6 @@ fun HomeContent(
                 title = item.name,
                 items = libraryContent[item.id] ?: emptyList(),
                 action = "See All",
-                colors = colors
             )
         }
         item {

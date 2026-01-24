@@ -53,7 +53,8 @@ private fun SeriesScreenInternal(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = rememberSeriesColors()
+    val scheme = MaterialTheme.colorScheme
+    val textMutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
 
     Scaffold(
         modifier = modifier,
@@ -83,7 +84,7 @@ private fun SeriesScreenInternal(
             ) {
                 Text(
                     text = series.title,
-                    color = colors.textPrimary,
+                    color = scheme.onBackground,
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 36.sp
@@ -95,20 +96,20 @@ private fun SeriesScreenInternal(
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = "Synopsis",
-                    color = colors.textPrimary,
+                    color = scheme.onBackground,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = series.synopsis,
-                    color = colors.textMutedStrong,
+                    color = textMutedStrong,
                     fontSize = 13.sp,
                 )
                 Spacer(modifier = Modifier.height(28.dp))
                 Text(
                     text = "Episodes",
-                    color = colors.textPrimary,
+                    color = scheme.onBackground,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -123,7 +124,7 @@ private fun SeriesScreenInternal(
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
                     text = "Cast",
-                    color = colors.textPrimary,
+                    color = scheme.onBackground,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )

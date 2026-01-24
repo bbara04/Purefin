@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,24 +31,25 @@ import hu.bbara.purefin.app.home.HomePageViewModel
 fun HomeTopBar(
     viewModel: HomePageViewModel = hiltViewModel(),
     title: String,
-    colors: HomeColors,
     onMenuClick: () -> Unit,
     modifier: Modifier = Modifier,
     actions: @Composable RowScope.() -> Unit = {
         HomeAvatar(
             size = 36.dp,
             borderWidth = 2.dp,
-            borderColor = colors.avatarBorder,
-            backgroundColor = colors.avatarBackground,
+            borderColor = MaterialTheme.colorScheme.outline,
+            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
             icon = Icons.Outlined.Person,
-            iconTint = colors.onPrimary
+            iconTint = MaterialTheme.colorScheme.onPrimary
         )
     }
 ) {
+    val scheme = MaterialTheme.colorScheme
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(colors.background.copy(alpha = 0.95f))
+            .background(scheme.background.copy(alpha = 0.95f))
             .zIndex(1f)
     ) {
         Row(
@@ -63,12 +65,12 @@ fun HomeTopBar(
                     Icon(
                         imageVector = Icons.Outlined.Menu,
                         contentDescription = "Menu",
-                        tint = colors.textPrimary
+                        tint = scheme.onBackground
                     )
                 }
                 Text(
                     text = title,
-                    color = colors.textPrimary,
+                    color = scheme.onBackground,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )

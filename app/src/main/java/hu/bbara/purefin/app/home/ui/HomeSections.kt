@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,9 +37,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.AsyncImage
 import hu.bbara.purefin.app.home.HomePageViewModel
 import hu.bbara.purefin.common.ui.PosterCard
+import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.player.PlayerActivity
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
@@ -46,10 +47,12 @@ import kotlin.math.nextUp
 
 @Composable
 fun ContinueWatchingSection(
-    items: List<ContinueWatchingItem>, colors: HomeColors, modifier: Modifier = Modifier
+    items: List<ContinueWatchingItem>,
+    modifier: Modifier = Modifier
 ) {
     SectionHeader(
-        title = "Continue Watching", action = null, colors = colors
+        title = "Continue Watching",
+        action = null
     )
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -59,7 +62,7 @@ fun ContinueWatchingSection(
         items(
             items = items, key = { it.id }) { item ->
             ContinueWatchingCard(
-                item = item, colors = colors
+                item = item
             )
         }
     }
@@ -68,10 +71,11 @@ fun ContinueWatchingSection(
 @Composable
 fun ContinueWatchingCard(
     item: ContinueWatchingItem,
-    colors: HomeColors,
     modifier: Modifier = Modifier,
     viewModel: HomePageViewModel = hiltViewModel()
 ) {
+    val scheme = MaterialTheme.colorScheme
+
     val context = LocalContext.current
 
     fun openItem(item: ContinueWatchingItem) {
@@ -92,9 +96,9 @@ fun ContinueWatchingCard(
                 .aspectRatio(16f / 9f)
                 .shadow(12.dp, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
-                .background(colors.card)
+                .background(scheme.surfaceVariant)
         ) {
-            AsyncImage(
+            PurefinAsyncImage(
                 model = viewModel.getImageUrl(itemId = item.id, type = ImageType.PRIMARY),
                 contentDescription = null,
                 modifier = Modifier
@@ -103,25 +107,24 @@ fun ContinueWatchingCard(
                         openItem(item)
                     },
                 contentScale = ContentScale.Crop,
-
-                )
+            )
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(colors.textPrimary.copy(alpha = 0.2f))
+                    .background(scheme.onBackground.copy(alpha = 0.2f))
             )
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
                     .height(4.dp)
-                    .background(colors.textPrimary.copy(alpha = 0.2f))
+                    .background(scheme.onBackground.copy(alpha = 0.2f))
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(item.progress.toFloat().nextUp().div(100))
-                        .background(colors.primary)
+                        .background(scheme.primary)
                 )
             }
             Button(
@@ -136,7 +139,7 @@ fun ContinueWatchingCard(
         Column(modifier = Modifier.padding(top = 12.dp)) {
             Text(
                 text = item.primaryText,
-                color = colors.textPrimary,
+                color = scheme.onBackground,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -144,7 +147,7 @@ fun ContinueWatchingCard(
             )
             Text(
                 text = item.secondaryText,
-                color = colors.textSecondary,
+                color = scheme.onSurfaceVariant,
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -158,11 +161,11 @@ fun LibraryPosterSection(
     title: String,
     items: List<PosterItem>,
     action: String?,
-    colors: HomeColors,
     modifier: Modifier = Modifier
 ) {
     SectionHeader(
-        title = title, action = action, colors = colors
+        title = title,
+        action = action
     )
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -173,7 +176,6 @@ fun LibraryPosterSection(
             items = items, key = { it.id }) { item ->
             PosterCard(
                 item = item,
-                colors = colors,
             )
         }
     }
@@ -183,10 +185,11 @@ fun LibraryPosterSection(
 fun SectionHeader(
     title: String,
     action: String?,
-    colors: HomeColors,
     modifier: Modifier = Modifier,
     onActionClick: () -> Unit = {}
 ) {
+    val scheme = MaterialTheme.colorScheme
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -195,12 +198,15 @@ fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = title, color = colors.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold
+            text = title,
+            color = scheme.onBackground,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
         )
         if (action != null) {
             Text(
                 text = action,
-                color = colors.primary,
+                color = scheme.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.clickable { onActionClick() })
