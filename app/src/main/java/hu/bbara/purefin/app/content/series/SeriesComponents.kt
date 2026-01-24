@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -116,7 +115,12 @@ internal fun SeriesActionButtons(modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun SeasonTabs(seasons: List<SeriesSeasonUiModel>, modifier: Modifier = Modifier) {
+internal fun SeasonTabs(
+    seasons: List<SeriesSeasonUiModel>,
+    selectedSeason: SeriesSeasonUiModel?,
+    modifier: Modifier = Modifier,
+    onSelect: (SeriesSeasonUiModel) -> Unit
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -124,21 +128,28 @@ internal fun SeasonTabs(seasons: List<SeriesSeasonUiModel>, modifier: Modifier =
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         seasons.forEach { season ->
-            SeasonTab(name = season.name, isSelected = season.isSelected)
+            SeasonTab(
+                name = season.name,
+                isSelected = season == selectedSeason,
+                modifier = Modifier.clickable { onSelect(season) }
+            )
         }
     }
 }
 
 @Composable
-private fun SeasonTab(name: String, isSelected: Boolean) {
+private fun SeasonTab(
+    name: String,
+    isSelected: Boolean,
+    modifier: Modifier = Modifier
+) {
     val scheme = MaterialTheme.colorScheme
     val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
     val color = if (isSelected) scheme.primary else mutedStrong
     val borderColor = if (isSelected) scheme.primary else Color.Transparent
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(bottom = 8.dp)
-            .clickable { }
     ) {
         Text(
             text = name,
@@ -160,7 +171,7 @@ private fun SeasonTab(name: String, isSelected: Boolean) {
 internal fun EpisodeCarousel(episodes: List<SeriesEpisodeUiModel>, modifier: Modifier = Modifier) {
     LazyRow(
         modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 20.dp),
+//        contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(episodes) { episode ->
@@ -179,10 +190,6 @@ private fun EpisodeCard(
     Column(
         modifier = Modifier
             .width(260.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(scheme.surfaceVariant.copy(alpha = 0.6f))
-            .border(1.dp, scheme.outlineVariant, RoundedCornerShape(16.dp))
-            .padding(12.dp)
             .clickable { viewModel.onSelectEpisode(episode.id) },
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

@@ -14,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.app.content.ContentMockData
-import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.MediaSynopsis
+import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.navigation.ItemDto
 
@@ -57,6 +59,12 @@ private fun SeriesScreenInternal(
 ) {
     val scheme = MaterialTheme.colorScheme
     val textMutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
+
+    fun getDefaultSeason() : SeriesSeasonUiModel {
+        // TODO get next next episodes season selected or add logic to it.
+        return series.seasonTabs.first()
+    }
+    val selectedSeason = remember { mutableStateOf<SeriesSeasonUiModel>(getDefaultSeason()) }
 
     Scaffold(
         modifier = modifier,
@@ -104,22 +112,17 @@ private fun SeriesScreenInternal(
                     bodyLineHeight = null,
                     titleSpacing = 8.dp
                 )
-                Spacer(modifier = Modifier.height(28.dp))
-                Text(
-                    text = "Episodes",
-                    color = scheme.onBackground,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                Spacer(modifier = Modifier.height(24.dp))
+                SeasonTabs(
+                    seasons = series.seasonTabs,
+                    selectedSeason = selectedSeason.value,
+                    onSelect = { selectedSeason.value = it }
                 )
-                Spacer(modifier = Modifier.height(28.dp))
-                SeasonTabs(seasons = series.seasonTabs)
-                Spacer(modifier = Modifier.height(16.dp))
+//                Spacer(modifier = Modifier.height(16.dp))
                 EpisodeCarousel(
-                    episodes = series.seasonTabs.firstOrNull { it.isSelected }?.episodes
-                        ?: series.seasonTabs.firstOrNull()?.episodes
-                        ?: emptyList()
+                    episodes = selectedSeason.value.episodes
                 )
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Cast",
                     color = scheme.onBackground,
