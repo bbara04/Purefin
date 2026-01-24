@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.app.content.ContentMockData
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
+import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.navigation.ItemDto
 
@@ -96,17 +97,12 @@ private fun SeriesScreenInternal(
                 Spacer(modifier = Modifier.height(24.dp))
                 SeriesActionButtons()
                 Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Synopsis",
-                    color = scheme.onBackground,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = series.synopsis,
-                    color = textMutedStrong,
-                    fontSize = 13.sp,
+                MediaSynopsis(
+                    synopsis = series.synopsis,
+                    bodyColor = textMutedStrong,
+                    bodyFontSize = 13.sp,
+                    bodyLineHeight = null,
+                    titleSpacing = 8.dp
                 )
                 Spacer(modifier = Modifier.height(28.dp))
                 Text(

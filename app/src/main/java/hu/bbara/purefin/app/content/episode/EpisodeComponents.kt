@@ -33,6 +33,7 @@ import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
+import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaPlayButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
@@ -105,18 +106,8 @@ internal fun EpisodeDetails(
         }
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Synopsis",
-            color = scheme.onBackground,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = episode.synopsis,
-            color = scheme.onSurfaceVariant,
-            fontSize = 15.sp,
-            lineHeight = 22.sp
+        MediaSynopsis(
+            synopsis = episode.synopsis
         )
         Spacer(modifier = Modifier.height(24.dp))
 
