@@ -99,7 +99,7 @@ class SeriesViewModel @Inject constructor(
             heroImageUrl = JellyfinImageHelper.toImageUrl(
                 url = serverUrl,
                 itemId = seriesItemResult.id,
-                type = ImageType.BACKDROP
+                type = ImageType.PRIMARY
             ),
             seasonTabs = seasonUiModels,
             cast = seriesItemResult.people.orEmpty().map { it.toCastMember() }

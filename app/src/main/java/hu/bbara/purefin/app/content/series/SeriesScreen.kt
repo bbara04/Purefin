@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.app.content.ContentMockData
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
+import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.navigation.ItemDto
 
 @Composable
@@ -71,9 +72,10 @@ private fun SeriesScreenInternal(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            SeriesHero(
+            MediaHero(
                 imageUrl = series.heroImageUrl,
-                height = 200.dp,
+                height = 350.dp,
+                backgroundColor = MaterialTheme.colorScheme.background,
                 modifier = Modifier.fillMaxWidth()
             )
             Column(

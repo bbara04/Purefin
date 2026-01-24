@@ -42,7 +42,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,7 +50,6 @@ import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.MediaActionButton
-import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 
 @Composable
@@ -76,20 +74,6 @@ internal fun SeriesTopBar(
             MediaGhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
     }
-}
-
-@Composable
-internal fun SeriesHero(
-    imageUrl: String,
-    height: Dp,
-    modifier: Modifier = Modifier
-) {
-    MediaHero(
-        imageUrl = imageUrl,
-        backgroundColor = MaterialTheme.colorScheme.background,
-        height = height,
-        modifier = modifier,
-    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

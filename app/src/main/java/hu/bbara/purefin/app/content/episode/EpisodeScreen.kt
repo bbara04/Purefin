@@ -70,7 +70,7 @@ private fun EpisodeScreenInternal(
             MediaHero(
                 imageUrl = episode.heroImageUrl,
                 backgroundColor = MaterialTheme.colorScheme.background,
-                height = 200.dp,
+                height = 300.dp,
                 modifier = Modifier.fillMaxWidth()
             )
             EpisodeDetails(

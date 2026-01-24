@@ -29,7 +29,6 @@ fun MediaHero(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        // Vertical gradient for transition to content
         Box(
             modifier = Modifier
                 .matchParentSize()
