@@ -113,11 +113,6 @@ fun ContinueWatchingCard(
             )
             Box(
                 modifier = Modifier
-                    .matchParentSize()
-                    .background(scheme.onBackground.copy(alpha = 0.2f))
-            )
-            Box(
-                modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
                     .clip(RoundedCornerShape(24.dp))
