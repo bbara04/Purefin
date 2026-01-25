@@ -3,18 +3,12 @@ package hu.bbara.purefin.player
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.media3.ui.PlayerView
 import dagger.hilt.android.AndroidEntryPoint
+import hu.bbara.purefin.player.ui.PlayerScreen
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.theme.PurefinTheme
 
@@ -23,26 +17,24 @@ class PlayerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContent {
-            PurefinTheme(darkTheme = false) {
-                val viewModel = hiltViewModel<PlayerViewModel>()
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                ) {
-                    AndroidView(
-                        factory = { context ->
-                            PlayerView(context).also {
-                                it.player = viewModel.player
-                            }
-                        },
-                        modifier = Modifier.fillMaxHeight()
-                            .align(Alignment.Center)
-                            .aspectRatio(16f / 9f)
+        enterImmersiveMode()
 
-                    )
-                }
+        setContent {
+            PurefinTheme(darkTheme = true) {
+                val viewModel = hiltViewModel<PlayerViewModel>()
+                PlayerScreen(
+                    viewModel = viewModel,
+                    onBack = { finish() }
+                )
             }
+        }
+    }
+
+    private fun enterImmersiveMode() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 }

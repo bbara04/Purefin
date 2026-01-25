@@ -51,6 +51,7 @@ object VideoPlayerModule {
             )
             .build()
         return ExoPlayer.Builder(application)
+            .setTrackSelector(trackSelector)
             .setPauseAtEndOfMediaItems(true)
             .setLoadControl(loadControl)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
