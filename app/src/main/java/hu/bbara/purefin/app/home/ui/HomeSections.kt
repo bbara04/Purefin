@@ -14,15 +14,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -127,13 +130,29 @@ fun ContinueWatchingCard(
                         .background(scheme.primary)
                 )
             }
-            Button(
-                modifier = Modifier.align(Alignment.BottomEnd), onClick = {
+            IconButton(
+                modifier = Modifier.align(Alignment.BottomEnd)
+                    .padding(end = 8.dp, bottom = 8.dp)
+                    .clip(CircleShape)
+                    .background(scheme.secondary)
+                    .size(36.dp),
+                onClick = {
                     val intent = Intent(context, PlayerActivity::class.java)
                     intent.putExtra("MEDIA_ID", item.id.toString())
                     context.startActivity(intent)
-                }) {
-                Icon(imageVector = Icons.Outlined.PlayArrow, contentDescription = "Play")
+                },
+                colors = IconButtonColors(
+                    containerColor = scheme.secondary,
+                    contentColor = scheme.onSecondary,
+                    disabledContainerColor = scheme.secondary,
+                    disabledContentColor = scheme.onSecondary
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PlayArrow,
+                    contentDescription = "Play",
+                    modifier = Modifier.size(28.dp),
+                )
             }
         }
         Column(modifier = Modifier.padding(top = 12.dp)) {
