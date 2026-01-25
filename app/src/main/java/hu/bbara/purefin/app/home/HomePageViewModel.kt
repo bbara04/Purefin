@@ -16,7 +16,9 @@ import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
@@ -34,7 +36,11 @@ class HomePageViewModel @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient
 ) : ViewModel() {
 
-    private val _url = MutableStateFlow("")
+    private val _url = userSessionRepository.serverUrl.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = ""
+    )
 
     private val _continueWatching = MutableStateFlow<List<ContinueWatchingItem>>(emptyList())
     val continueWatching = _continueWatching.asStateFlow()
@@ -49,11 +55,6 @@ class HomePageViewModel @Inject constructor(
     val latestLibraryContent = _latestLibraryContent.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            userSessionRepository.serverUrl.collect {
-                _url.value = it
-            }
-        }
         loadHomePageData()
     }
 
@@ -154,7 +155,8 @@ class HomePageViewModel @Inject constructor(
                 PosterItem(
                     id = it.id,
                     title = it.name ?: "Unknown",
-                    type = it.type
+                    type = it.type,
+                    imageUrl = getImageUrl(it.id, ImageType.PRIMARY)
                 )
             }
             _libraryItems.update { currentMap ->
@@ -183,19 +185,20 @@ class HomePageViewModel @Inject constructor(
                     BaseItemKind.MOVIE -> PosterItem(
                         id = it.id,
                         title = it.name ?: "Unknown",
-                        type = BaseItemKind.MOVIE
+                        type = BaseItemKind.MOVIE,
+                        imageUrl = getImageUrl(it.id, ImageType.PRIMARY)
                     )
                     BaseItemKind.EPISODE -> PosterItem(
                         id = it.id,
                         title = it.seriesName ?: "Unknown",
                         type = BaseItemKind.EPISODE,
-                        parentId = it.seriesId!!
+                        imageUrl = getImageUrl(it.parentId!!, ImageType.PRIMARY)
                     )
                     BaseItemKind.SEASON -> PosterItem(
                         id = it.seriesId!!,
                         title = it.seriesName ?: "Unknown",
                         type = BaseItemKind.SERIES,
-                        parentId = it.seriesId
+                        imageUrl = getImageUrl(it.id, ImageType.PRIMARY)
                     )
                     else -> null
                 }

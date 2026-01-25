@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
-import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaSynopsis
+import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaPlayButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
@@ -53,14 +53,14 @@ internal fun MovieTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MediaGhostIconButton(
+        GhostIconButton(
             icon = Icons.Outlined.ArrowBack,
             contentDescription = "Back",
             onClick = onBack
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MediaGhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
-            MediaGhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
+            GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
+            GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
     }
 }

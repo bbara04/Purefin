@@ -6,6 +6,9 @@ import org.jellyfin.sdk.model.api.ImageType
 class JellyfinImageHelper {
     companion object {
         fun toImageUrl(url: String, itemId: UUID, type: ImageType): String {
+            if (url.isEmpty()) {
+                return ""
+            }
             return StringBuilder()
                 .append(url)
                 .append("/Items/")

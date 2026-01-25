@@ -46,8 +46,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
-import hu.bbara.purefin.common.ui.MediaGhostIconButton
 import hu.bbara.purefin.common.ui.MediaMetaChip
+import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 
@@ -64,13 +64,13 @@ internal fun SeriesTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MediaGhostIconButton(
+        GhostIconButton(
             onClick = onBack,
             icon = Icons.Outlined.ArrowBack,
             contentDescription = "Back")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MediaGhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
-            MediaGhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
+            GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
+            GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
         }
     }
 }

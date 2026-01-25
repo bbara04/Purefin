@@ -74,7 +74,6 @@ fun HomePage(
             contentColor = MaterialTheme.colorScheme.onBackground,
             topBar = {
                 HomeTopBar(
-                    title = "Home",
                     onMenuClick = { coroutineScope.launch { drawerState.open() } }
                 )
             }

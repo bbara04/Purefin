@@ -18,26 +18,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.home.HomePageViewModel
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 fun PosterCard(
     item: PosterItem,
     modifier: Modifier = Modifier,
-    viewModel: HomePageViewModel = hiltViewModel()
+    onMovieSelected: (String) -> Unit,
+    onSeriesSelected: (String) -> Unit,
+    onEpisodeSelected: (String) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
 
     fun openItem(posterItem: PosterItem) {
         when (posterItem.type) {
-            BaseItemKind.MOVIE -> viewModel.onMovieSelected(posterItem.id.toString())
-            BaseItemKind.SERIES -> viewModel.onSeriesSelected(posterItem.id.toString())
-            BaseItemKind.EPISODE -> viewModel.onEpisodeSelected(posterItem.id.toString())
+            BaseItemKind.MOVIE -> onMovieSelected(posterItem.id.toString())
+            BaseItemKind.SERIES -> onSeriesSelected(posterItem.id.toString())
+            BaseItemKind.EPISODE -> onEpisodeSelected(posterItem.id.toString())
             else -> {}
         }
     }
@@ -46,7 +45,7 @@ fun PosterCard(
             .width(144.dp)
     ) {
         PurefinAsyncImage(
-            model = viewModel.getImageUrl(item.imageItemId, ImageType.PRIMARY),
+            model = item.imageUrl,
             contentDescription = null,
             modifier = Modifier
                 .aspectRatio(2f / 3f)

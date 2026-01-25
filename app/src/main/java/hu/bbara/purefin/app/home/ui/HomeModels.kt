@@ -26,10 +26,8 @@ data class PosterItem(
     val id: UUID,
     val title: String,
     val type: BaseItemKind,
-    val parentId: UUID? = null
-) {
-    val imageItemId: UUID get() = parentId ?: id
-}
+    val imageUrl: String
+)
 
 data class HomeNavItem(
     val id: UUID,

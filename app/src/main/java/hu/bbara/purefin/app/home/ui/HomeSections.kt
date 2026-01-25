@@ -161,7 +161,8 @@ fun LibraryPosterSection(
     title: String,
     items: List<PosterItem>,
     action: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: HomePageViewModel = hiltViewModel()
 ) {
     SectionHeader(
         title = title,
@@ -176,6 +177,9 @@ fun LibraryPosterSection(
             items = items, key = { it.id }) { item ->
             PosterCard(
                 item = item,
+                onMovieSelected = { viewModel.onMovieSelected(it) },
+                onSeriesSelected = { viewModel.onSeriesSelected(it) },
+                onEpisodeSelected = { viewModel.onEpisodeSelected(it) }
             )
         }
     }

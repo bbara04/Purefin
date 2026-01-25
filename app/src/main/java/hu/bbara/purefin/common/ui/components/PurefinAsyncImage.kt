@@ -20,8 +20,14 @@ fun PurefinAsyncImage(
 ) {
     val placeholderPainter = ColorPainter(MaterialTheme.colorScheme.surfaceVariant)
 
+    // Convert empty string to null to properly trigger fallback
+    val effectiveModel = when {
+        model is String && model.isEmpty() -> null
+        else -> model
+    }
+
     AsyncImage(
-        model = model,
+        model = effectiveModel,
         contentDescription = contentDescription,
         modifier = modifier,
         contentScale = contentScale,
