@@ -119,6 +119,8 @@ fun ContinueWatchingCard(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
+                    .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
+                    .clip(RoundedCornerShape(24.dp))
                     .fillMaxWidth()
                     .height(4.dp)
                     .background(scheme.onBackground.copy(alpha = 0.2f))
@@ -132,7 +134,7 @@ fun ContinueWatchingCard(
             }
             IconButton(
                 modifier = Modifier.align(Alignment.BottomEnd)
-                    .padding(end = 8.dp, bottom = 8.dp)
+                    .padding(end = 8.dp, bottom = 16.dp)
                     .clip(CircleShape)
                     .background(scheme.secondary)
                     .size(36.dp),
