@@ -19,13 +19,14 @@ fun PurefinIconButton(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    size: Int = 52
 ) {
     val scheme = MaterialTheme.colorScheme
 
     Box(
         modifier = modifier
-            .size(52.dp)
+            .size(size.dp)
             .clip(CircleShape)
             .background(scheme.secondary)
             .clickable { onClick() },

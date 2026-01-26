@@ -11,24 +11,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
-import androidx.compose.material.icons.outlined.Forward10
 import androidx.compose.material.icons.outlined.Forward30
-import androidx.compose.material.icons.outlined.LiveTv
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.Replay10
-import androidx.compose.material.icons.outlined.Replay30
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material.icons.outlined.Subtitles
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -94,15 +88,6 @@ fun PlayerControlsOverlay(
                 onOpenQueue = onOpenQueue,
                 modifier = Modifier.align(Alignment.TopCenter)
             )
-            CenterControls(
-                isPlaying = uiState.isPlaying,
-                isLive = uiState.isLive,
-                onPlayPause = onPlayPause,
-                onSeekForward = { onSeekRelative(30_000) },
-                onSeekBackward = { onSeekRelative(-10_000) },
-                onSeekLiveEdge = onSeekLiveEdge,
-                modifier = Modifier.align(Alignment.Center)
-            )
             BottomSection(
                 uiState = uiState,
                 scrubbing = scrubbing,
@@ -111,6 +96,10 @@ fun PlayerControlsOverlay(
                 onScrubFinished = { scrubbing = false },
                 onNext = onNext,
                 onPrevious = onPrevious,
+                onPlayPause = onPlayPause,
+                onSeekForward = { onSeekRelative(30_000) },
+                onSeekBackward = { onSeekRelative(-10_000) },
+                onSeekLiveEdge = onSeekLiveEdge,
                 onToggleCaptions = onToggleCaptions,
                 onShowSettings = onShowSettings,
                 onQueueSelected = onQueueSelected,
@@ -162,80 +151,6 @@ private fun TopBar(
 }
 
 @Composable
-private fun CenterControls(
-    isPlaying: Boolean,
-    isLive: Boolean,
-    onPlayPause: () -> Unit,
-    onSeekForward: () -> Unit,
-    onSeekBackward: () -> Unit,
-    onSeekLiveEdge: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val scheme = MaterialTheme.colorScheme
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OverlayActionButton(
-                icon = Icons.Outlined.Replay10,
-                label = "-10",
-                onClick = onSeekBackward
-            )
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(scheme.primary.copy(alpha = 0.9f))
-            ) {
-                val icon = if (isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow
-                GhostIconButton(
-                    icon = icon,
-                    contentDescription = "Play/Pause",
-                    onClick = onPlayPause,
-                    modifier = Modifier.padding(6.dp)
-                )
-            }
-            OverlayActionButton(
-                icon = Icons.Outlined.Forward30,
-                label = "+30",
-                onClick = onSeekForward
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        if (isLive) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(Icons.Outlined.LiveTv, contentDescription = null, tint = scheme.primary)
-                Text(
-                    text = "Live",
-                    color = scheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(scheme.primary.copy(alpha = 0.15f))
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                )
-                Text(
-                    text = "Catch up",
-                    color = scheme.onSurface,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(scheme.surfaceVariant.copy(alpha = 0.7f))
-                        .clickable { onSeekLiveEdge() }
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun BottomSection(
     uiState: PlayerUiState,
     scrubbing: Boolean,
@@ -244,6 +159,10 @@ private fun BottomSection(
     onScrubFinished: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onPlayPause: () -> Unit,
+    onSeekForward: () -> Unit,
+    onSeekBackward: () -> Unit,
+    onSeekLiveEdge: () -> Unit,
     onToggleCaptions: () -> Unit,
     onShowSettings: () -> Unit,
     onQueueSelected: (String) -> Unit,
@@ -255,7 +174,8 @@ private fun BottomSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = formatTime(uiState.positionMs),
@@ -263,7 +183,17 @@ private fun BottomSection(
                 style = MaterialTheme.typography.bodySmall
             )
             if (uiState.isLive) {
-                Text(text = "LIVE", color = scheme.primary, fontWeight = FontWeight.Bold)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "LIVE", color = scheme.primary, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Catch up",
+                        color = scheme.onSurface,
+                        modifier = Modifier.clickable { onSeekLiveEdge() }
+                    )
+                }
             } else {
                 Text(
                     text = formatTime(uiState.durationMs),
@@ -283,26 +213,52 @@ private fun BottomSection(
             onScrubFinished = onScrubFinished
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 PurefinIconButton(
                     icon = Icons.Outlined.SkipPrevious,
                     contentDescription = "Previous",
-                    onClick = onPrevious
+                    onClick = onPrevious,
+                    size = 64
+                )
+                PurefinIconButton(
+                    icon = Icons.Outlined.Replay10,
+                    contentDescription = "Seek backward",
+                    onClick = onSeekBackward,
+                    size = 64
+                )
+                PurefinIconButton(
+                    icon = if (uiState.isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
+                    contentDescription = "Play/Pause",
+                    onClick = onPlayPause,
+                    size = 64
+                )
+                PurefinIconButton(
+                    icon = Icons.Outlined.Forward30,
+                    contentDescription = "Seek forward",
+                    onClick = onSeekForward,
+                    size = 64
                 )
                 PurefinIconButton(
                     icon = Icons.Outlined.SkipNext,
                     contentDescription = "Next",
-                    onClick = onNext
+                    onClick = onNext,
+                    size = 64
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 PurefinIconButton(
                     icon = Icons.Outlined.Subtitles,
                     contentDescription = "Captions",
@@ -316,23 +272,6 @@ private fun BottomSection(
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
-    }
-}
-
-@Composable
-private fun OverlayActionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit
-) {
-    val scheme = MaterialTheme.colorScheme
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        GhostIconButton(
-            icon = icon,
-            contentDescription = label,
-            onClick = onClick
-        )
-        Text(text = label, color = scheme.onSurface, style = MaterialTheme.typography.labelSmall)
     }
 }
 
