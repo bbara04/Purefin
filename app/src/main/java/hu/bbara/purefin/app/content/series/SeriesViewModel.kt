@@ -79,14 +79,15 @@ class SeriesViewModel @Inject constructor(
                     title = episode.name ?: "Unknown",
                     description = episode.overview ?: "",
                     duration = "58m",
-                    imageUrl = JellyfinImageHelper.toImageUrl(url = serverUrl, itemId = episode.id, type = ImageType.PRIMARY)
+                    imageUrl = JellyfinImageHelper.toImageUrl(url = serverUrl, itemId = episode.id, type = ImageType.PRIMARY),
+                    progress = episode.userData!!.playedPercentage,
+                    watched = episode.userData!!.played
                 )
             }
             SeriesSeasonUiModel(
                 name = season.name ?: "Unknown",
                 episodes = episodeItemUiModels,
-                // TODO add actual logic or remove
-                isSelected = false,
+                unplayedCount = season.userData!!.unplayedItemCount
             )
         }
         return SeriesUiModel(

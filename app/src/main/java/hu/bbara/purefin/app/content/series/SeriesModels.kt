@@ -5,13 +5,15 @@ data class SeriesEpisodeUiModel(
     val title: String,
     val description: String,
     val duration: String,
-    val imageUrl: String
+    val imageUrl: String,
+    val watched: Boolean,
+    val progress: Double?
 )
 
 data class SeriesSeasonUiModel(
     val name: String,
-    val isSelected: Boolean,
-    val episodes: List<SeriesEpisodeUiModel>
+    val episodes: List<SeriesEpisodeUiModel>,
+    val unplayedCount: Int?
 )
 
 data class SeriesCastMemberUiModel(
@@ -30,4 +32,15 @@ data class SeriesUiModel(
     val heroImageUrl: String,
     val seasonTabs: List<SeriesSeasonUiModel>,
     val cast: List<SeriesCastMemberUiModel>
-)
+) {
+    fun getNextEpisode(): SeriesEpisodeUiModel {
+        for (season in seasonTabs) {
+            for (episode in season.episodes) {
+                if (!episode.watched) {
+                    return episode
+                }
+            }
+        }
+        return seasonTabs.first().episodes.first()
+    }
+}

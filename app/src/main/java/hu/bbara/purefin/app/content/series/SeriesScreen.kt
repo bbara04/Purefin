@@ -61,7 +61,14 @@ private fun SeriesScreenInternal(
     val textMutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
 
     fun getDefaultSeason() : SeriesSeasonUiModel {
-        // TODO get next next episodes season selected or add logic to it.
+        for (season in series.seasonTabs) {
+            val firstUnwatchedEpisode = season.episodes.firstOrNull {
+                it.watched.not()
+            }
+            if (firstUnwatchedEpisode != null) {
+                return season
+            }
+        }
         return series.seasonTabs.first()
     }
     val selectedSeason = remember { mutableStateOf<SeriesSeasonUiModel>(getDefaultSeason()) }

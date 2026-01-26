@@ -167,6 +167,7 @@ class JellyfinApiClient @Inject constructor(
         val result = api.tvShowsApi.getSeasons(
             userId = getUserId(),
             seriesId = seriesId,
+            enableUserData = true
         )
         Log.d("getSeasons response: {}", result.content.toString())
         return result.content.items
