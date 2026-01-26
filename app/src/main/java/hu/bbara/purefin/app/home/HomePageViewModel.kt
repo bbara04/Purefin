@@ -98,7 +98,7 @@ class HomePageViewModel @Inject constructor(
                         id = it.id,
                         type = BaseItemKind.EPISODE,
                         primaryText = it.seriesName!!,
-                        secondaryText = it.name!!,
+                        secondaryText = "S${it.parentIndexNumber!!}:${it.indexNumber!!} - ${it.name!!}",
                         progress = it.userData!!.playedPercentage!!,
                         colors = listOf(Color.Red, Color.Green),
                     )

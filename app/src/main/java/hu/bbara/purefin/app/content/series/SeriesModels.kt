@@ -3,6 +3,8 @@ package hu.bbara.purefin.app.content.series
 data class SeriesEpisodeUiModel(
     val id: String,
     val title: String,
+    val seasonNumber: Int,
+    val episodeNumber: Int,
     val description: String,
     val duration: String,
     val imageUrl: String,

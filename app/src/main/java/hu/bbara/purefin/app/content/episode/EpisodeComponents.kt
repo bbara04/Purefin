@@ -89,6 +89,13 @@ internal fun EpisodeDetails(
             fontWeight = FontWeight.Bold,
             lineHeight = 38.sp
         )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Season ${episode.seasonNumber}, Episode ${episode.episodeNumber}",
+            color = scheme.onBackground,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
+        )
         Spacer(modifier = Modifier.height(16.dp))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),

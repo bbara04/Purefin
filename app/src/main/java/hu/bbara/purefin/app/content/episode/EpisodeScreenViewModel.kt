@@ -91,6 +91,8 @@ class EpisodeScreenViewModel @Inject constructor(
         return EpisodeUiModel(
             id = id,
             title = name ?: "Unknown title",
+            seasonNumber = parentIndexNumber!!,
+            episodeNumber = indexNumber!!,
             releaseDate = releaseDate,
             rating = rating,
             runtime = runtime,

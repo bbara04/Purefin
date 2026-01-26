@@ -11,6 +11,8 @@ data class CastMember(
 data class EpisodeUiModel(
     val id: UUID,
     val title: String,
+    val seasonNumber: Int,
+    val episodeNumber: Int,
     val releaseDate: String,
     val rating: String,
     val runtime: String,

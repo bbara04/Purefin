@@ -249,22 +249,21 @@ private fun EpisodeCard(
             }
         }
         Column(
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            //verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
                 text = episode.title,
                 color = scheme.onBackground,
-                fontSize = 13.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = episode.description,
+                text = "S${episode.seasonNumber} • E${episode.episodeNumber}",
                 color = mutedStrong,
-                fontSize = 11.sp,
-                lineHeight = 16.sp,
-                maxLines = 2,
+                fontSize = 12.sp,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }

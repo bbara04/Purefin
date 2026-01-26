@@ -90,7 +90,7 @@ private fun SeriesScreenInternal(
         ) {
             MediaHero(
                 imageUrl = series.heroImageUrl,
-                height = 350.dp,
+                height = 250.dp,
                 backgroundColor = MaterialTheme.colorScheme.background,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -125,7 +125,6 @@ private fun SeriesScreenInternal(
                     selectedSeason = selectedSeason.value,
                     onSelect = { selectedSeason.value = it }
                 )
-//                Spacer(modifier = Modifier.height(16.dp))
                 EpisodeCarousel(
                     episodes = selectedSeason.value.episodes
                 )

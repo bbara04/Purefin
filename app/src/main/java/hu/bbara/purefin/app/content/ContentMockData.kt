@@ -16,6 +16,8 @@ object ContentMockData {
         val episode1 = SeriesEpisodeUiModel(
             id = "1",
             title = "E1: The Beginning",
+            seasonNumber = 1,
+            episodeNumber = 1,
             description = "The crew assembles for the first time as the anomaly begins to expand rapidly near Saturn's rings.",
             duration = "58m",
             imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuC6OPszCXCIP_FMO3BJJUrjpCtDNw9aeHYOGyOAXdqF078hDFNrH7KXbaQ7qtipz6aIPLivd8VBBffNMbeAiYIjjWjn5GMb6Xn9iiJz0D2rzhCKi0TBeFrN6tC1IXJkzQyQKJNhTnyokWy9dd-YtN65V7er7RT6hP5jdVBXhtK1xZMjlgrm1bk_FTTmKd8Afu3zPtJCaaC98Z608vav5zhYlkrdA1wKNSTWTpzwMSyDIY3pNQNPFauWf0n-iEu7QsYTAwhCG_zfxz0",
@@ -25,6 +27,8 @@ object ContentMockData {
         val episode2 = SeriesEpisodeUiModel(
             id = "2",
             title = "E2: Event Horizon",
+            seasonNumber = 1,
+            episodeNumber = 2,
             description = "Dr. Cole discovers a frequency embedded in the rift's radiation that suggests intelligent design.",
             duration = "54m",
             imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuBExsf-wEzAVjMxasU2ImGhlreqQo9biBSN1yHyAbW8MyuhuppRw9ho7OD3vsbySSJ3kNluEgH1Qun45PmLnZWixZsFU4Qc7UGGJNKMS5Nkm4GZAsKdFvb3z_i1tkCvaXXvGpqmwI0qjFuo1QyjjhYPA5Yp3I8ZhrnDYdQv_GxbhR6Vl3mY1rbxd2BIUEE5oMTwTF-QmJztUEaViZkSGSG2VgVXZ5VAREn4xWE902OH2sysllvXQJQIaj439JIC2_Vg61m0-F-F1Vc",
@@ -34,6 +38,8 @@ object ContentMockData {
         val episode3 = SeriesEpisodeUiModel(
             id = "3",
             title = "E3: Singularity",
+            seasonNumber = 1,
+            episodeNumber = 3,
             description = "Tension rises as the ship approaches the event horizon, and the AI begins to behave erratically.",
             duration = "1h 02m",
             imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuA5CFDWsWYO4YxdRoLd2QfH5Su2KLhtj5xSDb8qmzWHvPE888ac_HAAj1wu1uqdFNSncdmmJ-bWsc--h6NYKxVXkhd4vHaFWi0XTJXgsR0F3cBu_l2SynSX4TMNSy5C3XWDurgeSH789byOe1HvoxHCHTJYaSf3OyEbil-NOp9g_9mZ24CIZOI79nx57CRzmooxoswycqssPpfTNkrnoYrrAczt5qbncwLM9NVU442YxyBFisr2Ds9H-CNBOakiCtaKnoJ6npznM7U",
@@ -154,6 +160,8 @@ object ContentMockData {
         return EpisodeUiModel(
             id = UUID.randomUUID(),
             title = "S1E1 · Event Horizon",
+            seasonNumber = 1,
+            episodeNumber = 1,
             releaseDate = "Oct 12, 2024",
             rating = "TV-MA",
             runtime = "58m",
