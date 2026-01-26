@@ -12,6 +12,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 fun PlayerGesturesLayer(
     modifier: Modifier = Modifier,
     onTap: () -> Unit,
+    onResumePause: () -> Unit,
     onSeekForward: () -> Unit,
     onSeekBackward: () -> Unit,
     onVerticalDragLeft: (delta: Float) -> Unit,
@@ -24,9 +25,14 @@ fun PlayerGesturesLayer(
                 detectTapGestures(
                     onTap = { onTap() },
                     onDoubleTap = { offset ->
-                        val half = size.width / 2
-                        if (offset.x < half) {
+                        // TODO extract it into an enum
+                        val screenWidth = size.width
+                        val oneThird = screenWidth / 3
+                        val secondThird = oneThird * 2
+                        if (offset.x < oneThird) {
                             onSeekBackward()
+                        } else if (offset.x >= oneThird && offset.x <= secondThird) {
+                            onResumePause()
                         } else {
                             onSeekForward()
                         }

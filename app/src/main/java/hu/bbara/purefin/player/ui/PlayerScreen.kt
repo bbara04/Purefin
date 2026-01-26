@@ -89,8 +89,9 @@ fun PlayerScreen(
         PlayerGesturesLayer(
             modifier = Modifier.fillMaxSize(),
             onTap = { viewModel.toggleControlsVisibility() },
-            onSeekForward = { viewModel.seekBy(10_000) },
+            onSeekForward = { viewModel.seekBy(30_000) },
             onSeekBackward = { viewModel.seekBy(-10_000) },
+            onResumePause = {viewModel.togglePlayPause()},
             onVerticalDragLeft = { delta ->
                 val diff = (-delta / 800f)
                 brightness = (brightness + diff).coerceIn(0f, 1f)
