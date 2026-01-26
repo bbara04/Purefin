@@ -1,6 +1,7 @@
 package hu.bbara.purefin.player.ui.components
 
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,9 +13,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 fun PlayerGesturesLayer(
     modifier: Modifier = Modifier,
     onTap: () -> Unit,
-    onResumePause: () -> Unit,
-    onSeekForward: () -> Unit,
-    onSeekBackward: () -> Unit,
+    onDoubleTapCenter: () -> Unit,
+    onDoubleTapRight: () -> Unit,
+    onDoubleTapLeft: () -> Unit,
     onVerticalDragLeft: (delta: Float) -> Unit,
     onVerticalDragRight: (delta: Float) -> Unit
 ) {
@@ -30,11 +31,11 @@ fun PlayerGesturesLayer(
                         val oneThird = screenWidth / 3
                         val secondThird = oneThird * 2
                         if (offset.x < oneThird) {
-                            onSeekBackward()
+                            onDoubleTapLeft()
                         } else if (offset.x >= oneThird && offset.x <= secondThird) {
-                            onResumePause()
+                            onDoubleTapCenter()
                         } else {
-                            onSeekForward()
+                            onDoubleTapRight()
                         }
                     }
                 )
