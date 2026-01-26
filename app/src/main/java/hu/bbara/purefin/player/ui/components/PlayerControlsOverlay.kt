@@ -80,11 +80,10 @@ fun PlayerControlsOverlay(
                 )
             )
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.SpaceBetween
         ) {
             TopBar(
                 title = uiState.title ?: "Playing",
@@ -92,9 +91,9 @@ fun PlayerControlsOverlay(
                 onBack = onBack,
                 onCast = { },
                 onMore = { },
-                onOpenQueue = onOpenQueue
+                onOpenQueue = onOpenQueue,
+                modifier = Modifier.align(Alignment.TopCenter)
             )
-
             CenterControls(
                 isPlaying = uiState.isPlaying,
                 isLive = uiState.isLive,
@@ -103,9 +102,9 @@ fun PlayerControlsOverlay(
                 onSeekBackward = { onSeekRelative(-10_000) },
                 onLongSeekForward = { onSeekRelative(30_000) },
                 onLongSeekBackward = { onSeekRelative(-30_000) },
-                onSeekLiveEdge = onSeekLiveEdge
+                onSeekLiveEdge = onSeekLiveEdge,
+                modifier = Modifier.align(Alignment.Center)
             )
-
             BottomSection(
                 uiState = uiState,
                 scrubbing = scrubbing,
@@ -116,7 +115,8 @@ fun PlayerControlsOverlay(
                 onPrevious = onPrevious,
                 onToggleCaptions = onToggleCaptions,
                 onShowSettings = onShowSettings,
-                onQueueSelected = onQueueSelected
+                onQueueSelected = onQueueSelected,
+                modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
     }
@@ -129,11 +129,12 @@ private fun TopBar(
     onBack: () -> Unit,
     onCast: () -> Unit,
     onMore: () -> Unit,
-    onOpenQueue: () -> Unit
+    onOpenQueue: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -171,11 +172,12 @@ private fun CenterControls(
     onSeekBackward: () -> Unit,
     onLongSeekForward: () -> Unit,
     onLongSeekBackward: () -> Unit,
-    onSeekLiveEdge: () -> Unit
+    onSeekLiveEdge: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -258,10 +260,11 @@ private fun BottomSection(
     onPrevious: () -> Unit,
     onToggleCaptions: () -> Unit,
     onShowSettings: () -> Unit,
-    onQueueSelected: (String) -> Unit
+    onQueueSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    Column {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
