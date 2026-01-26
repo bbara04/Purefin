@@ -98,10 +98,8 @@ fun PlayerControlsOverlay(
                 isPlaying = uiState.isPlaying,
                 isLive = uiState.isLive,
                 onPlayPause = onPlayPause,
-                onSeekForward = { onSeekRelative(10_000) },
+                onSeekForward = { onSeekRelative(30_000) },
                 onSeekBackward = { onSeekRelative(-10_000) },
-                onLongSeekForward = { onSeekRelative(30_000) },
-                onLongSeekBackward = { onSeekRelative(-30_000) },
                 onSeekLiveEdge = onSeekLiveEdge,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -170,8 +168,6 @@ private fun CenterControls(
     onPlayPause: () -> Unit,
     onSeekForward: () -> Unit,
     onSeekBackward: () -> Unit,
-    onLongSeekForward: () -> Unit,
-    onLongSeekBackward: () -> Unit,
     onSeekLiveEdge: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -190,11 +186,6 @@ private fun CenterControls(
                 label = "-10",
                 onClick = onSeekBackward
             )
-            OverlayActionButton(
-                icon = Icons.Outlined.Replay30,
-                label = "-30",
-                onClick = onLongSeekBackward
-            )
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
@@ -211,11 +202,6 @@ private fun CenterControls(
             OverlayActionButton(
                 icon = Icons.Outlined.Forward30,
                 label = "+30",
-                onClick = onLongSeekForward
-            )
-            OverlayActionButton(
-                icon = Icons.Outlined.Forward10,
-                label = "+10",
                 onClick = onSeekForward
             )
         }
