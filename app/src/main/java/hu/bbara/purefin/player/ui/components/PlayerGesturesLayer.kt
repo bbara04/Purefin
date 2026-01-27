@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 
 @Composable
 fun PlayerGesturesLayer(
@@ -17,8 +18,14 @@ fun PlayerGesturesLayer(
     onDoubleTapRight: () -> Unit,
     onDoubleTapLeft: () -> Unit,
     onVerticalDragLeft: (delta: Float) -> Unit,
-    onVerticalDragRight: (delta: Float) -> Unit
+    onVerticalDragRight: (delta: Float) -> Unit,
+    onHorizontalDragPreview: (deltaMs: Long?) -> Unit = {},
+    onHorizontalDrag: (deltaMs: Long) -> Unit,
+    setFeedBackPreview: (show: Boolean) -> Unit
 ) {
+    val density = LocalDensity.current
+    val horizontalThresholdPx = with(density) { HorizontalSeekGestureHelper.START_THRESHOLD.toPx() }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -49,6 +56,56 @@ fun PlayerGesturesLayer(
                         onVerticalDragRight(dragAmount.y)
                     }
                 }
+            }
+            .pointerInput(Unit) {
+                var accumulatedHorizontalDrag = 0f
+                var isHorizontalDragActive = false
+                var lastPreviewDelta: Long? = null
+                detectHorizontalDragGestures(
+                    onDragStart = {
+                        accumulatedHorizontalDrag = 0f
+                        isHorizontalDragActive = false
+                        lastPreviewDelta = null
+                        setFeedBackPreview(false)
+                        onHorizontalDragPreview(null)
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        accumulatedHorizontalDrag += dragAmount
+                        if (!isHorizontalDragActive && kotlin.math.abs(accumulatedHorizontalDrag) >= horizontalThresholdPx) {
+                            isHorizontalDragActive = true
+                            setFeedBackPreview(true)
+                        }
+                        if (isHorizontalDragActive) {
+                            change.consume()
+                            val deltaMs = HorizontalSeekGestureHelper.deltaMs(accumulatedHorizontalDrag)
+                            if (deltaMs != 0L && deltaMs != lastPreviewDelta) {
+                                lastPreviewDelta = deltaMs
+                                onHorizontalDragPreview(deltaMs)
+                            }
+                        }
+                    },
+                    onDragEnd = {
+                        if (isHorizontalDragActive) {
+                            val deltaMs = HorizontalSeekGestureHelper.deltaMs(accumulatedHorizontalDrag)
+                            if (deltaMs != 0L) {
+                                onHorizontalDrag(deltaMs)
+                                onHorizontalDragPreview(deltaMs)
+                            }
+                        }
+                        accumulatedHorizontalDrag = 0f
+                        isHorizontalDragActive = false
+                        lastPreviewDelta = null
+                        setFeedBackPreview(false)
+                        onHorizontalDragPreview(null)
+                    },
+                    onDragCancel = {
+                        accumulatedHorizontalDrag = 0f
+                        isHorizontalDragActive = false
+                        lastPreviewDelta = null
+                        setFeedBackPreview(false)
+                        onHorizontalDragPreview(null)
+                    }
+                )
             }
     )
 }

@@ -13,7 +13,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -23,7 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -35,6 +40,8 @@ import hu.bbara.purefin.player.ui.components.PlayerQueuePanel
 import hu.bbara.purefin.player.ui.components.PlayerSettingsSheet
 import hu.bbara.purefin.player.ui.components.PlayerSideSliders
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
+import kotlinx.coroutines.delay
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @OptIn(UnstableApi::class)
@@ -57,6 +64,15 @@ fun PlayerScreen(
     var brightnessOverlayVisible by remember { mutableStateOf(false) }
     var volumeOverlayVisible by remember { mutableStateOf(false) }
     var showQueuePanel by remember { mutableStateOf(false) }
+    var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
+    var showFeedbackPreview by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showFeedbackPreview) {
+        if (!showFeedbackPreview) {
+            delay(1000)
+            horizontalSeekFeedback = null
+        }
+    }
 
     LaunchedEffect(uiState.isPlaying) {
         if (uiState.isPlaying) {
@@ -107,8 +123,26 @@ fun PlayerScreen(
                     (volume * maxVolume).roundToInt(),
                     0
                 )
+            },
+            setFeedBackPreview = {
+                showFeedbackPreview = it
+            },
+            onHorizontalDragPreview = {
+                horizontalSeekFeedback = it
+            },
+            onHorizontalDrag = {
+                viewModel.seekBy(it)
+                horizontalSeekFeedback = it
             }
         )
+
+        horizontalSeekFeedback?.let { delta ->
+            SeekAmountIndicator(
+                deltaMs = delta,
+                modifier = Modifier
+                    .align(Alignment.Center)
+            )
+        }
 
         AnimatedVisibility(
             visible = volumeOverlayVisible || brightnessOverlayVisible,
@@ -194,6 +228,36 @@ fun PlayerScreen(
                     .fillMaxSize()
             )
         }
+    }
+}
+
+@Composable
+private fun SeekAmountIndicator(deltaMs: Long, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    val prefix = if (deltaMs >= 0) "+" else "-"
+    val formatted = formatSeekDelta(abs(deltaMs))
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(scheme.surface.copy(alpha = 0.9f))
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+    ) {
+        Text(
+            text = "$prefix$formatted",
+            color = scheme.onSurface,
+            style = MaterialTheme.typography.titleMedium
+        )
+    }
+}
+
+private fun formatSeekDelta(deltaMs: Long): String {
+    val totalSeconds = (deltaMs / 1000).toInt()
+    val seconds = totalSeconds % 60
+    val minutes = totalSeconds / 60
+    return if (minutes > 0) {
+        "%d:%02d".format(minutes, seconds)
+    } else {
+        "%02d s".format(seconds)
     }
 }
 
