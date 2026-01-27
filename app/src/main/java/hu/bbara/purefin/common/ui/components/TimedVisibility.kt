@@ -1,10 +1,14 @@
 package hu.bbara.purefin.common.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 
 /**
@@ -18,12 +22,12 @@ import kotlinx.coroutines.delay
  * @param content The composable content to display, receiving the current non-null value.
  */
 @Composable
-fun TimedVisibility(
-    value: Long?,
+fun <T> EmptyValueTimedVisibility(
+    value: T?,
     hideAfterMillis: Long = 1_000,
-    content: @Composable (Long) -> Unit,
+    content: @Composable (T) -> Unit,
 ) {
-    val shownValue = remember { mutableStateOf<Long?>(null) }
+    val shownValue = remember { mutableStateOf<T?>(null) }
 
     LaunchedEffect(value) {
         if (value == null) {
@@ -35,5 +39,45 @@ fun TimedVisibility(
 
     shownValue.value?.let {
         content(it)
+    }
+}
+
+/**
+ * Displays [content] whenever [value] changes and hides it after [hideAfterMillis]
+ * milliseconds without further updates.
+ *
+ * @param value The value whose changes should trigger visibility.
+ * @param hideAfterMillis Duration in milliseconds after which the content will be hidden
+ *                        if [value] has not changed again.
+ * @param content The composable to render while visible.
+ */
+@Composable
+fun <T> ValueChangeTimedVisibility(
+    value: T,
+    hideAfterMillis: Long = 1_000,
+    content: @Composable (T) -> Unit,
+) {
+    var displayedValue by remember { mutableStateOf(value) }
+    var isVisible by remember { mutableStateOf(false) }
+    var hasInitialValue by remember { mutableStateOf(false) }
+
+    LaunchedEffect(value) {
+        displayedValue = value
+        if (!hasInitialValue) {
+            hasInitialValue = true
+            return@LaunchedEffect
+        }
+
+        isVisible = true
+        delay(hideAfterMillis)
+        isVisible = false
+    }
+
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = EnterTransition.None,
+        exit = ExitTransition.None
+    ) {
+        content(displayedValue)
     }
 }
