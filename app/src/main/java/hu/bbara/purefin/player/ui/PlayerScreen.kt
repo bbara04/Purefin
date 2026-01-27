@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BrightnessMedium
+import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -35,12 +39,12 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import hu.bbara.purefin.common.ui.components.EmptyValueTimedVisibility
 import hu.bbara.purefin.common.ui.components.ValueChangeTimedVisibility
+import hu.bbara.purefin.player.ui.components.PlayerAdjustmentIndicator
 import hu.bbara.purefin.player.ui.components.PlayerControlsOverlay
 import hu.bbara.purefin.player.ui.components.PlayerGesturesLayer
 import hu.bbara.purefin.player.ui.components.PlayerLoadingErrorEndCard
 import hu.bbara.purefin.player.ui.components.PlayerQueuePanel
 import hu.bbara.purefin.player.ui.components.PlayerSettingsSheet
-import hu.bbara.purefin.player.ui.components.PlayerSideSliders
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -135,27 +139,33 @@ fun PlayerScreen(
 
         ValueChangeTimedVisibility(
             value = brightness,
-            hideAfterMillis = 800
+            hideAfterMillis = 800,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 20.dp)
         ) { currentBrightness ->
-            PlayerSideSliders(
-                modifier = Modifier.fillMaxSize(),
-                brightness = currentBrightness,
-                volume = volume,
-                showBrightness = true,
-                showVolume = false,
+            PlayerAdjustmentIndicator(
+                modifier = Modifier
+                    .align(Alignment.Center),
+                icon = Icons.Outlined.BrightnessMedium,
+                contentDescription = "Brightness",
+                value = currentBrightness
             )
         }
 
         ValueChangeTimedVisibility(
             value = volume,
-            hideAfterMillis = 800
+            hideAfterMillis = 800,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 20.dp)
         ) { currentVolume ->
-            PlayerSideSliders(
-                modifier = Modifier.fillMaxSize(),
-                brightness = brightness,
-                volume = currentVolume,
-                showBrightness = false,
-                showVolume = true,
+            PlayerAdjustmentIndicator(
+                modifier = Modifier
+                    .align(Alignment.Center),
+                icon = Icons.Outlined.VolumeUp,
+                contentDescription = "Volume",
+                value = currentVolume
             )
         }
 
@@ -235,7 +245,7 @@ private fun SeekAmountIndicator(deltaMs: Long, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(scheme.surface.copy(alpha = 0.9f))
+            .background(Color.Black.copy(alpha = 0.9f))
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         Text(

@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
 
 /**
@@ -25,7 +26,8 @@ import kotlinx.coroutines.delay
 fun <T> EmptyValueTimedVisibility(
     value: T?,
     hideAfterMillis: Long = 1_000,
-    content: @Composable (T) -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (T) -> Unit
 ) {
     val shownValue = remember { mutableStateOf<T?>(null) }
 
@@ -55,7 +57,8 @@ fun <T> EmptyValueTimedVisibility(
 fun <T> ValueChangeTimedVisibility(
     value: T,
     hideAfterMillis: Long = 1_000,
-    content: @Composable (T) -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (T) -> Unit
 ) {
     var displayedValue by remember { mutableStateOf(value) }
     var isVisible by remember { mutableStateOf(false) }
@@ -75,6 +78,7 @@ fun <T> ValueChangeTimedVisibility(
 
     AnimatedVisibility(
         visible = isVisible,
+        modifier = modifier,
         enter = EnterTransition.None,
         exit = ExitTransition.None
     ) {
