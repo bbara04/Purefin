@@ -33,6 +33,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import hu.bbara.purefin.common.ui.components.EmptyValueTimedVisibility
+import hu.bbara.purefin.common.ui.components.ValueChangeTimedVisibility
 import hu.bbara.purefin.player.ui.components.PlayerControlsOverlay
 import hu.bbara.purefin.player.ui.components.PlayerGesturesLayer
 import hu.bbara.purefin.player.ui.components.PlayerLoadingErrorEndCard
@@ -40,7 +42,6 @@ import hu.bbara.purefin.player.ui.components.PlayerQueuePanel
 import hu.bbara.purefin.player.ui.components.PlayerSettingsSheet
 import hu.bbara.purefin.player.ui.components.PlayerSideSliders
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
-import kotlinx.coroutines.delay
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -61,18 +62,8 @@ fun PlayerScreen(
     var volume by remember { mutableStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / maxVolume.toFloat()) }
     var brightness by remember { mutableStateOf(readCurrentBrightness(activity)) }
     var showSettings by remember { mutableStateOf(false) }
-    var brightnessOverlayVisible by remember { mutableStateOf(false) }
-    var volumeOverlayVisible by remember { mutableStateOf(false) }
     var showQueuePanel by remember { mutableStateOf(false) }
     var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
-    var showFeedbackPreview by remember { mutableStateOf(false) }
-
-    LaunchedEffect(showFeedbackPreview) {
-        if (!showFeedbackPreview) {
-            delay(1000)
-            horizontalSeekFeedback = null
-        }
-    }
 
     LaunchedEffect(uiState.isPlaying) {
         if (uiState.isPlaying) {
@@ -111,21 +102,16 @@ fun PlayerScreen(
             onVerticalDragLeft = { delta ->
                 val diff = (-delta / 800f)
                 brightness = (brightness + diff).coerceIn(0f, 1f)
-                brightnessOverlayVisible = true
                 applyBrightness(activity, brightness)
             },
             onVerticalDragRight = { delta ->
                 val diff = (-delta / 800f)
                 volume = (volume + diff).coerceIn(0f, 1f)
-                volumeOverlayVisible = true
                 audioManager.setStreamVolume(
                     AudioManager.STREAM_MUSIC,
                     (volume * maxVolume).roundToInt(),
                     0
                 )
-            },
-            setFeedBackPreview = {
-                showFeedbackPreview = it
             },
             onHorizontalDragPreview = {
                 horizontalSeekFeedback = it
@@ -136,30 +122,40 @@ fun PlayerScreen(
             }
         )
 
-        horizontalSeekFeedback?.let { delta ->
+        EmptyValueTimedVisibility(
+            value = horizontalSeekFeedback,
+            hideAfterMillis = 1_000
+        ) {
             SeekAmountIndicator(
-                deltaMs = delta,
+                deltaMs = it,
                 modifier = Modifier
                     .align(Alignment.Center)
             )
         }
 
-        AnimatedVisibility(
-            visible = volumeOverlayVisible || brightnessOverlayVisible,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
+        ValueChangeTimedVisibility(
+            value = brightness,
+            hideAfterMillis = 800
+        ) { currentBrightness ->
             PlayerSideSliders(
-                modifier = Modifier
-                    .fillMaxSize(),
-                brightness = brightness,
+                modifier = Modifier.fillMaxSize(),
+                brightness = currentBrightness,
                 volume = volume,
-                showBrightness = brightnessOverlayVisible,
-                showVolume = volumeOverlayVisible,
-                onHide = {
-                    brightnessOverlayVisible = false
-                    volumeOverlayVisible = false
-                }
+                showBrightness = true,
+                showVolume = false,
+            )
+        }
+
+        ValueChangeTimedVisibility(
+            value = volume,
+            hideAfterMillis = 800
+        ) { currentVolume ->
+            PlayerSideSliders(
+                modifier = Modifier.fillMaxSize(),
+                brightness = brightness,
+                volume = currentVolume,
+                showBrightness = false,
+                showVolume = true,
             )
         }
 

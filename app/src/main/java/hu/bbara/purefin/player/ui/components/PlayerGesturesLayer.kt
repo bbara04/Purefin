@@ -21,7 +21,6 @@ fun PlayerGesturesLayer(
     onVerticalDragRight: (delta: Float) -> Unit,
     onHorizontalDragPreview: (deltaMs: Long?) -> Unit = {},
     onHorizontalDrag: (deltaMs: Long) -> Unit,
-    setFeedBackPreview: (show: Boolean) -> Unit
 ) {
     val density = LocalDensity.current
     val horizontalThresholdPx = with(density) { HorizontalSeekGestureHelper.START_THRESHOLD.toPx() }
@@ -66,14 +65,12 @@ fun PlayerGesturesLayer(
                         accumulatedHorizontalDrag = 0f
                         isHorizontalDragActive = false
                         lastPreviewDelta = null
-                        setFeedBackPreview(false)
                         onHorizontalDragPreview(null)
                     },
                     onHorizontalDrag = { change, dragAmount ->
                         accumulatedHorizontalDrag += dragAmount
                         if (!isHorizontalDragActive && kotlin.math.abs(accumulatedHorizontalDrag) >= horizontalThresholdPx) {
                             isHorizontalDragActive = true
-                            setFeedBackPreview(true)
                         }
                         if (isHorizontalDragActive) {
                             change.consume()
@@ -95,14 +92,12 @@ fun PlayerGesturesLayer(
                         accumulatedHorizontalDrag = 0f
                         isHorizontalDragActive = false
                         lastPreviewDelta = null
-                        setFeedBackPreview(false)
                         onHorizontalDragPreview(null)
                     },
                     onDragCancel = {
                         accumulatedHorizontalDrag = 0f
                         isHorizontalDragActive = false
                         lastPreviewDelta = null
-                        setFeedBackPreview(false)
                         onHorizontalDragPreview(null)
                     }
                 )
