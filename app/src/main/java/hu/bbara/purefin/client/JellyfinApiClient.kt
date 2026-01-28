@@ -227,6 +227,26 @@ class JellyfinApiClient @Inject constructor(
         return result.content.mediaSources
     }
 
+    suspend fun getNextEpisodes(episodeId: UUID, count: Int = 10): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
+        // TODO pass complete Episode object not only an id
+        val episodeInfo = getItemInfo(episodeId) ?: return emptyList()
+        val seriesId = episodeInfo.seriesId ?: return emptyList()
+        val nextUpEpisodesResult = api.tvShowsApi.getEpisodes(
+            userId = getUserId(),
+            seriesId = seriesId,
+            enableUserData = true,
+            startItemId = episodeId,
+            limit = count + 1
+        )
+        //Remove first element as we need only the next episodes
+        val nextUpEpisodes = nextUpEpisodesResult.content.items.drop(1)
+        Log.d("getNextEpisodeMediaSources response: {}", nextUpEpisodes.toString())
+        return nextUpEpisodes
+    }
+
     suspend fun getMediaPlaybackInfo(mediaId: UUID, mediaSourceId: String? = null): String? {
         if (!ensureConfigured()) {
             return null
@@ -239,6 +259,5 @@ class JellyfinApiClient @Inject constructor(
         Log.d("getMediaPlaybackInfo response: {}", response.toString())
         return response
     }
-
 
 }

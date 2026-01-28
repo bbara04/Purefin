@@ -1,6 +1,7 @@
 package hu.bbara.purefin.player.viewmodel
 
 import android.net.Uri
+import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -8,10 +9,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
+import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.player.model.PlayerUiState
@@ -81,8 +84,11 @@ class PlayerViewModel @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            updateMetadata(mediaItem)
-            updateQueue()
+            val mediaId = mediaItem?.mediaId
+            if (!mediaId.isNullOrEmpty()) {
+                updateMetadata(mediaItem)
+                loadNextUpMedias(mediaId)
+            }
         }
     }
 
@@ -100,25 +106,65 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val mediaSources: List<MediaSourceInfo> =
                 jellyfinApiClient.getMediaSources(UUID.fromString(mediaId!!))
+            val selectedMediaSource = mediaSources.first()
             val contentUriString =
                 jellyfinApiClient.getMediaPlaybackInfo(
                     mediaId = UUID.fromString(mediaId),
-                    mediaSourceId = mediaSources.first().id
+                    mediaSourceId = selectedMediaSource.id
                 )
+            val mediaMetadata = MediaMetadata.Builder()
+                .setTitle(selectedMediaSource.name)
+                .build()
             contentUriString?.toUri()?.let {
-                playVideo(it)
+                playVideo(
+                    uri = it,
+                    metadata = mediaMetadata
+                )
             }
         }
     }
 
-    fun addVideoUri(contentUri: Uri) {
-        savedStateHandle["videoUris"] = videoUris.value + contentUri
-        player.addMediaItem(MediaItem.fromUri(contentUri))
+    private fun loadNextUpMedias(mediaId: String) {
+        viewModelScope.launch {
+            val episodes = jellyfinApiClient.getNextEpisodes(
+                episodeId = UUID.fromString(mediaId),
+                count = 2
+            )
+            for (episode in episodes) {
+                if (_uiState.value.queue.any { it.id == episode.id.toString() }) {
+                    continue
+                }
+                val mediaSources = jellyfinApiClient.getMediaSources(episode.id)
+                val selectedMediaSource = mediaSources.first()
+                val contentUriString = jellyfinApiClient.getMediaPlaybackInfo(
+                    mediaId = episode.id,
+                    mediaSourceId = selectedMediaSource.id
+                )
+                val mediaMetadata = MediaMetadata.Builder()
+                    .setTitle(selectedMediaSource.name)
+                    .build()
+                contentUriString?.toUri()?.let {
+                    addVideoUri(it, mediaMetadata, episode.id.toString())
+                }
+            }
+            updateQueue()
+        }
     }
 
-    fun playVideo(uri: Uri) {
+    fun addVideoUri(contentUri: Uri, metadata: MediaMetadata, mediaId: String? = null) {
+        savedStateHandle["videoUris"] = videoUris.value + contentUri
+        val mediaItem = MediaItem.Builder()
+            .setUri(contentUri)
+            .setMediaMetadata(metadata)
+            .setMediaId(mediaId ?: contentUri.toString())
+            .build()
+        player.addMediaItem(mediaItem)
+    }
+
+    fun playVideo(uri: Uri, metadata: MediaMetadata) {
         val mediaItem = MediaItem.Builder()
             .setUri(uri)
+            .setMediaMetadata(metadata)
             .setMediaId(mediaId ?: uri.toString())
             .build()
         player.setMediaItem(mediaItem)
@@ -264,6 +310,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    @OptIn(UnstableApi::class)
     private fun updateTracks(tracks: Tracks = player.currentTracks) {
         val audio = mutableListOf<TrackOption>()
         val text = mutableListOf<TrackOption>()
