@@ -1,4 +1,4 @@
-package hu.bbara.purefin.player.ui.components
+package hu.bbara.purefin.player.helper
 
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs

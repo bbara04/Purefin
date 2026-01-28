@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import hu.bbara.purefin.player.helper.HorizontalSeekGestureHelper
 
 @Composable
 fun PlayerGesturesLayer(
