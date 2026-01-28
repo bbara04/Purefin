@@ -1,47 +1,34 @@
 package hu.bbara.purefin.player.viewmodel
 
-import android.net.Uri
-import androidx.annotation.OptIn
-import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.C
-import androidx.media3.common.Format
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.common.TrackSelectionOverride
-import androidx.media3.common.Tracks
-import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.player.data.MediaRepository
+import hu.bbara.purefin.player.manager.PlayerManager
 import hu.bbara.purefin.player.model.PlayerUiState
-import hu.bbara.purefin.player.model.QueueItemUi
 import hu.bbara.purefin.player.model.TrackOption
-import hu.bbara.purefin.player.model.TrackType
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.MediaSourceInfo
-import javax.inject.Inject
+import java.util.UUID
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
-    val player: Player,
-    val jellyfinApiClient: JellyfinApiClient
+    savedStateHandle: SavedStateHandle,
+    private val playerManager: PlayerManager,
+    private val mediaRepository: MediaRepository
 ) : ViewModel() {
 
-    val mediaId: String? = savedStateHandle["MEDIA_ID"]
-    private val videoUris = savedStateHandle.getStateFlow("videoUris", emptyList<Uri>())
+    val player get() = playerManager.player
+
+    private val mediaId: String? = savedStateHandle["MEDIA_ID"]
+
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
@@ -49,152 +36,138 @@ class PlayerViewModel @Inject constructor(
     val controlsVisible: StateFlow<Boolean> = _controlsVisible.asStateFlow()
 
     private var autoHideJob: Job? = null
-
-    private val playerListener = object : Player.Listener {
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            _uiState.update { it.copy(isPlaying = isPlaying, isBuffering = false, isEnded = false) }
-            if (isPlaying) {
-                scheduleAutoHide()
-            } else {
-                showControls()
-            }
-        }
-
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            val buffering = playbackState == Player.STATE_BUFFERING
-            val ended = playbackState == Player.STATE_ENDED
-            _uiState.update { state ->
-                state.copy(
-                    isBuffering = buffering,
-                    isEnded = ended,
-                    error = if (playbackState == Player.STATE_IDLE) state.error else null
-                )
-            }
-            if (buffering || ended) showControls()
-            if (ended) player.pause()
-        }
-
-        override fun onPlayerError(error: PlaybackException) {
-            _uiState.update { it.copy(error = error.errorCodeName ?: error.localizedMessage ?: "Playback error") }
-            showControls()
-        }
-
-        override fun onTracksChanged(tracks: Tracks) {
-            updateTracks(tracks)
-        }
-
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            val mediaId = mediaItem?.mediaId
-            if (!mediaId.isNullOrEmpty()) {
-                updateMetadata(mediaItem)
-                loadNextUpMedias(mediaId)
-            }
-        }
-    }
+    private var lastNextUpMediaId: String? = null
+    private var dataErrorMessage: String? = null
 
     init {
-        observePlayer()
-        loadMedia()
-        startProgressUpdates()
+        observePlayerState()
+        loadInitialMedia()
     }
 
-    private fun observePlayer() {
-        player.addListener(playerListener)
-    }
-
-    fun loadMedia() {
+    private fun observePlayerState() {
         viewModelScope.launch {
-            val mediaSources: List<MediaSourceInfo> =
-                jellyfinApiClient.getMediaSources(UUID.fromString(mediaId!!))
-            val selectedMediaSource = mediaSources.first()
-            val contentUriString =
-                jellyfinApiClient.getMediaPlaybackInfo(
-                    mediaId = UUID.fromString(mediaId),
-                    mediaSourceId = selectedMediaSource.id
-                )
-            val mediaMetadata = MediaMetadata.Builder()
-                .setTitle(selectedMediaSource.name)
-                .build()
-            contentUriString?.toUri()?.let {
-                playVideo(
-                    uri = it,
-                    metadata = mediaMetadata
-                )
+            playerManager.playbackState.collect { state ->
+                _uiState.update {
+                    it.copy(
+                        isPlaying = state.isPlaying,
+                        isBuffering = state.isBuffering,
+                        isEnded = state.isEnded,
+                        error = state.error ?: dataErrorMessage
+                    )
+                }
+                if (state.isPlaying) {
+                    scheduleAutoHide()
+                } else {
+                    showControls()
+                }
+                if (state.isEnded || state.isBuffering) {
+                    showControls()
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            playerManager.progress.collect { progress ->
+                _uiState.update {
+                    it.copy(
+                        durationMs = progress.durationMs,
+                        positionMs = progress.positionMs,
+                        bufferedMs = progress.bufferedMs,
+                        isLive = progress.isLive
+                    )
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            playerManager.metadata.collect { metadata ->
+                _uiState.update {
+                    it.copy(
+                        title = metadata.title,
+                        subtitle = metadata.subtitle
+                    )
+                }
+                val currentMediaId = metadata.mediaId
+                if (!currentMediaId.isNullOrEmpty() && currentMediaId != lastNextUpMediaId) {
+                    lastNextUpMediaId = currentMediaId
+                    loadNextUp(currentMediaId)
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            playerManager.tracks.collect { tracks ->
+                _uiState.update {
+                    it.copy(
+                        audioTracks = tracks.audioTracks,
+                        textTracks = tracks.textTracks,
+                        qualityTracks = tracks.videoTracks,
+                        selectedAudioTrackId = tracks.selectedAudioTrackId,
+                        selectedTextTrackId = tracks.selectedTextTrackId,
+                        selectedQualityTrackId = tracks.selectedVideoTrackId
+                    )
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            playerManager.queue.collect { queue ->
+                _uiState.update { it.copy(queue = queue) }
             }
         }
     }
 
-    private fun loadNextUpMedias(mediaId: String) {
+    private fun loadInitialMedia() {
+        val id = mediaId ?: return
+        val uuid = id.toUuidOrNull()
+        if (uuid == null) {
+            dataErrorMessage = "Invalid media id"
+            _uiState.update { it.copy(error = dataErrorMessage) }
+            return
+        }
         viewModelScope.launch {
-            val episodes = jellyfinApiClient.getNextEpisodes(
-                episodeId = UUID.fromString(mediaId),
-                count = 2
+            val mediaItem = mediaRepository.getMediaItem(uuid)
+            if (mediaItem != null) {
+                playerManager.play(mediaItem)
+                if (dataErrorMessage != null) {
+                    dataErrorMessage = null
+                    _uiState.update { it.copy(error = null) }
+                }
+            } else {
+                dataErrorMessage = "Unable to load media"
+                _uiState.update { it.copy(error = dataErrorMessage) }
+            }
+        }
+    }
+
+    private fun loadNextUp(currentMediaId: String) {
+        val uuid = currentMediaId.toUuidOrNull() ?: return
+        viewModelScope.launch {
+            val queuedIds = uiState.value.queue.map { it.id }.toSet()
+            val items = mediaRepository.getNextUpMediaItems(
+                episodeId = uuid,
+                existingIds = queuedIds
             )
-            for (episode in episodes) {
-                if (_uiState.value.queue.any { it.id == episode.id.toString() }) {
-                    continue
-                }
-                val mediaSources = jellyfinApiClient.getMediaSources(episode.id)
-                val selectedMediaSource = mediaSources.first()
-                val contentUriString = jellyfinApiClient.getMediaPlaybackInfo(
-                    mediaId = episode.id,
-                    mediaSourceId = selectedMediaSource.id
-                )
-                val mediaMetadata = MediaMetadata.Builder()
-                    .setTitle(selectedMediaSource.name)
-                    .build()
-                contentUriString?.toUri()?.let {
-                    addVideoUri(it, mediaMetadata, episode.id.toString())
-                }
-            }
-            updateQueue()
+            items.forEach { playerManager.addToQueue(it) }
         }
-    }
-
-    fun addVideoUri(contentUri: Uri, metadata: MediaMetadata, mediaId: String? = null) {
-        savedStateHandle["videoUris"] = videoUris.value + contentUri
-        val mediaItem = MediaItem.Builder()
-            .setUri(contentUri)
-            .setMediaMetadata(metadata)
-            .setMediaId(mediaId ?: contentUri.toString())
-            .build()
-        player.addMediaItem(mediaItem)
-    }
-
-    fun playVideo(uri: Uri, metadata: MediaMetadata) {
-        val mediaItem = MediaItem.Builder()
-            .setUri(uri)
-            .setMediaMetadata(metadata)
-            .setMediaId(mediaId ?: uri.toString())
-            .build()
-        player.setMediaItem(mediaItem)
-        player.prepare()
-        player.playWhenReady = true
-        updateQueue()
-        updateMetadata(mediaItem)
-        updateTracks()
-        _uiState.update { it.copy(isEnded = false, error = null) }
     }
 
     fun togglePlayPause() {
-        if (player.isPlaying) player.pause() else player.play()
+        playerManager.togglePlayPause()
     }
 
     fun seekTo(positionMs: Long) {
-        player.seekTo(positionMs)
+        playerManager.seekTo(positionMs)
         scheduleAutoHide()
     }
 
     fun seekBy(deltaMs: Long) {
-        val target = (player.currentPosition + deltaMs).coerceAtLeast(0L)
-        seekTo(target)
+        playerManager.seekBy(deltaMs)
+        scheduleAutoHide()
     }
 
     fun seekToLiveEdge() {
-        if (player.isCurrentMediaItemLive) {
-            player.seekToDefaultPosition()
-            player.play()
-        }
+        playerManager.seekToLiveEdge()
     }
 
     fun showControls() {
@@ -217,245 +190,44 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun next() {
-        if (player.hasNextMediaItem()) {
-            player.seekToNextMediaItem()
-            showControls()
-        }
+        playerManager.next()
+        showControls()
     }
 
     fun previous() {
-        if (player.hasPreviousMediaItem()) {
-            player.seekToPreviousMediaItem()
-            showControls()
-        }
+        playerManager.previous()
+        showControls()
     }
 
     fun selectTrack(option: TrackOption) {
-        val builder = player.trackSelectionParameters.buildUpon()
-        when (option.type) {
-            TrackType.TEXT -> {
-                if (option.isOff) {
-                    builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
-                    builder.clearOverridesOfType(C.TRACK_TYPE_TEXT)
-                } else {
-                    builder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
-                    builder.clearOverridesOfType(C.TRACK_TYPE_TEXT)
-                    val group = player.currentTracks.groups.getOrNull(option.groupIndex) ?: return
-                    builder.addOverride(
-                        TrackSelectionOverride(group.mediaTrackGroup, listOf(option.trackIndex))
-                    )
-                }
-            }
-
-            TrackType.AUDIO -> {
-                builder.clearOverridesOfType(C.TRACK_TYPE_AUDIO)
-                val group = player.currentTracks.groups.getOrNull(option.groupIndex) ?: return
-                builder.addOverride(
-                    TrackSelectionOverride(group.mediaTrackGroup, listOf(option.trackIndex))
-                )
-            }
-
-            TrackType.VIDEO -> {
-                builder.clearOverridesOfType(C.TRACK_TYPE_VIDEO)
-                val group = player.currentTracks.groups.getOrNull(option.groupIndex) ?: return
-                builder.addOverride(
-                    TrackSelectionOverride(group.mediaTrackGroup, listOf(option.trackIndex))
-                )
-            }
-        }
-        player.trackSelectionParameters = builder.build()
-        updateTracks()
+        playerManager.selectTrack(option)
     }
 
     fun setPlaybackSpeed(speed: Float) {
-        player.setPlaybackSpeed(speed)
+        playerManager.setPlaybackSpeed(speed)
         _uiState.update { it.copy(playbackSpeed = speed) }
     }
 
     fun retry() {
-        player.prepare()
-        player.playWhenReady = true
+        playerManager.retry()
     }
 
     fun playQueueItem(id: String) {
-        val items = _uiState.value.queue
-        val targetIndex = items.indexOfFirst { it.id == id }
-        if (targetIndex >= 0) {
-            player.seekToDefaultPosition(targetIndex)
-            player.playWhenReady = true
-            showControls()
-        }
+        playerManager.playQueueItem(id)
+        showControls()
     }
 
     fun clearError() {
+        dataErrorMessage = null
+        playerManager.clearError()
         _uiState.update { it.copy(error = null) }
-    }
-
-    private fun startProgressUpdates() {
-        viewModelScope.launch {
-            while (isActive) {
-                val duration = player.duration.takeIf { it > 0 } ?: _uiState.value.durationMs
-                val position = player.currentPosition
-                val buffered = player.bufferedPosition
-                _uiState.update {
-                    it.copy(
-                        durationMs = duration,
-                        positionMs = position,
-                        bufferedMs = buffered,
-                        isLive = player.isCurrentMediaItemLive
-                    )
-                }
-                delay(500)
-            }
-        }
-    }
-
-    @OptIn(UnstableApi::class)
-    private fun updateTracks(tracks: Tracks = player.currentTracks) {
-        val audio = mutableListOf<TrackOption>()
-        val text = mutableListOf<TrackOption>()
-        val video = mutableListOf<TrackOption>()
-        var selectedAudio: String? = null
-        var selectedText: String? = null
-        var selectedVideo: String? = null
-
-        tracks.groups.forEachIndexed { groupIndex, group ->
-            when (group.type) {
-                C.TRACK_TYPE_AUDIO -> {
-                    repeat(group.length) { trackIndex ->
-                        val format = group.getTrackFormat(trackIndex)
-                        val id = "a_${groupIndex}_$trackIndex"
-                        val label = format.label
-                            ?: format.language
-                            ?: "${format.channelCount}ch"
-                            ?: "Audio $trackIndex"
-                        val option = TrackOption(
-                            id = id,
-                            label = label,
-                            language = format.language,
-                            bitrate = format.bitrate,
-                            channelCount = format.channelCount,
-                            height = null,
-                            groupIndex = groupIndex,
-                            trackIndex = trackIndex,
-                            type = TrackType.AUDIO,
-                            isOff = false
-                        )
-                        audio.add(option)
-                        if (group.isTrackSelected(trackIndex)) selectedAudio = id
-                    }
-                }
-
-                C.TRACK_TYPE_TEXT -> {
-                    repeat(group.length) { trackIndex ->
-                        val format = group.getTrackFormat(trackIndex)
-                        val id = "t_${groupIndex}_$trackIndex"
-                        val label = format.label
-                            ?: format.language
-                            ?: "Subtitle $trackIndex"
-                        val option = TrackOption(
-                            id = id,
-                            label = label,
-                            language = format.language,
-                            bitrate = null,
-                            channelCount = null,
-                            height = null,
-                            groupIndex = groupIndex,
-                            trackIndex = trackIndex,
-                            type = TrackType.TEXT,
-                            isOff = false
-                        )
-                        text.add(option)
-                        if (group.isTrackSelected(trackIndex)) selectedText = id
-                    }
-                }
-
-                C.TRACK_TYPE_VIDEO -> {
-                    repeat(group.length) { trackIndex ->
-                        val format = group.getTrackFormat(trackIndex)
-                        val id = "v_${groupIndex}_$trackIndex"
-                        val res = if (format.height != Format.NO_VALUE) "${format.height}p" else null
-                        val label = res ?: format.label ?: "Video $trackIndex"
-                        val option = TrackOption(
-                            id = id,
-                            label = label,
-                            language = null,
-                            bitrate = format.bitrate,
-                            channelCount = null,
-                            height = format.height.takeIf { it > 0 },
-                            groupIndex = groupIndex,
-                            trackIndex = trackIndex,
-                            type = TrackType.VIDEO,
-                            isOff = false
-                        )
-                        video.add(option)
-                        if (group.isTrackSelected(trackIndex)) selectedVideo = id
-                    }
-                }
-            }
-        }
-
-        if (text.isNotEmpty()) {
-            text.add(
-                0,
-                TrackOption(
-                    id = "text_off",
-                    label = "Off",
-                    language = null,
-                    bitrate = null,
-                    channelCount = null,
-                    height = null,
-                    groupIndex = -1,
-                    trackIndex = -1,
-                    type = TrackType.TEXT,
-                    isOff = true
-                )
-            )
-        }
-
-        _uiState.update {
-            it.copy(
-                audioTracks = audio,
-                textTracks = text,
-                qualityTracks = video,
-                selectedAudioTrackId = selectedAudio,
-                selectedTextTrackId = selectedText ?: text.firstOrNull { option -> option.isOff }?.id,
-                selectedQualityTrackId = selectedVideo
-            )
-        }
-    }
-
-    private fun updateQueue() {
-        val items = mutableListOf<QueueItemUi>()
-        for (i in 0 until player.mediaItemCount) {
-            val mediaItem = player.getMediaItemAt(i)
-            items.add(
-                QueueItemUi(
-                    id = mediaItem.mediaId.ifEmpty { i.toString() },
-                    title = mediaItem.mediaMetadata.title?.toString() ?: "Item ${i + 1}",
-                    subtitle = mediaItem.mediaMetadata.subtitle?.toString(),
-                    artworkUrl = mediaItem.mediaMetadata.artworkUri?.toString(),
-                    isCurrent = i == player.currentMediaItemIndex
-                )
-            )
-        }
-        _uiState.update { it.copy(queue = items) }
-    }
-
-    private fun updateMetadata(mediaItem: MediaItem?) {
-        mediaItem ?: return
-        _uiState.update {
-            it.copy(
-                title = mediaItem.mediaMetadata.title?.toString(),
-                subtitle = mediaItem.mediaMetadata.subtitle?.toString()
-            )
-        }
     }
 
     override fun onCleared() {
         super.onCleared()
         autoHideJob?.cancel()
-        player.removeListener(playerListener)
-        player.release()
+        playerManager.release()
     }
+
+    private fun String.toUuidOrNull(): UUID? = runCatching { UUID.fromString(this) }.getOrNull()
 }
