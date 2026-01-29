@@ -5,6 +5,8 @@ import java.util.UUID
 
 data class Episode(
     val id: UUID,
+    val seriesId: UUID,
+    val seasonId: UUID,
     val title: String,
     val index: Int,
     val releaseDate: String,
@@ -13,6 +15,5 @@ data class Episode(
     val format: String,
     val synopsis: String,
     val heroImageUrl: String,
-    val cast: List<CastMember>,
-    val season: Season,
+    val cast: List<CastMember>
 )
