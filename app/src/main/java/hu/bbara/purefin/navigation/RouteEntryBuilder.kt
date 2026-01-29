@@ -12,19 +12,19 @@ fun EntryProviderScope<Route>.appRouteEntryBuilder() {
     entry<Route.Home> {
         HomePage()
     }
-    entry<Route.Movie> {
+    entry<Route.MovieRoute> {
         MovieScreen(movie = it.item)
     }
-    entry<Route.Series> {
+    entry<Route.SeriesRoute> {
         SeriesScreen(series = it.item)
     }
-    entry<Route.Episode> {
+    entry<Route.EpisodeRoute> {
         EpisodeScreen(episode = it.item)
     }
-    entry<Route.Library> {
+    entry<Route.LibraryRoute> {
         LibraryScreen(library = it.library)
     }
-    entry<Route.Login> {
+    entry<Route.LoginRoute> {
         LoginScreen()
     }
 }

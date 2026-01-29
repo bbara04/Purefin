@@ -60,23 +60,23 @@ class HomePageViewModel @Inject constructor(
 
     fun onLibrarySelected(library : HomeNavItem) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.Library(library = LibraryDto(id = library.id, name = library.label)))
+            navigationManager.navigate(Route.LibraryRoute(library = LibraryDto(id = library.id, name = library.label)))
         }
     }
 
     fun onMovieSelected(movieId: String) {
-        navigationManager.navigate(Route.Movie(ItemDto(id = UUID.fromString(movieId), type = BaseItemKind.MOVIE)))
+        navigationManager.navigate(Route.MovieRoute(ItemDto(id = UUID.fromString(movieId), type = BaseItemKind.MOVIE)))
     }
 
     fun onSeriesSelected(seriesId: String) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.Series(ItemDto(id = UUID.fromString(seriesId), type = BaseItemKind.SERIES)))
+            navigationManager.navigate(Route.SeriesRoute(ItemDto(id = UUID.fromString(seriesId), type = BaseItemKind.SERIES)))
         }
     }
 
     fun onEpisodeSelected(episodeId: String) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.Episode(ItemDto(id = UUID.fromString(episodeId), type = BaseItemKind.EPISODE)))
+            navigationManager.navigate(Route.EpisodeRoute(ItemDto(id = UUID.fromString(episodeId), type = BaseItemKind.EPISODE)))
         }
     }
 

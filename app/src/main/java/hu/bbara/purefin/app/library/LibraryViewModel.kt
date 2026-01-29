@@ -36,12 +36,12 @@ class LibraryViewModel @Inject constructor(
     val contents = _contents.asStateFlow()
 
     fun onMovieSelected(movieId: String) {
-        navigationManager.navigate(Route.Movie(ItemDto(id = UUID.fromString(movieId), type = BaseItemKind.MOVIE)))
+        navigationManager.navigate(Route.MovieRoute(ItemDto(id = UUID.fromString(movieId), type = BaseItemKind.MOVIE)))
     }
 
     fun onSeriesSelected(seriesId: String) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.Series(ItemDto(id = UUID.fromString(seriesId), type = BaseItemKind.SERIES)))
+            navigationManager.navigate(Route.SeriesRoute(ItemDto(id = UUID.fromString(seriesId), type = BaseItemKind.SERIES)))
         }
     }
 

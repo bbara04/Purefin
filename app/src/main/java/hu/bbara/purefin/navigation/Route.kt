@@ -8,17 +8,17 @@ sealed interface Route : NavKey {
     data object Home: Route
 
     @Serializable
-    data class Movie(val item : ItemDto) : Route
+    data class MovieRoute(val item : ItemDto) : Route
 
     @Serializable
-    data class Series(val item : ItemDto) : Route
+    data class SeriesRoute(val item : ItemDto) : Route
 
     @Serializable
-    data class Episode(val item : ItemDto) : Route
+    data class EpisodeRoute(val item : ItemDto) : Route
 
     @Serializable
-    data class Library(val library : LibraryDto) : Route
+    data class LibraryRoute(val library : LibraryDto) : Route
 
     @Serializable
-    data object Login : Route
+    data object LoginRoute : Route
 }
