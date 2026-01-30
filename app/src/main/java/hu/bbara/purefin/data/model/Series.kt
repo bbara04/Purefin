@@ -9,5 +9,6 @@ data class Series(
     val year: String,
     val heroImageUrl: String,
     val seasonCount: Int,
-    val seasons: List<Season>
+    val seasons: List<Season>,
+    val cast: List<CastMember>
 )

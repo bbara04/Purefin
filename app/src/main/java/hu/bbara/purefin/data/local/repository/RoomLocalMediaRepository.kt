@@ -13,12 +13,12 @@ import hu.bbara.purefin.data.local.relations.SeriesWithSeasonsAndEpisodes
 import hu.bbara.purefin.data.model.Episode
 import hu.bbara.purefin.data.model.Season
 import hu.bbara.purefin.data.model.Series
-import java.util.UUID
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import java.util.UUID
+import javax.inject.Inject
 
 class RoomLocalMediaRepository @Inject constructor(
     private val seriesDao: SeriesDao,
@@ -147,7 +147,9 @@ private fun SeriesEntity.toDomain(seasons: List<Season>): Series = Series(
     year = year,
     heroImageUrl = heroImageUrl,
     seasonCount = seasonCount,
-    seasons = seasons
+    seasons = seasons,
+    //TODO check if it is needed
+    cast = emptyList()
 )
 
 private fun SeasonEntity.toDomain(episodes: List<Episode>): Season = Season(
@@ -171,7 +173,9 @@ private fun EpisodeEntity.toDomain(): Episode = Episode(
     format = format,
     synopsis = synopsis,
     heroImageUrl = heroImageUrl,
-    cast = cast.map { it.toDomain() }
+    progress = 13.0,
+    watched = false,
+    cast = emptyList()
 )
 
 private fun SeriesWithSeasonsAndEpisodes.toDomain(): Series =
@@ -209,7 +213,7 @@ private fun Episode.toEntity(): EpisodeEntity = EpisodeEntity(
     format = format,
     synopsis = synopsis,
     heroImageUrl = heroImageUrl,
-    cast = cast.map { it.toEntity() }
+    cast = emptyList()
 )
 
 private fun EpisodeCastMemberEntity.toDomain(): CastMember = CastMember(

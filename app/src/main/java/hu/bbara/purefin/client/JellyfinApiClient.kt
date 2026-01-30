@@ -20,6 +20,7 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.DeviceProfile
+import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.PlaybackInfoDto
 import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod
@@ -152,7 +153,7 @@ class JellyfinApiClient @Inject constructor(
         }
         val result = api.userLibraryApi.getItem(
             itemId = mediaId,
-            userId = getUserId()
+            userId = getUserId(),
         )
         Log.d("getItemInfo response: {}", result.content.toString())
         return result.content
@@ -165,6 +166,7 @@ class JellyfinApiClient @Inject constructor(
         val result = api.tvShowsApi.getSeasons(
             userId = getUserId(),
             seriesId = seriesId,
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID),
             enableUserData = true
         )
         Log.d("getSeasons response: {}", result.content.toString())
@@ -179,6 +181,7 @@ class JellyfinApiClient @Inject constructor(
             userId = getUserId(),
             seriesId = seriesId,
             seasonId = seasonId,
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID),
             enableUserData = true
         )
         Log.d("getEpisodesInSeason response: {}", result.content.toString())

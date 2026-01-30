@@ -7,16 +7,16 @@ import java.util.UUID
 
 interface MediaRepository {
 
-    fun getSeries(seriesId: UUID, includeContent: Boolean) : Series
+    suspend fun getSeries(seriesId: UUID, includeContent: Boolean) : Series
 
-    fun getSeason(seriesId: UUID, seasonId: UUID, includeContent: Boolean) : Season
+    suspend fun getSeason(seriesId: UUID, seasonId: UUID, includeContent: Boolean) : Season
 
-    fun getSeasons(seriesId: UUID, includeContent: Boolean) : List<Season>
+    suspend fun getSeasons(seriesId: UUID, includeContent: Boolean) : List<Season>
 
-    fun getEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) : Episode
+    suspend fun getEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) : Episode
 
-    fun getEpisodes(seriesId: UUID, seasonId: UUID) : List<Episode>
+    suspend fun getEpisodes(seriesId: UUID, seasonId: UUID) : List<Episode>
 
-    fun getEpisodes(seriesId: UUID) : List<Episode>
+    suspend fun getEpisodes(seriesId: UUID) : List<Episode>
 
 }
