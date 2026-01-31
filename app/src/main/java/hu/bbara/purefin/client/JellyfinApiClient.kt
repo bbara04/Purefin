@@ -80,26 +80,6 @@ class JellyfinApiClient @Inject constructor(
         ensureConfigured()
     }
 
-    suspend fun getContinueWatching(): List<BaseItemDto> {
-        if (!ensureConfigured()) {
-            return emptyList()
-        }
-        val userId = getUserId()
-        if (userId == null) {
-            return emptyList()
-        }
-        val getResumeItemsRequest = GetResumeItemsRequest(
-            userId = userId,
-            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
-            includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
-            enableUserData = true,
-            startIndex = 0,
-        )
-        val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
-        Log.d("getContinueWatching response: {}", response.content.toString())
-        return response.content.items
-    }
-
     suspend fun getLibraries(): List<BaseItemDto> {
         if (!ensureConfigured()) {
             return emptyList()
@@ -109,7 +89,7 @@ class JellyfinApiClient @Inject constructor(
             presetViews = listOf(CollectionType.MOVIES, CollectionType.TVSHOWS),
             includeHidden = false,
         )
-        Log.d("getLibraries response: {}", response.content.toString())
+        Log.d("getLibraries", response.content.toString())
         val libraries = response.content.items
         return libraries
     }
@@ -128,8 +108,43 @@ class JellyfinApiClient @Inject constructor(
             recursive = true,
         )
         val response = api.itemsApi.getItems(getItemsRequest)
-        Log.d("getLibraryContent response: {}", response.content.toString())
+        Log.d("getLibraryContent", response.content.toString())
         return response.content.items
+    }
+
+    suspend fun getContinueWatching(): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
+        val userId = getUserId()
+        if (userId == null) {
+            return emptyList()
+        }
+        val getResumeItemsRequest = GetResumeItemsRequest(
+            userId = userId,
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
+            includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
+            enableUserData = true,
+            startIndex = 0,
+        )
+        val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
+        Log.d("getContinueWatching", response.content.toString())
+        return response.content.items
+    }
+
+    suspend fun getNextUpEpisodes(mediaId: UUID): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            throw IllegalStateException("Not configured")
+        }
+        val getNextUpRequest = GetNextUpRequest(
+            userId = getUserId(),
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
+            enableResumable = true,
+            seriesId = mediaId,
+        )
+        val result = api.tvShowsApi.getNextUp(getNextUpRequest)
+        Log.d("getNextUpEpisodes", result.content.toString())
+        return result.content.items
     }
 
     /**
@@ -149,7 +164,7 @@ class JellyfinApiClient @Inject constructor(
             includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
             limit = 10
         )
-        Log.d("getLatestFromLibrary response: {}", response.content.toString())
+        Log.d("getLatestFromLibrary", response.content.toString())
         return response.content
     }
 
@@ -161,7 +176,7 @@ class JellyfinApiClient @Inject constructor(
             itemId = mediaId,
             userId = getUserId(),
         )
-        Log.d("getItemInfo response: {}", result.content.toString())
+        Log.d("getItemInfo", result.content.toString())
         return result.content
     }
 
@@ -175,7 +190,7 @@ class JellyfinApiClient @Inject constructor(
             fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
             enableUserData = true
         )
-        Log.d("getSeasons response: {}", result.content.toString())
+        Log.d("getSeasons", result.content.toString())
         return result.content.items
     }
 
@@ -190,21 +205,8 @@ class JellyfinApiClient @Inject constructor(
             fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
             enableUserData = true
         )
-        Log.d("getEpisodesInSeason response: {}", result.content.toString())
+        Log.d("getEpisodesInSeason", result.content.toString())
         return result.content.items
-    }
-
-    suspend fun getNextUpEpisode(mediaId: UUID): BaseItemDto {
-        if (!ensureConfigured()) {
-            throw IllegalStateException("Not configured")
-        }
-        val getNextUpRequest = GetNextUpRequest(
-            userId = getUserId(),
-            seriesId = mediaId,
-        )
-        val result = api.tvShowsApi.getNextUp(getNextUpRequest)
-        Log.d("getNextUpEpisode response: {}", result.content.toString())
-        return result.content.items.first()
     }
 
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> {
@@ -232,7 +234,7 @@ class JellyfinApiClient @Inject constructor(
                     maxStreamingBitrate = 1_000_000_000,
                 ),
             )
-        Log.d("getMediaSources result: {}", result.toString())
+        Log.d("getMediaSources", result.toString())
         return result.content.mediaSources
     }
 
@@ -252,11 +254,11 @@ class JellyfinApiClient @Inject constructor(
         )
         //Remove first element as we need only the next episodes
         val nextUpEpisodes = nextUpEpisodesResult.content.items.drop(1)
-        Log.d("getNextEpisodeMediaSources response: {}", nextUpEpisodes.toString())
+        Log.d("getNextEpisodes", nextUpEpisodes.toString())
         return nextUpEpisodes
     }
 
-    suspend fun getMediaPlaybackInfo(mediaId: UUID, mediaSourceId: String? = null): String? {
+    suspend fun getMediaPlaybackUrl(mediaId: UUID, mediaSourceId: String? = null): String? {
         if (!ensureConfigured()) {
             return null
         }
@@ -265,7 +267,7 @@ class JellyfinApiClient @Inject constructor(
             static = true,
             mediaSourceId = mediaSourceId,
         )
-        Log.d("getMediaPlaybackInfo response: {}", response.toString())
+        Log.d("getMediaPlaybackUrl", response)
         return response
     }
 

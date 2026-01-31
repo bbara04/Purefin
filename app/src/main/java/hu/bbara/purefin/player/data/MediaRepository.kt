@@ -4,10 +4,9 @@ import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import dagger.hilt.android.scopes.ViewModelScoped
-import hu.bbara.purefin.app.content.ContentMockData.episode
 import hu.bbara.purefin.client.JellyfinApiClient
-import javax.inject.Inject
 import java.util.UUID
+import javax.inject.Inject
 
 @ViewModelScoped
 class MediaRepository @Inject constructor(
@@ -17,7 +16,7 @@ class MediaRepository @Inject constructor(
     suspend fun getMediaItem(mediaId: UUID): MediaItem? {
         val mediaSources = jellyfinApiClient.getMediaSources(mediaId)
         val selectedMediaSource = mediaSources.firstOrNull() ?: return null
-        val playbackUrl = jellyfinApiClient.getMediaPlaybackInfo(
+        val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
             mediaId = mediaId,
             mediaSourceId = selectedMediaSource.id
         ) ?: return null
@@ -40,7 +39,7 @@ class MediaRepository @Inject constructor(
             }
             val mediaSources = jellyfinApiClient.getMediaSources(id)
             val selectedMediaSource = mediaSources.firstOrNull() ?: return@mapNotNull null
-            val playbackUrl = jellyfinApiClient.getMediaPlaybackInfo(
+            val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
                 mediaId = id,
                 mediaSourceId = selectedMediaSource.id
             ) ?: return@mapNotNull null
