@@ -1,14 +1,26 @@
 package hu.bbara.purefin.data
 
-import androidx.collection.LruCache
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.data.local.room.RoomMediaLocalDataSource
 import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.data.model.Library
+import hu.bbara.purefin.data.model.Media
+import hu.bbara.purefin.data.model.Movie
 import hu.bbara.purefin.data.model.Season
 import hu.bbara.purefin.data.model.Series
 import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.session.UserSessionRepository
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.ImageType
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -21,73 +33,201 @@ import javax.inject.Singleton
 @Singleton
 class InMemoryMediaRepository @Inject constructor(
     val userSessionRepository: UserSessionRepository,
-    val jellyfinApiClient: JellyfinApiClient
+    val jellyfinApiClient: JellyfinApiClient,
+    private val localDataSource: RoomMediaLocalDataSource
 ) : MediaRepository {
 
-    val seriesCache : LruCache<UUID, Series> = LruCache(100)
+    private val ready = CompletableDeferred<Unit>()
 
-    override suspend fun getSeries(
-        seriesId: UUID,
-        includeContent: Boolean
-    ): Series {
-        val series = fetchAndUpdateSeriesIfMissing(seriesId)
-        if (includeContent.not()) {
-            return series.copy(seasons = emptyList())
+    private val _state: MutableStateFlow<MediaRepositoryState> = MutableStateFlow(MediaRepositoryState.Loading)
+    override val state: StateFlow<MediaRepositoryState> = _state
+
+    private val _movies : MutableStateFlow<Map<UUID, Movie>> = MutableStateFlow(emptyMap())
+    override val movies: StateFlow<Map<UUID, Movie>> = _movies
+
+    private val _series : MutableStateFlow<Map<UUID, Series>> = MutableStateFlow(emptyMap())
+    override val series: StateFlow<Map<UUID, Series>> = _series
+
+    private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
+    val continueWatching: StateFlow<List<Media>> = _continueWatching
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    init {
+        scope.launch {
+            runCatching { ensureReady() }
+        }
+    }
+
+    override suspend fun ensureReady() {
+        if (ready.isCompleted) return
+
+        try {
+            loadLibraries()
+            loadContinueWatching()
+            _state.value = MediaRepositoryState.Ready
+            ready.complete(Unit)
+        } catch (t: Throwable) {
+            _state.value = MediaRepositoryState.Error(t)
+            ready.completeExceptionally(t)
+            throw t
+        }
+    }
+
+    private suspend fun awaitReady() {
+        ready.await()
+    }
+
+    suspend fun loadLibraries() {
+        val librariesItem = jellyfinApiClient.getLibraries()
+        //TODO add support for playlists
+        val filteredLibraries =
+            librariesItem.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS }
+        val emptyLibraries = filteredLibraries.map {
+            it.toLibrary()
+        }
+        val filledLibraries = emptyLibraries.map { library ->
+            return@map loadLibrary(library)
+        }
+        val movies = filledLibraries.filter { it.type == CollectionType.MOVIES }.flatMap { it.movies.orEmpty() }
+        localDataSource.saveMovies(movies)
+        _movies.value = localDataSource.getMovies().associateBy { it.id }
+
+        val series = filledLibraries.filter { it.type == CollectionType.TVSHOWS }.flatMap { it.series.orEmpty() }
+        localDataSource.saveSeries(series)
+        _series.value = localDataSource.getSeries().associateBy { it.id }
+    }
+
+    suspend fun loadLibrary(library: Library): Library {
+        val contentItem = jellyfinApiClient.getLibraryContent(library.id)
+        when (library.type) {
+            CollectionType.MOVIES -> {
+                val movies = contentItem.map { it.toMovie(serverUrl(), library.id) }
+                return library.copy(movies = movies)
+            }
+            CollectionType.TVSHOWS -> {
+                val series = contentItem.map { it.toSeries(serverUrl(), library.id) }
+                return library.copy(series = series)
+            }
+            else -> throw UnsupportedOperationException("Unsupported library type: ${library.type}")
+        }
+    }
+
+    suspend fun loadMovie(movie: Movie) : Movie {
+        val movieItem = jellyfinApiClient.getItemInfo(movie.id)
+            ?: throw RuntimeException("Movie not found")
+        val updatedMovie = movieItem.toMovie(serverUrl(), movie.libraryId)
+        localDataSource.saveMovies(listOf(updatedMovie))
+        _movies.value += (movie.id to updatedMovie)
+        return updatedMovie
+    }
+
+    suspend fun loadSeries(series: Series) : Series {
+        val seriesItem = jellyfinApiClient.getItemInfo(series.id)
+            ?: throw RuntimeException("Series not found")
+        val updatedSeries = seriesItem.toSeries(serverUrl(), series.libraryId)
+        localDataSource.saveSeries(listOf(updatedSeries))
+        _series.value += (series.id to updatedSeries)
+        return updatedSeries
+    }
+
+    suspend fun loadContinueWatching() {
+        val continueWatchingItems = jellyfinApiClient.getContinueWatching()
+        val items = continueWatchingItems.mapNotNull { item ->
+            when (item.type) {
+                BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
+                BaseItemKind.EPISODE -> Media.EpisodeMedia(
+                    episodeId = item.id,
+                    seriesId = item.seriesId!!
+                )
+                else -> throw UnsupportedOperationException("Unsupported item type: ${item.type}")
+            }
+        }
+        _continueWatching.value = items
+
+        //Load episodes, Movies are already loaded at this point.
+        continueWatchingItems.forEach { item ->
+            when (item.type) {
+                BaseItemKind.EPISODE -> {
+                    val episode = item.toEpisode(serverUrl())
+                    localDataSource.saveEpisode(episode)
+                }
+                else -> { /* Do nothing */ }
+            }
+        }
+    }
+
+    override suspend fun getMovie(movieId: UUID): Movie {
+        awaitReady()
+        localDataSource.getMovie(movieId)?.let {
+            _movies.value += (movieId to it)
+            return it
+        }
+        throw RuntimeException("Movie not found")
+    }
+
+    override suspend fun getSeries(seriesId: UUID): Series {
+        awaitReady()
+        localDataSource.getSeriesBasic(seriesId)?.let {
+            _series.value += (seriesId to it)
+            return it
+        }
+        throw RuntimeException("Series not found")
+    }
+
+    override suspend fun getSeriesWithContent(seriesId: UUID): Series {
+        awaitReady()
+        // Use cached content if available
+        localDataSource.getSeriesWithContent(seriesId)?.takeIf { it.seasons.isNotEmpty() }?.let {
+            _series.value += (seriesId to it)
+            return it
         }
 
-        if (hasContent(series)) {
-            return series
-        }
+        val series = _series.value[seriesId] ?: throw RuntimeException("Series not found")
 
-        val seasons = getSeasons(
-            seriesId = seriesId,
-            includeContent = true
-        )
-        return series.copy(seasons = seasons)
+        val emptySeasonsItem = jellyfinApiClient.getSeasons(seriesId)
+        val emptySeasons = emptySeasonsItem.map { it.toSeason(serverUrl()) }
+        val filledSeasons = emptySeasons.map { season ->
+            val episodesItem = jellyfinApiClient.getEpisodesInSeason(seriesId, season.id)
+            val episodes = episodesItem.map { it.toEpisode(serverUrl()) }
+            season.copy(episodes = episodes)
+        }
+        val updatedSeries = series.copy(seasons = filledSeasons)
+        localDataSource.saveSeries(listOf(updatedSeries))
+        localDataSource.saveSeriesContent(updatedSeries)
+        _series.value += (series.id to updatedSeries)
+        return updatedSeries
     }
 
     override suspend fun getSeason(
         seriesId: UUID,
         seasonId: UUID,
-        includeContent: Boolean
     ): Season {
-        val season = fetchAndUpdateSeasonIfMissing(seriesId, seasonId)
-        if (includeContent.not()) {
-            return season.copy(episodes = emptyList())
-        }
-
-        if (hasContent(season)) {
-            return season
-        }
-
-        val episodes = getEpisodes(
-            seriesId = seriesId,
-            seasonId = seasonId
-        )
-        return season.copy(episodes = episodes)
+        awaitReady()
+        localDataSource.getSeason(seriesId, seasonId)?.let { return it }
+        // Fallback: ensure series content is loaded, then retry
+        val series = getSeriesWithContent(seriesId)
+        return series.seasons.find { it.id == seasonId }?: throw RuntimeException("Season not found")
     }
 
     override suspend fun getSeasons(
         seriesId: UUID,
-        includeContent: Boolean
     ): List<Season> {
-        val cachedSeasons = fetchAndUpdateSeasonsIfMissing(seriesId)
-        if (includeContent.not()) {
-            return cachedSeasons.map { it.copy(episodes = emptyList()) }
-        }
+        awaitReady()
+        val seasons = localDataSource.getSeasons(seriesId)
+        if (seasons.isNotEmpty()) return seasons
+        val series = getSeriesWithContent(seriesId)
+        return series.seasons
+    }
 
-        val hasContent = cachedSeasons.all { season ->
-            hasContent(season)
-        }
-        if (hasContent) {
-            return cachedSeasons
-        }
-
-        return cachedSeasons.map { season ->
-            // TODO use batch api that gives back all of the episodes in a single request
-            val episodes = getEpisodes(seriesId, season.id)
-            season.copy(episodes = episodes)
-        }
+    override suspend fun getEpisode(
+        seriesId: UUID,
+        episodeId: UUID
+    ) : Episode {
+        awaitReady()
+        localDataSource.getEpisodeById(episodeId)?.let { return it }
+        val series = getSeriesWithContent(seriesId)
+        return series.seasons.flatMap { it.episodes }.find { it.id == episodeId }?: throw RuntimeException("Episode not found")
     }
 
     override suspend fun getEpisode(
@@ -95,114 +235,81 @@ class InMemoryMediaRepository @Inject constructor(
         seasonId: UUID,
         episodeId: UUID
     ): Episode {
-        val cachedSeason = fetchAndUpdateSeasonIfMissing(seriesId, seasonId)
-        cachedSeason.episodes.find { it.id == episodeId }?.let {
-            return it
-        }
-
-        val episodesItemInfo = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
-        val episodes = episodesItemInfo.map { it.toEpisode(serverUrl()) }
-        val cachedSeries = seriesCache[seriesId]!!
-        val season = cachedSeason.copy(episodes = episodes)
-        val updatedSeasons = cachedSeries.seasons.map { if (it.id == seasonId) season else it }
-        val updatedSeries = cachedSeries.copy(seasons = updatedSeasons)
-        seriesCache.put(seriesId, updatedSeries)
-        return episodes.find { it.id == episodeId }!!
+        awaitReady()
+        localDataSource.getEpisode(seriesId, seasonId, episodeId)?.let { return it }
+        val series = getSeriesWithContent(seriesId)
+        return series.seasons.find { it.id == seasonId }?.episodes?.find { it.id == episodeId } ?: throw RuntimeException("Episode not found")
     }
 
     override suspend fun getEpisodes(
         seriesId: UUID,
         seasonId: UUID
     ): List<Episode> {
-        val cachedSeason = fetchAndUpdateSeasonIfMissing(seriesId, seasonId)
-        if (hasContent(cachedSeason)) {
-            return cachedSeason.episodes
-        }
-
-        val episodesItemInfo = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
-        val episodes = episodesItemInfo.map { it.toEpisode(serverUrl()) }
-        val cachedSeries = seriesCache[seriesId]!!
-        val updatedSeason = cachedSeason.copy(episodes = episodes)
-        val updateSeries = cachedSeries.copy(seasons = cachedSeries.seasons.map { if (it.id == seasonId) updatedSeason else it })
-        seriesCache.put(seriesId, updateSeries)
-        return episodes
+        awaitReady()
+        val episodes = localDataSource.getSeason(seriesId, seasonId)?.episodes
+        if (episodes != null && episodes.isNotEmpty()) return episodes
+        val series = getSeriesWithContent(seriesId)
+        return series.seasons.find { it.id == seasonId }?.episodes ?: throw RuntimeException("Season not found")
     }
 
     override suspend fun getEpisodes(seriesId: UUID): List<Episode> {
-        val cachedSeasons = fetchAndUpdateSeasonsIfMissing(seriesId)
-        if (cachedSeasons.all { hasContent(it) }) {
-            return cachedSeasons.flatMap { it.episodes }
-        }
-
-        return cachedSeasons.flatMap { season ->
-            getEpisodes(seriesId, season.id)
-        }
-    }
-
-    private suspend fun fetchAndUpdateSeriesIfMissing(seriesId: UUID): Series {
-        val cachedSeries = seriesCache[seriesId]
-        if (cachedSeries == null) {
-            val seriesItemInfo = jellyfinApiClient.getItemInfo(seriesId)
-                ?: throw RuntimeException("Series not found")
-            val series = seriesItemInfo.toSeries(serverUrl())
-            seriesCache.put(seriesId, series)
-        }
-        return seriesCache[seriesId]!!
-    }
-
-    private suspend fun fetchAndUpdateSeasonIfMissing(seriesId: UUID, seasonId: UUID): Season {
-        val cachedSeries = fetchAndUpdateSeriesIfMissing(seriesId)
-        cachedSeries.seasons.find { it.id == seasonId }?.let {
-            return it
-        }
-        val seasonsItemInfo = jellyfinApiClient.getSeasons(seriesId)
-        val seasons = seasonsItemInfo.map { it.toSeason(serverUrl()) }
-        val series = cachedSeries.copy(
-            seasons = seasons
-        )
-        seriesCache.put(seriesId, series)
-        return seasons.find { it.id == seasonId }!!
-    }
-
-    private suspend fun fetchAndUpdateSeasonsIfMissing(seriesId: UUID): List<Season> {
-        val cachedSeries = fetchAndUpdateSeriesIfMissing(seriesId)
-        if (cachedSeries.seasons.size == cachedSeries.seasonCount) {
-            return cachedSeries.seasons
-        }
-
-        val seasonsItemInfo = jellyfinApiClient.getSeasons(seriesId)
-        val seasons = seasonsItemInfo.map { it.toSeason(serverUrl()) }
-        val series = cachedSeries.copy(
-            seasons = seasons
-        )
-        seriesCache.put(seriesId, series)
-        return seasons
-
-    }
-
-    private fun hasContent(series: Series): Boolean {
-        if (series.seasons.size != series.seasonCount) {
-            return false
-        }
-        for (season in series.seasons) {
-            if (hasContent(season).not()) {
-                return false
-            }
-        }
-        return true
-    }
-
-    private fun hasContent(season: Season) : Boolean {
-        return season.episodes.size == season.episodeCount
+        awaitReady()
+        val episodes = localDataSource.getEpisodesBySeries(seriesId)
+        if (episodes.isNotEmpty()) return episodes
+        val series = getSeriesWithContent(seriesId)
+        return series.seasons.flatMap { it.episodes }
     }
 
     private suspend fun serverUrl(): String {
         return userSessionRepository.serverUrl.first()
     }
 
-    private fun BaseItemDto.toSeries(serverUrl: String): Series {
+    private fun BaseItemDto.toLibrary(): Library {
+        return when (this.collectionType) {
+            CollectionType.MOVIES -> Library(
+                id = this.id,
+                name = this.name!!,
+                type = CollectionType.MOVIES,
+                movies = emptyList()
+            )
+            CollectionType.TVSHOWS -> Library(
+                id = this.id,
+                name = this.name!!,
+                type = CollectionType.TVSHOWS,
+                series = emptyList()
+            )
+            else -> throw UnsupportedOperationException("Unsupported library type: ${this.collectionType}")
+        }
+    }
+
+    private fun BaseItemDto.toMovie(serverUrl: String, libraryId: UUID) : Movie {
+        return Movie(
+            id = this.id,
+            libraryId = libraryId,
+            title = this.name ?: "Unknown title",
+            progress = this.userData!!.playedPercentage,
+            watched = this.userData!!.played,
+            year = this.productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
+            rating = this.officialRating
+                ?: "NR",
+            runtime = formatRuntime(this.runTimeTicks),
+            synopsis = this.overview ?: "No synopsis available",
+            format = container?.uppercase() ?: "VIDEO",
+            heroImageUrl = JellyfinImageHelper.toImageUrl(
+                url = serverUrl,
+                itemId = this.id,
+                type = ImageType.PRIMARY
+            ),
+            subtitles = "ENG",
+            audioTrack = "ENG",
+            cast = emptyList()
+        )
+    }
+
+    private fun BaseItemDto.toSeries(serverUrl: String, libraryId: UUID): Series {
         return Series(
             id = this.id,
+            libraryId = libraryId,
             name = this.name ?: "Unknown",
             synopsis = this.overview ?: "No synopsis available",
             year = this.productionYear?.toString()

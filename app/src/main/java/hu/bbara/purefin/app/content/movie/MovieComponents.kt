@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaSynopsis
@@ -160,13 +159,8 @@ internal fun MovieDetails(
         )
         Spacer(modifier = Modifier.height(12.dp))
         MediaCastRow(
-            cast = movie.cast.map { it.toMediaCastMember() }
+            //TODO fix it
+            cast = emptyList()
         )
     }
 }
-
-private fun CastMember.toMediaCastMember() = MediaCastMember(
-    name = name,
-    role = role,
-    imageUrl = imageUrl
-)

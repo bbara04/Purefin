@@ -4,6 +4,7 @@ import java.util.UUID
 
 data class Series(
     val id: UUID,
+    val libraryId: UUID,
     val name: String,
     val synopsis: String,
     val year: String,

@@ -1,6 +1,5 @@
 package hu.bbara.purefin.app.home
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,15 +8,21 @@ import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.LibraryItem
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.data.InMemoryMediaRepository
+import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.image.JellyfinImageHelper
-import hu.bbara.purefin.navigation.ItemDto
+import hu.bbara.purefin.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.LibraryDto
+import hu.bbara.purefin.navigation.MovieDto
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
+import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,12 +30,11 @@ import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import javax.inject.Inject
 
 @HiltViewModel
 class HomePageViewModel @Inject constructor(
+    private val mediaRepository: InMemoryMediaRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
     private val jellyfinApiClient: JellyfinApiClient
@@ -42,19 +46,44 @@ class HomePageViewModel @Inject constructor(
         initialValue = ""
     )
 
-    private val _continueWatching = MutableStateFlow<List<ContinueWatchingItem>>(emptyList())
-    val continueWatching = _continueWatching.asStateFlow()
-
     private val _libraries = MutableStateFlow<List<LibraryItem>>(emptyList())
     val libraries = _libraries.asStateFlow()
 
-    private val _libraryItems = MutableStateFlow<Map<UUID, List<PosterItem>>>(emptyMap())
-    val libraryItems = _libraryItems.asStateFlow()
+    val continueWatching = mediaRepository.continueWatching.map { list ->
+        list.map {
+            when ( it ) {
+                is Media.MovieMedia -> {
+                    val movie = mediaRepository.getMovie(it.movieId)
+                    ContinueWatchingItem(
+                        type = BaseItemKind.MOVIE,
+                        movie = movie
+                    )
+                }
+                is Media.EpisodeMedia -> {
+                    val episode = mediaRepository.getEpisode(
+                        seriesId = it.seriesId,
+                        episodeId = it.episodeId
+                    )
+                    ContinueWatchingItem(
+                        type = BaseItemKind.EPISODE,
+                        episode = episode
+                    )
+                }
+                else -> throw UnsupportedOperationException("Unsupported item type: $it")
+            }
+        }
+    }.distinctUntilChanged()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
     private val _latestLibraryContent = MutableStateFlow<Map<UUID, List<PosterItem>>>(emptyMap())
     val latestLibraryContent = _latestLibraryContent.asStateFlow()
 
     init {
+        viewModelScope.launch { mediaRepository.ensureReady() }
         loadHomePageData()
     }
 
@@ -64,19 +93,33 @@ class HomePageViewModel @Inject constructor(
         }
     }
 
-    fun onMovieSelected(movieId: String) {
-        navigationManager.navigate(Route.MovieRoute(ItemDto(id = UUID.fromString(movieId), type = BaseItemKind.MOVIE)))
+    fun onMovieSelected(movieId: UUID) {
+        navigationManager.navigate(Route.MovieRoute(
+            MovieDto(
+                id = movieId,
+            )
+        ))
     }
 
-    fun onSeriesSelected(seriesId: String) {
+    fun onSeriesSelected(seriesId: UUID) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.SeriesRoute(ItemDto(id = UUID.fromString(seriesId), type = BaseItemKind.SERIES)))
+            navigationManager.navigate(Route.SeriesRoute(
+                SeriesDto(
+                    id = seriesId,
+                )
+            ))
         }
     }
 
-    fun onEpisodeSelected(episodeId: String) {
+    fun onEpisodeSelected(seriesId: UUID, seasonId: UUID, episodeId: UUID) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.EpisodeRoute(ItemDto(id = UUID.fromString(episodeId), type = BaseItemKind.EPISODE)))
+            navigationManager.navigate(Route.EpisodeRoute(
+                EpisodeDto(
+                    id = episodeId,
+                    seasonId = seasonId,
+                    seriesId = seriesId
+                )
+            ))
         }
     }
 
@@ -91,35 +134,13 @@ class HomePageViewModel @Inject constructor(
 
     fun loadContinueWatching() {
         viewModelScope.launch {
-            val continueWatching: List<BaseItemDto> = jellyfinApiClient.getContinueWatching()
-            _continueWatching.value = continueWatching.map {
-                if (it.type == BaseItemKind.EPISODE) {
-                    ContinueWatchingItem(
-                        id = it.id,
-                        type = BaseItemKind.EPISODE,
-                        primaryText = it.seriesName!!,
-                        secondaryText = "S${it.parentIndexNumber!!}:${it.indexNumber!!} - ${it.name!!}",
-                        progress = it.userData!!.playedPercentage!!,
-                        colors = listOf(Color.Red, Color.Green),
-                    )
-                } else {
-                    ContinueWatchingItem(
-                        id = it.id,
-                        type = BaseItemKind.MOVIE,
-                        primaryText = it.name!!,
-                        secondaryText = it.premiereDate!!.format(DateTimeFormatter.ofLocalizedDate(
-                            FormatStyle.MEDIUM)),
-                        progress = it.userData!!.playedPercentage!!,
-                        colors = listOf(Color.Red, Color.Green)
-                    )
-                }
-            }
+//            mediaRepository.loadContinueWatching()
         }
     }
 
     fun loadLibraries() {
         viewModelScope.launch {
-            loadLibrariesInternal()
+//            mediaRepository.loadLibraries()
         }
     }
 
@@ -136,35 +157,6 @@ class HomePageViewModel @Inject constructor(
         _libraries.value = mappedLibraries
     }
 
-    fun loadAllLibraryItems() {
-        viewModelScope.launch {
-            if (_libraries.value.isEmpty()) {
-                loadLibrariesInternal()
-            }
-            _libraries.value.forEach { library ->
-                loadLibraryItems(library.id)
-            }
-        }
-    }
-
-    private fun loadLibraryItems(libraryId: UUID) {
-        viewModelScope.launch {
-            val libraryItems: List<BaseItemDto> = jellyfinApiClient.getLibrary(libraryId)
-            // It return only Movie or Series
-            val libraryPosterItems = libraryItems.map {
-                PosterItem(
-                    id = it.id,
-                    title = it.name ?: "Unknown",
-                    type = it.type,
-                    imageUrl = getImageUrl(it.id, ImageType.PRIMARY)
-                )
-            }
-            _libraryItems.update { currentMap ->
-                currentMap + (libraryId to libraryPosterItems)
-            }
-        }
-    }
-
     fun loadAllShownLibraryItems() {
         viewModelScope.launch {
             if (_libraries.value.isEmpty()) {
@@ -177,30 +169,47 @@ class HomePageViewModel @Inject constructor(
     }
 
     fun loadLatestLibraryItems(libraryId: UUID) {
-        if (_libraryItems.value.containsKey(libraryId)) return
         viewModelScope.launch {
             val latestLibraryItems = jellyfinApiClient.getLatestFromLibrary(libraryId)
-            val latestLibraryPosterItem = latestLibraryItems.mapNotNull {
+            val latestLibraryPosterItem = latestLibraryItems.map {
                 when (it.type) {
-                    BaseItemKind.MOVIE -> PosterItem(
-                        id = it.id,
-                        title = it.name ?: "Unknown",
-                        type = BaseItemKind.MOVIE,
-                        imageUrl = getImageUrl(it.id, ImageType.PRIMARY)
-                    )
-                    BaseItemKind.EPISODE -> PosterItem(
-                        id = it.id,
-                        title = it.seriesName ?: "Unknown",
-                        type = BaseItemKind.EPISODE,
-                        imageUrl = getImageUrl(it.parentId!!, ImageType.PRIMARY)
-                    )
-                    BaseItemKind.SEASON -> PosterItem(
-                        id = it.seriesId!!,
-                        title = it.seriesName ?: "Unknown",
-                        type = BaseItemKind.SERIES,
-                        imageUrl = getImageUrl(it.id, ImageType.PRIMARY)
-                    )
-                    else -> null
+                    BaseItemKind.MOVIE -> {
+                        val movie = mediaRepository.getMovie(it.id)
+                        PosterItem(
+                            type = BaseItemKind.MOVIE,
+                            movie = movie
+                        )
+                    }
+                    BaseItemKind.EPISODE -> {
+                        val episode = mediaRepository.getEpisode(
+                            it.seriesId!!,
+                            it.parentId!!,
+                            it.id
+                        )
+                        PosterItem(
+                            type = BaseItemKind.EPISODE,
+                            episode = episode
+                        )
+                    }
+                    BaseItemKind.SEASON -> {
+                        val series = mediaRepository.getSeries(
+                            seriesId = it.seriesId!!
+                        )
+                        PosterItem(
+                            type = BaseItemKind.SERIES,
+                            series = series
+                        )
+                    }
+                    BaseItemKind.SERIES -> {
+                        val series = mediaRepository.getSeries(
+                            seriesId = it.id
+                        )
+                        PosterItem(
+                            type = BaseItemKind.SERIES,
+                            series = series
+                        )
+                    }
+                    else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
                 }
             }.distinctBy { it.id }
             _latestLibraryContent.update { currentMap ->
@@ -211,8 +220,6 @@ class HomePageViewModel @Inject constructor(
 
     fun loadHomePageData() {
         loadContinueWatching()
-        loadLibraries()
-        loadAllLibraryItems()
         loadAllShownLibraryItems()
     }
 

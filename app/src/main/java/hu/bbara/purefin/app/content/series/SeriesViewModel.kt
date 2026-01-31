@@ -3,36 +3,39 @@ package hu.bbara.purefin.app.content.series
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.client.JellyfinApiClient
-import hu.bbara.purefin.image.JellyfinImageHelper
-import hu.bbara.purefin.navigation.ItemDto
+import hu.bbara.purefin.data.InMemoryMediaRepository
+import hu.bbara.purefin.data.model.Series
+import hu.bbara.purefin.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
-import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemDto
-import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.BaseItemPerson
-import org.jellyfin.sdk.model.api.ImageType
 import javax.inject.Inject
 
 @HiltViewModel
 class SeriesViewModel @Inject constructor(
-    private val jellyfinApiClient: JellyfinApiClient,
+    private val mediaRepository: InMemoryMediaRepository,
     private val navigationManager: NavigationManager,
-    private val userSessionRepository: UserSessionRepository
 ) : ViewModel() {
 
-    private val _series = MutableStateFlow<SeriesUiModel?>(null)
+    private val _series = MutableStateFlow<Series?>(null)
     val series = _series.asStateFlow()
 
-    fun onSelectEpisode(episodeId: String) {
+    init {
+        viewModelScope.launch { mediaRepository.ensureReady() }
+    }
+
+    fun onSelectEpisode(seriesId: UUID, seasonId:UUID, episodeId: UUID) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.EpisodeRoute(ItemDto(id = UUID.fromString(episodeId), type = BaseItemKind.EPISODE)))
+            navigationManager.navigate(Route.EpisodeRoute(
+                EpisodeDto(
+                    id = episodeId,
+                    seasonId = seasonId,
+                    seriesId = seriesId
+                )
+            ))
         }
     }
 
@@ -47,74 +50,10 @@ class SeriesViewModel @Inject constructor(
 
     fun selectSeries(seriesId: UUID) {
         viewModelScope.launch {
-            val serverUrl = userSessionRepository.serverUrl.first().trim().ifBlank {
-                "https://jellyfin.bbara.hu"
-            }
-            val seriesItemResult = jellyfinApiClient.getItemInfo(mediaId = seriesId)
-            val seasonsItemResult = jellyfinApiClient.getSeasons(seriesId)
-            val episodesItemResult = seasonsItemResult.associate { season ->
-                season.id to jellyfinApiClient.getEpisodesInSeason(seriesId, season.id)
-            }
-            val seriesUiModel = mapToSeriesUiModel(
-                serverUrl,
-                seriesItemResult,
-                seasonsItemResult,
-                episodesItemResult
+            val series = mediaRepository.getSeriesWithContent(
+                seriesId = seriesId
             )
-            _series.value = seriesUiModel
+            _series.value = series
         }
     }
-
-    private fun mapToSeriesUiModel(
-        serverUrl: String,
-        seriesItemResult: BaseItemDto?,
-        seasonsItemResult: List<BaseItemDto>,
-        episodesItemResult: Map<UUID, List<BaseItemDto>>
-    ): SeriesUiModel {
-        val seasonUiModels = seasonsItemResult.map { season ->
-            val episodeItemResult = episodesItemResult[season.id] ?: emptyList()
-            val episodeItemUiModels = episodeItemResult.map { episode ->
-                SeriesEpisodeUiModel(
-                    id = episode.id.toString(),
-                    title = episode.name ?: "Unknown",
-                    seasonNumber = episode.parentIndexNumber!!,
-                    episodeNumber = episode.indexNumber!!,
-                    description = episode.overview ?: "",
-                    duration = "58m",
-                    imageUrl = JellyfinImageHelper.toImageUrl(url = serverUrl, itemId = episode.id, type = ImageType.PRIMARY),
-                    progress = episode.userData!!.playedPercentage,
-                    watched = episode.userData!!.played
-                )
-            }
-            SeriesSeasonUiModel(
-                name = season.name ?: "Unknown",
-                episodes = episodeItemUiModels,
-                unplayedCount = season.userData!!.unplayedItemCount
-            )
-        }
-        return SeriesUiModel(
-            title = seriesItemResult?.name ?: "Unknown",
-            format = seriesItemResult?.container ?: "VIDEO",
-            rating = seriesItemResult?.officialRating ?: "NR",
-            year = seriesItemResult!!.productionYear?.toString() ?: seriesItemResult!!.premiereDate?.year?.toString().orEmpty(),
-            seasons = "3 Seasons",
-            synopsis = seriesItemResult.overview ?: "No synopsis available.",
-            heroImageUrl = JellyfinImageHelper.toImageUrl(
-                url = serverUrl,
-                itemId = seriesItemResult.id,
-                type = ImageType.PRIMARY
-            ),
-            seasonTabs = seasonUiModels,
-            cast = seriesItemResult.people.orEmpty().map { it.toCastMember() }
-        )
-    }
-
-    private fun BaseItemPerson.toCastMember(): SeriesCastMemberUiModel {
-        return SeriesCastMemberUiModel(
-            name = name ?: "Unknown",
-            role = role ?: "",
-            imageUrl = null
-        )
-    }
-
 }

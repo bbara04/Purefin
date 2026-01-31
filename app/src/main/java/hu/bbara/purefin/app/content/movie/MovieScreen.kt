@@ -18,11 +18,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.app.content.ContentMockData
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
-import hu.bbara.purefin.navigation.ItemDto
+import hu.bbara.purefin.navigation.MovieDto
 
 @Composable
 fun MovieScreen(
-    movie: ItemDto, viewModel: MovieScreenViewModel = hiltViewModel(), modifier: Modifier = Modifier
+    movie: MovieDto, viewModel: MovieScreenViewModel = hiltViewModel(), modifier: Modifier = Modifier
 ) {
     LaunchedEffect(movie.id) {
         viewModel.selectMovie(movie.id)

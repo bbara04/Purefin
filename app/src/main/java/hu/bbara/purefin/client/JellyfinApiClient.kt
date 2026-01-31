@@ -19,6 +19,7 @@ import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.DeviceProfile
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaSourceInfo
@@ -89,6 +90,9 @@ class JellyfinApiClient @Inject constructor(
         }
         val getResumeItemsRequest = GetResumeItemsRequest(
             userId = userId,
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
+            includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
+            enableUserData = true,
             startIndex = 0,
         )
         val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
@@ -102,13 +106,15 @@ class JellyfinApiClient @Inject constructor(
         }
         val response = api.userViewsApi.getUserViews(
             userId = getUserId(),
+            presetViews = listOf(CollectionType.MOVIES, CollectionType.TVSHOWS),
             includeHidden = false,
         )
         Log.d("getLibraries response: {}", response.content.toString())
-        return response.content.items
+        val libraries = response.content.items
+        return libraries
     }
 
-    suspend fun getLibrary(libraryId: UUID): List<BaseItemDto> {
+    suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> {
         if (!ensureConfigured()) {
             return emptyList()
         }
@@ -116,14 +122,13 @@ class JellyfinApiClient @Inject constructor(
             userId = getUserId(),
             enableImages = false,
             parentId = libraryId,
-            enableUserData = false,
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
+            enableUserData = true,
             includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-//            recursive = true,
-            // TODO remove this limit
-//            limit = 10
+            recursive = true,
         )
         val response = api.itemsApi.getItems(getItemsRequest)
-        Log.d("getLibrary response: {}", response.content.toString())
+        Log.d("getLibraryContent response: {}", response.content.toString())
         return response.content.items
     }
 
@@ -140,6 +145,7 @@ class JellyfinApiClient @Inject constructor(
         val response = api.userLibraryApi.getLatestMedia(
             userId = getUserId(),
             parentId = libraryId,
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
             includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
             limit = 10
         )
@@ -166,7 +172,7 @@ class JellyfinApiClient @Inject constructor(
         val result = api.tvShowsApi.getSeasons(
             userId = getUserId(),
             seriesId = seriesId,
-            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID),
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
             enableUserData = true
         )
         Log.d("getSeasons response: {}", result.content.toString())
@@ -181,7 +187,7 @@ class JellyfinApiClient @Inject constructor(
             userId = getUserId(),
             seriesId = seriesId,
             seasonId = seasonId,
-            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID),
+            fields = listOf(ItemFields.CHILD_COUNT, ItemFields.PARENT_ID, ItemFields.DATE_LAST_REFRESHED),
             enableUserData = true
         )
         Log.d("getEpisodesInSeason response: {}", result.content.toString())

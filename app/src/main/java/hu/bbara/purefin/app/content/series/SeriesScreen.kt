@@ -18,19 +18,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.content.ContentMockData
 import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
-import hu.bbara.purefin.navigation.ItemDto
+import hu.bbara.purefin.data.model.Season
+import hu.bbara.purefin.data.model.Series
+import hu.bbara.purefin.navigation.SeriesDto
 
 @Composable
 fun SeriesScreen(
-    series: ItemDto,
+    series: SeriesDto,
     modifier: Modifier = Modifier,
     viewModel: SeriesViewModel = hiltViewModel()
 ) {
@@ -53,15 +53,15 @@ fun SeriesScreen(
 
 @Composable
 private fun SeriesScreenInternal(
-    series: SeriesUiModel,
+    series: Series,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
     val textMutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
 
-    fun getDefaultSeason() : SeriesSeasonUiModel {
-        for (season in series.seasonTabs) {
+    fun getDefaultSeason() : Season {
+        for (season in series.seasons) {
             val firstUnwatchedEpisode = season.episodes.firstOrNull {
                 it.watched.not()
             }
@@ -69,9 +69,9 @@ private fun SeriesScreenInternal(
                 return season
             }
         }
-        return series.seasonTabs.first()
+        return series.seasons.first()
     }
-    val selectedSeason = remember { mutableStateOf<SeriesSeasonUiModel>(getDefaultSeason()) }
+    val selectedSeason = remember { mutableStateOf<Season>(getDefaultSeason()) }
 
     Scaffold(
         modifier = modifier,
@@ -101,7 +101,7 @@ private fun SeriesScreenInternal(
                     .padding(bottom = innerPadding.calculateBottomPadding())
             ) {
                 Text(
-                    text = series.title,
+                    text = series.name,
                     color = scheme.onBackground,
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
@@ -121,12 +121,12 @@ private fun SeriesScreenInternal(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 SeasonTabs(
-                    seasons = series.seasonTabs,
+                    seasons = series.seasons,
                     selectedSeason = selectedSeason.value,
                     onSelect = { selectedSeason.value = it }
                 )
                 EpisodeCarousel(
-                    episodes = selectedSeason.value.episodes
+                    episodes = selectedSeason.value.episodes,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -140,13 +140,4 @@ private fun SeriesScreenInternal(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun SeriesScreenPreview() {
-    SeriesScreenInternal(
-        series = ContentMockData.series(),
-        onBack = {}
-    )
 }

@@ -19,6 +19,7 @@ foundation = "1.10.1"
 coil = "3.3.0"
 media3 = "1.9.0"
 nav3Core = "1.0.0"
+room = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -54,6 +55,8 @@ medi3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media
 medi3-ui-compose = { group = "androidx.media3", name = "media3-ui-compose-material3", version.ref = "media3"}
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 
 [plugins]

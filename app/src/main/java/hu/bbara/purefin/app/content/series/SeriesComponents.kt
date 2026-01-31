@@ -46,12 +46,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
+import hu.bbara.purefin.data.model.CastMember
+import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.data.model.Season
+import hu.bbara.purefin.data.model.Series
 
 @Composable
 internal fun SeriesTopBar(
@@ -79,21 +82,21 @@ internal fun SeriesTopBar(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun SeriesMetaChips(series: SeriesUiModel) {
+internal fun SeriesMetaChips(series: Series) {
     val scheme = MaterialTheme.colorScheme
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         MediaMetaChip(text = series.year)
-        MediaMetaChip(text = series.rating)
-        MediaMetaChip(text = series.seasons)
-        MediaMetaChip(
-            text = series.format,
-            background = scheme.primary.copy(alpha = 0.2f),
-            border = scheme.primary.copy(alpha = 0.3f),
-            textColor = scheme.primary
-        )
+//        MediaMetaChip(text = series.rating)
+        MediaMetaChip(text = "${series.seasonCount} Seasons")
+//        MediaMetaChip(
+//            text = series.,
+//            background = scheme.primary.copy(alpha = 0.2f),
+//            border = scheme.primary.copy(alpha = 0.3f),
+//            textColor = scheme.primary
+//        )
     }
 }
 
@@ -118,10 +121,10 @@ internal fun SeriesActionButtons(modifier: Modifier = Modifier) {
 
 @Composable
 internal fun SeasonTabs(
-    seasons: List<SeriesSeasonUiModel>,
-    selectedSeason: SeriesSeasonUiModel?,
+    seasons: List<Season>,
+    selectedSeason: Season?,
     modifier: Modifier = Modifier,
-    onSelect: (SeriesSeasonUiModel) -> Unit
+    onSelect: (Season) -> Unit
 ) {
     Row(
         modifier = modifier
@@ -170,7 +173,7 @@ private fun SeasonTab(
 }
 
 @Composable
-internal fun EpisodeCarousel(episodes: List<SeriesEpisodeUiModel>, modifier: Modifier = Modifier) {
+internal fun EpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modifier) {
     val listState = rememberLazyListState()
 
     LaunchedEffect(episodes) {
@@ -196,14 +199,18 @@ internal fun EpisodeCarousel(episodes: List<SeriesEpisodeUiModel>, modifier: Mod
 @Composable
 private fun EpisodeCard(
     viewModel: SeriesViewModel = hiltViewModel(),
-    episode: SeriesEpisodeUiModel
+    episode: Episode
 ) {
     val scheme = MaterialTheme.colorScheme
     val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
     Column(
         modifier = Modifier
             .width(260.dp)
-            .clickable { viewModel.onSelectEpisode(episode.id) },
+            .clickable { viewModel.onSelectEpisode(
+                seriesId = episode.seriesId,
+                seasonId = episode.seasonId,
+                episodeId = episode.id
+            ) },
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
@@ -215,7 +222,7 @@ private fun EpisodeCard(
                 .border(1.dp, scheme.outlineVariant, RoundedCornerShape(12.dp))
         ) {
             PurefinAsyncImage(
-                model = episode.imageUrl,
+                model = episode.heroImageUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
@@ -241,7 +248,7 @@ private fun EpisodeCard(
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = episode.duration,
+                    text = episode.runtime,
                     color = scheme.onBackground,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
@@ -260,7 +267,7 @@ private fun EpisodeCard(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "S${episode.seasonNumber} • E${episode.episodeNumber}",
+                text = "Episode ${episode.index}",
                 color = mutedStrong,
                 fontSize = 12.sp,
                 maxLines = 1,
@@ -271,18 +278,12 @@ private fun EpisodeCard(
 }
 
 @Composable
-internal fun CastRow(cast: List<SeriesCastMemberUiModel>, modifier: Modifier = Modifier) {
+internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {
     MediaCastRow(
-        cast = cast.map { it.toMediaCastMember() },
+        cast = cast,
         modifier = modifier,
         cardWidth = 84.dp,
         nameSize = 11.sp,
         roleSize = 10.sp
     )
 }
-
-private fun SeriesCastMemberUiModel.toMediaCastMember() = MediaCastMember(
-    name = name,
-    role = role,
-    imageUrl = imageUrl
-)

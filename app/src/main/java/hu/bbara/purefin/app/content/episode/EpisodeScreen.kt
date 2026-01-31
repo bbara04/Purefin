@@ -12,23 +12,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.content.ContentMockData
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
-import hu.bbara.purefin.navigation.ItemDto
+import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.navigation.EpisodeDto
 
 @Composable
 fun EpisodeScreen(
-    episode: ItemDto,
+    episode: EpisodeDto,
     viewModel: EpisodeScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
 
     LaunchedEffect(episode) {
-        viewModel.selectEpisode(episode.id)
+        viewModel.selectEpisode(
+            seriesId = episode.seriesId,
+            seasonId = episode.seasonId,
+            episodeId = episode.id
+        )
     }
 
     val episode = viewModel.episode.collectAsState()
@@ -47,7 +50,7 @@ fun EpisodeScreen(
 
 @Composable
 private fun EpisodeScreenInternal(
-    episode: EpisodeUiModel,
+    episode: Episode,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -82,13 +85,4 @@ private fun EpisodeScreenInternal(
             )
         }
     }
-}
-
-@Preview
-@Composable
-fun EpisodeScreenPreview() {
-    EpisodeScreenInternal(
-        episode = ContentMockData.episode(),
-        onBack = {}
-    )
 }

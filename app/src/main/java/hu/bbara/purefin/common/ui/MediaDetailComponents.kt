@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
+import hu.bbara.purefin.data.model.CastMember
 
 @Composable
 fun MediaMetaChip(
@@ -62,15 +63,9 @@ fun MediaMetaChip(
     }
 }
 
-data class MediaCastMember(
-    val name: String,
-    val role: String,
-    val imageUrl: String?
-)
-
 @Composable
 fun MediaCastRow(
-    cast: List<MediaCastMember>,
+    cast: List<CastMember>,
     modifier: Modifier = Modifier,
     cardWidth: Dp = 96.dp,
     nameSize: TextUnit = 12.sp,

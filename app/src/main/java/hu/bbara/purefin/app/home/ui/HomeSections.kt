@@ -83,8 +83,16 @@ fun ContinueWatchingCard(
 
     fun openItem(item: ContinueWatchingItem) {
         when (item.type) {
-            BaseItemKind.MOVIE -> viewModel.onMovieSelected(item.id.toString())
-            BaseItemKind.EPISODE -> viewModel.onEpisodeSelected(item.id.toString())
+            BaseItemKind.MOVIE -> viewModel.onMovieSelected(item.movie!!.id)
+            BaseItemKind.EPISODE -> {
+                val episode = item.episode!!
+                viewModel.onEpisodeSelected(
+                    seriesId = episode.seriesId,
+                    seasonId = episode.seasonId,
+                    episodeId = episode.id
+                )
+            }
+
             else -> {}
         }
     }
@@ -128,7 +136,8 @@ fun ContinueWatchingCard(
                 )
             }
             IconButton(
-                modifier = Modifier.align(Alignment.BottomEnd)
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
                     .padding(end = 8.dp, bottom = 16.dp)
                     .clip(CircleShape)
                     .background(scheme.secondary)
@@ -193,9 +202,15 @@ fun LibraryPosterSection(
             items = items, key = { it.id }) { item ->
             PosterCard(
                 item = item,
-                onMovieSelected = { viewModel.onMovieSelected(it) },
-                onSeriesSelected = { viewModel.onSeriesSelected(it) },
-                onEpisodeSelected = { viewModel.onEpisodeSelected(it) }
+                onMovieSelected = { viewModel.onMovieSelected(item.movie!!.id) },
+                onSeriesSelected = { viewModel.onSeriesSelected(item.series!!.id) },
+                onEpisodeSelected = {
+                    viewModel.onEpisodeSelected(
+                        seriesId = item.episode!!.seriesId,
+                        seasonId = item.episode.seasonId,
+                        episodeId = item.episode.id
+                    )
+                }
             )
         }
     }

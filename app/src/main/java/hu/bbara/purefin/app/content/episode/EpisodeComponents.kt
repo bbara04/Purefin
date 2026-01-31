@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.common.ui.MediaCastMember
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaSynopsis
@@ -37,6 +36,7 @@ import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaPlayButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
+import hu.bbara.purefin.data.model.Episode
 import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
@@ -67,7 +67,7 @@ internal fun EpisodeTopBar(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun EpisodeDetails(
-    episode: EpisodeUiModel,
+    episode: Episode,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -91,7 +91,7 @@ internal fun EpisodeDetails(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Season ${episode.seasonNumber}, Episode ${episode.episodeNumber}",
+            text = "Episode ${episode.index}",
             color = scheme.onBackground,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium
@@ -153,8 +153,9 @@ internal fun EpisodeDetails(
         MediaPlaybackSettings(
             backgroundColor = MaterialTheme.colorScheme.surface,
             foregroundColor = MaterialTheme.colorScheme.onSurface,
-            audioTrack = episode.audioTrack,
-            subtitles = episode.subtitles
+            //TODO fix it
+            audioTrack = "ENG",
+            subtitles = "ENG"
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -166,13 +167,8 @@ internal fun EpisodeDetails(
         )
         Spacer(modifier = Modifier.height(12.dp))
         MediaCastRow(
-            cast = episode.cast.map { it.toMediaCastMember() }
+            //TODO fix it
+            cast = emptyList()
         )
     }
 }
-
-private fun CastMember.toMediaCastMember() = MediaCastMember(
-    name = name,
-    role = role,
-    imageUrl = imageUrl
-)
