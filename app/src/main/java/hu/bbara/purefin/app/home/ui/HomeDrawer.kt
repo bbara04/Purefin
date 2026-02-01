@@ -26,8 +26,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.home.HomePageViewModel
 
 @Composable
 fun HomeDrawerContent(
@@ -36,6 +34,8 @@ fun HomeDrawerContent(
     primaryNavItems: List<HomeNavItem>,
     secondaryNavItems: List<HomeNavItem>,
     user: HomeUser,
+    onLibrarySelected: (HomeNavItem) -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -45,10 +45,11 @@ fun HomeDrawerContent(
         )
         HomeDrawerNav(
             primaryItems = primaryNavItems,
-            secondaryItems = secondaryNavItems
+            secondaryItems = secondaryNavItems,
+            onLibrarySelected = onLibrarySelected
         )
         Spacer(modifier = Modifier.weight(1f))
-        HomeDrawerFooter(user = user)
+        HomeDrawerFooter(user = user, onLogout = onLogout)
     }
 }
 
@@ -100,6 +101,7 @@ fun HomeDrawerHeader(
 fun HomeDrawerNav(
     primaryItems: List<HomeNavItem>,
     secondaryItems: List<HomeNavItem>,
+    onLibrarySelected: (HomeNavItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -108,7 +110,7 @@ fun HomeDrawerNav(
             .padding(vertical = 16.dp)
     ) {
         primaryItems.forEach { item ->
-            HomeDrawerNavItem(item = item)
+            HomeDrawerNavItem(item = item, onLibrarySelected = onLibrarySelected)
         }
         if (secondaryItems.isNotEmpty()) {
             HorizontalDivider(
@@ -117,7 +119,7 @@ fun HomeDrawerNav(
                 color = MaterialTheme.colorScheme.outlineVariant
             )
             secondaryItems.forEach { item ->
-                HomeDrawerNavItem(item = item)
+                HomeDrawerNavItem(item = item, onLibrarySelected = onLibrarySelected)
             }
         }
     }
@@ -127,7 +129,7 @@ fun HomeDrawerNav(
 fun HomeDrawerNavItem(
     item: HomeNavItem,
     modifier: Modifier = Modifier,
-    viewModel: HomePageViewModel = hiltViewModel(),
+    onLibrarySelected: (HomeNavItem) -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
     val background = if (item.selected) scheme.primary.copy(alpha = 0.12f) else Color.Transparent
@@ -137,7 +139,7 @@ fun HomeDrawerNavItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .background(background, RoundedCornerShape(12.dp))
-            .clickable { viewModel.onLibrarySelected(item) }
+            .clickable { onLibrarySelected(item) }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -158,8 +160,8 @@ fun HomeDrawerNavItem(
 
 @Composable
 fun HomeDrawerFooter (
-    viewModel: HomePageViewModel = hiltViewModel(),
     user: HomeUser,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -181,7 +183,7 @@ fun HomeDrawerFooter (
             iconTint = scheme.onBackground
         )
         Column(modifier = Modifier.padding(start = 12.dp)
-            .clickable {viewModel.logout()}) {
+            .clickable { onLogout() }) {
             Text(
                 text = user.name,
                 color = scheme.onBackground,

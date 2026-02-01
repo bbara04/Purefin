@@ -2,6 +2,7 @@ package hu.bbara.purefin.app.home.ui
 
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,25 +33,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.home.HomePageViewModel
+import coil3.request.ImageRequest
 import hu.bbara.purefin.common.ui.PosterCard
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.player.PlayerActivity
+import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.ImageType
 import kotlin.math.nextUp
 
 @Composable
 fun ContinueWatchingSection(
     items: List<ContinueWatchingItem>,
+    onMovieSelected: (UUID) -> Unit,
+    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
     SectionHeader(
@@ -65,7 +67,9 @@ fun ContinueWatchingSection(
         items(
             items = items, key = { it.id }) { item ->
             ContinueWatchingCard(
-                item = item
+                item = item,
+                onMovieSelected = onMovieSelected,
+                onEpisodeSelected = onEpisodeSelected
             )
         }
     }
@@ -75,42 +79,55 @@ fun ContinueWatchingSection(
 fun ContinueWatchingCard(
     item: ContinueWatchingItem,
     modifier: Modifier = Modifier,
-    viewModel: HomePageViewModel = hiltViewModel()
+    onMovieSelected: (UUID) -> Unit,
+    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
 
     val context = LocalContext.current
+    val density = LocalDensity.current
+
+    val imageUrl = when (item.type) {
+        BaseItemKind.MOVIE -> item.movie?.heroImageUrl
+        BaseItemKind.EPISODE -> item.episode?.heroImageUrl
+        else -> null
+    }
+
+    val cardWidth = 280.dp
+    val cardHeight = cardWidth * 9 / 16
 
     fun openItem(item: ContinueWatchingItem) {
         when (item.type) {
-            BaseItemKind.MOVIE -> viewModel.onMovieSelected(item.movie!!.id)
+            BaseItemKind.MOVIE -> onMovieSelected(item.movie!!.id)
             BaseItemKind.EPISODE -> {
                 val episode = item.episode!!
-                viewModel.onEpisodeSelected(
-                    seriesId = episode.seriesId,
-                    seasonId = episode.seasonId,
-                    episodeId = episode.id
-                )
+                onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
             }
 
             else -> {}
         }
     }
 
+    val imageRequest = ImageRequest.Builder(context)
+        .data(imageUrl)
+        .size(with(density) { cardWidth.roundToPx() }, with(density) { cardHeight.roundToPx() })
+        .build()
+
     Column(
         modifier = modifier
-            .width(280.dp)
+            .width(cardWidth)
             .wrapContentHeight()
     ) {
         Box(
             modifier = Modifier
+                .width(cardWidth)
                 .aspectRatio(16f / 9f)
-                .shadow(12.dp, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
+                .border(1.dp, scheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
                 .background(scheme.surfaceVariant)
         ) {
             PurefinAsyncImage(
-                model = viewModel.getImageUrl(itemId = item.id, type = ImageType.PRIMARY),
+                model = imageRequest,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
@@ -187,7 +204,9 @@ fun LibraryPosterSection(
     items: List<PosterItem>,
     action: String?,
     modifier: Modifier = Modifier,
-    viewModel: HomePageViewModel = hiltViewModel()
+    onMovieSelected: (UUID) -> Unit,
+    onSeriesSelected: (UUID) -> Unit,
+    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
     SectionHeader(
         title = title,
@@ -202,15 +221,9 @@ fun LibraryPosterSection(
             items = items, key = { it.id }) { item ->
             PosterCard(
                 item = item,
-                onMovieSelected = { viewModel.onMovieSelected(item.movie!!.id) },
-                onSeriesSelected = { viewModel.onSeriesSelected(item.series!!.id) },
-                onEpisodeSelected = {
-                    viewModel.onEpisodeSelected(
-                        seriesId = item.episode!!.seriesId,
-                        seasonId = item.episode.seasonId,
-                        episodeId = item.episode.id
-                    )
-                }
+                onMovieSelected = onMovieSelected,
+                onSeriesSelected = onSeriesSelected,
+                onEpisodeSelected = onEpisodeSelected
             )
         }
     }

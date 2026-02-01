@@ -42,19 +42,19 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch { mediaRepository.ensureReady() }
     }
 
-    fun onMovieSelected(movieId: String) {
+    fun onMovieSelected(movieId: UUID) {
         navigationManager.navigate(Route.MovieRoute(
             MovieDto(
-                id = UUID.fromString(movieId),
+                id = movieId,
             )
         ))
     }
 
-    fun onSeriesSelected(seriesId: String) {
+    fun onSeriesSelected(seriesId: UUID) {
         viewModelScope.launch {
             navigationManager.navigate(Route.SeriesRoute(
                 SeriesDto(
-                    id = UUID.fromString(seriesId),
+                    id = seriesId,
                 )
             ))
         }

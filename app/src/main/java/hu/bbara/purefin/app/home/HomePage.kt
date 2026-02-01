@@ -35,7 +35,8 @@ fun HomePage(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
-    val libraries = viewModel.libraries.collectAsState().value.map {
+    val libraries = viewModel.libraries.collectAsState().value
+    val libraryNavItems = libraries.map {
         HomeNavItem(
             id = it.id,
             label = it.name,
@@ -47,6 +48,7 @@ fun HomePage(
         )
     }
     val continueWatching = viewModel.continueWatching.collectAsState()
+    val latestLibraryContent = viewModel.latestLibraryContent.collectAsState()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -61,9 +63,11 @@ fun HomePage(
                 HomeDrawerContent(
                     title = "Jellyfin",
                     subtitle = "Library Dashboard",
-                    primaryNavItems = libraries,
+                    primaryNavItems = libraryNavItems,
                     secondaryNavItems = HomeMockData.secondaryNavItems,
                     user = HomeMockData.user,
+                    onLibrarySelected = viewModel::onLibrarySelected,
+                    onLogout = viewModel::logout
                 )
             }
         }
@@ -79,7 +83,12 @@ fun HomePage(
             }
         ) { innerPadding ->
             HomeContent(
+                libraries = libraries,
+                libraryContent = latestLibraryContent.value,
                 continueWatching = continueWatching.value,
+                onMovieSelected = viewModel::onMovieSelected,
+                onSeriesSelected = viewModel::onSeriesSelected,
+                onEpisodeSelected = viewModel::onEpisodeSelected,
                 modifier = Modifier.padding(innerPadding)
             )
         }

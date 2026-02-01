@@ -9,5 +9,6 @@ sealed class Media(
 ) {
     class MovieMedia(val movieId: UUID) : Media(movieId, BaseItemKind.MOVIE)
     class SeriesMedia(val seriesId: UUID) : Media(seriesId, BaseItemKind.SERIES)
+    class SeasonMedia(val seasonId: UUID, val seriesId: UUID) : Media(seasonId, BaseItemKind.SEASON)
     class EpisodeMedia(val episodeId: UUID, val seriesId: UUID) : Media(episodeId, BaseItemKind.EPISODE)
 }

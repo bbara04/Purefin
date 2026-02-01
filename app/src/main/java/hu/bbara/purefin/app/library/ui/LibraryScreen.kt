@@ -86,10 +86,9 @@ internal fun LibraryPosterGrid(
         items(libraryItems) { item ->
             PosterCard(
                 item = item,
-                onMovieSelected = { viewModel.onMovieSelected(item.id.toString()) },
-                onSeriesSelected = { viewModel.onSeriesSelected(item.id.toString()) },
-                onEpisodeSelected = {
-                }
+                onMovieSelected = viewModel::onMovieSelected,
+                onSeriesSelected = viewModel::onSeriesSelected,
+                onEpisodeSelected = { _, _, _ -> }
             )
         }
     }

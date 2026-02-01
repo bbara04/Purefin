@@ -8,23 +8,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.home.HomePageViewModel
+import org.jellyfin.sdk.model.UUID
 
 @Composable
 fun HomeContent(
-    viewModel: HomePageViewModel = hiltViewModel(),
+    libraries: List<LibraryItem>,
+    libraryContent: Map<UUID, List<PosterItem>>,
     continueWatching: List<ContinueWatchingItem>,
+    onMovieSelected: (UUID) -> Unit,
+    onSeriesSelected: (UUID) -> Unit,
+    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-    val libraries by viewModel.libraries.collectAsState()
-    val libraryContent by viewModel.latestLibraryContent.collectAsState()
-
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -35,7 +32,9 @@ fun HomeContent(
         }
         item {
             ContinueWatchingSection(
-                items = continueWatching
+                items = continueWatching,
+                onMovieSelected = onMovieSelected,
+                onEpisodeSelected = onEpisodeSelected
             )
         }
         items(
@@ -46,6 +45,9 @@ fun HomeContent(
                 title = item.name,
                 items = libraryContent[item.id] ?: emptyList(),
                 action = "See All",
+                onMovieSelected = onMovieSelected,
+                onSeriesSelected = onSeriesSelected,
+                onEpisodeSelected = onEpisodeSelected
             )
         }
         item {

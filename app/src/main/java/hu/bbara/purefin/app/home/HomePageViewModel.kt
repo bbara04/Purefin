@@ -18,14 +18,16 @@ import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.session.UserSessionRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -49,42 +51,106 @@ class HomePageViewModel @Inject constructor(
     private val _libraries = MutableStateFlow<List<LibraryItem>>(emptyList())
     val libraries = _libraries.asStateFlow()
 
-    val continueWatching = mediaRepository.continueWatching.map { list ->
-        list.map {
-            when ( it ) {
-                is Media.MovieMedia -> {
-                    val movie = mediaRepository.getMovie(it.movieId)
-                    ContinueWatchingItem(
-                        type = BaseItemKind.MOVIE,
-                        movie = movie
-                    )
-                }
-                is Media.EpisodeMedia -> {
-                    val episode = mediaRepository.getEpisode(
-                        seriesId = it.seriesId,
-                        episodeId = it.episodeId
-                    )
-                    ContinueWatchingItem(
-                        type = BaseItemKind.EPISODE,
-                        episode = episode
-                    )
-                }
-                else -> throw UnsupportedOperationException("Unsupported item type: $it")
+    init {
+        viewModelScope.launch {
+            loadLibraries()
+        }
+    }
+
+    val continueWatching = mediaRepository.continueWatching
+        .mapLatest { list ->
+            withContext(Dispatchers.IO) {
+                list.map { media ->
+                    when (media) {
+                        is Media.MovieMedia -> {
+                            val movie = mediaRepository.getMovie(media.movieId)
+                            ContinueWatchingItem(
+                                type = BaseItemKind.MOVIE,
+                                movie = movie
+                            )
+                        }
+
+                        is Media.EpisodeMedia -> {
+                            val episode = mediaRepository.getEpisode(
+                                seriesId = media.seriesId,
+                                episodeId = media.episodeId
+                            )
+                            ContinueWatchingItem(
+                                type = BaseItemKind.EPISODE,
+                                episode = episode
+                            )
+                        }
+
+                        else -> throw UnsupportedOperationException("Unsupported item type: $media")
+                    }
+                }.distinctBy { it.id }
             }
         }
-    }.distinctUntilChanged()
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.IO)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
         )
 
-    private val _latestLibraryContent = MutableStateFlow<Map<UUID, List<PosterItem>>>(emptyMap())
-    val latestLibraryContent = _latestLibraryContent.asStateFlow()
+    val latestLibraryContent = mediaRepository.latestLibraryContent
+        .mapLatest { libraryMap ->
+            withContext(Dispatchers.IO) {
+                libraryMap.mapValues { (_, items) ->
+                    items.map { media ->
+                        when (media) {
+                            is Media.MovieMedia -> {
+                                val movie = mediaRepository.getMovie(media.movieId)
+                                PosterItem(
+                                    type = BaseItemKind.MOVIE,
+                                    movie = movie
+                                )
+                            }
+
+                            is Media.EpisodeMedia -> {
+                                val episode = mediaRepository.getEpisode(
+                                    seriesId = media.seriesId,
+                                    episodeId = media.episodeId
+                                )
+                                PosterItem(
+                                    type = BaseItemKind.EPISODE,
+                                    episode = episode
+                                )
+                            }
+
+                            is Media.SeriesMedia -> {
+                                val series = mediaRepository.getSeries(media.id)
+                                PosterItem(
+                                    type = BaseItemKind.SERIES,
+                                    series = series
+                                )
+                            }
+
+                            is Media.SeasonMedia -> {
+                                val series = mediaRepository.getSeries(media.seriesId)
+                                PosterItem(
+                                    type = BaseItemKind.SERIES,
+                                    series = series
+                                )
+                            }
+
+                            else -> throw UnsupportedOperationException("Unsupported item type: $media")
+                        }
+                    }.distinctBy { it.id }
+                }
+            }
+        }
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.IO)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyMap()
+        )
 
     init {
         viewModelScope.launch { mediaRepository.ensureReady() }
-        loadHomePageData()
     }
 
     fun onLibrarySelected(library : HomeNavItem) {
@@ -132,19 +198,7 @@ class HomePageViewModel @Inject constructor(
         navigationManager.replaceAll(Route.Home)
     }
 
-    fun loadContinueWatching() {
-        viewModelScope.launch {
-//            mediaRepository.loadContinueWatching()
-        }
-    }
-
-    fun loadLibraries() {
-        viewModelScope.launch {
-//            mediaRepository.loadLibraries()
-        }
-    }
-
-    private suspend fun loadLibrariesInternal() {
+    private suspend fun loadLibraries() {
         val libraries: List<BaseItemDto> = jellyfinApiClient.getLibraries()
         val mappedLibraries = libraries.map {
             LibraryItem(
@@ -155,72 +209,6 @@ class HomePageViewModel @Inject constructor(
             )
         }
         _libraries.value = mappedLibraries
-    }
-
-    fun loadAllShownLibraryItems() {
-        viewModelScope.launch {
-            if (_libraries.value.isEmpty()) {
-                loadLibrariesInternal()
-            }
-            _libraries.value.forEach { library ->
-                loadLatestLibraryItems(library.id)
-            }
-        }
-    }
-
-    fun loadLatestLibraryItems(libraryId: UUID) {
-        viewModelScope.launch {
-            val latestLibraryItems = jellyfinApiClient.getLatestFromLibrary(libraryId)
-            val latestLibraryPosterItem = latestLibraryItems.map {
-                when (it.type) {
-                    BaseItemKind.MOVIE -> {
-                        val movie = mediaRepository.getMovie(it.id)
-                        PosterItem(
-                            type = BaseItemKind.MOVIE,
-                            movie = movie
-                        )
-                    }
-                    BaseItemKind.EPISODE -> {
-                        val episode = mediaRepository.getEpisode(
-                            it.seriesId!!,
-                            it.parentId!!,
-                            it.id
-                        )
-                        PosterItem(
-                            type = BaseItemKind.EPISODE,
-                            episode = episode
-                        )
-                    }
-                    BaseItemKind.SEASON -> {
-                        val series = mediaRepository.getSeries(
-                            seriesId = it.seriesId!!
-                        )
-                        PosterItem(
-                            type = BaseItemKind.SERIES,
-                            series = series
-                        )
-                    }
-                    BaseItemKind.SERIES -> {
-                        val series = mediaRepository.getSeries(
-                            seriesId = it.id
-                        )
-                        PosterItem(
-                            type = BaseItemKind.SERIES,
-                            series = series
-                        )
-                    }
-                    else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
-                }
-            }.distinctBy { it.id }
-            _latestLibraryContent.update { currentMap ->
-                currentMap + (libraryId to latestLibraryPosterItem)
-            }
-        }
-    }
-
-    fun loadHomePageData() {
-        loadContinueWatching()
-        loadAllShownLibraryItems()
     }
 
     fun getImageUrl(itemId: UUID, type: ImageType): String {

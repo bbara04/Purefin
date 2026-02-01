@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.BaseItemDto
@@ -40,16 +41,19 @@ class InMemoryMediaRepository @Inject constructor(
     private val ready = CompletableDeferred<Unit>()
 
     private val _state: MutableStateFlow<MediaRepositoryState> = MutableStateFlow(MediaRepositoryState.Loading)
-    override val state: StateFlow<MediaRepositoryState> = _state
+    override val state: StateFlow<MediaRepositoryState> = _state.asStateFlow()
 
     private val _movies : MutableStateFlow<Map<UUID, Movie>> = MutableStateFlow(emptyMap())
-    override val movies: StateFlow<Map<UUID, Movie>> = _movies
+    override val movies: StateFlow<Map<UUID, Movie>> = _movies.asStateFlow()
 
     private val _series : MutableStateFlow<Map<UUID, Series>> = MutableStateFlow(emptyMap())
-    override val series: StateFlow<Map<UUID, Series>> = _series
+    override val series: StateFlow<Map<UUID, Series>> = _series.asStateFlow()
 
     private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
-    val continueWatching: StateFlow<List<Media>> = _continueWatching
+    val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
+
+    private val _latestLibraryContent: MutableStateFlow<Map<UUID, List<Media>>> = MutableStateFlow(emptyMap())
+    val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = _latestLibraryContent.asStateFlow()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -65,6 +69,7 @@ class InMemoryMediaRepository @Inject constructor(
         try {
             loadLibraries()
             loadContinueWatching()
+            loadLatestLibraryContent()
             _state.value = MediaRepositoryState.Ready
             ready.complete(Unit)
         } catch (t: Throwable) {
@@ -155,6 +160,46 @@ class InMemoryMediaRepository @Inject constructor(
                 else -> { /* Do nothing */ }
             }
         }
+    }
+
+    suspend fun loadLatestLibraryContent() {
+        // TODO Make libraries accessible in a field or something that is not this ugly.
+        val librariesItem = jellyfinApiClient.getLibraries()
+        val filterLibraries =
+            librariesItem.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS }
+        val latestLibraryContents = filterLibraries.associate { library ->
+            val latestFromLibrary = jellyfinApiClient.getLatestFromLibrary(library.id)
+            library.id to when (library.collectionType) {
+                CollectionType.MOVIES -> {
+                    latestFromLibrary.map {
+                        val movie = it.toMovie(serverUrl(), library.id)
+                        Media.MovieMedia(movieId = movie.id)
+                    }
+                }
+                CollectionType.TVSHOWS -> {
+                    latestFromLibrary.map {
+                        when (it.type) {
+                            BaseItemKind.SERIES -> {
+                                val series = it.toSeries(serverUrl(), library.id)
+                                Media.SeriesMedia(seriesId = series.id)
+                            }
+                            BaseItemKind.SEASON -> {
+                                val season = it.toSeason(serverUrl())
+                                Media.SeasonMedia(seasonId = season.id, seriesId = season.seriesId)
+                            }
+                            BaseItemKind.EPISODE -> {
+                                val episode = it.toEpisode(serverUrl())
+                                Media.EpisodeMedia(episodeId = episode.id, seriesId = episode.seriesId)
+                            } else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
+                        }
+                    }
+                }
+                else -> throw UnsupportedOperationException("Unsupported library type: ${library.collectionType}")
+            }
+        }
+        _latestLibraryContent.value = latestLibraryContents
+
+        //TODO Load seasons and episodes, other types are already loaded at this point.
     }
 
     override suspend fun getMovie(movieId: UUID): Movie {
