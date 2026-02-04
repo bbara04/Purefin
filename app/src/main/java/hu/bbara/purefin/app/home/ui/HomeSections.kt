@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.request.ImageRequest
 import hu.bbara.purefin.common.ui.PosterCard
+import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.player.PlayerActivity
 import org.jellyfin.sdk.model.UUID
@@ -136,22 +135,13 @@ fun ContinueWatchingCard(
                     },
                 contentScale = ContentScale.Crop,
             )
-            Box(
+            MediaProgressBar(
+                progress = item.progress.toFloat().nextUp().div(100),
+                foregroundColor = scheme.onSurface,
+                backgroundColor = scheme.primary,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .background(scheme.onBackground.copy(alpha = 0.2f))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(item.progress.toFloat().nextUp().div(100))
-                        .background(scheme.primary)
-                )
-            }
+            )
             IconButton(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)

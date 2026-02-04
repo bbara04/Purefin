@@ -50,6 +50,7 @@ import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
+import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
 import hu.bbara.purefin.data.model.CastMember
@@ -255,13 +256,21 @@ private fun EpisodeCard(
                     fontWeight = FontWeight.Bold
                 )
             }
-            WatchStateIndicator(
-                watched = episode.watched,
-                started = (episode.progress ?: 0.0) > 0.0,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-            )
+            if (episode.watched.not() && (episode.progress ?: 0.0) > 0) {
+                MediaProgressBar(
+                    progress = (episode.progress ?: 0.0).toFloat().div(100),
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                )
+            } else {
+                WatchStateIndicator(
+                    watched = episode.watched,
+                    started = (episode.progress ?: 0.0) > 0.0,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                )
+            }
         }
         Column(
         ) {
