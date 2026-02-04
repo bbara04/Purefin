@@ -22,16 +22,22 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun WatchStateIndicator(
     watched: Boolean,
+    started: Boolean,
     watchedColor: Color = MaterialTheme.colorScheme.onPrimary,
     watchedBackgroundColor: Color = MaterialTheme.colorScheme.primary,
-    unwatchedColor: Color = MaterialTheme.colorScheme.onSecondary,
-    unwatchedBackgroundColor: Color = MaterialTheme.colorScheme.secondary,
+    startedColor: Color = MaterialTheme.colorScheme.onSecondary,
+    startedBackgroundColor: Color = MaterialTheme.colorScheme.secondary,
     size: Int = 24,
     modifier: Modifier = Modifier
 ) {
-    val foregroundColor = if (watched) watchedColor.copy(alpha = 0.8f) else unwatchedColor.copy(alpha = 0.3f)
-    val backgroundColor = if (watched) watchedBackgroundColor.copy(alpha = 0.8f) else unwatchedBackgroundColor.copy(alpha = 0.3f)
-    val borderColor = if (watched) watchedBackgroundColor.copy(alpha = 0.8f) else unwatchedBackgroundColor.copy(alpha = 0.8f)
+
+    if (watched.not() && started.not()) {
+        return
+    }
+
+    val foregroundColor = if (watched) watchedColor.copy(alpha = 0.8f) else startedColor.copy(alpha = 0.3f)
+    val backgroundColor = if (watched) watchedBackgroundColor.copy(alpha = 0.8f) else startedBackgroundColor.copy(alpha = 0.3f)
+    val borderColor = if (watched) watchedBackgroundColor.copy(alpha = 0.8f) else startedBackgroundColor.copy(alpha = 0.8f)
 
 
     Box(
@@ -61,9 +67,15 @@ private fun WatchStateIndicatorPreview() {
     Column() {
         WatchStateIndicator(
             watched = false,
+            started = false
         )
         WatchStateIndicator(
             watched = true,
+            started = false
+        )
+        WatchStateIndicator(
+            watched = false,
+            started = true
         )
     }
 }

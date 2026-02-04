@@ -66,7 +66,11 @@ data class PosterItem(
         BaseItemKind.SERIES -> series!!.heroImageUrl
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
-
+    fun watched() = when (type) {
+        BaseItemKind.MOVIE -> movie!!.watched
+        BaseItemKind.EPISODE -> episode!!.watched
+        else -> throw IllegalArgumentException("Invalid type: $type")
+    }
 }
 
 data class HomeNavItem(
