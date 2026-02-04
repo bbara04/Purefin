@@ -13,6 +13,7 @@ import org.jellyfin.sdk.api.client.extensions.tvShowsApi
 import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.api.client.extensions.userViewsApi
+import org.jellyfin.sdk.api.client.extensions.playStateApi
 import org.jellyfin.sdk.api.client.extensions.videosApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
@@ -24,6 +25,12 @@ import org.jellyfin.sdk.model.api.DeviceProfile
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.PlaybackInfoDto
+import org.jellyfin.sdk.model.api.PlaybackOrder
+import org.jellyfin.sdk.model.api.PlaybackProgressInfo
+import org.jellyfin.sdk.model.api.PlaybackStartInfo
+import org.jellyfin.sdk.model.api.PlaybackStopInfo
+import org.jellyfin.sdk.model.api.PlayMethod
+import org.jellyfin.sdk.model.api.RepeatMode
 import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod
 import org.jellyfin.sdk.model.api.SubtitleProfile
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
@@ -279,4 +286,46 @@ class JellyfinApiClient @Inject constructor(
         return response
     }
 
+    suspend fun reportPlaybackStart(itemId: UUID, positionTicks: Long = 0L) {
+        if (!ensureConfigured()) return
+        api.playStateApi.reportPlaybackStart(
+            PlaybackStartInfo(
+                itemId = itemId,
+                positionTicks = positionTicks,
+                canSeek = true,
+                isPaused = false,
+                isMuted = false,
+                playMethod = PlayMethod.DIRECT_PLAY,
+                repeatMode = RepeatMode.REPEAT_NONE,
+                playbackOrder = PlaybackOrder.DEFAULT
+            )
+        )
+    }
+
+    suspend fun reportPlaybackProgress(itemId: UUID, positionTicks: Long, isPaused: Boolean) {
+        if (!ensureConfigured()) return
+        api.playStateApi.reportPlaybackProgress(
+            PlaybackProgressInfo(
+                itemId = itemId,
+                positionTicks = positionTicks,
+                canSeek = true,
+                isPaused = isPaused,
+                isMuted = false,
+                playMethod = PlayMethod.DIRECT_PLAY,
+                repeatMode = RepeatMode.REPEAT_NONE,
+                playbackOrder = PlaybackOrder.DEFAULT
+            )
+        )
+    }
+
+    suspend fun reportPlaybackStopped(itemId: UUID, positionTicks: Long) {
+        if (!ensureConfigured()) return
+        api.playStateApi.reportPlaybackStopped(
+            PlaybackStopInfo(
+                itemId = itemId,
+                positionTicks = positionTicks,
+                failed = false
+            )
+        )
+    }
 }

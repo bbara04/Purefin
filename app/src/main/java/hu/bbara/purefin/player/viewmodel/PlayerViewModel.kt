@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.player.data.MediaRepository
 import hu.bbara.purefin.player.manager.PlayerManager
+import hu.bbara.purefin.player.manager.ProgressManager
 import hu.bbara.purefin.player.model.PlayerUiState
 import hu.bbara.purefin.player.model.TrackOption
 import javax.inject.Inject
@@ -22,7 +23,8 @@ import java.util.UUID
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val playerManager: PlayerManager,
-    private val mediaRepository: MediaRepository
+    private val mediaRepository: MediaRepository,
+    private val progressManager: ProgressManager
 ) : ViewModel() {
 
     val player get() = playerManager.player
@@ -40,6 +42,11 @@ class PlayerViewModel @Inject constructor(
     private var dataErrorMessage: String? = null
 
     init {
+        progressManager.bind(
+            playerManager.playbackState,
+            playerManager.progress,
+            playerManager.metadata
+        )
         observePlayerState()
         loadInitialMedia()
     }
@@ -226,6 +233,7 @@ class PlayerViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         autoHideJob?.cancel()
+        progressManager.release()
         playerManager.release()
     }
 
