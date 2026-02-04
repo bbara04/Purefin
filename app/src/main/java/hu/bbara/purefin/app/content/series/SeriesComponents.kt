@@ -51,6 +51,7 @@ import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
+import hu.bbara.purefin.common.ui.components.WatchStateIndicator
 import hu.bbara.purefin.data.model.CastMember
 import hu.bbara.purefin.data.model.Episode
 import hu.bbara.purefin.data.model.Season
@@ -254,6 +255,12 @@ private fun EpisodeCard(
                     fontWeight = FontWeight.Bold
                 )
             }
+            WatchStateIndicator(
+                episode.watched,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+            )
         }
         Column(
             //verticalArrangement = Arrangement.spacedBy(2.dp)
