@@ -9,7 +9,6 @@ import hu.bbara.purefin.player.manager.PlayerManager
 import hu.bbara.purefin.player.manager.ProgressManager
 import hu.bbara.purefin.player.model.PlayerUiState
 import hu.bbara.purefin.player.model.TrackOption
-import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
+import javax.inject.Inject
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
@@ -133,9 +133,15 @@ class PlayerViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            val mediaItem = mediaRepository.getMediaItem(uuid)
-            if (mediaItem != null) {
+            val result = mediaRepository.getMediaItem(uuid)
+            if (result != null) {
+                val (mediaItem, resumePositionMs) = result
+
                 playerManager.play(mediaItem)
+
+                // Seek to resume position after play() is called
+                resumePositionMs?.let { playerManager.seekTo(it) }
+
                 if (dataErrorMessage != null) {
                     dataErrorMessage = null
                     _uiState.update { it.copy(error = null) }
