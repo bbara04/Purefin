@@ -224,6 +224,26 @@ class JellyfinApiClient @Inject constructor(
         return result.content.items
     }
 
+    suspend fun getNextEpisodes(episodeId: UUID, count: Int = 10): List<BaseItemDto> {
+        if (!ensureConfigured()) {
+            return emptyList()
+        }
+        // TODO pass complete Episode object not only an id
+        val episodeInfo = getItemInfo(episodeId) ?: return emptyList()
+        val seriesId = episodeInfo.seriesId ?: return emptyList()
+        val nextUpEpisodesResult = api.tvShowsApi.getEpisodes(
+            userId = getUserId(),
+            seriesId = seriesId,
+            enableUserData = true,
+            startItemId = episodeId,
+            limit = count + 1
+        )
+        //Remove first element as we need only the next episodes
+        val nextUpEpisodes = nextUpEpisodesResult.content.items.drop(1)
+        Log.d("getNextEpisodes", nextUpEpisodes.toString())
+        return nextUpEpisodes
+    }
+
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> {
         val result = api.mediaInfoApi
             .getPostedPlaybackInfo(
@@ -251,26 +271,6 @@ class JellyfinApiClient @Inject constructor(
             )
         Log.d("getMediaSources", result.toString())
         return result.content.mediaSources
-    }
-
-    suspend fun getNextEpisodes(episodeId: UUID, count: Int = 10): List<BaseItemDto> {
-        if (!ensureConfigured()) {
-            return emptyList()
-        }
-        // TODO pass complete Episode object not only an id
-        val episodeInfo = getItemInfo(episodeId) ?: return emptyList()
-        val seriesId = episodeInfo.seriesId ?: return emptyList()
-        val nextUpEpisodesResult = api.tvShowsApi.getEpisodes(
-            userId = getUserId(),
-            seriesId = seriesId,
-            enableUserData = true,
-            startItemId = episodeId,
-            limit = count + 1
-        )
-        //Remove first element as we need only the next episodes
-        val nextUpEpisodes = nextUpEpisodesResult.content.items.drop(1)
-        Log.d("getNextEpisodes", nextUpEpisodes.toString())
-        return nextUpEpisodes
     }
 
     suspend fun getMediaPlaybackUrl(mediaId: UUID, mediaSourceId: String? = null): String? {
