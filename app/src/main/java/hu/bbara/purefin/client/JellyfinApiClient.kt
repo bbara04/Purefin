@@ -106,7 +106,8 @@ class JellyfinApiClient @Inject constructor(
             ItemFields.CHILD_COUNT,
             ItemFields.PARENT_ID,
             ItemFields.DATE_LAST_REFRESHED,
-            ItemFields.OVERVIEW
+            ItemFields.OVERVIEW,
+            ItemFields.SEASON_USER_DATA
         )
 
     suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> {

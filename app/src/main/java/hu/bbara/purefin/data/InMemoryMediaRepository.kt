@@ -364,6 +364,7 @@ class InMemoryMediaRepository @Inject constructor(
                 itemId = this.id,
                 type = ImageType.PRIMARY
             ),
+            unwatchedEpisodeCount = this.userData!!.unplayedItemCount!!,
             seasonCount = this.childCount!!,
             seasons = emptyList(),
             cast = emptyList()
@@ -376,6 +377,7 @@ class InMemoryMediaRepository @Inject constructor(
             seriesId = this.seriesId!!,
             name = this.name ?: "Unknown",
             index = this.indexNumber!!,
+            unwatchedEpisodeCount = this.userData!!.unplayedItemCount!!,
             episodeCount = this.childCount!!,
             episodes = emptyList()
         )

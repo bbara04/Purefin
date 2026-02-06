@@ -23,5 +23,6 @@ data class SeasonEntity(
     val seriesId: UUID,
     val name: String,
     val index: Int,
+    val unwatchedEpisodeCount: Int,
     val episodeCount: Int
 )

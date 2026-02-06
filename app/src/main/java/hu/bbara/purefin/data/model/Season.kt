@@ -7,6 +7,8 @@ data class Season(
     val seriesId: UUID,
     val name: String,
     val index: Int,
+    val unwatchedEpisodeCount: Int,
     val episodeCount: Int,
     val episodes: List<Episode>
-)
+) {
+}

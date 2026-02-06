@@ -161,6 +161,7 @@ class RoomMediaLocalDataSource @Inject constructor(
         synopsis = synopsis,
         year = year,
         heroImageUrl = heroImageUrl,
+        unwatchedEpisodeCount = unwatchedEpisodeCount,
         seasonCount = seasonCount
     )
 
@@ -169,6 +170,7 @@ class RoomMediaLocalDataSource @Inject constructor(
         seriesId = seriesId,
         name = name,
         index = index,
+        unwatchedEpisodeCount = unwatchedEpisodeCount,
         episodeCount = episodeCount
     )
 
@@ -212,6 +214,7 @@ class RoomMediaLocalDataSource @Inject constructor(
         synopsis = synopsis,
         year = year,
         heroImageUrl = heroImageUrl,
+        unwatchedEpisodeCount = unwatchedEpisodeCount,
         seasonCount = seasonCount,
         seasons = seasons,
         cast = cast
@@ -222,6 +225,7 @@ class RoomMediaLocalDataSource @Inject constructor(
         seriesId = seriesId,
         name = name,
         index = index,
+        unwatchedEpisodeCount = unwatchedEpisodeCount,
         episodeCount = episodeCount,
         episodes = episodes
     )

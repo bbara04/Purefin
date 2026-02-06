@@ -12,5 +12,6 @@ data class SeriesEntity(
     val synopsis: String,
     val year: String,
     val heroImageUrl: String,
+    val unwatchedEpisodeCount: Int,
     val seasonCount: Int
 )
