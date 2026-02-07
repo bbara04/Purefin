@@ -14,10 +14,13 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -39,23 +42,25 @@ class InMemoryMediaRepository @Inject constructor(
 ) : MediaRepository {
 
     private val ready = CompletableDeferred<Unit>()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _state: MutableStateFlow<MediaRepositoryState> = MutableStateFlow(MediaRepositoryState.Loading)
     override val state: StateFlow<MediaRepositoryState> = _state.asStateFlow()
 
-    private val _movies : MutableStateFlow<Map<UUID, Movie>> = MutableStateFlow(emptyMap())
-    override val movies: StateFlow<Map<UUID, Movie>> = _movies.asStateFlow()
+    override val movies: StateFlow<Map<UUID, Movie>> = localDataSource.moviesFlow
+        .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
-    private val _series : MutableStateFlow<Map<UUID, Series>> = MutableStateFlow(emptyMap())
-    override val series: StateFlow<Map<UUID, Series>> = _series.asStateFlow()
+    override val series: StateFlow<Map<UUID, Series>> = localDataSource.seriesFlow
+        .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
+    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> =
+        localDataSource.observeSeriesWithContent(seriesId)
 
     private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
     val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
 
     private val _latestLibraryContent: MutableStateFlow<Map<UUID, List<Media>>> = MutableStateFlow(emptyMap())
     val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = _latestLibraryContent.asStateFlow()
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
         scope.launch {
@@ -96,11 +101,9 @@ class InMemoryMediaRepository @Inject constructor(
         }
         val movies = filledLibraries.filter { it.type == CollectionType.MOVIES }.flatMap { it.movies.orEmpty() }
         localDataSource.saveMovies(movies)
-        _movies.value = localDataSource.getMovies().associateBy { it.id }
 
         val series = filledLibraries.filter { it.type == CollectionType.TVSHOWS }.flatMap { it.series.orEmpty() }
         localDataSource.saveSeries(series)
-        _series.value = localDataSource.getSeries().associateBy { it.id }
     }
 
     suspend fun loadLibrary(library: Library): Library {
@@ -123,7 +126,6 @@ class InMemoryMediaRepository @Inject constructor(
             ?: throw RuntimeException("Movie not found")
         val updatedMovie = movieItem.toMovie(serverUrl(), movie.libraryId)
         localDataSource.saveMovies(listOf(updatedMovie))
-        _movies.value += (movie.id to updatedMovie)
         return updatedMovie
     }
 
@@ -132,7 +134,6 @@ class InMemoryMediaRepository @Inject constructor(
             ?: throw RuntimeException("Series not found")
         val updatedSeries = seriesItem.toSeries(serverUrl(), series.libraryId)
         localDataSource.saveSeries(listOf(updatedSeries))
-        _series.value += (series.id to updatedSeries)
         return updatedSeries
     }
 
@@ -204,31 +205,24 @@ class InMemoryMediaRepository @Inject constructor(
 
     override suspend fun getMovie(movieId: UUID): Movie {
         awaitReady()
-        localDataSource.getMovie(movieId)?.let {
-            _movies.value += (movieId to it)
-            return it
-        }
-        throw RuntimeException("Movie not found")
+        return localDataSource.getMovie(movieId)
+            ?: throw RuntimeException("Movie not found")
     }
 
     override suspend fun getSeries(seriesId: UUID): Series {
         awaitReady()
-        localDataSource.getSeriesBasic(seriesId)?.let {
-            _series.value += (seriesId to it)
-            return it
-        }
-        throw RuntimeException("Series not found")
+        return localDataSource.getSeriesBasic(seriesId)
+            ?: throw RuntimeException("Series not found")
     }
 
     override suspend fun getSeriesWithContent(seriesId: UUID): Series {
         awaitReady()
         // Use cached content if available
         localDataSource.getSeriesWithContent(seriesId)?.takeIf { it.seasons.isNotEmpty() }?.let {
-            _series.value += (seriesId to it)
             return it
         }
 
-        val series = _series.value[seriesId] ?: throw RuntimeException("Series not found")
+        val series = this.series.value[seriesId] ?: throw RuntimeException("Series not found")
 
         val emptySeasonsItem = jellyfinApiClient.getSeasons(seriesId)
         val emptySeasons = emptySeasonsItem.map { it.toSeason(serverUrl()) }
@@ -240,7 +234,6 @@ class InMemoryMediaRepository @Inject constructor(
         val updatedSeries = series.copy(seasons = filledSeasons)
         localDataSource.saveSeries(listOf(updatedSeries))
         localDataSource.saveSeriesContent(updatedSeries)
-        _series.value += (series.id to updatedSeries)
         return updatedSeries
     }
 
@@ -309,30 +302,8 @@ class InMemoryMediaRepository @Inject constructor(
         if (durationMs <= 0) return
         val progressPercent = (positionMs.toDouble() / durationMs.toDouble()) * 100.0
         val watched = progressPercent >= 90.0
-
-        val result = localDataSource.updateWatchProgress(mediaId, progressPercent, watched) ?: return
-
-        if (result.isMovie) {
-            _movies.value[mediaId]?.let { movie ->
-                _movies.value += (mediaId to movie.copy(progress = progressPercent, watched = watched))
-            }
-        } else {
-            val seriesId = result.seriesId ?: return
-            _series.value[seriesId]?.let { currentSeries ->
-                val updatedSeasons = currentSeries.seasons.map { season ->
-                    if (season.id == result.seasonId) {
-                        val updatedEpisodes = season.episodes.map { ep ->
-                            if (ep.id == mediaId) ep.copy(progress = progressPercent, watched = watched) else ep
-                        }
-                        season.copy(unwatchedEpisodeCount = result.seasonUnwatchedCount, episodes = updatedEpisodes)
-                    } else season
-                }
-                _series.value += (seriesId to currentSeries.copy(
-                    unwatchedEpisodeCount = result.seriesUnwatchedCount,
-                    seasons = updatedSeasons
-                ))
-            }
-        }
+        // Write to Room — the reactive Flows propagate changes to UI automatically
+        localDataSource.updateWatchProgress(mediaId, progressPercent, watched)
     }
 
     override suspend fun refreshHomeData() {

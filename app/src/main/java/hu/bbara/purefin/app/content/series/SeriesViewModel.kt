@@ -8,8 +8,13 @@ import hu.bbara.purefin.data.model.Series
 import hu.bbara.purefin.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import javax.inject.Inject
@@ -20,8 +25,14 @@ class SeriesViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
 ) : ViewModel() {
 
-    private val _series = MutableStateFlow<Series?>(null)
-    val series = _series.asStateFlow()
+    private val _seriesId = MutableStateFlow<UUID?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val series: StateFlow<Series?> = _seriesId
+        .flatMapLatest { id ->
+            if (id != null) mediaRepository.observeSeriesWithContent(id) else flowOf(null)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     init {
         viewModelScope.launch { mediaRepository.ensureReady() }
@@ -43,17 +54,15 @@ class SeriesViewModel @Inject constructor(
         navigationManager.pop()
     }
 
-
     fun onGoHome() {
         navigationManager.replaceAll(Route.Home)
     }
 
     fun selectSeries(seriesId: UUID) {
+        _seriesId.value = seriesId
+        // Ensure content is loaded from API if not cached
         viewModelScope.launch {
-            val series = mediaRepository.getSeriesWithContent(
-                seriesId = seriesId
-            )
-            _series.value = series
+            mediaRepository.getSeriesWithContent(seriesId)
         }
     }
 }

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import hu.bbara.purefin.data.local.room.MovieEntity
+import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 @Dao
@@ -16,6 +17,9 @@ interface MovieDao {
 
     @Query("SELECT * FROM movies")
     suspend fun getAll(): List<MovieEntity>
+
+    @Query("SELECT * FROM movies")
+    fun observeAll(): Flow<List<MovieEntity>>
 
     @Query("SELECT * FROM movies WHERE id = :id")
     suspend fun getById(id: UUID): MovieEntity?

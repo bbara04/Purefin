@@ -21,7 +21,7 @@ import java.util.UUID
 data class EpisodeEntity(
     @PrimaryKey val id: UUID,
     val seriesId: UUID,
-    val seasonId: UUID?,
+    val seasonId: UUID,
     val index: Int,
     val title: String,
     val synopsis: String,
