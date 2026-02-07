@@ -305,6 +305,42 @@ class InMemoryMediaRepository @Inject constructor(
         return series.seasons.flatMap { it.episodes }
     }
 
+    override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
+        if (durationMs <= 0) return
+        val progressPercent = (positionMs.toDouble() / durationMs.toDouble()) * 100.0
+        val watched = progressPercent >= 90.0
+
+        val result = localDataSource.updateWatchProgress(mediaId, progressPercent, watched) ?: return
+
+        if (result.isMovie) {
+            _movies.value[mediaId]?.let { movie ->
+                _movies.value += (mediaId to movie.copy(progress = progressPercent, watched = watched))
+            }
+        } else {
+            val seriesId = result.seriesId ?: return
+            _series.value[seriesId]?.let { currentSeries ->
+                val updatedSeasons = currentSeries.seasons.map { season ->
+                    if (season.id == result.seasonId) {
+                        val updatedEpisodes = season.episodes.map { ep ->
+                            if (ep.id == mediaId) ep.copy(progress = progressPercent, watched = watched) else ep
+                        }
+                        season.copy(unwatchedEpisodeCount = result.seasonUnwatchedCount, episodes = updatedEpisodes)
+                    } else season
+                }
+                _series.value += (seriesId to currentSeries.copy(
+                    unwatchedEpisodeCount = result.seriesUnwatchedCount,
+                    seasons = updatedSeasons
+                ))
+            }
+        }
+    }
+
+    override suspend fun refreshHomeData() {
+        loadLibraries()
+        loadContinueWatching()
+        loadLatestLibraryContent()
+    }
+
     private suspend fun serverUrl(): String {
         return userSessionRepository.serverUrl.first()
     }

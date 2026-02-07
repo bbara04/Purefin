@@ -10,6 +10,7 @@ import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.data.InMemoryMediaRepository
 import hu.bbara.purefin.data.model.Media
+import hu.bbara.purefin.domain.usecase.RefreshHomeDataUseCase
 import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.LibraryDto
@@ -39,7 +40,8 @@ class HomePageViewModel @Inject constructor(
     private val mediaRepository: InMemoryMediaRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
-    private val jellyfinApiClient: JellyfinApiClient
+    private val jellyfinApiClient: JellyfinApiClient,
+    private val refreshHomeDataUseCase: RefreshHomeDataUseCase
 ) : ViewModel() {
 
     private val _url = userSessionRepository.serverUrl.stateIn(
@@ -217,6 +219,16 @@ class HomePageViewModel @Inject constructor(
             itemId = itemId,
             type = type
         )
+    }
+
+    fun onResumed() {
+        viewModelScope.launch {
+            try {
+                refreshHomeDataUseCase()
+            } catch (e: Exception) {
+                // Refresh is best-effort; don't crash on failure
+            }
+        }
     }
 
     fun logout() {

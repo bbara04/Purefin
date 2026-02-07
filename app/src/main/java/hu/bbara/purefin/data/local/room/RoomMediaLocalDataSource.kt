@@ -131,6 +131,41 @@ class RoomMediaLocalDataSource @Inject constructor(
         return episodeEntity.toDomain(cast)
     }
 
+
+    data class WatchProgressResult(
+        val isMovie: Boolean,
+        val seriesId: UUID? = null,
+        val seasonId: UUID? = null,
+        val seriesUnwatchedCount: Int = 0,
+        val seasonUnwatchedCount: Int = 0
+    )
+
+    suspend fun updateWatchProgress(mediaId: UUID, progress: Double?, watched: Boolean): WatchProgressResult? {
+        movieDao.getById(mediaId)?.let {
+            movieDao.updateProgress(mediaId, progress, watched)
+            return WatchProgressResult(isMovie = true)
+        }
+
+        episodeDao.getById(mediaId)?.let { episode ->
+            return database.withTransaction {
+                episodeDao.updateProgress(mediaId, progress, watched)
+                val seasonUnwatched = episodeDao.countUnwatchedBySeason(episode.seasonId!!)
+                seasonDao.updateUnwatchedCount(episode.seasonId, seasonUnwatched)
+                val seriesUnwatched = episodeDao.countUnwatchedBySeries(episode.seriesId)
+                seriesDao.updateUnwatchedCount(episode.seriesId, seriesUnwatched)
+                WatchProgressResult(
+                    isMovie = false,
+                    seriesId = episode.seriesId,
+                    seasonId = episode.seasonId,
+                    seriesUnwatchedCount = seriesUnwatched,
+                    seasonUnwatchedCount = seasonUnwatched
+                )
+            }
+        }
+
+        return null
+    }
+
     suspend fun getEpisodesBySeries(seriesId: UUID): List<Episode> {
         return episodeDao.getBySeriesId(seriesId).map { episodeEntity ->
             val cast = castMemberDao.getByEpisodeId(episodeEntity.id).map { it.toDomain() }

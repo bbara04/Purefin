@@ -23,6 +23,15 @@ interface EpisodeDao {
     @Query("SELECT * FROM episodes WHERE id = :id")
     suspend fun getById(id: UUID): EpisodeEntity?
 
+    @Query("UPDATE episodes SET progress = :progress, watched = :watched WHERE id = :id")
+    suspend fun updateProgress(id: UUID, progress: Double?, watched: Boolean)
+
+    @Query("SELECT COUNT(*) FROM episodes WHERE seriesId = :seriesId AND watched = 0")
+    suspend fun countUnwatchedBySeries(seriesId: UUID): Int
+
+    @Query("SELECT COUNT(*) FROM episodes WHERE seasonId = :seasonId AND watched = 0")
+    suspend fun countUnwatchedBySeason(seasonId: UUID): Int
+
     @Query("DELETE FROM episodes WHERE seriesId = :seriesId")
     suspend fun deleteBySeriesId(seriesId: UUID)
 

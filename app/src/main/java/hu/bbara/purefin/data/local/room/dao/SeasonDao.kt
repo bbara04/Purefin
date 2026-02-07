@@ -20,6 +20,9 @@ interface SeasonDao {
     @Query("SELECT * FROM seasons WHERE id = :id")
     suspend fun getById(id: UUID): SeasonEntity?
 
+    @Query("UPDATE seasons SET unwatchedEpisodeCount = :count WHERE id = :id")
+    suspend fun updateUnwatchedCount(id: UUID, count: Int)
+
     @Query("DELETE FROM seasons WHERE seriesId = :seriesId")
     suspend fun deleteBySeriesId(seriesId: UUID)
 }

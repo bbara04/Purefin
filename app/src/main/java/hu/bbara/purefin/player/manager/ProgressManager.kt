@@ -3,6 +3,7 @@ package hu.bbara.purefin.player.manager
 import android.util.Log
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.domain.usecase.UpdateWatchProgressUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,12 +19,14 @@ import javax.inject.Inject
 
 @ViewModelScoped
 class ProgressManager @Inject constructor(
-    private val jellyfinApiClient: JellyfinApiClient
+    private val jellyfinApiClient: JellyfinApiClient,
+    private val updateWatchProgressUseCase: UpdateWatchProgressUseCase
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var progressJob: Job? = null
     private var activeItemId: UUID? = null
     private var lastPositionMs: Long = 0L
+    private var lastDurationMs: Long = 0L
     private var isPaused: Boolean = false
 
     fun bind(
@@ -36,6 +39,7 @@ class ProgressManager @Inject constructor(
                 Triple(state, prog, meta)
             }.collect { (state, prog, meta) ->
                 lastPositionMs = prog.positionMs
+                lastDurationMs = prog.durationMs
                 isPaused = !state.isPlaying
                 val mediaId = meta.mediaId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
 
@@ -65,7 +69,16 @@ class ProgressManager @Inject constructor(
 
     private fun stopSession() {
         progressJob?.cancel()
-        activeItemId?.let { report(it, lastPositionMs, isStop = true) }
+        activeItemId?.let { itemId ->
+            report(itemId, lastPositionMs, isStop = true)
+            scope.launch(Dispatchers.IO) {
+                try {
+                    updateWatchProgressUseCase(itemId, lastPositionMs, lastDurationMs)
+                } catch (e: Exception) {
+                    Log.e("ProgressManager", "Local cache update failed", e)
+                }
+            }
+        }
         activeItemId = null
     }
 
@@ -89,10 +102,13 @@ class ProgressManager @Inject constructor(
         progressJob?.cancel()
         activeItemId?.let { itemId ->
             val ticks = lastPositionMs * 10_000
+            val posMs = lastPositionMs
+            val durMs = lastDurationMs
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     jellyfinApiClient.reportPlaybackStopped(itemId, ticks)
-                    Log.d("ProgressManager", "Stop: $itemId at ${lastPositionMs}ms")
+                    updateWatchProgressUseCase(itemId, posMs, durMs)
+                    Log.d("ProgressManager", "Stop: $itemId at ${posMs}ms")
                 } catch (e: Exception) {
                     Log.e("ProgressManager", "Report failed", e)
                 }

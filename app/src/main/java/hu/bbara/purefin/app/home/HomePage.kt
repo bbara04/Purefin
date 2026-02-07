@@ -19,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import hu.bbara.purefin.app.home.ui.HomeContent
 import hu.bbara.purefin.app.home.ui.HomeDrawerContent
 import hu.bbara.purefin.app.home.ui.HomeMockData
@@ -49,6 +50,11 @@ fun HomePage(
     }
     val continueWatching = viewModel.continueWatching.collectAsState()
     val latestLibraryContent = viewModel.latestLibraryContent.collectAsState()
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.onResumed()
+        onPauseOrDispose { }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,

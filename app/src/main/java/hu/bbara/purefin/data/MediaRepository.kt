@@ -25,4 +25,6 @@ interface MediaRepository {
     suspend fun getEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) : Episode
     suspend fun getEpisode(seriesId: UUID, episodeId: UUID) : Episode
 
+    suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long)
+    suspend fun refreshHomeData()
 }
