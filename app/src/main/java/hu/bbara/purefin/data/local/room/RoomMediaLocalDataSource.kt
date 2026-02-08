@@ -36,6 +36,9 @@ class RoomMediaLocalDataSource @Inject constructor(
             entities.associate { it.id to it.toDomain(seasons = emptyList(), cast = emptyList()) }
         }
 
+    val episodesFlow: Flow<Map<UUID, Episode>> = episodeDao.observeAll()
+        .map { entities -> entities.associate { it.id to it.toDomain(cast = emptyList()) } }
+
     // Full content Flow for series detail screen (scoped to one series)
     fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> =
         seriesDao.observeWithContent(seriesId).map { relation ->

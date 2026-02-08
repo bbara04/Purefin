@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.data.InMemoryMediaRepository
+import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.navigation.MovieDto
 import hu.bbara.purefin.navigation.NavigationManager
@@ -14,7 +15,8 @@ import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
@@ -35,8 +37,26 @@ class LibraryViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = ""
     )
-    private val _contents = MutableStateFlow<List<PosterItem>>(emptyList())
-    val contents = _contents.asStateFlow()
+
+    private val _libraryItems = MutableStateFlow<List<Media>>(emptyList())
+
+    val contents: StateFlow<List<PosterItem>> = combine(
+        _libraryItems,
+        mediaRepository.movies,
+        mediaRepository.series
+    ) { items, moviesMap, seriesMap ->
+        items.mapNotNull { media ->
+            when (media) {
+                is Media.MovieMedia -> moviesMap[media.movieId]?.let {
+                    PosterItem(type = BaseItemKind.MOVIE, movie = it)
+                }
+                is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
+                    PosterItem(type = BaseItemKind.SERIES, series = it)
+                }
+                else -> null
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
         viewModelScope.launch { mediaRepository.ensureReady() }
@@ -67,22 +87,10 @@ class LibraryViewModel @Inject constructor(
     fun selectLibrary(libraryId: UUID) {
         viewModelScope.launch {
             val libraryItems = jellyfinApiClient.getLibraryContent(libraryId)
-            _contents.value = libraryItems.map {
+            _libraryItems.value = libraryItems.map {
                 when (it.type) {
-                    BaseItemKind.MOVIE -> {
-                        val movie = mediaRepository.getMovie(it.id)
-                        PosterItem(
-                            type = BaseItemKind.MOVIE,
-                            movie = movie
-                        )
-                    }
-                    BaseItemKind.SERIES -> {
-                        val series = mediaRepository.getSeries(it.id)
-                        PosterItem(
-                            type = BaseItemKind.SERIES,
-                            series = series
-                        )
-                    }
+                    BaseItemKind.MOVIE -> Media.MovieMedia(movieId = it.id)
+                    BaseItemKind.SERIES -> Media.SeriesMedia(seriesId = it.id)
                     else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
                 }
             }

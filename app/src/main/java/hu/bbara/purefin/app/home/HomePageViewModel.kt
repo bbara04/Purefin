@@ -19,16 +19,12 @@ import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.session.UserSessionRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -59,97 +55,58 @@ class HomePageViewModel @Inject constructor(
         }
     }
 
-    val continueWatching = mediaRepository.continueWatching
-        .mapLatest { list ->
-            withContext(Dispatchers.IO) {
-                list.map { media ->
-                    when (media) {
-                        is Media.MovieMedia -> {
-                            val movie = mediaRepository.getMovie(media.movieId)
-                            ContinueWatchingItem(
-                                type = BaseItemKind.MOVIE,
-                                movie = movie
-                            )
-                        }
-
-                        is Media.EpisodeMedia -> {
-                            val episode = mediaRepository.getEpisode(
-                                seriesId = media.seriesId,
-                                episodeId = media.episodeId
-                            )
-                            ContinueWatchingItem(
-                                type = BaseItemKind.EPISODE,
-                                episode = episode
-                            )
-                        }
-
-                        else -> throw UnsupportedOperationException("Unsupported item type: $media")
-                    }
-                }.distinctBy { it.id }
-            }
-        }
-        .distinctUntilChanged()
-        .flowOn(Dispatchers.IO)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList()
-        )
-
-    val latestLibraryContent = mediaRepository.latestLibraryContent
-        .mapLatest { libraryMap ->
-            withContext(Dispatchers.IO) {
-                libraryMap.mapValues { (_, items) ->
-                    items.map { media ->
-                        when (media) {
-                            is Media.MovieMedia -> {
-                                val movie = mediaRepository.getMovie(media.movieId)
-                                PosterItem(
-                                    type = BaseItemKind.MOVIE,
-                                    movie = movie
-                                )
-                            }
-
-                            is Media.EpisodeMedia -> {
-                                val episode = mediaRepository.getEpisode(
-                                    seriesId = media.seriesId,
-                                    episodeId = media.episodeId
-                                )
-                                PosterItem(
-                                    type = BaseItemKind.EPISODE,
-                                    episode = episode
-                                )
-                            }
-
-                            is Media.SeriesMedia -> {
-                                val series = mediaRepository.getSeries(media.id)
-                                PosterItem(
-                                    type = BaseItemKind.SERIES,
-                                    series = series
-                                )
-                            }
-
-                            is Media.SeasonMedia -> {
-                                val series = mediaRepository.getSeries(media.seriesId)
-                                PosterItem(
-                                    type = BaseItemKind.SERIES,
-                                    series = series
-                                )
-                            }
-
-                            else -> throw UnsupportedOperationException("Unsupported item type: $media")
-                        }
-                    }.distinctBy { it.id }
+    val continueWatching = combine(
+        mediaRepository.continueWatching,
+        mediaRepository.movies,
+        mediaRepository.episodes
+    ) { list, moviesMap, episodesMap ->
+        list.mapNotNull { media ->
+            when (media) {
+                is Media.MovieMedia -> moviesMap[media.movieId]?.let {
+                    ContinueWatchingItem(type = BaseItemKind.MOVIE, movie = it)
                 }
+                is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
+                    ContinueWatchingItem(type = BaseItemKind.EPISODE, episode = it)
+                }
+                else -> null
             }
+        }.distinctBy { it.id }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
+
+    val latestLibraryContent = combine(
+        mediaRepository.latestLibraryContent,
+        mediaRepository.movies,
+        mediaRepository.series,
+        mediaRepository.episodes
+    ) { libraryMap, moviesMap, seriesMap, episodesMap ->
+        libraryMap.mapValues { (_, items) ->
+            items.mapNotNull { media ->
+                when (media) {
+                    is Media.MovieMedia -> moviesMap[media.movieId]?.let {
+                        PosterItem(type = BaseItemKind.MOVIE, movie = it)
+                    }
+                    is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
+                        PosterItem(type = BaseItemKind.EPISODE, episode = it)
+                    }
+                    is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
+                        PosterItem(type = BaseItemKind.SERIES, series = it)
+                    }
+                    is Media.SeasonMedia -> seriesMap[media.seriesId]?.let {
+                        PosterItem(type = BaseItemKind.SERIES, series = it)
+                    }
+                    else -> null
+                }
+            }.distinctBy { it.id }
         }
-        .distinctUntilChanged()
-        .flowOn(Dispatchers.IO)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyMap()
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyMap()
+    )
 
     init {
         viewModelScope.launch { mediaRepository.ensureReady() }

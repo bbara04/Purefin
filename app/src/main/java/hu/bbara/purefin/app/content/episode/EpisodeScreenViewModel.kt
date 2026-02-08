@@ -7,7 +7,10 @@ import hu.bbara.purefin.data.InMemoryMediaRepository
 import hu.bbara.purefin.data.model.Episode
 import hu.bbara.purefin.navigation.NavigationManager
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import javax.inject.Inject
@@ -18,8 +21,14 @@ class EpisodeScreenViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
 ): ViewModel() {
 
-    private val _episode = MutableStateFlow<Episode?>(null)
-    val episode = _episode.asStateFlow()
+    private val _episodeId = MutableStateFlow<UUID?>(null)
+
+    val episode: StateFlow<Episode?> = combine(
+        _episodeId,
+        mediaRepository.episodes
+    ) { id, episodesMap ->
+        id?.let { episodesMap[it] }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     init {
         viewModelScope.launch { mediaRepository.ensureReady() }
@@ -30,13 +39,7 @@ class EpisodeScreenViewModel @Inject constructor(
     }
 
     fun selectEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) {
-        viewModelScope.launch {
-            _episode.value = mediaRepository.getEpisode(
-                seriesId = seriesId,
-                seasonId = seasonId,
-                episodeId = episodeId,
-            )
-        }
+        _episodeId.value = episodeId
     }
 
 }

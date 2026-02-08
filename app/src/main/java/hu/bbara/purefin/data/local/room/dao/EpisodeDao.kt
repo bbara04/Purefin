@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import hu.bbara.purefin.data.local.room.EpisodeEntity
+import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 @Dao
@@ -19,6 +20,9 @@ interface EpisodeDao {
 
     @Query("SELECT * FROM episodes WHERE seasonId = :seasonId")
     suspend fun getBySeasonId(seasonId: UUID): List<EpisodeEntity>
+
+    @Query("SELECT * FROM episodes")
+    fun observeAll(): Flow<List<EpisodeEntity>>
 
     @Query("SELECT * FROM episodes WHERE id = :id")
     suspend fun getById(id: UUID): EpisodeEntity?

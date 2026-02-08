@@ -53,8 +53,16 @@ class InMemoryMediaRepository @Inject constructor(
     override val series: StateFlow<Map<UUID, Series>> = localDataSource.seriesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
-    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> =
-        localDataSource.observeSeriesWithContent(seriesId)
+    override val episodes: StateFlow<Map<UUID, Episode>> = localDataSource.episodesFlow
+        .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
+    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
+        scope.launch {
+            awaitReady()
+            ensureSeriesContentLoaded(seriesId)
+        }
+        return localDataSource.observeSeriesWithContent(seriesId)
+    }
 
     private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
     val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
@@ -203,23 +211,11 @@ class InMemoryMediaRepository @Inject constructor(
         //TODO Load seasons and episodes, other types are already loaded at this point.
     }
 
-    override suspend fun getMovie(movieId: UUID): Movie {
+    private suspend fun ensureSeriesContentLoaded(seriesId: UUID) {
         awaitReady()
-        return localDataSource.getMovie(movieId)
-            ?: throw RuntimeException("Movie not found")
-    }
-
-    override suspend fun getSeries(seriesId: UUID): Series {
-        awaitReady()
-        return localDataSource.getSeriesBasic(seriesId)
-            ?: throw RuntimeException("Series not found")
-    }
-
-    override suspend fun getSeriesWithContent(seriesId: UUID): Series {
-        awaitReady()
-        // Use cached content if available
+        // Skip if content is already cached in Room
         localDataSource.getSeriesWithContent(seriesId)?.takeIf { it.seasons.isNotEmpty() }?.let {
-            return it
+            return
         }
 
         val series = this.series.value[seriesId] ?: throw RuntimeException("Series not found")
@@ -234,68 +230,6 @@ class InMemoryMediaRepository @Inject constructor(
         val updatedSeries = series.copy(seasons = filledSeasons)
         localDataSource.saveSeries(listOf(updatedSeries))
         localDataSource.saveSeriesContent(updatedSeries)
-        return updatedSeries
-    }
-
-    override suspend fun getSeason(
-        seriesId: UUID,
-        seasonId: UUID,
-    ): Season {
-        awaitReady()
-        localDataSource.getSeason(seriesId, seasonId)?.let { return it }
-        // Fallback: ensure series content is loaded, then retry
-        val series = getSeriesWithContent(seriesId)
-        return series.seasons.find { it.id == seasonId }?: throw RuntimeException("Season not found")
-    }
-
-    override suspend fun getSeasons(
-        seriesId: UUID,
-    ): List<Season> {
-        awaitReady()
-        val seasons = localDataSource.getSeasons(seriesId)
-        if (seasons.isNotEmpty()) return seasons
-        val series = getSeriesWithContent(seriesId)
-        return series.seasons
-    }
-
-    override suspend fun getEpisode(
-        seriesId: UUID,
-        episodeId: UUID
-    ) : Episode {
-        awaitReady()
-        localDataSource.getEpisodeById(episodeId)?.let { return it }
-        val series = getSeriesWithContent(seriesId)
-        return series.seasons.flatMap { it.episodes }.find { it.id == episodeId }?: throw RuntimeException("Episode not found")
-    }
-
-    override suspend fun getEpisode(
-        seriesId: UUID,
-        seasonId: UUID,
-        episodeId: UUID
-    ): Episode {
-        awaitReady()
-        localDataSource.getEpisode(seriesId, seasonId, episodeId)?.let { return it }
-        val series = getSeriesWithContent(seriesId)
-        return series.seasons.find { it.id == seasonId }?.episodes?.find { it.id == episodeId } ?: throw RuntimeException("Episode not found")
-    }
-
-    override suspend fun getEpisodes(
-        seriesId: UUID,
-        seasonId: UUID
-    ): List<Episode> {
-        awaitReady()
-        val episodes = localDataSource.getSeason(seriesId, seasonId)?.episodes
-        if (episodes != null && episodes.isNotEmpty()) return episodes
-        val series = getSeriesWithContent(seriesId)
-        return series.seasons.find { it.id == seasonId }?.episodes ?: throw RuntimeException("Season not found")
-    }
-
-    override suspend fun getEpisodes(seriesId: UUID): List<Episode> {
-        awaitReady()
-        val episodes = localDataSource.getEpisodesBySeries(seriesId)
-        if (episodes.isNotEmpty()) return episodes
-        val series = getSeriesWithContent(seriesId)
-        return series.seasons.flatMap { it.episodes }
     }
 
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {

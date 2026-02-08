@@ -40,9 +40,10 @@ fun SeriesScreen(
 
     val series = viewModel.series.collectAsState()
 
-    if (series.value != null) {
+    val seriesData = series.value
+    if (seriesData != null && seriesData.seasons.isNotEmpty()) {
         SeriesScreenInternal(
-            series = series.value!!,
+            series = seriesData,
             onBack = viewModel::onBack,
             modifier = modifier
         )

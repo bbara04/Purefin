@@ -60,9 +60,5 @@ class SeriesViewModel @Inject constructor(
 
     fun selectSeries(seriesId: UUID) {
         _seriesId.value = seriesId
-        // Ensure content is loaded from API if not cached
-        viewModelScope.launch {
-            mediaRepository.getSeriesWithContent(seriesId)
-        }
     }
 }
