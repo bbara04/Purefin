@@ -11,7 +11,9 @@ import javax.inject.Inject
 import androidx.core.net.toUri
 import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.session.UserSessionRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.api.ImageType
 
 @ViewModelScoped
@@ -20,13 +22,13 @@ class MediaRepository @Inject constructor(
     private val userSessionRepository: UserSessionRepository
 ) {
 
-    suspend fun getMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? {
+    suspend fun getMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? = withContext(Dispatchers.IO) {
         val mediaSources = jellyfinApiClient.getMediaSources(mediaId)
-        val selectedMediaSource = mediaSources.firstOrNull() ?: return null
+        val selectedMediaSource = mediaSources.firstOrNull() ?: return@withContext null
         val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
             mediaId = mediaId,
             mediaSourceId = selectedMediaSource.id
-        ) ?: return null
+        ) ?: return@withContext null
         val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
         // Calculate resume position
@@ -43,7 +45,7 @@ class MediaRepository @Inject constructor(
             artworkUrl = artworkUrl
         )
 
-        return Pair(mediaItem, resumePositionMs)
+        Pair(mediaItem, resumePositionMs)
     }
 
     private fun calculateResumePosition(
@@ -70,10 +72,10 @@ class MediaRepository @Inject constructor(
         return if (percentage in 5.0..95.0) positionMs else null
     }
 
-    suspend fun getNextUpMediaItems(episodeId: UUID, existingIds: Set<String>, count: Int = 5): List<MediaItem> {
+    suspend fun getNextUpMediaItems(episodeId: UUID, existingIds: Set<String>, count: Int = 5): List<MediaItem> = withContext(Dispatchers.IO) {
         val serverUrl = userSessionRepository.serverUrl.first()
         val episodes = jellyfinApiClient.getNextEpisodes(episodeId = episodeId, count = count)
-        return episodes.mapNotNull { episode ->
+        episodes.mapNotNull { episode ->
             val id = episode.id ?: return@mapNotNull null
             val stringId = id.toString()
             if (existingIds.contains(stringId)) {

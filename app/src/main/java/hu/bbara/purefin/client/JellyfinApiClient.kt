@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.session.UserSessionRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.api.client.Response
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.itemsApi
@@ -65,18 +67,18 @@ class JellyfinApiClient @Inject constructor(
         return true
     }
 
-    suspend fun login(url: String, username: String, password: String): Boolean {
+    suspend fun login(url: String, username: String, password: String): Boolean = withContext(Dispatchers.IO) {
         val trimmedUrl = url.trim()
         if (trimmedUrl.isBlank()) {
-            return false
+            return@withContext false
         }
         api.update(baseUrl = trimmedUrl)
-        return try {
+        try {
             val response = api.userApi.authenticateUserByName(username = username, password = password)
             val authResult = response.content
 
-            val token = authResult.accessToken ?: return false
-            val userId = authResult.user?.id ?: return false
+            val token = authResult.accessToken ?: return@withContext false
+            val userId = authResult.user?.id ?: return@withContext false
             userSessionRepository.setAccessToken(accessToken = token)
             userSessionRepository.setUserId(userId)
             userSessionRepository.setLoggedIn(true)
@@ -88,13 +90,13 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
-    suspend fun updateApiClient() {
+    suspend fun updateApiClient() = withContext(Dispatchers.IO) {
         ensureConfigured()
     }
 
-    suspend fun getLibraries(): List<BaseItemDto> {
+    suspend fun getLibraries(): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return emptyList()
+            return@withContext emptyList()
         }
         val response = api.userViewsApi.getUserViews(
             userId = getUserId(),
@@ -102,8 +104,7 @@ class JellyfinApiClient @Inject constructor(
             includeHidden = false,
         )
         Log.d("getLibraries", response.content.toString())
-        val libraries = response.content.items
-        return libraries
+        response.content.items
     }
 
     private val itemFields =
@@ -115,9 +116,9 @@ class JellyfinApiClient @Inject constructor(
             ItemFields.SEASON_USER_DATA
         )
 
-    suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> {
+    suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return emptyList()
+            return@withContext emptyList()
         }
         val getItemsRequest = GetItemsRequest(
             userId = getUserId(),
@@ -130,16 +131,16 @@ class JellyfinApiClient @Inject constructor(
         )
         val response = api.itemsApi.getItems(getItemsRequest)
         Log.d("getLibraryContent", response.content.toString())
-        return response.content.items
+        response.content.items
     }
 
-    suspend fun getContinueWatching(): List<BaseItemDto> {
+    suspend fun getContinueWatching(): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return emptyList()
+            return@withContext emptyList()
         }
         val userId = getUserId()
         if (userId == null) {
-            return emptyList()
+            return@withContext emptyList()
         }
         val getResumeItemsRequest = GetResumeItemsRequest(
             userId = userId,
@@ -150,10 +151,10 @@ class JellyfinApiClient @Inject constructor(
         )
         val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
         Log.d("getContinueWatching", response.content.toString())
-        return response.content.items
+        response.content.items
     }
 
-    suspend fun getNextUpEpisodes(mediaId: UUID): List<BaseItemDto> {
+    suspend fun getNextUpEpisodes(mediaId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
             throw IllegalStateException("Not configured")
         }
@@ -165,7 +166,7 @@ class JellyfinApiClient @Inject constructor(
         )
         val result = api.tvShowsApi.getNextUp(getNextUpRequest)
         Log.d("getNextUpEpisodes", result.content.toString())
-        return result.content.items
+        result.content.items
     }
 
     /**
@@ -174,9 +175,9 @@ class JellyfinApiClient @Inject constructor(
      * @param libraryId The UUID of the library to fetch from
      * @return A list of [BaseItemDto] representing the latest media items that includes Movie, Episode, Season, or an empty list if not configured
      */
-    suspend fun getLatestFromLibrary(libraryId: UUID): List<BaseItemDto> {
+    suspend fun getLatestFromLibrary(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return emptyList()
+            return@withContext emptyList()
         }
         val response = api.userLibraryApi.getLatestMedia(
             userId = getUserId(),
@@ -186,24 +187,24 @@ class JellyfinApiClient @Inject constructor(
             limit = 10
         )
         Log.d("getLatestFromLibrary", response.content.toString())
-        return response.content
+        response.content
     }
 
-    suspend fun getItemInfo(mediaId: UUID): BaseItemDto? {
+    suspend fun getItemInfo(mediaId: UUID): BaseItemDto? = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return null
+            return@withContext null
         }
         val result = api.userLibraryApi.getItem(
             itemId = mediaId,
             userId = getUserId()
         )
         Log.d("getItemInfo", result.content.toString())
-        return result.content
+        result.content
     }
 
-    suspend fun getSeasons(seriesId: UUID): List<BaseItemDto> {
+    suspend fun getSeasons(seriesId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return emptyList()
+            return@withContext emptyList()
         }
         val result = api.tvShowsApi.getSeasons(
             userId = getUserId(),
@@ -212,12 +213,12 @@ class JellyfinApiClient @Inject constructor(
             enableUserData = true
         )
         Log.d("getSeasons", result.content.toString())
-        return result.content.items
+        result.content.items
     }
 
-    suspend fun getEpisodesInSeason(seriesId: UUID, seasonId: UUID): List<BaseItemDto> {
+    suspend fun getEpisodesInSeason(seriesId: UUID, seasonId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return emptyList()
+            return@withContext emptyList()
         }
         val result = api.tvShowsApi.getEpisodes(
             userId = getUserId(),
@@ -227,16 +228,16 @@ class JellyfinApiClient @Inject constructor(
             enableUserData = true
         )
         Log.d("getEpisodesInSeason", result.content.toString())
-        return result.content.items
+        result.content.items
     }
 
-    suspend fun getNextEpisodes(episodeId: UUID, count: Int = 10): List<BaseItemDto> {
+    suspend fun getNextEpisodes(episodeId: UUID, count: Int = 10): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return emptyList()
+            return@withContext emptyList()
         }
         // TODO pass complete Episode object not only an id
-        val episodeInfo = getItemInfo(episodeId) ?: return emptyList()
-        val seriesId = episodeInfo.seriesId ?: return emptyList()
+        val episodeInfo = getItemInfo(episodeId) ?: return@withContext emptyList()
+        val seriesId = episodeInfo.seriesId ?: return@withContext emptyList()
         val nextUpEpisodesResult = api.tvShowsApi.getEpisodes(
             userId = getUserId(),
             seriesId = seriesId,
@@ -247,10 +248,10 @@ class JellyfinApiClient @Inject constructor(
         //Remove first element as we need only the next episodes
         val nextUpEpisodes = nextUpEpisodesResult.content.items.drop(1)
         Log.d("getNextEpisodes", nextUpEpisodes.toString())
-        return nextUpEpisodes
+        nextUpEpisodes
     }
 
-    suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> {
+    suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
         val result = api.mediaInfoApi
             .getPostedPlaybackInfo(
                 mediaId,
@@ -276,12 +277,12 @@ class JellyfinApiClient @Inject constructor(
                 ),
             )
         Log.d("getMediaSources", result.toString())
-        return result.content.mediaSources
+        result.content.mediaSources
     }
 
-    suspend fun getMediaPlaybackUrl(mediaId: UUID, mediaSourceId: String? = null): String? {
+    suspend fun getMediaPlaybackUrl(mediaId: UUID, mediaSourceId: String? = null): String? = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
-            return null
+            return@withContext null
         }
         val response = api.videosApi.getVideoStreamUrl(
             itemId = mediaId,
@@ -289,11 +290,11 @@ class JellyfinApiClient @Inject constructor(
             mediaSourceId = mediaSourceId,
         )
         Log.d("getMediaPlaybackUrl", response)
-        return response
+        response
     }
 
-    suspend fun reportPlaybackStart(itemId: UUID, positionTicks: Long = 0L) {
-        if (!ensureConfigured()) return
+    suspend fun reportPlaybackStart(itemId: UUID, positionTicks: Long = 0L) = withContext(Dispatchers.IO) {
+        if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackStart(
             PlaybackStartInfo(
                 itemId = itemId,
@@ -308,8 +309,8 @@ class JellyfinApiClient @Inject constructor(
         )
     }
 
-    suspend fun reportPlaybackProgress(itemId: UUID, positionTicks: Long, isPaused: Boolean) {
-        if (!ensureConfigured()) return
+    suspend fun reportPlaybackProgress(itemId: UUID, positionTicks: Long, isPaused: Boolean) = withContext(Dispatchers.IO) {
+        if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackProgress(
             PlaybackProgressInfo(
                 itemId = itemId,
@@ -324,8 +325,8 @@ class JellyfinApiClient @Inject constructor(
         )
     }
 
-    suspend fun reportPlaybackStopped(itemId: UUID, positionTicks: Long) {
-        if (!ensureConfigured()) return
+    suspend fun reportPlaybackStopped(itemId: UUID, positionTicks: Long) = withContext(Dispatchers.IO) {
+        if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackStopped(
             PlaybackStopInfo(
                 itemId = itemId,
