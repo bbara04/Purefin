@@ -1,6 +1,5 @@
 package hu.bbara.purefin.player.data
 
-import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import dagger.hilt.android.scopes.ViewModelScoped
@@ -9,10 +8,16 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import java.util.UUID
 import javax.inject.Inject
+import androidx.core.net.toUri
+import hu.bbara.purefin.image.JellyfinImageHelper
+import hu.bbara.purefin.session.UserSessionRepository
+import kotlinx.coroutines.flow.first
+import org.jellyfin.sdk.model.api.ImageType
 
 @ViewModelScoped
 class MediaRepository @Inject constructor(
-    private val jellyfinApiClient: JellyfinApiClient
+    private val jellyfinApiClient: JellyfinApiClient,
+    private val userSessionRepository: UserSessionRepository
 ) {
 
     suspend fun getMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? {
@@ -27,11 +32,15 @@ class MediaRepository @Inject constructor(
         // Calculate resume position
         val resumePositionMs = calculateResumePosition(baseItem, selectedMediaSource)
 
+        val serverUrl = userSessionRepository.serverUrl.first()
+        val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, mediaId, ImageType.PRIMARY)
+
         val mediaItem = createMediaItem(
             mediaId = mediaId.toString(),
             playbackUrl = playbackUrl,
-            title = baseItem?.name ?: selectedMediaSource.name,
-            subtitle = "S${baseItem!!.parentIndexNumber}:E${baseItem.indexNumber}"
+            title = baseItem?.name ?: selectedMediaSource.name!!,
+            subtitle = "S${baseItem!!.parentIndexNumber}:E${baseItem.indexNumber}",
+            artworkUrl = artworkUrl
         )
 
         return Pair(mediaItem, resumePositionMs)
@@ -61,7 +70,8 @@ class MediaRepository @Inject constructor(
         return if (percentage in 5.0..95.0) positionMs else null
     }
 
-    suspend fun getNextUpMediaItems(episodeId: UUID, existingIds: Set<String>, count: Int = 2): List<MediaItem> {
+    suspend fun getNextUpMediaItems(episodeId: UUID, existingIds: Set<String>, count: Int = 5): List<MediaItem> {
+        val serverUrl = userSessionRepository.serverUrl.first()
         val episodes = jellyfinApiClient.getNextEpisodes(episodeId = episodeId, count = count)
         return episodes.mapNotNull { episode ->
             val id = episode.id ?: return@mapNotNull null
@@ -75,11 +85,13 @@ class MediaRepository @Inject constructor(
                 mediaId = id,
                 mediaSourceId = selectedMediaSource.id
             ) ?: return@mapNotNull null
+            val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, id, ImageType.PRIMARY)
             createMediaItem(
                 mediaId = stringId,
                 playbackUrl = playbackUrl,
-                title = episode.name ?: selectedMediaSource.name,
-                subtitle = "S${episode.parentIndexNumber}:E${episode.indexNumber}"
+                title = episode.name ?: selectedMediaSource.name!!,
+                subtitle = "S${episode.parentIndexNumber}:E${episode.indexNumber}",
+                artworkUrl = artworkUrl
             )
         }
     }
@@ -87,15 +99,17 @@ class MediaRepository @Inject constructor(
     private fun createMediaItem(
         mediaId: String,
         playbackUrl: String,
-        title: String?,
-        subtitle: String?
+        title: String,
+        subtitle: String?,
+        artworkUrl: String
     ): MediaItem {
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
             .setSubtitle(subtitle)
+            .setArtworkUri(artworkUrl.toUri())
             .build()
         return MediaItem.Builder()
-            .setUri(Uri.parse(playbackUrl))
+            .setUri(playbackUrl.toUri())
             .setMediaId(mediaId)
             .setMediaMetadata(metadata)
             .build()
