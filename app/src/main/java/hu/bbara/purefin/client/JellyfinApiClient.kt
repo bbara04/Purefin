@@ -71,16 +71,21 @@ class JellyfinApiClient @Inject constructor(
             return false
         }
         api.update(baseUrl = trimmedUrl)
-        val response = api.userApi.authenticateUserByName(username = username, password = password)
-        val authResult = response.content
+        return try {
+            val response = api.userApi.authenticateUserByName(username = username, password = password)
+            val authResult = response.content
 
-        val token = authResult.accessToken ?: return false
-        val userId = authResult.user?.id ?: return false
-        userSessionRepository.setAccessToken(accessToken = token)
-        userSessionRepository.setUserId(userId)
-        userSessionRepository.setLoggedIn(true)
-        api.update(accessToken = token)
-        return true
+            val token = authResult.accessToken ?: return false
+            val userId = authResult.user?.id ?: return false
+            userSessionRepository.setAccessToken(accessToken = token)
+            userSessionRepository.setUserId(userId)
+            userSessionRepository.setLoggedIn(true)
+            api.update(accessToken = token)
+            true
+        } catch (e: Exception) {
+            Log.e("JellyfinApiClient", "Login failed", e)
+            false
+        }
     }
 
     suspend fun updateApiClient() {

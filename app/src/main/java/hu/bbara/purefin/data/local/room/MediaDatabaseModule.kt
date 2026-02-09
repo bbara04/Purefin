@@ -16,7 +16,7 @@ object MediaDatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): MediaDatabase =
-        Room.inMemoryDatabaseBuilder(context, MediaDatabase::class.java)
+        Room.databaseBuilder(context, MediaDatabase::class.java, "media_database")
             .fallbackToDestructiveMigration()
             .build()
 

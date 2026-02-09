@@ -23,6 +23,8 @@ class LoginViewModel @Inject constructor(
     val password: StateFlow<String> = _password.asStateFlow()
     private val _url = MutableStateFlow("")
     val url: StateFlow<String> = _url.asStateFlow()
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -42,6 +44,10 @@ class LoginViewModel @Inject constructor(
         _password.value = password
     }
 
+    fun clearError() {
+        _errorMessage.value = null
+    }
+
     suspend fun clearFields() {
         userSessionRepository.setServerUrl("");
         _username.value = ""
@@ -49,8 +55,13 @@ class LoginViewModel @Inject constructor(
     }
 
     suspend fun login(): Boolean {
+        _errorMessage.value = null
         userSessionRepository.setServerUrl(url.value)
-        return jellyfinApiClient.login(url.value, username.value, password.value)
+        val success = jellyfinApiClient.login(url.value, username.value, password.value)
+        if (!success) {
+            _errorMessage.value = "Login failed. Check your server URL, username, and password."
+        }
+        return success
     }
 
 }

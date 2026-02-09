@@ -55,6 +55,7 @@ fun LoginScreen(
     val serverUrl by viewModel.url.collectAsState()
     val username by viewModel.username.collectAsState()
     val password by viewModel.password.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
     var isLoggingIn by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -120,10 +121,29 @@ fun LoginScreen(
                     .padding(bottom = 24.dp)
             )
 
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = scheme.error,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            scheme.errorContainer,
+                            RoundedCornerShape(8.dp)
+                        )
+                        .padding(12.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             PurefinComplexTextField(
                 label = "Server URL",
                 value = serverUrl,
-                onValueChange = { viewModel.setUrl(it) },
+                onValueChange = {
+                    viewModel.clearError()
+                    viewModel.setUrl(it)
+                },
                 placeholder = "http://192.168.1.100:8096",
                 leadingIcon = Icons.Default.Storage
             )
@@ -133,7 +153,10 @@ fun LoginScreen(
             PurefinComplexTextField(
                 label = "Username",
                 value = username,
-                onValueChange = { viewModel.setUsername(it) },
+                onValueChange = {
+                    viewModel.clearError()
+                    viewModel.setUsername(it)
+                },
                 placeholder = "Enter your username",
                 leadingIcon = Icons.Default.Person
             )
@@ -143,7 +166,10 @@ fun LoginScreen(
             PurefinPasswordField(
                 label = "Password",
                 value = password,
-                onValueChange = { viewModel.setPassword(it) },
+                onValueChange = {
+                    viewModel.clearError()
+                    viewModel.setPassword(it)
+                },
                 placeholder = "••••••••",
                 leadingIcon = Icons.Default.Lock,
             )

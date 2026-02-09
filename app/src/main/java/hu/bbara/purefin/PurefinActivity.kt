@@ -11,6 +11,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -30,6 +33,7 @@ import coil3.util.DebugLogger
 import dagger.hilt.android.AndroidEntryPoint
 import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.client.JellyfinAuthInterceptor
+import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.login.ui.LoginScreen
 import hu.bbara.purefin.navigation.LocalNavigationManager
 import hu.bbara.purefin.navigation.NavigationCommand
@@ -126,8 +130,20 @@ class PurefinActivity : ComponentActivity() {
         entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<Route>.() -> Unit>,
         navigationManager: NavigationManager
     ) {
-
+        var sessionLoaded by remember { mutableStateOf(false) }
         val isLoggedIn by userSessionRepository.isLoggedIn.collectAsState(initial = false)
+
+        LaunchedEffect(Unit) {
+            userSessionRepository.isLoggedIn.collect {
+                sessionLoaded = true
+            }
+        }
+
+        if (!sessionLoaded) {
+            PurefinWaitingScreen(modifier = Modifier.fillMaxSize())
+            return
+        }
+
         if (isLoggedIn) {
             @Suppress("UNCHECKED_CAST")
             val backStack = rememberNavBackStack(Route.Home) as NavBackStack<Route>
