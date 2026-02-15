@@ -27,7 +27,7 @@ class PlayerMediaRepository @Inject constructor(
         val selectedMediaSource = mediaSources.firstOrNull() ?: return@withContext null
         val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
             mediaId = mediaId,
-            mediaSourceId = selectedMediaSource.id
+            mediaSource = selectedMediaSource
         ) ?: return@withContext null
         val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
@@ -85,7 +85,7 @@ class PlayerMediaRepository @Inject constructor(
             val selectedMediaSource = mediaSources.firstOrNull() ?: return@mapNotNull null
             val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
                 mediaId = id,
-                mediaSourceId = selectedMediaSource.id
+                mediaSource = selectedMediaSource
             ) ?: return@mapNotNull null
             val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, id, ImageType.PRIMARY)
             createMediaItem(

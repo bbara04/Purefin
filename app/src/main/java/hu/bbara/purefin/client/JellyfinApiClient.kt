@@ -256,40 +256,38 @@ class JellyfinApiClient @Inject constructor(
                 mediaId,
                 PlaybackInfoDto(
                     userId = getUserId(),
-                    deviceProfile =
-                        //TODO check this
-                        DeviceProfile(
-                            name = "Direct play all",
-                            maxStaticBitrate = 1_000_000_000,
-                            maxStreamingBitrate = 1_000_000_000,
-                            codecProfiles = emptyList(),
-                            containerProfiles = emptyList(),
-                            directPlayProfiles = emptyList(),
-                            transcodingProfiles = emptyList(),
-                            subtitleProfiles =
-                                listOf(
-                                    SubtitleProfile("srt", SubtitleDeliveryMethod.EXTERNAL),
-                                    SubtitleProfile("ass", SubtitleDeliveryMethod.EXTERNAL),
-                                ),
-                        ),
-                    maxStreamingBitrate = 1_000_000_000,
+                    deviceProfile = AndroidDeviceProfile.create(),
+                    maxStreamingBitrate = 100_000_000,
                 ),
             )
         Log.d("getMediaSources", result.toString())
         result.content.mediaSources
     }
 
-    suspend fun getMediaPlaybackUrl(mediaId: UUID, mediaSourceId: String? = null): String? = withContext(Dispatchers.IO) {
+    suspend fun getMediaPlaybackUrl(mediaId: UUID, mediaSource: MediaSourceInfo): String? = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
             return@withContext null
         }
-        val response = api.videosApi.getVideoStreamUrl(
-            itemId = mediaId,
-            static = true,
-            mediaSourceId = mediaSourceId,
-        )
-        Log.d("getMediaPlaybackUrl", response)
-        response
+
+        // Check if transcoding is required based on the MediaSourceInfo from getMediaSources
+        val shouldTranscode = mediaSource.supportsTranscoding == true &&
+                              (mediaSource.supportsDirectPlay == false || mediaSource.transcodingUrl != null)
+
+        val url = if (shouldTranscode && !mediaSource.transcodingUrl.isNullOrBlank()) {
+            // Use transcoding URL
+            val baseUrl = userSessionRepository.serverUrl.first().trim().trimEnd('/')
+            "$baseUrl${mediaSource.transcodingUrl}"
+        } else {
+            // Use direct play URL
+            api.videosApi.getVideoStreamUrl(
+                itemId = mediaId,
+                static = true,
+                mediaSourceId = mediaSource.id,
+            )
+        }
+
+        Log.d("getMediaPlaybackUrl", "Direct play: ${!shouldTranscode}, URL: $url")
+        url
     }
 
     suspend fun reportPlaybackStart(itemId: UUID, positionTicks: Long = 0L) = withContext(Dispatchers.IO) {

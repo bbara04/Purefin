@@ -7,6 +7,7 @@ import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
@@ -50,11 +51,18 @@ object VideoPlayerModule {
                 5_000
             )
             .build()
-        return ExoPlayer.Builder(application)
+
+        // Configure RenderersFactory to use all available decoders and enable passthrough
+        val renderersFactory = DefaultRenderersFactory(application)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+            .setEnableDecoderFallback(true)
+
+        return ExoPlayer.Builder(application, renderersFactory)
             .setTrackSelector(trackSelector)
             .setPauseAtEndOfMediaItems(true)
             .setLoadControl(loadControl)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
+            .setAudioAttributes(audioAttributes, true)
             .build()
             .apply {
                 playWhenReady = true
