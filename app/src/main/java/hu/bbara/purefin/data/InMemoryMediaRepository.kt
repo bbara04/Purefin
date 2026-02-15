@@ -67,6 +67,9 @@ class InMemoryMediaRepository @Inject constructor(
     private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
     val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
 
+    private val _nextUp: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
+    val nextUp: StateFlow<List<Media>> = _nextUp.asStateFlow()
+
     private val _latestLibraryContent: MutableStateFlow<Map<UUID, List<Media>>> = MutableStateFlow(emptyMap())
     val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = _latestLibraryContent.asStateFlow()
 
@@ -82,6 +85,7 @@ class InMemoryMediaRepository @Inject constructor(
         try {
             loadLibraries()
             loadContinueWatching()
+            loadNextUp()
             loadLatestLibraryContent()
             _state.value = MediaRepositoryState.Ready
             ready.complete(Unit)
@@ -171,6 +175,23 @@ class InMemoryMediaRepository @Inject constructor(
         }
     }
 
+    suspend fun loadNextUp() {
+        val nextUpItems = jellyfinApiClient.getNextUpEpisodes()
+        val items = nextUpItems.map { item ->
+            Media.EpisodeMedia(
+                episodeId = item.id,
+                seriesId = item.seriesId!!
+            )
+        }
+        _nextUp.value = items
+
+        // Load episodes
+        nextUpItems.forEach { item ->
+            val episode = item.toEpisode(serverUrl())
+            localDataSource.saveEpisode(episode)
+        }
+    }
+
     suspend fun loadLatestLibraryContent() {
         // TODO Make libraries accessible in a field or something that is not this ugly.
         val librariesItem = jellyfinApiClient.getLibraries()
@@ -243,6 +264,7 @@ class InMemoryMediaRepository @Inject constructor(
     override suspend fun refreshHomeData() {
         loadLibraries()
         loadContinueWatching()
+        loadNextUp()
         loadLatestLibraryContent()
     }
 

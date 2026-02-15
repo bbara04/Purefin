@@ -189,6 +189,126 @@ fun ContinueWatchingCard(
 }
 
 @Composable
+fun NextUpSection(
+    items: List<NextUpItem>,
+    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    SectionHeader(
+        title = "Next Up",
+        action = null
+    )
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(
+            items = items, key = { it.id }) { item ->
+            NextUpCard(
+                item = item,
+                onEpisodeSelected = onEpisodeSelected
+            )
+        }
+    }
+}
+
+@Composable
+fun NextUpCard(
+    item: NextUpItem,
+    modifier: Modifier = Modifier,
+    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    val context = LocalContext.current
+    val density = LocalDensity.current
+
+    val imageUrl = item.episode.heroImageUrl
+
+    val cardWidth = 280.dp
+    val cardHeight = cardWidth * 9 / 16
+
+    fun openItem(item: NextUpItem) {
+        val episode = item.episode
+        onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
+    }
+
+    val imageRequest = ImageRequest.Builder(context)
+        .data(imageUrl)
+        .size(with(density) { cardWidth.roundToPx() }, with(density) { cardHeight.roundToPx() })
+        .build()
+
+    Column(
+        modifier = modifier
+            .width(cardWidth)
+            .wrapContentHeight()
+    ) {
+        Box(
+            modifier = Modifier
+                .width(cardWidth)
+                .aspectRatio(16f / 9f)
+                .clip(RoundedCornerShape(16.dp))
+                .border(1.dp, scheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .background(scheme.surfaceVariant)
+        ) {
+            PurefinAsyncImage(
+                model = imageRequest,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable {
+                        openItem(item)
+                    },
+                contentScale = ContentScale.Crop,
+            )
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 8.dp, bottom = 16.dp)
+                    .clip(CircleShape)
+                    .background(scheme.secondary)
+                    .size(36.dp),
+                onClick = {
+                    val intent = Intent(context, PlayerActivity::class.java)
+                    intent.putExtra("MEDIA_ID", item.id.toString())
+                    context.startActivity(intent)
+                },
+                colors = IconButtonColors(
+                    containerColor = scheme.secondary,
+                    contentColor = scheme.onSecondary,
+                    disabledContainerColor = scheme.secondary,
+                    disabledContentColor = scheme.onSecondary
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.PlayArrow,
+                    contentDescription = "Play",
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        }
+        Column(modifier = Modifier.padding(top = 12.dp)) {
+            Text(
+                text = item.primaryText,
+                color = scheme.onBackground,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = item.secondaryText,
+                color = scheme.onSurfaceVariant,
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
 fun LibraryPosterSection(
     title: String,
     items: List<PosterItem>,
