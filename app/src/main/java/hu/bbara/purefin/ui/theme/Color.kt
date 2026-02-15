@@ -1,45 +1,53 @@
 package hu.bbara.purefin.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.ColorUtils
+
+/**
+ * HSL Color Palette
+ * Primary: Purple (270°)
+ * Secondary: Teal (180°)
+ * Tertiary: Orange (30°)
+ */
 
 // Light Mode Palette
-val LightPrimary = Color(0xFF30D0F8) // The main brand color
-val LightOnPrimary = Color(0xFFFFFFFF)
-val LightPrimaryContainer = Color(0xFFD4FCFF)
-val LightOnPrimaryContainer = Color(0xFF03405E)
+val LightPrimary = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.65f, 0.45f)))
+val LightOnPrimary = Color(ColorUtils.HSLToColor(floatArrayOf(0f, 0f, 1f)))
+val LightPrimaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.60f, 0.90f)))
+val LightOnPrimaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.70f, 0.15f)))
 
-val LightSecondary = Color(0xFF0F81AB) // A darker teal/blue from the end of the light list
-val LightOnSecondary = Color(0xFFFFFFFF)
-val LightSecondaryContainer = Color(0xFFABF7FF)
-val LightOnSecondaryContainer = Color(0xFF055E85)
+val LightSecondary = Color(ColorUtils.HSLToColor(floatArrayOf(180f, 0.55f, 0.40f)))
+val LightOnSecondary = Color(ColorUtils.HSLToColor(floatArrayOf(0f, 0f, 1f)))
+val LightSecondaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(180f, 0.50f, 0.88f)))
+val LightOnSecondaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(180f, 0.65f, 0.15f)))
 
-val LightTertiary = Color(0xFF1DA7D1) // Mid-tone blue
-val LightOnTertiary = Color(0xFFFFFFFF)
-val LightTertiaryContainer = Color(0xFFF0FEFF) // Very light blue
-val LightOnTertiaryContainer = Color(0xFF03405E)
+val LightTertiary = Color(ColorUtils.HSLToColor(floatArrayOf(30f, 0.75f, 0.50f)))
+val LightOnTertiary = Color(ColorUtils.HSLToColor(floatArrayOf(0f, 0f, 1f)))
+val LightTertiaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(30f, 0.70f, 0.92f)))
+val LightOnTertiaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(30f, 0.80f, 0.18f)))
 
-val LightBackground = Color(0xFFF0FEFF) // The lightest swatch
-val LightOnBackground = Color(0xFF03405E) // The darkest swatch for text
-val LightSurface = Color(0xFFF0FEFF)
-val LightOnSurface = Color(0xFF03405E)
+val LightBackground = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.15f, 0.98f)))
+val LightOnBackground = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.20f, 0.12f)))
+val LightSurface = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.15f, 0.98f)))
+val LightOnSurface = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.20f, 0.12f)))
 
 // Dark Mode Palette
-val DarkPrimary = Color(0xFF30D0F8) // Main brand color stays vibrant
-val DarkOnPrimary = Color(0xFF003546) // Dark text on bright primary
-val DarkPrimaryContainer = Color(0xFF1C4C58)
-val DarkOnPrimaryContainer = Color(0xFFABF7FF)
+val DarkPrimary = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.60f, 0.75f)))
+val DarkOnPrimary = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.70f, 0.20f)))
+val DarkPrimaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.55f, 0.30f)))
+val DarkOnPrimaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.50f, 0.92f)))
 
-val DarkSecondary = Color(0xFF52CEE8) // Lighter blue for secondary in dark mode
-val DarkOnSecondary = Color(0xFF003546)
-val DarkSecondaryContainer = Color(0xFF21697B)
-val DarkOnSecondaryContainer = Color(0xFFD4FCFF)
+val DarkSecondary = Color(ColorUtils.HSLToColor(floatArrayOf(180f, 0.50f, 0.70f)))
+val DarkOnSecondary = Color(ColorUtils.HSLToColor(floatArrayOf(180f, 0.65f, 0.18f)))
+val DarkSecondaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(180f, 0.50f, 0.28f)))
+val DarkOnSecondaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(180f, 0.45f, 0.90f)))
 
-val DarkTertiary = Color(0xFF7DE3F3) // Another light accent
-val DarkOnTertiary = Color(0xFF003546)
-val DarkTertiaryContainer = Color(0xFF268EA8)
-val DarkOnTertiaryContainer = Color(0xFFD0F7FA)
+val DarkTertiary = Color(ColorUtils.HSLToColor(floatArrayOf(30f, 0.70f, 0.72f)))
+val DarkOnTertiary = Color(ColorUtils.HSLToColor(floatArrayOf(30f, 0.80f, 0.22f)))
+val DarkTertiaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(30f, 0.65f, 0.32f)))
+val DarkOnTertiaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(30f, 0.65f, 0.93f)))
 
-val DarkBackground = Color(0xFF13242B) // Darkest swatch from dark mode list
-val DarkOnBackground = Color(0xFFD0F7FA) // Lightest swatch for text
-val DarkSurface = Color(0xFF13242B)
-val DarkOnSurface = Color(0xFFD0F7FA)
+val DarkBackground = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.18f, 0.08f)))
+val DarkOnBackground = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.10f, 0.92f)))
+val DarkSurface = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.18f, 0.08f)))
+val DarkOnSurface = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.10f, 0.92f)))
