@@ -20,10 +20,8 @@ import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.Replay10
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
-import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.PurefinIconButton
 import hu.bbara.purefin.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.TrackOption
 
 @Composable
 fun PlayerControlsOverlay(
@@ -52,8 +51,7 @@ fun PlayerControlsOverlay(
     onSeekLiveEdge: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
-    onToggleCaptions: () -> Unit,
-    onShowSettings: () -> Unit,
+    onSelectTrack: (TrackOption) -> Unit,
     onQueueSelected: (String) -> Unit,
     onOpenQueue: () -> Unit,
     modifier: Modifier = Modifier
@@ -100,8 +98,7 @@ fun PlayerControlsOverlay(
                 onSeekForward = { onSeekRelative(30_000) },
                 onSeekBackward = { onSeekRelative(-10_000) },
                 onSeekLiveEdge = onSeekLiveEdge,
-                onToggleCaptions = onToggleCaptions,
-                onShowSettings = onShowSettings,
+                onSelectTrack = onSelectTrack,
                 onQueueSelected = onQueueSelected,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
@@ -163,8 +160,7 @@ private fun BottomSection(
     onSeekForward: () -> Unit,
     onSeekBackward: () -> Unit,
     onSeekLiveEdge: () -> Unit,
-    onToggleCaptions: () -> Unit,
-    onShowSettings: () -> Unit,
+    onSelectTrack: (TrackOption) -> Unit,
     onQueueSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -259,15 +255,20 @@ private fun BottomSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PurefinIconButton(
-                    icon = Icons.Outlined.Subtitles,
-                    contentDescription = "Captions",
-                    onClick = onToggleCaptions
+                QualitySelectionButton(
+                    options = uiState.qualityTracks,
+                    selectedId = uiState.selectedQualityTrackId,
+                    onSelect = onSelectTrack
                 )
-                PurefinIconButton(
-                    icon = Icons.Outlined.Settings,
-                    contentDescription = "Settings",
-                    onClick = onShowSettings
+                AudioSelectionButton(
+                    options = uiState.audioTracks,
+                    selectedId = uiState.selectedAudioTrackId,
+                    onSelect = onSelectTrack
+                )
+                SubtitlesSelectionButton(
+                    options = uiState.textTracks,
+                    selectedId = uiState.selectedTextTrackId,
+                    onSelect = onSelectTrack
                 )
             }
         }

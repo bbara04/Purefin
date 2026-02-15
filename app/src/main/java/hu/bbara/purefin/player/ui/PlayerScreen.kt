@@ -44,7 +44,6 @@ import hu.bbara.purefin.player.ui.components.PlayerControlsOverlay
 import hu.bbara.purefin.player.ui.components.PlayerGesturesLayer
 import hu.bbara.purefin.player.ui.components.PlayerLoadingErrorEndCard
 import hu.bbara.purefin.player.ui.components.PlayerQueuePanel
-import hu.bbara.purefin.player.ui.components.PlayerSettingsSheet
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -65,13 +64,11 @@ fun PlayerScreen(
     val maxVolume = remember { audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1) }
     var volume by remember { mutableStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / maxVolume.toFloat()) }
     var brightness by remember { mutableStateOf(readCurrentBrightness(activity)) }
-    var showSettings by remember { mutableStateOf(false) }
     var showQueuePanel by remember { mutableStateOf(false) }
     var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(uiState.isPlaying) {
         if (uiState.isPlaying) {
-            showSettings = false
             showQueuePanel = false
         }
     }
@@ -185,15 +182,7 @@ fun PlayerScreen(
                 onSeekLiveEdge = { viewModel.seekToLiveEdge() },
                 onNext = { viewModel.next() },
                 onPrevious = { viewModel.previous() },
-                onToggleCaptions = {
-                    val off = uiState.textTracks.firstOrNull { it.isOff }
-                    val currentId = uiState.selectedTextTrackId
-                    val next = if (currentId == off?.id) {
-                        uiState.textTracks.firstOrNull { !it.isOff }
-                    } else off
-                    next?.let { viewModel.selectTrack(it) }
-                },
-                onShowSettings = { showSettings = true },
+                onSelectTrack = { viewModel.selectTrack(it) },
                 onQueueSelected = { viewModel.playQueueItem(it) },
                 onOpenQueue = { showQueuePanel = true }
             )
@@ -208,14 +197,6 @@ fun PlayerScreen(
             onNext = { viewModel.next() },
             onReplay = { viewModel.seekTo(0L); viewModel.togglePlayPause() },
             onDismissError = { viewModel.clearError() }
-        )
-
-        PlayerSettingsSheet(
-            visible = showSettings,
-            uiState = uiState,
-            onDismiss = { showSettings = false },
-            onSelectTrack = { viewModel.selectTrack(it) },
-            onSpeedSelected = { viewModel.setPlaybackSpeed(it) }
         )
 
         AnimatedVisibility(
