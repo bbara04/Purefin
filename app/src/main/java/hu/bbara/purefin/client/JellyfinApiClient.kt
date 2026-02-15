@@ -154,7 +154,7 @@ class JellyfinApiClient @Inject constructor(
         response.content.items
     }
 
-    suspend fun getNextUpEpisodes(mediaId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
+    suspend fun getNextUpEpisodes(): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
             throw IllegalStateException("Not configured")
         }
@@ -162,7 +162,6 @@ class JellyfinApiClient @Inject constructor(
             userId = getUserId(),
             fields = itemFields,
             enableResumable = true,
-            seriesId = mediaId,
         )
         val result = api.tvShowsApi.getNextUp(getNextUpRequest)
         Log.d("getNextUpEpisodes", result.content.toString())
