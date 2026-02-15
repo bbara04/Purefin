@@ -4,7 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.player.data.MediaRepository
+import hu.bbara.purefin.player.data.PlayerMediaRepository
+import hu.bbara.purefin.data.MediaRepository
+import hu.bbara.purefin.player.manager.MediaContext
 import hu.bbara.purefin.player.manager.PlayerManager
 import hu.bbara.purefin.player.manager.ProgressManager
 import hu.bbara.purefin.player.model.PlayerUiState
@@ -23,6 +25,7 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val playerManager: PlayerManager,
+    private val playerMediaRepository: PlayerMediaRepository,
     private val mediaRepository: MediaRepository,
     private val progressManager: ProgressManager
 ) : ViewModel() {
@@ -133,11 +136,15 @@ class PlayerViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            val result = mediaRepository.getMediaItem(uuid)
+            val result = playerMediaRepository.getMediaItem(uuid)
             if (result != null) {
                 val (mediaItem, resumePositionMs) = result
 
-                playerManager.play(mediaItem)
+                // Determine preference key: movies use their own ID, episodes use series ID
+                val preferenceKey = mediaRepository.episodes.value[uuid]?.seriesId?.toString() ?: id
+                val mediaContext = MediaContext(mediaId = id, preferenceKey = preferenceKey)
+
+                playerManager.play(mediaItem, mediaContext)
 
                 // Seek to resume position after play() is called
                 resumePositionMs?.let { playerManager.seekTo(it) }
@@ -157,7 +164,7 @@ class PlayerViewModel @Inject constructor(
         val uuid = currentMediaId.toUuidOrNull() ?: return
         viewModelScope.launch {
             val queuedIds = uiState.value.queue.map { it.id }.toSet()
-            val items = mediaRepository.getNextUpMediaItems(
+            val items = playerMediaRepository.getNextUpMediaItems(
                 episodeId = uuid,
                 existingIds = queuedIds
             )

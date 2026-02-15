@@ -12,6 +12,10 @@ import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.player.model.QueueItemUi
 import hu.bbara.purefin.player.model.TrackOption
 import hu.bbara.purefin.player.model.TrackType
+import hu.bbara.purefin.player.preference.AudioTrackProperties
+import hu.bbara.purefin.player.preference.SubtitleTrackProperties
+import hu.bbara.purefin.player.preference.TrackMatcher
+import hu.bbara.purefin.player.preference.TrackPreferencesRepository
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -32,10 +37,14 @@ import kotlinx.coroutines.launch
 @OptIn(UnstableApi::class)
 class PlayerManager @Inject constructor(
     val player: Player,
-    private val trackMapper: TrackMapper
+    private val trackMapper: TrackMapper,
+    private val trackPreferencesRepository: TrackPreferencesRepository,
+    private val trackMatcher: TrackMatcher
 ) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    private var currentMediaContext: MediaContext? = null
 
     private val _playbackState = MutableStateFlow(PlaybackStateSnapshot())
     val playbackState: StateFlow<PlaybackStateSnapshot> = _playbackState.asStateFlow()
@@ -76,6 +85,9 @@ class PlayerManager @Inject constructor(
 
         override fun onTracksChanged(tracks: Tracks) {
             refreshTracks(tracks)
+            scope.launch {
+                applyTrackPreferences()
+            }
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -92,7 +104,8 @@ class PlayerManager @Inject constructor(
         startProgressLoop()
     }
 
-    fun play(mediaItem: MediaItem) {
+    fun play(mediaItem: MediaItem, mediaContext: MediaContext? = null) {
+        currentMediaContext = mediaContext
         player.setMediaItem(mediaItem)
         player.prepare()
         player.playWhenReady = true
@@ -173,6 +186,13 @@ class PlayerManager @Inject constructor(
         }
         player.trackSelectionParameters = builder.build()
         refreshTracks(player.currentTracks)
+
+        // Save track preference if media context is available
+        currentMediaContext?.let { context ->
+            scope.launch {
+                saveTrackPreference(option, context.preferenceKey)
+            }
+        }
     }
 
     fun setPlaybackSpeed(speed: Float) {
@@ -196,6 +216,58 @@ class PlayerManager @Inject constructor(
 
     fun clearError() {
         _playbackState.update { it.copy(error = null) }
+    }
+
+    private suspend fun applyTrackPreferences() {
+        val context = currentMediaContext ?: return
+        val preferences = trackPreferencesRepository.getMediaPreferences(context.preferenceKey).firstOrNull() ?: return
+
+        val currentTrackState = _tracks.value
+
+        // Apply audio preference
+        preferences.audioPreference?.let { audioPreference ->
+            val matchedAudio = trackMatcher.findBestAudioMatch(
+                currentTrackState.audioTracks,
+                audioPreference
+            )
+            matchedAudio?.let { selectTrack(it) }
+        }
+
+        // Apply subtitle preference
+        preferences.subtitlePreference?.let { subtitlePreference ->
+            val matchedSubtitle = trackMatcher.findBestSubtitleMatch(
+                currentTrackState.textTracks,
+                subtitlePreference
+            )
+            matchedSubtitle?.let { selectTrack(it) }
+        }
+    }
+
+    private suspend fun saveTrackPreference(option: TrackOption, preferenceKey: String) {
+        when (option.type) {
+            TrackType.AUDIO -> {
+                val properties = AudioTrackProperties(
+                    language = option.language,
+                    channelCount = option.channelCount,
+                    label = option.label
+                )
+                trackPreferencesRepository.saveAudioPreference(preferenceKey, properties)
+            }
+
+            TrackType.TEXT -> {
+                val properties = SubtitleTrackProperties(
+                    language = option.language,
+                    forced = option.forced,
+                    label = option.label,
+                    isOff = option.isOff
+                )
+                trackPreferencesRepository.saveSubtitlePreference(preferenceKey, properties)
+            }
+
+            TrackType.VIDEO -> {
+                // Video preferences not implemented in this feature
+            }
+        }
     }
 
     fun release() {
@@ -269,4 +341,9 @@ data class MetadataState(
     val mediaId: String? = null,
     val title: String? = null,
     val subtitle: String? = null
+)
+
+data class MediaContext(
+    val mediaId: String,
+    val preferenceKey: String
 )

@@ -33,7 +33,8 @@ data class TrackOption(
     val groupIndex: Int,
     val trackIndex: Int,
     val type: TrackType,
-    val isOff: Boolean
+    val isOff: Boolean,
+    val forced: Boolean = false
 )
 
 enum class TrackType { AUDIO, TEXT, VIDEO }

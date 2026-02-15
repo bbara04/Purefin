@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.api.ImageType
 
 @ViewModelScoped
-class MediaRepository @Inject constructor(
+class PlayerMediaRepository @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val userSessionRepository: UserSessionRepository
 ) {

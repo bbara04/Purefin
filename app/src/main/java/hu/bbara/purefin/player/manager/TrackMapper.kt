@@ -63,6 +63,7 @@ class TrackMapper @Inject constructor() {
                         val label = format.label
                             ?: format.language
                             ?: "Subtitle ${trackIndex}"
+                        val isForced = (format.selectionFlags and C.SELECTION_FLAG_FORCED) != 0
                         val option = TrackOption(
                             id = id,
                             label = label,
@@ -73,7 +74,8 @@ class TrackMapper @Inject constructor() {
                             groupIndex = groupIndex,
                             trackIndex = trackIndex,
                             type = TrackType.TEXT,
-                            isOff = false
+                            isOff = false,
+                            forced = isForced
                         )
                         text.add(option)
                         if (group.isTrackSelected(trackIndex)) selectedText = id
