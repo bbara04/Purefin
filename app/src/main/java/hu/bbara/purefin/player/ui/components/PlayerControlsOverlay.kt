@@ -44,6 +44,7 @@ import hu.bbara.purefin.player.model.TrackOption
 fun PlayerControlsOverlay(
     uiState: PlayerUiState,
     showControls: Boolean,
+    overlayController: PersistentOverlayController,
     onBack: () -> Unit,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -89,6 +90,7 @@ fun PlayerControlsOverlay(
             BottomSection(
                 uiState = uiState,
                 scrubbing = scrubbing,
+                overlayController = overlayController,
                 onScrubStart = { scrubbing = true },
                 onScrub = onSeek,
                 onScrubFinished = { scrubbing = false },
@@ -151,6 +153,7 @@ private fun TopBar(
 private fun BottomSection(
     uiState: PlayerUiState,
     scrubbing: Boolean,
+    overlayController: PersistentOverlayController,
     onScrubStart: () -> Unit,
     onScrub: (Long) -> Unit,
     onScrubFinished: () -> Unit,
@@ -258,17 +261,20 @@ private fun BottomSection(
                 QualitySelectionButton(
                     options = uiState.qualityTracks,
                     selectedId = uiState.selectedQualityTrackId,
-                    onSelect = onSelectTrack
+                    onSelect = onSelectTrack,
+                    overlayController = overlayController
                 )
                 AudioSelectionButton(
                     options = uiState.audioTracks,
                     selectedId = uiState.selectedAudioTrackId,
-                    onSelect = onSelectTrack
+                    onSelect = onSelectTrack,
+                    overlayController = overlayController
                 )
                 SubtitlesSelectionButton(
                     options = uiState.textTracks,
                     selectedId = uiState.selectedTextTrackId,
-                    onSelect = onSelectTrack
+                    onSelect = onSelectTrack,
+                    overlayController = overlayController
                 )
             }
         }

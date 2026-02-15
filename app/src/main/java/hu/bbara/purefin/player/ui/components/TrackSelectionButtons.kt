@@ -2,6 +2,7 @@ package hu.bbara.purefin.player.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,14 +17,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ClosedCaption
 import androidx.compose.material.icons.outlined.HighQuality
 import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
@@ -36,51 +34,29 @@ fun QualitySelectionButton(
     options: List<TrackOption>,
     selectedId: String?,
     onSelect: (TrackOption) -> Unit,
+    overlayController: PersistentOverlayController,
     modifier: Modifier = Modifier
 ) {
-    var expanded by remember { mutableStateOf(false) }
     val scheme = MaterialTheme.colorScheme
 
-    Box(modifier = modifier) {
-        PurefinIconButton(
-            icon = Icons.Outlined.HighQuality,
-            contentDescription = "Quality",
-            onClick = { expanded = true }
-        )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .widthIn(min = 160.dp, max = 280.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(scheme.surface.copy(alpha = 0.98f))
-                    .widthIn(min = 160.dp, max = 280.dp)
-                    .heightIn(max = 280.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 8.dp, horizontal = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    options.forEach { option ->
-                        val selected = option.id == selectedId
-                        TrackOptionItem(
-                            label = option.label,
-                            selected = selected,
-                            onClick = {
-                                onSelect(option)
-                                expanded = false
-                            }
-                        )
+    PurefinIconButton(
+        icon = Icons.Outlined.HighQuality,
+        contentDescription = "Quality",
+        onClick = {
+            overlayController.show {
+                TrackSelectionPanel(
+                    title = "Quality",
+                    options = options,
+                    selectedId = selectedId,
+                    onSelect = { option ->
+                        onSelect(option)
+                        overlayController.hide()
                     }
-                }
+                )
             }
-        }
-    }
+        },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -88,51 +64,27 @@ fun AudioSelectionButton(
     options: List<TrackOption>,
     selectedId: String?,
     onSelect: (TrackOption) -> Unit,
+    overlayController: PersistentOverlayController,
     modifier: Modifier = Modifier
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    val scheme = MaterialTheme.colorScheme
-
-    Box(modifier = modifier) {
-        PurefinIconButton(
-            icon = Icons.Outlined.Language,
-            contentDescription = "Audio",
-            onClick = { expanded = true }
-        )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .widthIn(min = 160.dp, max = 280.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(scheme.surface.copy(alpha = 0.98f))
-                    .widthIn(min = 160.dp, max = 280.dp)
-                    .heightIn(max = 280.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 8.dp, horizontal = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    options.forEach { option ->
-                        val selected = option.id == selectedId
-                        TrackOptionItem(
-                            label = option.label,
-                            selected = selected,
-                            onClick = {
-                                onSelect(option)
-                                expanded = false
-                            }
-                        )
+    PurefinIconButton(
+        icon = Icons.Outlined.Language,
+        contentDescription = "Audio",
+        onClick = {
+            overlayController.show {
+                TrackSelectionPanel(
+                    title = "Audio",
+                    options = options,
+                    selectedId = selectedId,
+                    onSelect = { option ->
+                        onSelect(option)
+                        overlayController.hide()
                     }
-                }
+                )
             }
-        }
-    }
+        },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -140,47 +92,79 @@ fun SubtitlesSelectionButton(
     options: List<TrackOption>,
     selectedId: String?,
     onSelect: (TrackOption) -> Unit,
+    overlayController: PersistentOverlayController,
     modifier: Modifier = Modifier
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    PurefinIconButton(
+        icon = Icons.Outlined.ClosedCaption,
+        contentDescription = "Subtitles",
+        onClick = {
+            overlayController.show {
+                TrackSelectionPanel(
+                    title = "Subtitles",
+                    options = options,
+                    selectedId = selectedId,
+                    onSelect = { option ->
+                        onSelect(option)
+                        overlayController.hide()
+                    }
+                )
+            }
+        },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun TrackSelectionPanel(
+    title: String,
+    options: List<TrackOption>,
+    selectedId: String?,
+    onSelect: (TrackOption) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val scheme = MaterialTheme.colorScheme
 
-    Box(modifier = modifier) {
-        PurefinIconButton(
-            icon = Icons.Outlined.ClosedCaption,
-            contentDescription = "Subtitles",
-            onClick = { expanded = true }
-        )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = { /* Prevent clicks from bubbling */ }
+            ),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        Column(
             modifier = Modifier
-                .widthIn(min = 160.dp, max = 280.dp)
+                .widthIn(min = 200.dp, max = 320.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(scheme.surface.copy(alpha = 0.98f))
+                .padding(vertical = 12.dp, horizontal = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Box(
+            Text(
+                text = title,
+                color = scheme.onSurface,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            Column(
                 modifier = Modifier
-                    .background(scheme.surface.copy(alpha = 0.98f))
-                    .widthIn(min = 160.dp, max = 280.dp)
-                    .heightIn(max = 280.dp)
+                    .heightIn(max = 400.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 8.dp, horizontal = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    options.forEach { option ->
-                        val selected = option.id == selectedId
-                        TrackOptionItem(
-                            label = option.label,
-                            selected = selected,
-                            onClick = {
-                                onSelect(option)
-                                expanded = false
-                            }
-                        )
-                    }
+                options.forEach { option ->
+                    val selected = option.id == selectedId
+                    TrackOptionItem(
+                        label = option.label,
+                        selected = selected,
+                        onClick = { onSelect(option) }
+                    )
                 }
             }
         }

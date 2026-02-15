@@ -44,6 +44,8 @@ import hu.bbara.purefin.player.ui.components.PlayerControlsOverlay
 import hu.bbara.purefin.player.ui.components.PlayerGesturesLayer
 import hu.bbara.purefin.player.ui.components.PlayerLoadingErrorEndCard
 import hu.bbara.purefin.player.ui.components.PlayerQueuePanel
+import hu.bbara.purefin.player.ui.components.PersistentOverlayContainer
+import hu.bbara.purefin.player.ui.components.rememberPersistentOverlayController
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -66,6 +68,7 @@ fun PlayerScreen(
     var brightness by remember { mutableStateOf(readCurrentBrightness(activity)) }
     var showQueuePanel by remember { mutableStateOf(false) }
     var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
+    val overlayController = rememberPersistentOverlayController()
 
     LaunchedEffect(uiState.isPlaying) {
         if (uiState.isPlaying) {
@@ -175,6 +178,7 @@ fun PlayerScreen(
                 modifier = Modifier.fillMaxSize(),
                 uiState = uiState,
                 showControls = controlsVisible,
+                overlayController = overlayController,
                 onBack = onBack,
                 onPlayPause = { viewModel.togglePlayPause() },
                 onSeek = { viewModel.seekTo(it) },
@@ -215,6 +219,11 @@ fun PlayerScreen(
                     .fillMaxSize()
             )
         }
+
+        PersistentOverlayContainer(
+            controller = overlayController,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
