@@ -1,14 +1,20 @@
 package hu.bbara.purefin.player.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.player.helper.HorizontalSeekGestureHelper
 
 @Composable
@@ -28,7 +34,9 @@ fun PlayerGesturesLayer(
 
     Box(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth(0.90f)
+            .fillMaxHeight(0.70f)
+//            .background(Color(2f, 2f, 2f, 0.3f))
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onTap() },

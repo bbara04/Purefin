@@ -98,7 +98,7 @@ fun PlayerScreen(
         )
 
         PlayerGesturesLayer(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.align(Alignment.Center),
             onTap = { viewModel.toggleControlsVisibility() },
             onDoubleTapRight = { viewModel.seekBy(30_000) },
             onDoubleTapLeft = { viewModel.seekBy(-10_000) },
