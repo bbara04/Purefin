@@ -51,6 +51,14 @@ object AndroidDeviceProfile {
             codecProfiles = emptyList(),
 
             subtitleProfiles = listOf(
+                // Prefer EMBED so subtitles stay in the container — this gives
+                // correct cues after seeking (Media3 parses them at extraction time).
+                SubtitleProfile("srt", SubtitleDeliveryMethod.EMBED),
+                SubtitleProfile("ass", SubtitleDeliveryMethod.EMBED),
+                SubtitleProfile("ssa", SubtitleDeliveryMethod.EMBED),
+                SubtitleProfile("subrip", SubtitleDeliveryMethod.EMBED),
+                SubtitleProfile("sub", SubtitleDeliveryMethod.EMBED),
+                // EXTERNAL fallback for when embedding isn't possible
                 SubtitleProfile("srt", SubtitleDeliveryMethod.EXTERNAL),
                 SubtitleProfile("ass", SubtitleDeliveryMethod.EXTERNAL),
                 SubtitleProfile("ssa", SubtitleDeliveryMethod.EXTERNAL),
