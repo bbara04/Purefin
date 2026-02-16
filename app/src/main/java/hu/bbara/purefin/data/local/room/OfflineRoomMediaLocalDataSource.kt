@@ -18,8 +18,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class RoomMediaLocalDataSource(
-    private val database: MediaDatabase,
+class OfflineRoomMediaLocalDataSource(
+    private val database: OfflineMediaDatabase,
     private val movieDao: MovieDao,
     private val seriesDao: SeriesDao,
     private val seasonDao: SeasonDao,

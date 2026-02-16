@@ -4,11 +4,22 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import hu.bbara.purefin.data.local.room.OnlineRepository
+import hu.bbara.purefin.data.local.room.OfflineRepository
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class MediaRepositoryModule {
 
     @Binds
-    abstract fun bindMediaRepository(impl: InMemoryMediaRepository): MediaRepository
+    @OnlineRepository
+    abstract fun bindOnlineMediaRepository(impl: InMemoryMediaRepository): MediaRepository
+
+    @Binds
+    @OfflineRepository
+    abstract fun bindOfflineMediaRepository(impl: OfflineMediaRepository): MediaRepository
+
+    // Default binding for backward compatibility (uses online repository)
+    @Binds
+    abstract fun bindDefaultMediaRepository(impl: InMemoryMediaRepository): MediaRepository
 }
