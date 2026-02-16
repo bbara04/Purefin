@@ -5,10 +5,10 @@ import kotlin.math.abs
 import kotlin.math.pow
 
 internal object HorizontalSeekGestureHelper {
-    val START_THRESHOLD = 24.dp
-    private const val COEFFICIENT = 1.3f
-    const val EXPONENT = 1.8f
-    private const val MAX_DELTA_MS = 300_000L
+    val START_THRESHOLD = 12.dp
+    private const val COEFFICIENT = 3.1f
+    const val EXPONENT = 1.7f
+    private const val MAX_DELTA_MS = 12_000_000L
 
     fun deltaMs(rawDelta: Float): Long {
         val magnitude = abs(rawDelta)
