@@ -9,7 +9,7 @@ import java.io.OutputStream
 
 object UserSessionSerializer : Serializer<UserSession> {
     override val defaultValue: UserSession
-        get() = UserSession(accessToken = "", url = "", loggedIn = false, userId = null)
+        get() = UserSession(accessToken = "", url = "", loggedIn = false, userId = null, isOfflineMode = false)
 
     override suspend fun readFrom(input: InputStream): UserSession {
         try {

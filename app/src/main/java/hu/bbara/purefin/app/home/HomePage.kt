@@ -37,6 +37,7 @@ fun HomePage(
     val coroutineScope = rememberCoroutineScope()
 
     val libraries = viewModel.libraries.collectAsState().value
+    val isOfflineMode = viewModel.isOfflineMode.collectAsState().value
     val libraryNavItems = libraries.map {
         HomeNavItem(
             id = it.id,
@@ -85,7 +86,9 @@ fun HomePage(
             contentColor = MaterialTheme.colorScheme.onBackground,
             topBar = {
                 HomeTopBar(
-                    onMenuClick = { coroutineScope.launch { drawerState.open() } }
+                    onMenuClick = { coroutineScope.launch { drawerState.open() } },
+                    isOfflineMode = isOfflineMode,
+                    onToggleOfflineMode = viewModel::toggleOfflineMode
                 )
             }
         ) { innerPadding ->

@@ -3,6 +3,7 @@ package hu.bbara.purefin.data
 import hu.bbara.purefin.data.local.room.OfflineDatabase
 import hu.bbara.purefin.data.local.room.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.data.model.Movie
 import hu.bbara.purefin.data.model.Series
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +42,11 @@ class OfflineMediaRepository @Inject constructor(
 
     override val episodes: StateFlow<Map<UUID, Episode>> = localDataSource.episodesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
+    // Offline mode doesn't support these server-side features
+    override val continueWatching: StateFlow<List<Media>> = MutableStateFlow(emptyList())
+    override val nextUp: StateFlow<List<Media>> = MutableStateFlow(emptyList())
+    override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = MutableStateFlow(emptyMap())
 
     override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
         return localDataSource.observeSeriesWithContent(seriesId)

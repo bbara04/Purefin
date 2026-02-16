@@ -10,5 +10,6 @@ data class UserSession(
     val url: String,
     @Serializable(with = UUIDSerializer::class)
     val userId: UUID?,
-    val loggedIn: Boolean
+    val loggedIn: Boolean,
+    val isOfflineMode: Boolean = false
 )

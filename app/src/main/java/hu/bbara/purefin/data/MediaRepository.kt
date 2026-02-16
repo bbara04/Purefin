@@ -1,6 +1,7 @@
 package hu.bbara.purefin.data
 
 import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.data.model.Movie
 import hu.bbara.purefin.data.model.Series
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,10 @@ interface MediaRepository {
     val series: StateFlow<Map<UUID, Series>>
     val episodes: StateFlow<Map<UUID, Episode>>
     val state: StateFlow<MediaRepositoryState>
+
+    val continueWatching: StateFlow<List<Media>>
+    val nextUp: StateFlow<List<Media>>
+    val latestLibraryContent: StateFlow<Map<UUID, List<Media>>>
 
     fun observeSeriesWithContent(seriesId: UUID): Flow<Series?>
 

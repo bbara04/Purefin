@@ -3,7 +3,7 @@ package hu.bbara.purefin.app.content.series
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.data.InMemoryMediaRepository
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.model.Series
 import hu.bbara.purefin.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.NavigationManager
@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SeriesViewModel @Inject constructor(
-    private val mediaRepository: InMemoryMediaRepository,
+    private val mediaRepository: MediaRepository,
     private val navigationManager: NavigationManager,
 ) : ViewModel() {
 

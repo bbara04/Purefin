@@ -9,7 +9,7 @@ import hu.bbara.purefin.app.home.ui.LibraryItem
 import hu.bbara.purefin.app.home.ui.NextUpItem
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
-import hu.bbara.purefin.data.InMemoryMediaRepository
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.domain.usecase.RefreshHomeDataUseCase
 import hu.bbara.purefin.image.JellyfinImageHelper
@@ -34,7 +34,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomePageViewModel @Inject constructor(
-    private val mediaRepository: InMemoryMediaRepository,
+    private val mediaRepository: MediaRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
     private val jellyfinApiClient: JellyfinApiClient,
@@ -49,6 +49,12 @@ class HomePageViewModel @Inject constructor(
 
     private val _libraries = MutableStateFlow<List<LibraryItem>>(emptyList())
     val libraries = _libraries.asStateFlow()
+
+    val isOfflineMode = userSessionRepository.isOfflineMode.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = false
+    )
 
     init {
         viewModelScope.launch {
@@ -210,6 +216,12 @@ class HomePageViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             userSessionRepository.setLoggedIn(false)
+        }
+    }
+
+    fun toggleOfflineMode() {
+        viewModelScope.launch {
+            userSessionRepository.setOfflineMode(!isOfflineMode.value)
         }
     }
 

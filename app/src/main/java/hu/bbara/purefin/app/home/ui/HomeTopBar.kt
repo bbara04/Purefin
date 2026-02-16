@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Cloud
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -20,6 +22,8 @@ import hu.bbara.purefin.common.ui.components.PurefinIconButton
 @Composable
 fun HomeTopBar(
     onMenuClick: () -> Unit,
+    isOfflineMode: Boolean,
+    onToggleOfflineMode: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -43,6 +47,13 @@ fun HomeTopBar(
                     icon = Icons.Outlined.Menu,
                     contentDescription = "Menu",
                     onClick = onMenuClick
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PurefinIconButton(
+                    icon = if (isOfflineMode) Icons.Outlined.CloudOff else Icons.Outlined.Cloud,
+                    contentDescription = if (isOfflineMode) "Switch to Online" else "Switch to Offline",
+                    onClick = onToggleOfflineMode
                 )
             }
         }

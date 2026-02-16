@@ -65,13 +65,13 @@ class InMemoryMediaRepository @Inject constructor(
     }
 
     private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
-    val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
+    override val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
 
     private val _nextUp: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
-    val nextUp: StateFlow<List<Media>> = _nextUp.asStateFlow()
+    override val nextUp: StateFlow<List<Media>> = _nextUp.asStateFlow()
 
     private val _latestLibraryContent: MutableStateFlow<Map<UUID, List<Media>>> = MutableStateFlow(emptyMap())
-    val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = _latestLibraryContent.asStateFlow()
+    override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = _latestLibraryContent.asStateFlow()
 
     init {
         scope.launch {

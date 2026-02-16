@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.client.JellyfinApiClient
-import hu.bbara.purefin.data.InMemoryMediaRepository
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.navigation.MovieDto
@@ -26,7 +26,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val mediaRepository: InMemoryMediaRepository,
+    private val mediaRepository: MediaRepository,
     private val userSessionRepository: UserSessionRepository,
     private val jellyfinApiClient: JellyfinApiClient,
     private val navigationManager: NavigationManager

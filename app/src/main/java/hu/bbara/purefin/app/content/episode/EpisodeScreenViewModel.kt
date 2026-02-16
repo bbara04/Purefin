@@ -3,7 +3,7 @@ package hu.bbara.purefin.app.content.episode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.data.InMemoryMediaRepository
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.model.Episode
 import hu.bbara.purefin.navigation.NavigationManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EpisodeScreenViewModel @Inject constructor(
-    private val mediaRepository: InMemoryMediaRepository,
+    private val mediaRepository: MediaRepository,
     private val navigationManager: NavigationManager,
 ): ViewModel() {
 
