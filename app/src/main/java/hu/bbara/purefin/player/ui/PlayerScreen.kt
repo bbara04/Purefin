@@ -170,7 +170,7 @@ fun PlayerScreen(
         }
 
         AnimatedVisibility(
-            visible = controlsVisible || uiState.isBuffering || uiState.isEnded || uiState.error != null,
+            visible = controlsVisible || uiState.isEnded || uiState.error != null,
             enter = fadeIn(),
             exit = fadeOut()
         ) {

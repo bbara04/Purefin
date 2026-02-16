@@ -65,12 +65,7 @@ class PlayerViewModel @Inject constructor(
                         error = state.error ?: dataErrorMessage
                     )
                 }
-                if (state.isPlaying) {
-                    scheduleAutoHide()
-                } else {
-                    showControls()
-                }
-                if (state.isEnded || state.isBuffering) {
+                if (state.isEnded) {
                     showControls()
                 }
             }
@@ -174,16 +169,15 @@ class PlayerViewModel @Inject constructor(
 
     fun togglePlayPause() {
         playerManager.togglePlayPause()
+        showControls()
     }
 
     fun seekTo(positionMs: Long) {
         playerManager.seekTo(positionMs)
-        scheduleAutoHide()
     }
 
     fun seekBy(deltaMs: Long) {
         playerManager.seekBy(deltaMs)
-        scheduleAutoHide()
     }
 
     fun seekToLiveEdge() {
