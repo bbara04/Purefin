@@ -63,8 +63,7 @@ fun ContinueWatchingSection(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(
-            items = items, key = { it.id }) { item ->
+        items(items = items) { item ->
             ContinueWatchingCard(
                 item = item,
                 onMovieSelected = onMovieSelected,
