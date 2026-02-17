@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.medi3.exoplayer)
     implementation(libs.medi3.ui.compose)
     implementation(libs.medi3.ffmpeg.decoder)
+    implementation(libs.media3.datasource.okhttp)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.room.ktx)

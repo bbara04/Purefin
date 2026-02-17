@@ -1,5 +1,9 @@
 package hu.bbara.purefin.app.content.movie
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.app.content.ContentMockData
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
+import hu.bbara.purefin.download.DownloadState
 import hu.bbara.purefin.navigation.MovieDto
 
 @Composable
@@ -29,10 +34,30 @@ fun MovieScreen(
     }
 
     val movieItem = viewModel.movie.collectAsState()
+    val downloadState = viewModel.downloadState.collectAsState()
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        // Proceed with download regardless — notification is nice-to-have
+        viewModel.onDownloadClick()
+    }
+
+    val onDownloadClick = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+            && downloadState.value is DownloadState.NotDownloaded
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            viewModel.onDownloadClick()
+        }
+    }
 
     if (movieItem.value != null) {
         MovieScreenInternal(
             movie = movieItem.value!!,
+            downloadState = downloadState.value,
+            onDownloadClick = onDownloadClick,
             onBack = viewModel::onBack,
             modifier = modifier
         )
@@ -44,6 +69,8 @@ fun MovieScreen(
 @Composable
 private fun MovieScreenInternal(
     movie: MovieUiModel,
+    downloadState: DownloadState = DownloadState.NotDownloaded,
+    onDownloadClick: () -> Unit = {},
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -70,6 +97,8 @@ private fun MovieScreenInternal(
             )
             MovieDetails(
                 movie = movie,
+                downloadState = downloadState,
+                onDownloadClick = onDownloadClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)

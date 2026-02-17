@@ -27,6 +27,9 @@ interface MovieDao {
     @Query("UPDATE movies SET progress = :progress, watched = :watched WHERE id = :id")
     suspend fun updateProgress(id: UUID, progress: Double?, watched: Boolean)
 
+    @Query("DELETE FROM movies WHERE id = :id")
+    suspend fun deleteById(id: UUID)
+
     @Query("DELETE FROM movies")
     suspend fun clear()
 }

@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.download.DownloadState
+import hu.bbara.purefin.download.MediaDownloadManager
 import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -23,11 +26,15 @@ import javax.inject.Inject
 class MovieScreenViewModel @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val navigationManager: NavigationManager,
-    private val userSessionRepository: UserSessionRepository
+    private val userSessionRepository: UserSessionRepository,
+    private val mediaDownloadManager: MediaDownloadManager
 ): ViewModel() {
 
     private val _movie = MutableStateFlow<MovieUiModel?>(null)
     val movie = _movie.asStateFlow()
+
+    private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
+    val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
 
     fun onBack() {
         navigationManager.pop()
@@ -49,6 +56,29 @@ class MovieScreenViewModel @Inject constructor(
                 "https://jellyfin.bbara.hu"
             }
             _movie.value = movieInfo.toUiModel(serverUrl)
+
+            launch {
+                mediaDownloadManager.observeDownloadState(movieId.toString()).collect {
+                    _downloadState.value = it
+                }
+            }
+        }
+    }
+
+    fun onDownloadClick() {
+        val movieId = _movie.value?.id ?: return
+        viewModelScope.launch {
+            when (_downloadState.value) {
+                is DownloadState.NotDownloaded, is DownloadState.Failed -> {
+                    mediaDownloadManager.downloadMovie(movieId)
+                }
+                is DownloadState.Downloading -> {
+                    mediaDownloadManager.cancelDownload(movieId)
+                }
+                is DownloadState.Downloaded -> {
+                    mediaDownloadManager.cancelDownload(movieId)
+                }
+            }
         }
     }
 

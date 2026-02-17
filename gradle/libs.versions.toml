@@ -55,6 +55,7 @@ medi3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", versio
 medi3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3"}
 medi3-ui-compose = { group = "androidx.media3", name = "media3-ui-compose-material3", version.ref = "media3"}
 medi3-ffmpeg-decoder = { group = "org.jellyfin.media3", name = "media3-ffmpeg-decoder", version.ref = "media3FfmpegDecoder"}
+media3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }

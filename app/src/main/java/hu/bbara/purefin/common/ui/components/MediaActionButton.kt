@@ -21,13 +21,14 @@ fun MediaActionButton(
     icon: ImageVector,
     modifier: Modifier = Modifier,
     height: Dp,
+    onClick: () -> Unit = {},
 ) {
     Box(
         modifier = modifier
             .size(height)
             .clip(CircleShape)
             .background(backgroundColor.copy(alpha = 0.6f))
-            .clickable { },
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(imageVector = icon, contentDescription = null, tint = iconColor)
