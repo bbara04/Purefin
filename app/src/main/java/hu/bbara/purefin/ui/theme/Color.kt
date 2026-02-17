@@ -49,5 +49,5 @@ val DarkOnTertiaryContainer = Color(ColorUtils.HSLToColor(floatArrayOf(30f, 0.65
 
 val DarkBackground = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.18f, 0.08f)))
 val DarkOnBackground = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.10f, 0.92f)))
-val DarkSurface = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.18f, 0.08f)))
-val DarkOnSurface = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.10f, 0.92f)))
+val DarkSurface = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.18f, 0.14f)))
+val DarkOnSurface = Color(ColorUtils.HSLToColor(floatArrayOf(270f, 0.10f, 0.86f)))

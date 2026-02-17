@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import hu.bbara.purefin.common.ui.components.PurefinIconButton
+import hu.bbara.purefin.common.ui.components.SearchField
 
 @Composable
 fun HomeTopBar(
@@ -40,22 +41,29 @@ fun HomeTopBar(
                 .padding(horizontal = 16.dp, vertical = 16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PurefinIconButton(
-                    icon = Icons.Outlined.Menu,
-                    contentDescription = "Menu",
-                    onClick = onMenuClick
-                )
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PurefinIconButton(
-                    icon = if (isOfflineMode) Icons.Outlined.CloudOff else Icons.Outlined.Cloud,
-                    contentDescription = if (isOfflineMode) "Switch to Online" else "Switch to Offline",
-                    onClick = onToggleOfflineMode
-                )
-            }
+            PurefinIconButton(
+                icon = Icons.Outlined.Menu,
+                contentDescription = "Menu",
+                onClick = onMenuClick,
+            )
+            SearchField(
+                value = "",
+                onValueChange = {},
+                placeholder = "Search",
+                backgroundColor = scheme.surface,
+                textColor = scheme.onSurface,
+                cursorColor = scheme.secondary,
+                modifier = Modifier.weight(1.0f, true),
+            )
+            PurefinIconButton(
+                icon = if (isOfflineMode) Icons.Outlined.CloudOff else Icons.Outlined.Cloud,
+                contentDescription = if (isOfflineMode) "Switch to Online" else "Switch to Offline",
+                onClick = onToggleOfflineMode
+            )
         }
     }
 }
+
+
