@@ -39,10 +39,16 @@ fun HomeContent(
             )
         }
         item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        item {
             NextUpSection(
                 items = nextUp,
                 onEpisodeSelected = onEpisodeSelected
             )
+        }
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
         }
         items(
             items = libraries.filter { libraryContent[it.id]?.isEmpty() != true },
@@ -56,9 +62,7 @@ fun HomeContent(
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected
             )
-        }
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
