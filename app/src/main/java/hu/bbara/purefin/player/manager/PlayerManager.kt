@@ -94,6 +94,18 @@ class PlayerManager @Inject constructor(
             refreshMetadata(mediaItem)
             refreshQueue()
         }
+
+        override fun onPositionDiscontinuity(
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            if (reason == Player.DISCONTINUITY_REASON_SEEK &&
+                newPosition.positionMs < oldPosition.positionMs
+            ) {
+                refreshSubtitleRendererOnBackwardSeek()
+            }
+        }
     }
 
     init {
@@ -267,6 +279,17 @@ class PlayerManager @Inject constructor(
             TrackType.VIDEO -> {
                 // Video preferences not implemented in this feature
             }
+        }
+    }
+
+    private fun refreshSubtitleRendererOnBackwardSeek() {
+        val currentParams = player.trackSelectionParameters
+        if (C.TRACK_TYPE_TEXT in currentParams.disabledTrackTypes) return
+        scope.launch {
+            player.trackSelectionParameters = currentParams.buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                .build()
+            player.trackSelectionParameters = currentParams
         }
     }
 

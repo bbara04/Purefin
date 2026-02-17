@@ -66,7 +66,7 @@ object VideoPlayerModule {
             .setTrackSelector(trackSelector)
             .setPauseAtEndOfMediaItems(true)
             .setLoadControl(loadControl)
-            .setSeekParameters(SeekParameters.CLOSEST_SYNC)
+            .setSeekParameters(SeekParameters.PREVIOUS_SYNC)
             .setAudioAttributes(audioAttributes, true)
             .build()
             .apply {
