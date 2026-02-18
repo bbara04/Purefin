@@ -8,6 +8,7 @@ import hu.bbara.purefin.data.local.room.dao.EpisodeDao
 import hu.bbara.purefin.data.local.room.dao.MovieDao
 import hu.bbara.purefin.data.local.room.dao.SeasonDao
 import hu.bbara.purefin.data.local.room.dao.SeriesDao
+import hu.bbara.purefin.data.local.room.dao.LibraryDao
 
 @Database(
     entities = [
@@ -15,9 +16,10 @@ import hu.bbara.purefin.data.local.room.dao.SeriesDao
         SeriesEntity::class,
         SeasonEntity::class,
         EpisodeEntity::class,
+        LibraryEntity::class,
         CastMemberEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(UuidConverters::class)
@@ -26,5 +28,6 @@ abstract class OfflineMediaDatabase : RoomDatabase() {
     abstract fun seriesDao(): SeriesDao
     abstract fun seasonDao(): SeasonDao
     abstract fun episodeDao(): EpisodeDao
+    abstract fun libraryDao(): LibraryDao
     abstract fun castMemberDao(): CastMemberDao
 }

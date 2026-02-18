@@ -21,3 +21,17 @@ data class SeriesWithSeasonsAndEpisodes(
     )
     val seasons: List<SeasonWithEpisodes>
 )
+
+data class LibraryWithContent(
+    @Embedded val library: LibraryEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "libraryId"
+    )
+    val series: List<SeriesEntity>,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "libraryId"
+    )
+    val movies: List<MovieEntity>
+)

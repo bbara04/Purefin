@@ -17,44 +17,38 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.ImageType
 import javax.inject.Inject
+import kotlin.collections.emptyList
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
-    private val userSessionRepository: UserSessionRepository,
-    private val jellyfinApiClient: JellyfinApiClient,
     private val navigationManager: NavigationManager
 ) : ViewModel() {
 
-    private val _url = userSessionRepository.serverUrl.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = ""
-    )
+    private val selectedLibrary = MutableStateFlow<UUID?>(null)
 
-    private val _libraryItems = MutableStateFlow<List<Media>>(emptyList())
-
-    val contents: StateFlow<List<PosterItem>> = combine(
-        _libraryItems,
-        mediaRepository.movies,
-        mediaRepository.series
-    ) { items, moviesMap, seriesMap ->
-        items.mapNotNull { media ->
-            when (media) {
-                is Media.MovieMedia -> moviesMap[media.movieId]?.let {
-                    PosterItem(type = BaseItemKind.MOVIE, movie = it)
-                }
-                is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
-                    PosterItem(type = BaseItemKind.SERIES, series = it)
-                }
-                else -> null
+    val contents: StateFlow<List<PosterItem>> = combine(selectedLibrary, mediaRepository.libraries) {
+        libraryId, libraries ->
+        if (libraryId == null) {
+            return@combine emptyList()
+        }
+        val library = libraries.find { it.id == libraryId } ?: return@combine emptyList()
+        when (library.type) {
+            CollectionType.TVSHOWS -> library.series!!.map { series ->
+                PosterItem(type = BaseItemKind.SERIES, series = series)
             }
+            CollectionType.MOVIES -> library.movies!!.map { movie ->
+                PosterItem(type = BaseItemKind.MOVIE, movie = movie)
+            }
+            else -> emptyList()
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -86,22 +80,7 @@ class LibraryViewModel @Inject constructor(
 
     fun selectLibrary(libraryId: UUID) {
         viewModelScope.launch {
-            val libraryItems = jellyfinApiClient.getLibraryContent(libraryId)
-            _libraryItems.value = libraryItems.map {
-                when (it.type) {
-                    BaseItemKind.MOVIE -> Media.MovieMedia(movieId = it.id)
-                    BaseItemKind.SERIES -> Media.SeriesMedia(seriesId = it.id)
-                    else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
-                }
-            }
+            selectedLibrary.value = libraryId
         }
-    }
-
-    fun getImageUrl(itemId: UUID, type: ImageType): String {
-        return JellyfinImageHelper.toImageUrl(
-            url = _url.value,
-            itemId = itemId,
-            type = type
-        )
     }
 }

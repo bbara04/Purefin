@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import hu.bbara.purefin.data.local.room.dao.CastMemberDao
 import hu.bbara.purefin.data.local.room.dao.EpisodeDao
+import hu.bbara.purefin.data.local.room.dao.LibraryDao
 import hu.bbara.purefin.data.local.room.dao.MovieDao
 import hu.bbara.purefin.data.local.room.dao.SeasonDao
 import hu.bbara.purefin.data.local.room.dao.SeriesDao
@@ -47,6 +48,10 @@ object MediaDatabaseModule {
     @OnlineDatabase
     fun provideOnlineCastMemberDao(@OnlineDatabase db: MediaDatabase) = db.castMemberDao()
 
+    @Provides
+    @OnlineDatabase
+    fun provideOnlineLibraryDao(@OnlineDatabase db: MediaDatabase) = db.libraryDao()
+
     // Offline Database and DAOs
     @Provides
     @Singleton
@@ -76,6 +81,10 @@ object MediaDatabaseModule {
     @OfflineDatabase
     fun provideOfflineCastMemberDao(@OfflineDatabase db: OfflineMediaDatabase) = db.castMemberDao()
 
+    @Provides
+    @OfflineDatabase
+    fun provideOfflineLibraryDao(@OfflineDatabase db: OfflineMediaDatabase) = db.libraryDao()
+
     // Data Sources
     @Provides
     @Singleton
@@ -86,9 +95,10 @@ object MediaDatabaseModule {
         @OnlineDatabase seriesDao: SeriesDao,
         @OnlineDatabase seasonDao: SeasonDao,
         @OnlineDatabase episodeDao: EpisodeDao,
-        @OnlineDatabase castMemberDao: CastMemberDao
+        @OnlineDatabase castMemberDao: CastMemberDao,
+        @OnlineDatabase libraryDao: LibraryDao
     ): RoomMediaLocalDataSource = RoomMediaLocalDataSource(
-        database, movieDao, seriesDao, seasonDao, episodeDao, castMemberDao
+        database, movieDao, seriesDao, seasonDao, episodeDao, castMemberDao, libraryDao
     )
 
     @Provides
@@ -100,9 +110,10 @@ object MediaDatabaseModule {
         @OfflineDatabase seriesDao: SeriesDao,
         @OfflineDatabase seasonDao: SeasonDao,
         @OfflineDatabase episodeDao: EpisodeDao,
-        @OfflineDatabase castMemberDao: CastMemberDao
+        @OfflineDatabase castMemberDao: CastMemberDao,
+        @OfflineDatabase libraryDao: LibraryDao
     ): OfflineRoomMediaLocalDataSource = OfflineRoomMediaLocalDataSource(
-        database, movieDao, seriesDao, seasonDao, episodeDao, castMemberDao
+        database, movieDao, seriesDao, seasonDao, episodeDao, castMemberDao, libraryDao
     )
 
     // Default (unqualified) data source for backward compatibility

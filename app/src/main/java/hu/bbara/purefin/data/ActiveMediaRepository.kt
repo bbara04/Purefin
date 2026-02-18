@@ -3,6 +3,7 @@ package hu.bbara.purefin.data
 import hu.bbara.purefin.data.local.room.OfflineRepository
 import hu.bbara.purefin.data.local.room.OnlineRepository
 import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.data.model.Library
 import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.data.model.Movie
 import hu.bbara.purefin.data.model.Series
@@ -44,6 +45,10 @@ class ActiveMediaRepository @Inject constructor(
             .stateIn(scope, SharingStarted.Eagerly, onlineRepository)
 
     // Delegate all MediaRepository interface methods to the active repository
+    override val libraries: StateFlow<List<Library>> =
+        activeRepository.flatMapLatest { it.libraries }
+            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
     override val movies: StateFlow<Map<UUID, Movie>> =
         activeRepository.flatMapLatest { it.movies }
             .stateIn(scope, SharingStarted.Eagerly, emptyMap())

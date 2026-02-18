@@ -47,6 +47,8 @@ class InMemoryMediaRepository @Inject constructor(
     private val _state: MutableStateFlow<MediaRepositoryState> = MutableStateFlow(MediaRepositoryState.Loading)
     override val state: StateFlow<MediaRepositoryState> = _state.asStateFlow()
 
+    override val libraries: StateFlow<List<Library>> = localDataSource.librariesFlow
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
     override val movies: StateFlow<Map<UUID, Movie>> = localDataSource.moviesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
@@ -108,6 +110,8 @@ class InMemoryMediaRepository @Inject constructor(
         val emptyLibraries = filteredLibraries.map {
             it.toLibrary()
         }
+        localDataSource.saveLibraries(emptyLibraries)
+
         val filledLibraries = emptyLibraries.map { library ->
             return@map loadLibrary(library)
         }

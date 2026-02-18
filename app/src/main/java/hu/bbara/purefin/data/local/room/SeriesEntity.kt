@@ -1,10 +1,22 @@
 package hu.bbara.purefin.data.local.room
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "series")
+@Entity(
+    tableName = "series",
+    foreignKeys = [
+        ForeignKey(
+            entity = LibraryEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["libraryId"],
+        ),
+    ],
+    indices = [Index("libraryId")]
+)
 data class SeriesEntity(
     @PrimaryKey val id: UUID,
     val libraryId: UUID,

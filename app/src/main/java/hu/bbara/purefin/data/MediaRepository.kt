@@ -1,6 +1,7 @@
 package hu.bbara.purefin.data
 
 import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.data.model.Library
 import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.data.model.Movie
 import hu.bbara.purefin.data.model.Series
@@ -10,6 +11,7 @@ import java.util.UUID
 
 interface MediaRepository {
 
+    val libraries: StateFlow<List<Library>>
     val movies: StateFlow<Map<UUID, Movie>>
     val series: StateFlow<Map<UUID, Series>>
     val episodes: StateFlow<Map<UUID, Episode>>

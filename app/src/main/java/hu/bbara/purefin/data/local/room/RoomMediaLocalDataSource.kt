@@ -3,19 +3,22 @@ package hu.bbara.purefin.data.local.room
 import androidx.room.withTransaction
 import hu.bbara.purefin.data.local.room.dao.CastMemberDao
 import hu.bbara.purefin.data.local.room.dao.EpisodeDao
+import hu.bbara.purefin.data.local.room.dao.LibraryDao
 import hu.bbara.purefin.data.local.room.dao.MovieDao
 import hu.bbara.purefin.data.local.room.dao.SeasonDao
 import hu.bbara.purefin.data.local.room.dao.SeriesDao
 import hu.bbara.purefin.data.model.CastMember
 import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.data.model.Library
 import hu.bbara.purefin.data.model.Movie
 import hu.bbara.purefin.data.model.Season
 import hu.bbara.purefin.data.model.Series
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.jellyfin.sdk.model.api.CollectionType
 import java.util.UUID
-import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.map
 
 @Singleton
 class RoomMediaLocalDataSource(
@@ -24,10 +27,21 @@ class RoomMediaLocalDataSource(
     private val seriesDao: SeriesDao,
     private val seasonDao: SeasonDao,
     private val episodeDao: EpisodeDao,
-    private val castMemberDao: CastMemberDao
+    private val castMemberDao: CastMemberDao,
+    private val libraryDao: LibraryDao
 ) {
 
     // Lightweight Flows for list screens (home, library)
+    val librariesFlow: Flow<List<Library>> = libraryDao.observeAllWithContent()
+        .map { relation ->
+            relation.map { libraryEntity ->
+                libraryEntity.library.toDomain(
+                    movies = libraryEntity.movies.map { it.toDomain(listOf()) },
+                    series = libraryEntity.series.map { it.toDomain(listOf(), listOf()) }
+                )
+            }
+        }
+
     val moviesFlow: Flow<Map<UUID, Movie>> = movieDao.observeAll()
         .map { entities -> entities.associate { it.id to it.toDomain(cast = emptyList()) } }
 
@@ -53,6 +67,13 @@ class RoomMediaLocalDataSource(
                 )
             }
         }
+
+    suspend fun saveLibraries(libraries: List<Library>) {
+        database.withTransaction {
+            libraryDao.deleteAll()
+            libraryDao.upsertAll(libraries.map { it.toEntity() })
+        }
+    }
 
     suspend fun saveMovies(movies: List<Movie>) {
         database.withTransaction {
@@ -183,6 +204,28 @@ class RoomMediaLocalDataSource(
             episodeEntity.toDomain(cast)
         }
     }
+
+    private fun Library.toEntity() = LibraryEntity(
+        id = id,
+        name = name,
+        type = when (type) {
+            CollectionType.MOVIES -> "MOVIES"
+            CollectionType.TVSHOWS -> "TVSHOWS"
+            else -> throw UnsupportedOperationException("Unsupported library type: $type")
+        }
+    )
+
+    private fun LibraryEntity.toDomain(series: List<Series>, movies: List<Movie>) = Library(
+        id = id,
+        name = name,
+        type = when (type) {
+            "MOVIES" -> CollectionType.MOVIES
+            "TVSHOWS" -> CollectionType.TVSHOWS
+            else -> throw UnsupportedOperationException("Unsupported library type: $type")
+        },
+        movies = if (type == "MOVIES") movies else null,
+        series = if (type == "TVSHOWS") series else null,
+    )
 
     private fun Movie.toEntity() = MovieEntity(
         id = id,

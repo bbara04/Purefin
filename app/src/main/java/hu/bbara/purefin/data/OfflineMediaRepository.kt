@@ -3,6 +3,7 @@ package hu.bbara.purefin.data
 import hu.bbara.purefin.data.local.room.OfflineDatabase
 import hu.bbara.purefin.data.local.room.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.data.model.Episode
+import hu.bbara.purefin.data.model.Library
 import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.data.model.Movie
 import hu.bbara.purefin.data.model.Series
@@ -33,6 +34,9 @@ class OfflineMediaRepository @Inject constructor(
     // Offline repository is always ready (no network loading required)
     private val _state: MutableStateFlow<MediaRepositoryState> = MutableStateFlow(MediaRepositoryState.Ready)
     override val state: StateFlow<MediaRepositoryState> = _state.asStateFlow()
+
+    override val libraries: StateFlow<List<Library>> = localDataSource.librariesFlow
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override val movies: StateFlow<Map<UUID, Movie>> = localDataSource.moviesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
