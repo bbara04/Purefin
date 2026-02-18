@@ -339,7 +339,7 @@ class InMemoryMediaRepository @Inject constructor(
             id = this.id,
             seriesId = this.seriesId!!,
             name = this.name ?: "Unknown",
-            index = this.indexNumber!!,
+            index = this.indexNumber ?: 0,
             unwatchedEpisodeCount = this.userData!!.unplayedItemCount!!,
             episodeCount = this.childCount!!,
             episodes = emptyList()
