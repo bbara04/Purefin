@@ -29,6 +29,7 @@ fun MediaProgressBar(
     backgroundColor: Color = MaterialTheme.colorScheme.primary,
     modifier: Modifier
 ) {
+    if (progress == 0f) return
     Box(
         modifier = modifier
             .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)

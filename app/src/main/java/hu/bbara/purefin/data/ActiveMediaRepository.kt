@@ -69,10 +69,6 @@ class ActiveMediaRepository @Inject constructor(
         activeRepository.flatMapLatest { it.continueWatching }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
-    override val nextUp: StateFlow<List<Media>> =
-        activeRepository.flatMapLatest { it.nextUp }
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
-
     override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> =
         activeRepository.flatMapLatest { it.latestLibraryContent }
             .stateIn(scope, SharingStarted.Eagerly, emptyMap())

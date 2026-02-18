@@ -79,9 +79,6 @@ class InMemoryMediaRepository @Inject constructor(
     private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
     override val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
 
-    private val _nextUp: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
-    override val nextUp: StateFlow<List<Media>> = _nextUp.asStateFlow()
-
     private val _latestLibraryContent: MutableStateFlow<Map<UUID, List<Media>>> = MutableStateFlow(emptyMap())
     override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = _latestLibraryContent.asStateFlow()
 
@@ -97,9 +94,6 @@ class InMemoryMediaRepository @Inject constructor(
         if (cache.continueWatching.isNotEmpty()) {
             _continueWatching.value = cache.continueWatching.mapNotNull { it.toMedia() }
         }
-        if (cache.nextUp.isNotEmpty()) {
-            _nextUp.value = cache.nextUp.mapNotNull { it.toMedia() }
-        }
         if (cache.latestLibraryContent.isNotEmpty()) {
             _latestLibraryContent.value = cache.latestLibraryContent.mapNotNull { (key, items) ->
                 val uuid = runCatching { UUID.fromString(key) }.getOrNull() ?: return@mapNotNull null
@@ -111,7 +105,6 @@ class InMemoryMediaRepository @Inject constructor(
     private suspend fun persistHomeCache() {
         val cache = HomeCache(
             continueWatching = _continueWatching.value.map { it.toCachedItem() },
-            nextUp = _nextUp.value.map { it.toCachedItem() },
             latestLibraryContent = _latestLibraryContent.value.map { (uuid, items) ->
                 uuid.toString() to items.map { it.toCachedItem() }
             }.toMap()
@@ -122,13 +115,13 @@ class InMemoryMediaRepository @Inject constructor(
     private fun Media.toCachedItem(): CachedMediaItem = when (this) {
         is Media.MovieMedia -> CachedMediaItem(type = "MOVIE", id = movieId.toString())
         is Media.SeriesMedia -> CachedMediaItem(type = "SERIES", id = seriesId.toString())
-        is Media.SeasonMedia -> CachedMediaItem(type = "SEASON", id = seasonId.toString(), seriesId = seriesId.toString())
-        is Media.EpisodeMedia -> CachedMediaItem(type = "EPISODE", id = episodeId.toString(), seriesId = seriesId.toString())
+        is Media.SeasonMedia -> CachedMediaItem(type = "SEASON", id = seasonId.toString(), mediaId = seriesId.toString())
+        is Media.EpisodeMedia -> CachedMediaItem(type = "EPISODE", id = episodeId.toString(), mediaId = seriesId.toString())
     }
 
     private fun CachedMediaItem.toMedia(): Media? {
         val uuid = runCatching { UUID.fromString(id) }.getOrNull() ?: return null
-        val seriesUuid = seriesId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+        val seriesUuid = mediaId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
         return when (type) {
             "MOVIE" -> Media.MovieMedia(movieId = uuid)
             "SERIES" -> Media.SeriesMedia(seriesId = uuid)
@@ -153,7 +146,6 @@ class InMemoryMediaRepository @Inject constructor(
                 }
                 loadLibraries()
                 loadContinueWatching()
-                loadNextUp()
                 loadLatestLibraryContent()
                 persistHomeCache()
                 _state.value = MediaRepositoryState.Ready
@@ -228,7 +220,7 @@ class InMemoryMediaRepository @Inject constructor(
     }
 
     suspend fun loadContinueWatching() {
-        val continueWatchingItems = jellyfinApiClient.getContinueWatching()
+        val continueWatchingItems = jellyfinApiClient.getNextUpEpisodes()
         val items = continueWatchingItems.mapNotNull { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
@@ -250,23 +242,6 @@ class InMemoryMediaRepository @Inject constructor(
                 }
                 else -> { /* Do nothing */ }
             }
-        }
-    }
-
-    suspend fun loadNextUp() {
-        val nextUpItems = jellyfinApiClient.getNextUpEpisodes()
-        val items = nextUpItems.map { item ->
-            Media.EpisodeMedia(
-                episodeId = item.id,
-                seriesId = item.seriesId!!
-            )
-        }
-        _nextUp.value = items
-
-        // Load episodes
-        nextUpItems.forEach { item ->
-            val episode = item.toEpisode(serverUrl())
-            localDataSource.saveEpisode(episode)
         }
     }
 
@@ -351,7 +326,6 @@ class InMemoryMediaRepository @Inject constructor(
 
         loadLibraries()
         loadContinueWatching()
-        loadNextUp()
         loadLatestLibraryContent()
         persistHomeCache()
         initialLoadTimestamp = System.currentTimeMillis()

@@ -49,7 +49,6 @@ class OfflineMediaRepository @Inject constructor(
 
     // Offline mode doesn't support these server-side features
     override val continueWatching: StateFlow<List<Media>> = MutableStateFlow(emptyList())
-    override val nextUp: StateFlow<List<Media>> = MutableStateFlow(emptyList())
     override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = MutableStateFlow(emptyMap())
 
     override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {

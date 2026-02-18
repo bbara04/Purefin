@@ -18,7 +18,6 @@ interface MediaRepository {
     val state: StateFlow<MediaRepositoryState>
 
     val continueWatching: StateFlow<List<Media>>
-    val nextUp: StateFlow<List<Media>>
     val latestLibraryContent: StateFlow<Map<UUID, List<Media>>>
 
     fun observeSeriesWithContent(seriesId: UUID): Flow<Series?>

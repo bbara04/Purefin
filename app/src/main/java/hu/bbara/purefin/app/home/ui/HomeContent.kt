@@ -17,7 +17,6 @@ fun HomeContent(
     libraries: List<LibraryItem>,
     libraryContent: Map<UUID, List<PosterItem>>,
     continueWatching: List<ContinueWatchingItem>,
-    nextUp: List<NextUpItem>,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
@@ -35,15 +34,6 @@ fun HomeContent(
             ContinueWatchingSection(
                 items = continueWatching,
                 onMovieSelected = onMovieSelected,
-                onEpisodeSelected = onEpisodeSelected
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-        item {
-            NextUpSection(
-                items = nextUp,
                 onEpisodeSelected = onEpisodeSelected
             )
         }

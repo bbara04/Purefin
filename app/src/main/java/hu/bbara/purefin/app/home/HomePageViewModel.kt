@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.app.home.ui.ContinueWatchingItem
 import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.LibraryItem
-import hu.bbara.purefin.app.home.ui.NextUpItem
 import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.model.Media
@@ -77,24 +76,6 @@ class HomePageViewModel @Inject constructor(
                 }
                 is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
                     ContinueWatchingItem(type = BaseItemKind.EPISODE, episode = it)
-                }
-                else -> null
-            }
-        }.distinctBy { it.id }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = emptyList()
-    )
-
-    val nextUp = combine(
-        mediaRepository.nextUp,
-        mediaRepository.episodes
-    ) { list, episodesMap ->
-        list.mapNotNull { media ->
-            when (media) {
-                is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
-                    NextUpItem(episode = it)
                 }
                 else -> null
             }

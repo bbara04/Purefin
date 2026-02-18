@@ -13,6 +13,7 @@ import java.util.UUID
             entity = LibraryEntity::class,
             parentColumns = ["id"],
             childColumns = ["libraryId"],
+            onDelete = ForeignKey.CASCADE
         ),
     ],
     indices = [Index("libraryId")]

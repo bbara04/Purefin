@@ -23,7 +23,6 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
-import org.jellyfin.sdk.model.api.DeviceProfile
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.PlayMethod
@@ -33,8 +32,6 @@ import org.jellyfin.sdk.model.api.PlaybackProgressInfo
 import org.jellyfin.sdk.model.api.PlaybackStartInfo
 import org.jellyfin.sdk.model.api.PlaybackStopInfo
 import org.jellyfin.sdk.model.api.RepeatMode
-import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod
-import org.jellyfin.sdk.model.api.SubtitleProfile
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
 import org.jellyfin.sdk.model.api.request.GetNextUpRequest
 import org.jellyfin.sdk.model.api.request.GetResumeItemsRequest
@@ -161,7 +158,7 @@ class JellyfinApiClient @Inject constructor(
         val getNextUpRequest = GetNextUpRequest(
             userId = getUserId(),
             fields = itemFields,
-            enableResumable = false,
+            enableResumable = true,
         )
         val result = api.tvShowsApi.getNextUp(getNextUpRequest)
         Log.d("getNextUpEpisodes", result.content.toString())
