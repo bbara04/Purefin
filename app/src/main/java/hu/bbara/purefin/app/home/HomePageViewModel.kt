@@ -8,7 +8,6 @@ import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.LibraryItem
 import hu.bbara.purefin.app.home.ui.NextUpItem
 import hu.bbara.purefin.app.home.ui.PosterItem
-import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.model.Media
 import hu.bbara.purefin.domain.usecase.RefreshHomeDataUseCase
@@ -20,15 +19,14 @@ import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.session.UserSessionRepository
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.ImageType
 import javax.inject.Inject
 
@@ -37,7 +35,6 @@ class HomePageViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
-    private val jellyfinApiClient: JellyfinApiClient,
     private val refreshHomeDataUseCase: RefreshHomeDataUseCase
 ) : ViewModel() {
 
@@ -47,20 +44,26 @@ class HomePageViewModel @Inject constructor(
         initialValue = ""
     )
 
-    private val _libraries = MutableStateFlow<List<LibraryItem>>(emptyList())
-    val libraries = _libraries.asStateFlow()
+    val libraries = mediaRepository.libraries.map { libraries ->
+        libraries.map {
+            LibraryItem(
+                id = it.id,
+                name = it.name,
+                type = it.type,
+                isEmpty = when(it.type) {
+                    CollectionType.MOVIES -> mediaRepository.movies.value.isEmpty()
+                    CollectionType.TVSHOWS -> mediaRepository.series.value.isEmpty()
+                    else -> true
+                }
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val isOfflineMode = userSessionRepository.isOfflineMode.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = false
     )
-
-    init {
-        viewModelScope.launch {
-            loadLibraries()
-        }
-    }
 
     val continueWatching = combine(
         mediaRepository.continueWatching,
@@ -180,19 +183,6 @@ class HomePageViewModel @Inject constructor(
 
     fun onGoHome() {
         navigationManager.replaceAll(Route.Home)
-    }
-
-    private suspend fun loadLibraries() {
-        val libraries: List<BaseItemDto> = jellyfinApiClient.getLibraries()
-        val mappedLibraries = libraries.map {
-            LibraryItem(
-                name = it.name!!,
-                id = it.id,
-                isEmpty = it.childCount!! == 0,
-                type = it.collectionType!!
-            )
-        }
-        _libraries.value = mappedLibraries
     }
 
     fun getImageUrl(itemId: UUID, type: ImageType): String {

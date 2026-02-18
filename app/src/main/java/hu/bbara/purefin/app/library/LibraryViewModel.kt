@@ -4,28 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.app.home.ui.PosterItem
-import hu.bbara.purefin.client.JellyfinApiClient
 import hu.bbara.purefin.data.MediaRepository
-import hu.bbara.purefin.data.model.Media
-import hu.bbara.purefin.image.JellyfinImageHelper
 import hu.bbara.purefin.navigation.MovieDto
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.navigation.SeriesDto
-import hu.bbara.purefin.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
-import org.jellyfin.sdk.model.api.ImageType
 import javax.inject.Inject
-import kotlin.collections.emptyList
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
