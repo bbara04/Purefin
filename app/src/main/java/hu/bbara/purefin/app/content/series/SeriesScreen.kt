@@ -91,7 +91,7 @@ private fun SeriesScreenInternal(
         ) {
             MediaHero(
                 imageUrl = series.heroImageUrl,
-                height = 250.dp,
+                heightFraction = 0.30f,
                 backgroundColor = MaterialTheme.colorScheme.background,
                 modifier = Modifier.fillMaxWidth()
             )

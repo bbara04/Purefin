@@ -92,7 +92,7 @@ private fun MovieScreenInternal(
             MediaHero(
                 imageUrl = movie.heroImageUrl,
                 backgroundColor = MaterialTheme.colorScheme.background,
-                height = 250.dp,
+                heightFraction = 0.30f,
                 modifier = Modifier.fillMaxWidth()
             )
             MovieDetails(
