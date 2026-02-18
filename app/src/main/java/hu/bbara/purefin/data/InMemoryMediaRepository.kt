@@ -1,6 +1,8 @@
 package hu.bbara.purefin.data
 
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.data.local.room.OfflineDatabase
+import hu.bbara.purefin.data.local.room.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.data.local.room.RoomMediaLocalDataSource
 import hu.bbara.purefin.data.model.Episode
 import hu.bbara.purefin.data.model.Library
@@ -38,7 +40,8 @@ import javax.inject.Singleton
 class InMemoryMediaRepository @Inject constructor(
     val userSessionRepository: UserSessionRepository,
     val jellyfinApiClient: JellyfinApiClient,
-    private val localDataSource: RoomMediaLocalDataSource
+    private val localDataSource: RoomMediaLocalDataSource,
+    @OfflineDatabase private val offlineDataSource: OfflineRoomMediaLocalDataSource
 ) : MediaRepository {
 
     private val ready = CompletableDeferred<Unit>()
@@ -111,6 +114,7 @@ class InMemoryMediaRepository @Inject constructor(
             it.toLibrary()
         }
         localDataSource.saveLibraries(emptyLibraries)
+        offlineDataSource.saveLibraries(emptyLibraries)
 
         val filledLibraries = emptyLibraries.map { library ->
             return@map loadLibrary(library)
