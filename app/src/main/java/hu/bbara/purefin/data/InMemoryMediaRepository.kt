@@ -1,6 +1,9 @@
 package hu.bbara.purefin.data
 
+import androidx.datastore.core.DataStore
 import hu.bbara.purefin.client.JellyfinApiClient
+import hu.bbara.purefin.data.cache.CachedMediaItem
+import hu.bbara.purefin.data.cache.HomeCache
 import hu.bbara.purefin.data.local.room.OfflineDatabase
 import hu.bbara.purefin.data.local.room.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.data.local.room.RoomMediaLocalDataSource
@@ -25,7 +28,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
@@ -43,7 +45,8 @@ class InMemoryMediaRepository @Inject constructor(
     val userSessionRepository: UserSessionRepository,
     val jellyfinApiClient: JellyfinApiClient,
     private val localDataSource: RoomMediaLocalDataSource,
-    @OfflineDatabase private val offlineDataSource: OfflineRoomMediaLocalDataSource
+    @OfflineDatabase private val offlineDataSource: OfflineRoomMediaLocalDataSource,
+    private val homeCacheDataStore: DataStore<HomeCache>
 ) : MediaRepository {
 
     private val ready = CompletableDeferred<Unit>()
@@ -84,7 +87,54 @@ class InMemoryMediaRepository @Inject constructor(
 
     init {
         scope.launch {
+            loadFromCache()
             runCatching { ensureReady() }
+        }
+    }
+
+    private suspend fun loadFromCache() {
+        val cache = homeCacheDataStore.data.first()
+        if (cache.continueWatching.isNotEmpty()) {
+            _continueWatching.value = cache.continueWatching.mapNotNull { it.toMedia() }
+        }
+        if (cache.nextUp.isNotEmpty()) {
+            _nextUp.value = cache.nextUp.mapNotNull { it.toMedia() }
+        }
+        if (cache.latestLibraryContent.isNotEmpty()) {
+            _latestLibraryContent.value = cache.latestLibraryContent.mapNotNull { (key, items) ->
+                val uuid = runCatching { UUID.fromString(key) }.getOrNull() ?: return@mapNotNull null
+                uuid to items.mapNotNull { it.toMedia() }
+            }.toMap()
+        }
+    }
+
+    private suspend fun persistHomeCache() {
+        val cache = HomeCache(
+            continueWatching = _continueWatching.value.map { it.toCachedItem() },
+            nextUp = _nextUp.value.map { it.toCachedItem() },
+            latestLibraryContent = _latestLibraryContent.value.map { (uuid, items) ->
+                uuid.toString() to items.map { it.toCachedItem() }
+            }.toMap()
+        )
+        homeCacheDataStore.updateData { cache }
+    }
+
+    private fun Media.toCachedItem(): CachedMediaItem = when (this) {
+        is Media.MovieMedia -> CachedMediaItem(type = "MOVIE", id = movieId.toString())
+        is Media.SeriesMedia -> CachedMediaItem(type = "SERIES", id = seriesId.toString())
+        is Media.SeasonMedia -> CachedMediaItem(type = "SEASON", id = seasonId.toString(), seriesId = seriesId.toString())
+        is Media.EpisodeMedia -> CachedMediaItem(type = "EPISODE", id = episodeId.toString(), seriesId = seriesId.toString())
+    }
+
+    private fun CachedMediaItem.toMedia(): Media? {
+        val uuid = runCatching { UUID.fromString(id) }.getOrNull() ?: return null
+        val seriesUuid = seriesId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+        return when (type) {
+            "MOVIE" -> Media.MovieMedia(movieId = uuid)
+            "SERIES" -> Media.SeriesMedia(seriesId = uuid)
+            "SEASON" -> Media.SeasonMedia(seasonId = uuid, seriesId = seriesUuid ?: return null)
+            "EPISODE" -> Media.EpisodeMedia(episodeId = uuid, seriesId = seriesUuid ?: return null)
+            else -> null
         }
     }
 
@@ -105,6 +155,7 @@ class InMemoryMediaRepository @Inject constructor(
                 loadContinueWatching()
                 loadNextUp()
                 loadLatestLibraryContent()
+                persistHomeCache()
                 _state.value = MediaRepositoryState.Ready
                 initialLoadTimestamp = System.currentTimeMillis()
                 ready.complete(Unit)
@@ -302,6 +353,7 @@ class InMemoryMediaRepository @Inject constructor(
         loadContinueWatching()
         loadNextUp()
         loadLatestLibraryContent()
+        persistHomeCache()
         initialLoadTimestamp = System.currentTimeMillis()
     }
 
