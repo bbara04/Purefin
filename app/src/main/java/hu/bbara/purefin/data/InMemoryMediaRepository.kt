@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
@@ -45,7 +47,9 @@ class InMemoryMediaRepository @Inject constructor(
 ) : MediaRepository {
 
     private val ready = CompletableDeferred<Unit>()
+    private val readyMutex = Mutex()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var initialLoadTimestamp = 0L
 
     private val _state: MutableStateFlow<MediaRepositoryState> = MutableStateFlow(MediaRepositoryState.Loading)
     override val state: StateFlow<MediaRepositoryState> = _state.asStateFlow()
@@ -85,19 +89,34 @@ class InMemoryMediaRepository @Inject constructor(
     }
 
     override suspend fun ensureReady() {
-        if (ready.isCompleted) return
+        if (ready.isCompleted) {
+            ready.await() // rethrows if completed exceptionally
+            return
+        }
 
-        try {
-            loadLibraries()
-            loadContinueWatching()
-            loadNextUp()
-            loadLatestLibraryContent()
-            _state.value = MediaRepositoryState.Ready
-            ready.complete(Unit)
-        } catch (t: Throwable) {
-            _state.value = MediaRepositoryState.Error(t)
-            ready.completeExceptionally(t)
-            throw t
+        // Only the first caller runs the loading logic; others wait on the deferred.
+        if (readyMutex.tryLock()) {
+            try {
+                if (ready.isCompleted) {
+                    ready.await()
+                    return
+                }
+                loadLibraries()
+                loadContinueWatching()
+                loadNextUp()
+                loadLatestLibraryContent()
+                _state.value = MediaRepositoryState.Ready
+                initialLoadTimestamp = System.currentTimeMillis()
+                ready.complete(Unit)
+            } catch (t: Throwable) {
+                _state.value = MediaRepositoryState.Error(t)
+                ready.completeExceptionally(t)
+                throw t
+            } finally {
+                readyMutex.unlock()
+            }
+        } else {
+            ready.await()
         }
     }
 
@@ -269,11 +288,21 @@ class InMemoryMediaRepository @Inject constructor(
         localDataSource.updateWatchProgress(mediaId, progressPercent, watched)
     }
 
+    companion object {
+        private const val REFRESH_MIN_INTERVAL_MS = 30_000L
+    }
+
     override suspend fun refreshHomeData() {
+        awaitReady()
+        // Skip refresh if the initial load (or last refresh) just happened
+        val elapsed = System.currentTimeMillis() - initialLoadTimestamp
+        if (elapsed < REFRESH_MIN_INTERVAL_MS) return
+
         loadLibraries()
         loadContinueWatching()
         loadNextUp()
         loadLatestLibraryContent()
+        initialLoadTimestamp = System.currentTimeMillis()
     }
 
     private suspend fun serverUrl(): String {
