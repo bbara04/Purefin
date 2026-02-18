@@ -155,7 +155,7 @@ class PurefinActivity : ComponentActivity() {
             LaunchedEffect(navigationManager, backStack) {
                 navigationManager.commands.collect { command ->
                     when (command) {
-                        NavigationCommand.Pop -> backStack.removeLastOrNull()
+                        NavigationCommand.Pop -> if (backStack.size > 1) backStack.removeLastOrNull()
                         is NavigationCommand.Navigate -> backStack.add(command.route)
                         is NavigationCommand.ReplaceAll -> {
                             backStack.clear()
@@ -168,6 +168,7 @@ class PurefinActivity : ComponentActivity() {
             CompositionLocalProvider(LocalNavigationManager provides navigationManager) {
                 NavDisplay(
                     backStack = backStack,
+                    onBack = { navigationManager.pop() },
                     modifier = Modifier.fillMaxSize(),
                     entryDecorators =
                         listOf(
