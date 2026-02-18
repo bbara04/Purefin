@@ -54,6 +54,7 @@ fun ContinueWatchingSection(
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    if (items.isEmpty()) return
     SectionHeader(
         title = "Continue Watching",
         action = null
