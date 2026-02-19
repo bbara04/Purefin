@@ -169,6 +169,7 @@ fun NextUpSection(
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    if (items.isEmpty()) return
     SectionHeader(
         title = "Next Up",
         action = null
