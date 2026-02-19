@@ -39,8 +39,8 @@ fun UnwatchedEpisodeIndicator(
         Text(
             text = if (unwatchedCount > 9) "9+" else unwatchedCount.toString(),
             color = foregroundColor.copy(alpha = 0.8f),
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp
+            fontWeight = FontWeight.W900,
+            fontSize = 15.sp
         )
     }
 }

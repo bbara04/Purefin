@@ -80,18 +80,21 @@ fun PosterCard(
             )
             when (item.type) {
                 BaseItemKind.MOVIE -> WatchStateIndicator(
+                    size = 28,
                     modifier = Modifier.align(Alignment.TopEnd)
                         .padding(8.dp),
                     watched = item.movie!!.watched,
                     started = (item.movie.progress ?: 0.0) > 0
                 )
                 BaseItemKind.EPISODE -> WatchStateIndicator(
+                    size = 28,
                     modifier = Modifier.align(Alignment.TopEnd)
                         .padding(8.dp),
                     watched = item.episode!!.watched,
                     started = (item.episode.progress ?: 0.0) > 0
                 )
                 BaseItemKind.SERIES -> UnwatchedEpisodeIndicator(
+                    size = 28,
                     modifier = Modifier.align(Alignment.TopEnd)
                         .padding(8.dp),
                     unwatchedCount = item.series!!.unwatchedEpisodeCount
