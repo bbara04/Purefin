@@ -158,7 +158,7 @@ class JellyfinApiClient @Inject constructor(
         val getNextUpRequest = GetNextUpRequest(
             userId = getUserId(),
             fields = itemFields,
-            enableResumable = true,
+            enableResumable = false,
         )
         val result = api.tvShowsApi.getNextUp(getNextUpRequest)
         Log.d("getNextUpEpisodes", result.content.toString())

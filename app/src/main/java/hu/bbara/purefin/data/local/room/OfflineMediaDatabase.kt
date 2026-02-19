@@ -5,10 +5,10 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import hu.bbara.purefin.data.local.room.dao.CastMemberDao
 import hu.bbara.purefin.data.local.room.dao.EpisodeDao
-import hu.bbara.purefin.data.local.room.dao.LibraryDao
 import hu.bbara.purefin.data.local.room.dao.MovieDao
 import hu.bbara.purefin.data.local.room.dao.SeasonDao
 import hu.bbara.purefin.data.local.room.dao.SeriesDao
+import hu.bbara.purefin.data.local.room.dao.LibraryDao
 
 @Database(
     entities = [
@@ -19,7 +19,7 @@ import hu.bbara.purefin.data.local.room.dao.SeriesDao
         LibraryEntity::class,
         CastMemberEntity::class
     ],
-    version = 4,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(UuidConverters::class)

@@ -50,6 +50,7 @@ fun HomePage(
         )
     }
     val continueWatching = viewModel.continueWatching.collectAsState()
+    val nextUp = viewModel.nextUp.collectAsState()
     val latestLibraryContent = viewModel.latestLibraryContent.collectAsState()
 
     LifecycleResumeEffect(Unit) {
@@ -95,6 +96,7 @@ fun HomePage(
                 libraries = libraries,
                 libraryContent = latestLibraryContent.value,
                 continueWatching = continueWatching.value,
+                nextUp = nextUp.value,
                 onMovieSelected = viewModel::onMovieSelected,
                 onSeriesSelected = viewModel::onSeriesSelected,
                 onEpisodeSelected = viewModel::onEpisodeSelected,
