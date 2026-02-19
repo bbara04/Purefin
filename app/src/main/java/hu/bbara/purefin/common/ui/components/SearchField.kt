@@ -32,7 +32,7 @@ fun SearchField(
         onValueChange = onValueChange,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp)),
+            .clip(RoundedCornerShape(32.dp)),
         placeholder = { Text(placeholder, color = scheme.onSurfaceVariant) },
         leadingIcon =
             { Icon(imageVector = Icons.Outlined.Search, contentDescription = null, tint = scheme.onSurfaceVariant) },

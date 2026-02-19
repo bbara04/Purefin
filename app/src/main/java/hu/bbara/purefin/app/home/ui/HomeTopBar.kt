@@ -41,7 +41,7 @@ fun HomeTopBar(
                 .padding(horizontal = 16.dp, vertical = 16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         ) {
             PurefinIconButton(
                 icon = Icons.Outlined.Menu,
@@ -52,9 +52,9 @@ fun HomeTopBar(
                 value = "",
                 onValueChange = {},
                 placeholder = "Search",
-                backgroundColor = scheme.surface,
-                textColor = scheme.onSurface,
-                cursorColor = scheme.secondary,
+                backgroundColor = scheme.secondaryContainer,
+                textColor = scheme.onSecondaryContainer,
+                cursorColor = scheme.onSecondaryContainer,
                 modifier = Modifier.weight(1.0f, true),
             )
             PurefinIconButton(
