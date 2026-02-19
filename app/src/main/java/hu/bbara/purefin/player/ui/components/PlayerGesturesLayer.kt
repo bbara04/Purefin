@@ -94,6 +94,7 @@ fun PlayerGesturesLayer(
                                 }
                             }
                             DragDirection.VERTICAL -> {
+                                change.consume()
                                 val isLeftSide = startX < size.width / 2
                                 if (isLeftSide) {
                                     onVerticalDragLeft(delta.y)
