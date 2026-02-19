@@ -135,6 +135,7 @@ object ContentMockData {
             heroImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuD3hBjDpw00tDCQsK5xNcnJra301k1T4LksWVZzHieH9KHQItEQkVzhwevJvf8RkaQKdVKvObzRlfDDqa3_PNwLUlUQc1LpDih8p94VTGobEV62qi7QrmNyQm_o55KRMNWiTG3zLLpblGqo3uUNQcYmPFqfNML95dClXQ4lQNl85-zgerPPAbGPr23dswbIYCigyTAaXgrmdV_nbNQ5LdDB0Wh5cMHtP0uxz6k3ARjNom6clhphGIUF9e6YSvKuwuiZ-1lMYFg8C_4",
             audioTrack = "English (Dolby Atmos)",
             subtitles = "English, Spanish, French",
+            progress = 45.0,
             cast = castMembers
         )
     }

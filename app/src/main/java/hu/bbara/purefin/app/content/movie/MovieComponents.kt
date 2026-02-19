@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -36,8 +37,8 @@ import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
-import hu.bbara.purefin.common.ui.components.MediaPlayButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
+import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.download.DownloadState
 import hu.bbara.purefin.player.PlayerActivity
 
@@ -117,11 +118,11 @@ internal fun MovieDetails(
         Spacer(modifier = Modifier.height(24.dp))
 
         Row() {
-            MediaPlayButton(
-                backgroundColor = MaterialTheme.colorScheme.primary,
-                foregroundColor = MaterialTheme.colorScheme.onPrimary,
-                size = 48.dp,
-                onClick = playAction
+            MediaResumeButton(
+                text = if (movie.progress == null) "Play" else "Resume",
+                progress = movie.progress?.div(100)?.toFloat() ?: 0f,
+                onClick = playAction,
+                modifier = Modifier.sizeIn(maxWidth = 200.dp)
             )
             VerticalDivider(
                 color = MaterialTheme.colorScheme.secondary,
