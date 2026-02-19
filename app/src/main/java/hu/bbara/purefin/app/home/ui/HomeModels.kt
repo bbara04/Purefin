@@ -35,14 +35,6 @@ data class ContinueWatchingItem(
     }
 }
 
-data class NextUpItem(
-    val episode: Episode
-) {
-    val id: UUID = episode.id
-    val primaryText: String = episode.title
-    val secondaryText: String = episode.releaseDate
-}
-
 data class LibraryItem(
     val id: UUID,
     val name: String,
