@@ -19,5 +19,6 @@ data class MovieUiModel(
     val heroImageUrl: String,
     val audioTrack: String,
     val subtitles: String,
+    val progress: Double?,
     val cast: List<CastMember>
 )

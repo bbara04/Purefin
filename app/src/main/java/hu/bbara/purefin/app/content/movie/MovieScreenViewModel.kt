@@ -84,6 +84,7 @@ class MovieScreenViewModel @Inject constructor(
             heroImageUrl = heroImageUrl,
             audioTrack = audioTrack,
             subtitles = subtitles,
+            progress = progress,
             cast = cast.map { CastMember(name = it.name, role = it.role, imageUrl = it.imageUrl) }
         )
     }

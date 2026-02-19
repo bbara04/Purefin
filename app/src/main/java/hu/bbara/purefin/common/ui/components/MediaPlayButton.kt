@@ -3,6 +3,7 @@ package hu.bbara.purefin.common.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,8 @@ import androidx.compose.ui.unit.dp
 fun MediaPlayButton(
     backgroundColor: Color,
     foregroundColor: Color,
+    text: String = "Play",
+    subText: String? = null,
     size: Dp,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -46,13 +49,25 @@ fun MediaPlayButton(
             tint = foregroundColor,
             modifier = Modifier.size(42.dp)
         )
-        Text(
-            text = "Play",
-            color = foregroundColor,
-            fontSize = TextUnit(
-                value = 16f,
-                type = TextUnitType.Sp
+        Column() {
+            Text(
+                text = text,
+                color = foregroundColor,
+                fontSize = TextUnit(
+                    value = 16f,
+                    type = TextUnitType.Sp
+                )
             )
-        )
+            subText?.let {
+                Text(
+                    text = subText,
+                    color = foregroundColor.copy(alpha = 0.7f),
+                    fontSize = TextUnit(
+                        value = 14f,
+                        type = TextUnitType.Sp
+                    )
+                )
+            }
+        }
     }
 }
