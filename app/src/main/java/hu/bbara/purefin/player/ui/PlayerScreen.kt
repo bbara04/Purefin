@@ -39,12 +39,12 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import hu.bbara.purefin.common.ui.components.EmptyValueTimedVisibility
 import hu.bbara.purefin.common.ui.components.ValueChangeTimedVisibility
+import hu.bbara.purefin.player.ui.components.PersistentOverlayContainer
 import hu.bbara.purefin.player.ui.components.PlayerAdjustmentIndicator
 import hu.bbara.purefin.player.ui.components.PlayerControlsOverlay
 import hu.bbara.purefin.player.ui.components.PlayerGesturesLayer
 import hu.bbara.purefin.player.ui.components.PlayerLoadingErrorEndCard
 import hu.bbara.purefin.player.ui.components.PlayerQueuePanel
-import hu.bbara.purefin.player.ui.components.PersistentOverlayContainer
 import hu.bbara.purefin.player.ui.components.rememberPersistentOverlayController
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import kotlin.math.abs
@@ -98,7 +98,7 @@ fun PlayerScreen(
         )
 
         PlayerGesturesLayer(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.align(Alignment.BottomCenter),
             onTap = { viewModel.toggleControlsVisibility() },
             onDoubleTapRight = { viewModel.seekBy(30_000) },
             onDoubleTapLeft = { viewModel.seekBy(-10_000) },
