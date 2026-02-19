@@ -40,7 +40,7 @@ import hu.bbara.purefin.navigation.NavigationCommand
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.session.UserSessionRepository
-import hu.bbara.purefin.ui.theme.PurefinTheme
+import hu.bbara.purefin.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toPath
@@ -75,7 +75,7 @@ class PurefinActivity : ComponentActivity() {
         configureImageLoader()
         enableEdgeToEdge()
         setContent {
-            PurefinTheme() {
+            AppTheme() {
                 MainApp(
                     userSessionRepository = userSessionRepository,
                     entryBuilders = entryBuilders,

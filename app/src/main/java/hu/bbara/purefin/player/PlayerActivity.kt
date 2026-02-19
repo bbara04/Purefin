@@ -13,7 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import hu.bbara.purefin.player.ui.PlayerScreen
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
-import hu.bbara.purefin.ui.theme.PurefinTheme
+import hu.bbara.purefin.ui.theme.AppTheme
 
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
@@ -23,7 +23,7 @@ class PlayerActivity : ComponentActivity() {
         enterImmersiveMode()
 
         setContent {
-            PurefinTheme(darkTheme = true) {
+            AppTheme(darkTheme = true) {
                 val viewModel = hiltViewModel<PlayerViewModel>()
                 val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
