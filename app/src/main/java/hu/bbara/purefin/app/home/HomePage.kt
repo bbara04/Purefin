@@ -25,6 +25,7 @@ import hu.bbara.purefin.app.home.ui.HomeDrawerContent
 import hu.bbara.purefin.app.home.ui.HomeMockData
 import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.HomeTopBar
+import hu.bbara.purefin.feature.shared.home.HomePageViewModel
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.CollectionType
 
@@ -74,7 +75,7 @@ fun HomePage(
                     primaryNavItems = libraryNavItems,
                     secondaryNavItems = HomeMockData.secondaryNavItems,
                     user = HomeMockData.user,
-                    onLibrarySelected = viewModel::onLibrarySelected,
+                    onLibrarySelected = { item -> viewModel.onLibrarySelected(item.id, item.label) },
                     onLogout = viewModel::logout
                 )
             }

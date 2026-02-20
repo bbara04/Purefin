@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
-import hu.bbara.purefin.player.model.PlayerUiState
+import hu.bbara.purefin.core.player.model.PlayerUiState
 
 @Composable
 fun PlayerQueuePanel(

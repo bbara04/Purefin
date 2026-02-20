@@ -21,4 +21,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "Purefin"
 include(":app")
- 
+include(":core:model")
+include(":core:data")
+include(":feature:download")
+include(":core:player")
+include(":feature:shared")

@@ -16,8 +16,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.player.model.MarkerType
-import hu.bbara.purefin.player.model.TimedMarker
+import hu.bbara.purefin.core.player.model.MarkerType
+import hu.bbara.purefin.core.player.model.TimedMarker
 
 @Composable
 fun PlayerSeekBar(

@@ -24,9 +24,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
-import hu.bbara.purefin.data.model.Season
-import hu.bbara.purefin.data.model.Series
-import hu.bbara.purefin.navigation.SeriesDto
+import hu.bbara.purefin.core.data.navigation.SeriesDto
+import hu.bbara.purefin.core.model.Season
+import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
 
 @Composable
 fun SeriesScreen(

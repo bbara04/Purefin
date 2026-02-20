@@ -22,8 +22,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.app.content.ContentMockData
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
-import hu.bbara.purefin.download.DownloadState
-import hu.bbara.purefin.navigation.MovieDto
+import hu.bbara.purefin.core.data.navigation.MovieDto
+import hu.bbara.purefin.feature.download.DownloadState
+import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
+import hu.bbara.purefin.feature.shared.content.movie.MovieUiModel
 
 @Composable
 fun MovieScreen(

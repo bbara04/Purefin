@@ -40,6 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.request.ImageRequest
 import hu.bbara.purefin.common.ui.PosterCard
+import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.shared.home.NextUpItem
+import hu.bbara.purefin.feature.shared.home.PosterItem
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.player.PlayerActivity

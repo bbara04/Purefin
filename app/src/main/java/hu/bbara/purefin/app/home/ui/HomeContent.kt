@@ -10,6 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.shared.home.LibraryItem
+import hu.bbara.purefin.feature.shared.home.NextUpItem
+import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
 
 @Composable

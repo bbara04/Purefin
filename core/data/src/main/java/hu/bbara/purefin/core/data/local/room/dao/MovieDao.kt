@@ -1,0 +1,35 @@
+package hu.bbara.purefin.core.data.local.room.dao
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Upsert
+import hu.bbara.purefin.core.data.local.room.MovieEntity
+import kotlinx.coroutines.flow.Flow
+import java.util.UUID
+
+@Dao
+interface MovieDao {
+    @Upsert
+    suspend fun upsert(movie: MovieEntity)
+
+    @Upsert
+    suspend fun upsertAll(movies: List<MovieEntity>)
+
+    @Query("SELECT * FROM movies")
+    suspend fun getAll(): List<MovieEntity>
+
+    @Query("SELECT * FROM movies")
+    fun observeAll(): Flow<List<MovieEntity>>
+
+    @Query("SELECT * FROM movies WHERE id = :id")
+    suspend fun getById(id: UUID): MovieEntity?
+
+    @Query("UPDATE movies SET progress = :progress, watched = :watched WHERE id = :id")
+    suspend fun updateProgress(id: UUID, progress: Double?, watched: Boolean)
+
+    @Query("DELETE FROM movies WHERE id = :id")
+    suspend fun deleteById(id: UUID)
+
+    @Query("DELETE FROM movies")
+    suspend fun clear()
+}
