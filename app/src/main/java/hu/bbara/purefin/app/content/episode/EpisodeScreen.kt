@@ -16,8 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
-import hu.bbara.purefin.data.model.Episode
-import hu.bbara.purefin.navigation.EpisodeDto
+import hu.bbara.purefin.core.data.navigation.EpisodeDto
+import hu.bbara.purefin.core.model.Episode
+import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
 
 @Composable
 fun EpisodeScreen(

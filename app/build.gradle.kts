@@ -47,6 +47,11 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:model"))
+    implementation(project(":core:data"))
+    implementation(project(":feature:download"))
+    implementation(project(":core:player"))
+    implementation(project(":feature:shared"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

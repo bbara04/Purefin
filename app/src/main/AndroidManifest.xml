@@ -33,7 +33,7 @@
             android:exported="false"
             android:theme="@style/Theme.Purefin" />
         <service
-            android:name=".download.PurefinDownloadService"
+            android:name="hu.bbara.purefin.feature.download.PurefinDownloadService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
     </application>

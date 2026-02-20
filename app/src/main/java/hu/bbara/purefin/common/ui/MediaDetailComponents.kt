@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
-import hu.bbara.purefin.data.model.CastMember
+import hu.bbara.purefin.core.model.CastMember
 
 @Composable
 fun MediaMetaChip(

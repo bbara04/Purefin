@@ -23,10 +23,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.request.ImageRequest
-import hu.bbara.purefin.app.home.ui.PosterItem
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.UnwatchedEpisodeIndicator
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
+import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
 
@@ -49,11 +49,10 @@ fun PosterCard(
         when (posterItem.type) {
             BaseItemKind.MOVIE -> onMovieSelected(posterItem.id)
             BaseItemKind.SERIES -> onSeriesSelected(posterItem.id)
-            BaseItemKind.EPISODE -> onEpisodeSelected(
-                posterItem.episode!!.seriesId,
-                posterItem.episode.seasonId,
-                posterItem.episode.id
-            )
+            BaseItemKind.EPISODE -> {
+                val ep = posterItem.episode!!
+                onEpisodeSelected(ep.seriesId, ep.seasonId, ep.id)
+            }
             else -> {}
         }
     }
@@ -79,20 +78,26 @@ fun PosterCard(
                 contentScale = ContentScale.Crop
             )
             when (item.type) {
-                BaseItemKind.MOVIE -> WatchStateIndicator(
-                    size = 28,
-                    modifier = Modifier.align(Alignment.TopEnd)
-                        .padding(8.dp),
-                    watched = item.movie!!.watched,
-                    started = (item.movie.progress ?: 0.0) > 0
-                )
-                BaseItemKind.EPISODE -> WatchStateIndicator(
-                    size = 28,
-                    modifier = Modifier.align(Alignment.TopEnd)
-                        .padding(8.dp),
-                    watched = item.episode!!.watched,
-                    started = (item.episode.progress ?: 0.0) > 0
-                )
+                BaseItemKind.MOVIE -> {
+                    val m = item.movie!!
+                    WatchStateIndicator(
+                        size = 28,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                            .padding(8.dp),
+                        watched = m.watched,
+                        started = (m.progress ?: 0.0) > 0
+                    )
+                }
+                BaseItemKind.EPISODE -> {
+                    val ep = item.episode!!
+                    WatchStateIndicator(
+                        size = 28,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                            .padding(8.dp),
+                        watched = ep.watched,
+                        started = (ep.progress ?: 0.0) > 0
+                    )
+                }
                 BaseItemKind.SERIES -> UnwatchedEpisodeIndicator(
                     size = 28,
                     modifier = Modifier.align(Alignment.TopEnd)

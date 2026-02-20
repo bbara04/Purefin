@@ -1,14 +1,14 @@
 package hu.bbara.purefin.app.content
 
-import hu.bbara.purefin.app.content.episode.EpisodeUiModel
-import hu.bbara.purefin.app.content.movie.MovieUiModel
-import hu.bbara.purefin.app.content.series.SeriesCastMemberUiModel
-import hu.bbara.purefin.app.content.series.SeriesEpisodeUiModel
-import hu.bbara.purefin.app.content.series.SeriesSeasonUiModel
-import hu.bbara.purefin.app.content.series.SeriesUiModel
+import hu.bbara.purefin.feature.shared.content.episode.EpisodeUiModel
+import hu.bbara.purefin.feature.shared.content.movie.MovieUiModel
+import hu.bbara.purefin.feature.shared.content.series.SeriesCastMemberUiModel
+import hu.bbara.purefin.feature.shared.content.series.SeriesEpisodeUiModel
+import hu.bbara.purefin.feature.shared.content.series.SeriesSeasonUiModel
+import hu.bbara.purefin.feature.shared.content.series.SeriesUiModel
 import org.jellyfin.sdk.model.UUID
-import hu.bbara.purefin.app.content.episode.CastMember as EpisodeCastMember
-import hu.bbara.purefin.app.content.movie.CastMember as MovieCastMember
+import hu.bbara.purefin.feature.shared.content.episode.CastMember as EpisodeCastMember
+import hu.bbara.purefin.feature.shared.content.movie.CastMember as MovieCastMember
 
 object ContentMockData {
     fun series(): SeriesUiModel {
