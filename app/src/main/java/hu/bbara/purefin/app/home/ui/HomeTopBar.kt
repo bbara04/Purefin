@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.CloudOff
-import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,7 +21,6 @@ import hu.bbara.purefin.common.ui.components.SearchField
 
 @Composable
 fun HomeTopBar(
-    onMenuClick: () -> Unit,
     isOfflineMode: Boolean,
     onToggleOfflineMode: () -> Unit,
     modifier: Modifier = Modifier,
@@ -43,11 +41,6 @@ fun HomeTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         ) {
-            PurefinIconButton(
-                icon = Icons.Outlined.Menu,
-                contentDescription = "Menu",
-                onClick = onMenuClick,
-            )
             SearchField(
                 value = "",
                 onValueChange = {},
@@ -65,5 +58,3 @@ fun HomeTopBar(
         }
     }
 }
-
-
