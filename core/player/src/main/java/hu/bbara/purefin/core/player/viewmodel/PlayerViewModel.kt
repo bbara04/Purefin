@@ -124,6 +124,15 @@ class PlayerViewModel @Inject constructor(
 
     private fun loadInitialMedia() {
         val id = mediaId ?: return
+        loadMediaById(id)
+    }
+
+    fun loadMedia(id: String) {
+        if (mediaId != null) return // Already loading from SavedStateHandle
+        loadMediaById(id)
+    }
+
+    private fun loadMediaById(id: String) {
         val uuid = id.toUuidOrNull()
         if (uuid == null) {
             dataErrorMessage = "Invalid media id"

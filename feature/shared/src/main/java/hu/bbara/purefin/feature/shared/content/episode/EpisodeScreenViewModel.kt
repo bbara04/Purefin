@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.MediaRepository
 import hu.bbara.purefin.core.data.navigation.NavigationManager
+import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,6 +37,11 @@ class EpisodeScreenViewModel @Inject constructor(
 
     fun onBack() {
         navigationManager.pop()
+    }
+
+    fun onPlay() {
+        val id = _episodeId.value?.toString() ?: return
+        navigationManager.navigate(Route.PlayerRoute(mediaId = id))
     }
 
     fun selectEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) {

@@ -65,6 +65,7 @@ internal fun MovieTopBar(
 @Composable
 internal fun MovieDetails(
     movie: MovieUiModel,
+    onPlay: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -103,7 +104,7 @@ internal fun MovieDetails(
             MediaResumeButton(
                 text = if (movie.progress == null) "Play" else "Resume",
                 progress = movie.progress?.div(100)?.toFloat() ?: 0f,
-                onClick = {},
+                onClick = onPlay,
                 modifier = Modifier.sizeIn(maxWidth = 200.dp)
             )
             VerticalDivider(

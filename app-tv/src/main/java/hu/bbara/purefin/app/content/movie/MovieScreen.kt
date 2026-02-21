@@ -34,6 +34,7 @@ fun MovieScreen(
         MovieScreenInternal(
             movie = movieItem.value!!,
             onBack = viewModel::onBack,
+            onPlay = viewModel::onPlay,
             modifier = modifier
         )
     } else {
@@ -45,6 +46,7 @@ fun MovieScreen(
 private fun MovieScreenInternal(
     movie: MovieUiModel,
     onBack: () -> Unit,
+    onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -70,6 +72,7 @@ private fun MovieScreenInternal(
             )
             MovieDetails(
                 movie = movie,
+                onPlay = onPlay,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
