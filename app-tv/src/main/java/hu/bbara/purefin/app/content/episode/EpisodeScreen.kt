@@ -45,6 +45,7 @@ fun EpisodeScreen(
     EpisodeScreenInternal(
         episode = episode.value!!,
         onBack = viewModel::onBack,
+        onPlay = viewModel::onPlay,
         modifier = modifier
     )
 }
@@ -53,6 +54,7 @@ fun EpisodeScreen(
 private fun EpisodeScreenInternal(
     episode: Episode,
     onBack: () -> Unit,
+    onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -79,6 +81,7 @@ private fun EpisodeScreenInternal(
             )
             EpisodeDetails(
                 episode = episode,
+                onPlay = onPlay,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)

@@ -64,6 +64,7 @@ internal fun EpisodeTopBar(
 @Composable
 internal fun EpisodeDetails(
     episode: Episode,
+    onPlay: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -109,7 +110,7 @@ internal fun EpisodeDetails(
             MediaResumeButton(
                 text = if (episode.progress == null) "Play" else "Resume",
                 progress = episode.progress?.div(100)?.toFloat() ?: 0f,
-                onClick = {},
+                onClick = onPlay,
                 modifier = Modifier.sizeIn(maxWidth = 200.dp)
             )
             VerticalDivider(

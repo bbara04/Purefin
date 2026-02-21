@@ -4,9 +4,11 @@ import androidx.navigation3.runtime.EntryProviderScope
 import hu.bbara.purefin.app.content.episode.EpisodeScreen
 import hu.bbara.purefin.app.content.movie.MovieScreen
 import hu.bbara.purefin.app.content.series.SeriesScreen
+import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.login.ui.LoginScreen
 import hu.bbara.purefin.tv.home.TvHomePage
+import hu.bbara.purefin.tv.player.TvPlayerScreen
 
 fun EntryProviderScope<Route>.tvHomeSection() {
     entry<Route.Home> {
@@ -35,5 +37,15 @@ fun EntryProviderScope<Route>.tvSeriesSection() {
 fun EntryProviderScope<Route>.tvEpisodeSection() {
     entry<Route.EpisodeRoute> { route ->
         EpisodeScreen(episode = route.item)
+    }
+}
+
+fun EntryProviderScope<Route>.tvPlayerSection() {
+    entry<Route.PlayerRoute> { route ->
+        val navigationManager = LocalNavigationManager.current
+        TvPlayerScreen(
+            mediaId = route.mediaId,
+            onBack = { navigationManager.pop() }
+        )
     }
 }

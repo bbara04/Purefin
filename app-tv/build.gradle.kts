@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.medi3.exoplayer)
+    implementation(libs.medi3.ui)
     implementation(libs.medi3.ffmpeg.decoder)
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.androidx.navigation3.runtime)

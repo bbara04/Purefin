@@ -33,6 +33,10 @@ class MovieScreenViewModel @Inject constructor(
         navigationManager.pop()
     }
 
+    fun onPlay() {
+        val id = _movie.value?.id?.toString() ?: return
+        navigationManager.navigate(Route.PlayerRoute(mediaId = id))
+    }
 
     fun onGoHome() {
         navigationManager.replaceAll(Route.Home)
