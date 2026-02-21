@@ -21,6 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Purefin"
 include(":app")
+include(":app-tv")
 include(":core:model")
 include(":core:data")
 include(":feature:download")
