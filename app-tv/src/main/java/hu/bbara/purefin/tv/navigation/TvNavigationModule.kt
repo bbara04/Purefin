@@ -23,4 +23,22 @@ object TvNavigationModule {
     fun provideTvLoginEntryBuilder(): EntryProviderScope<Route>.() -> Unit = {
         tvLoginSection()
     }
+
+    @IntoSet
+    @Provides
+    fun provideTvMovieEntryBuilder(): EntryProviderScope<Route>.() -> Unit = {
+        tvMovieSection()
+    }
+
+    @IntoSet
+    @Provides
+    fun provideTvSeriesEntryBuilder(): EntryProviderScope<Route>.() -> Unit = {
+        tvSeriesSection()
+    }
+
+    @IntoSet
+    @Provides
+    fun provideTvEpisodeEntryBuilder(): EntryProviderScope<Route>.() -> Unit = {
+        tvEpisodeSection()
+    }
 }

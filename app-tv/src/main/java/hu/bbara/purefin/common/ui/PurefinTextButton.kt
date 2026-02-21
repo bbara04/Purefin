@@ -12,7 +12,7 @@ fun PurefinTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit // Slot API
 ) {
     Button(
         onClick = onClick,
