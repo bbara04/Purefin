@@ -1,7 +1,12 @@
-package hu.bbara.purefin.core.data.local.room
+package hu.bbara.purefin.core.data.room
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import hu.bbara.purefin.core.data.room.entity.EpisodeEntity
+import hu.bbara.purefin.core.data.room.entity.LibraryEntity
+import hu.bbara.purefin.core.data.room.entity.MovieEntity
+import hu.bbara.purefin.core.data.room.entity.SeasonEntity
+import hu.bbara.purefin.core.data.room.entity.SeriesEntity
 
 data class SeasonWithEpisodes(
     @Embedded val season: SeasonEntity,

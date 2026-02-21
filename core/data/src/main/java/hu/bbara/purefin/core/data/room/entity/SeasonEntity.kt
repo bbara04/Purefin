@@ -1,4 +1,4 @@
-package hu.bbara.purefin.core.data.local.room
+package hu.bbara.purefin.core.data.room.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -20,7 +20,7 @@ import java.util.UUID
 )
 data class SeasonEntity(
     @PrimaryKey val id: UUID,
-    val seriesId: UUID,
+    val seriesId: UUID?,
     val name: String,
     val index: Int,
     val unwatchedEpisodeCount: Int,

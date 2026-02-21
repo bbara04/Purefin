@@ -1,9 +1,9 @@
-package hu.bbara.purefin.core.data.local.room.dao
+package hu.bbara.purefin.core.data.room.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import hu.bbara.purefin.core.data.local.room.EpisodeEntity
+import hu.bbara.purefin.core.data.room.entity.EpisodeEntity
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 

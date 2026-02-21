@@ -1,4 +1,4 @@
-package hu.bbara.purefin.core.data.local.room
+package hu.bbara.purefin.core.data.room.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -12,14 +12,15 @@ import java.util.UUID
         ForeignKey(
             entity = LibraryEntity::class,
             parentColumns = ["id"],
-            childColumns = ["libraryId"]
+            childColumns = ["libraryId"],
+            deferred = true
         ),
     ],
     indices = [Index("libraryId")]
 )
 data class SeriesEntity(
     @PrimaryKey val id: UUID,
-    val libraryId: UUID,
+    val libraryId: UUID?,
     val name: String,
     val synopsis: String,
     val year: String,

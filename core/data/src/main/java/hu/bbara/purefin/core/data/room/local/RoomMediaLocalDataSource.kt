@@ -1,12 +1,18 @@
-package hu.bbara.purefin.core.data.local.room
+package hu.bbara.purefin.core.data.room.local
 
 import androidx.room.withTransaction
-import hu.bbara.purefin.core.data.local.room.dao.CastMemberDao
-import hu.bbara.purefin.core.data.local.room.dao.EpisodeDao
-import hu.bbara.purefin.core.data.local.room.dao.LibraryDao
-import hu.bbara.purefin.core.data.local.room.dao.MovieDao
-import hu.bbara.purefin.core.data.local.room.dao.SeasonDao
-import hu.bbara.purefin.core.data.local.room.dao.SeriesDao
+import hu.bbara.purefin.core.data.room.dao.CastMemberDao
+import hu.bbara.purefin.core.data.room.dao.EpisodeDao
+import hu.bbara.purefin.core.data.room.dao.LibraryDao
+import hu.bbara.purefin.core.data.room.dao.MovieDao
+import hu.bbara.purefin.core.data.room.dao.SeasonDao
+import hu.bbara.purefin.core.data.room.dao.SeriesDao
+import hu.bbara.purefin.core.data.room.entity.CastMemberEntity
+import hu.bbara.purefin.core.data.room.entity.EpisodeEntity
+import hu.bbara.purefin.core.data.room.entity.LibraryEntity
+import hu.bbara.purefin.core.data.room.entity.MovieEntity
+import hu.bbara.purefin.core.data.room.entity.SeasonEntity
+import hu.bbara.purefin.core.data.room.entity.SeriesEntity
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Library
@@ -20,8 +26,8 @@ import java.util.UUID
 import javax.inject.Singleton
 
 @Singleton
-class OfflineRoomMediaLocalDataSource(
-    private val database: OfflineMediaDatabase,
+class RoomMediaLocalDataSource(
+    private val database: MediaDatabase,
     private val movieDao: MovieDao,
     private val seriesDao: SeriesDao,
     private val seasonDao: SeasonDao,
@@ -33,10 +39,10 @@ class OfflineRoomMediaLocalDataSource(
     // Lightweight Flows for list screens (home, library)
     val librariesFlow: Flow<List<Library>> = libraryDao.observeAllWithContent()
         .map { relation ->
-            relation.map {
-                it.library.toDomain(
-                    movies = it.movies.map { e -> e.toDomain(cast = emptyList()) },
-                    series = it.series.map { e -> e.toDomain(seasons = emptyList(), cast = emptyList()) }
+            relation.map { libraryEntity ->
+                libraryEntity.library.toDomain(
+                    movies = libraryEntity.movies.map { it.toDomain(listOf()) },
+                    series = libraryEntity.series.map { it.toDomain(listOf(), listOf()) }
                 )
             }
         }

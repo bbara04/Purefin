@@ -1,11 +1,11 @@
-package hu.bbara.purefin.core.data.local.room.dao
+package hu.bbara.purefin.core.data.room.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import hu.bbara.purefin.core.data.local.room.SeriesEntity
-import hu.bbara.purefin.core.data.local.room.SeriesWithSeasonsAndEpisodes
+import hu.bbara.purefin.core.data.room.SeriesWithSeasonsAndEpisodes
+import hu.bbara.purefin.core.data.room.entity.SeriesEntity
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 

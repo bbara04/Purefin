@@ -11,9 +11,9 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.core.data.local.room.OfflineDatabase
-import hu.bbara.purefin.core.data.local.room.OfflineRoomMediaLocalDataSource
-import hu.bbara.purefin.core.data.local.room.dao.MovieDao
+import hu.bbara.purefin.core.data.room.OfflineDatabase
+import hu.bbara.purefin.core.data.room.dao.MovieDao
+import hu.bbara.purefin.core.data.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.model.Movie
 import kotlinx.coroutines.Dispatchers

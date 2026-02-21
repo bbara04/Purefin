@@ -1,10 +1,10 @@
-package hu.bbara.purefin.core.data.local.room.dao
+package hu.bbara.purefin.core.data.room.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import hu.bbara.purefin.core.data.local.room.LibraryEntity
-import hu.bbara.purefin.core.data.local.room.LibraryWithContent
+import hu.bbara.purefin.core.data.room.LibraryWithContent
+import hu.bbara.purefin.core.data.room.entity.LibraryEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -5,9 +5,9 @@ import hu.bbara.purefin.core.data.cache.CachedMediaItem
 import hu.bbara.purefin.core.data.cache.HomeCache
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.core.data.local.room.OfflineDatabase
-import hu.bbara.purefin.core.data.local.room.OfflineRoomMediaLocalDataSource
-import hu.bbara.purefin.core.data.local.room.RoomMediaLocalDataSource
+import hu.bbara.purefin.core.data.room.OfflineDatabase
+import hu.bbara.purefin.core.data.room.local.RoomMediaLocalDataSource
+import hu.bbara.purefin.core.data.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Library
@@ -185,7 +185,6 @@ class InMemoryMediaRepository @Inject constructor(
             it.toLibrary()
         }
         localDataSource.saveLibraries(emptyLibraries)
-        offlineDataSource.saveLibraries(emptyLibraries)
 
         val filledLibraries = emptyLibraries.map { library ->
             return@map loadLibrary(library)
