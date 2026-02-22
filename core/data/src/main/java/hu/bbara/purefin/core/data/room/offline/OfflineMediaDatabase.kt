@@ -20,7 +20,7 @@ import hu.bbara.purefin.core.data.room.entity.SeriesEntity
         SeasonEntity::class,
         EpisodeEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(UuidConverters::class)
