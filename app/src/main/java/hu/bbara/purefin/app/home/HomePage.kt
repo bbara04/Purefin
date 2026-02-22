@@ -65,10 +65,7 @@ fun HomePage(
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
-            HomeTopBar(
-                isOfflineMode = isOfflineMode,
-                onToggleOfflineMode = viewModel::toggleOfflineMode
-            )
+            HomeTopBar()
         },
         bottomBar = {
             NavigationBar {

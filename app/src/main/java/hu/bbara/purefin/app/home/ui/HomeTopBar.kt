@@ -21,8 +21,6 @@ import hu.bbara.purefin.common.ui.components.SearchField
 
 @Composable
 fun HomeTopBar(
-    isOfflineMode: Boolean,
-    onToggleOfflineMode: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -49,11 +47,6 @@ fun HomeTopBar(
                 textColor = scheme.onSecondaryContainer,
                 cursorColor = scheme.onSecondaryContainer,
                 modifier = Modifier.weight(1.0f, true),
-            )
-            PurefinIconButton(
-                icon = if (isOfflineMode) Icons.Outlined.CloudOff else Icons.Outlined.Cloud,
-                contentDescription = if (isOfflineMode) "Switch to Online" else "Switch to Offline",
-                onClick = onToggleOfflineMode
             )
         }
     }
