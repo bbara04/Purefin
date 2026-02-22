@@ -180,14 +180,6 @@ class HomePageViewModel @Inject constructor(
         navigationManager.replaceAll(Route.Home)
     }
 
-    fun getImageUrl(itemId: UUID, type: ImageType): String {
-        return JellyfinImageHelper.toImageUrl(
-            url = _url.value,
-            itemId = itemId,
-            type = type
-        )
-    }
-
     fun onResumed() {
         viewModelScope.launch {
             try {
