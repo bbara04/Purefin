@@ -9,17 +9,22 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
+import hu.bbara.purefin.core.data.InMemoryMediaRepository
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.room.dao.MovieDao
 import hu.bbara.purefin.core.data.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
+import hu.bbara.purefin.core.model.Season
+import hu.bbara.purefin.core.model.Series
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ImageType
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -34,7 +39,8 @@ class MediaDownloadManager @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val offlineDataSource: OfflineRoomMediaLocalDataSource,
     private val movieDao: MovieDao,
-    private val userSessionRepository: UserSessionRepository
+    private val userSessionRepository: UserSessionRepository,
+    private val inMemoryMediaRepository: InMemoryMediaRepository,
 ) {
 
     private val stateFlows = ConcurrentHashMap<String, MutableStateFlow<DownloadState>>()
@@ -143,6 +149,68 @@ class MediaDownloadManager @Inject constructor(
         }
     }
 
+    suspend fun downloadEpisode(episodeId: UUID) {
+        withContext(Dispatchers.IO) {
+            try {
+                val serverUrl = userSessionRepository.serverUrl.first().trim()
+                val sources = jellyfinApiClient.getMediaSources(episodeId)
+                val source = sources.firstOrNull() ?: run {
+                    Log.e(TAG, "No media sources for episode $episodeId")
+                    return@withContext
+                }
+
+                val url = jellyfinApiClient.getMediaPlaybackUrl(episodeId, source) ?: run {
+                    Log.e(TAG, "No playback URL for episode $episodeId")
+                    return@withContext
+                }
+
+                val episode = jellyfinApiClient.getItemInfo(episodeId)?.toEpisode(serverUrl) ?: run {
+                    Log.e(TAG, "Episode not found $episodeId")
+                    return@withContext
+                }
+
+                val series = jellyfinApiClient.getItemInfo(episode.seriesId)?.toSeries(serverUrl) ?: run {
+                    Log.e(TAG, "Series not found ${episode.seriesId}")
+                    return@withContext
+                }
+
+                val season = jellyfinApiClient.getItemInfo(episode.seasonId)?.toSeason(series.id) ?: run {
+                    Log.e(TAG, "Season not found ${episode.seasonId}")
+                    return@withContext
+                }
+
+                if (offlineDataSource.getSeriesBasic(series.id) == null) {
+                    offlineDataSource.saveSeries(listOf(series))
+                }
+
+                if (offlineDataSource.getSeason(series.id, season.id) == null) {
+                    offlineDataSource.saveSeason(season)
+                }
+
+                offlineDataSource.saveEpisode(episode)
+
+                Log.d(TAG, "Starting download for episode '${episode.title}' from: $url")
+                val request = DownloadRequest.Builder(episodeId.toString(), url.toUri()).build()
+                PurefinDownloadService.sendAddDownload(context, request)
+                Log.d(TAG, "Download request sent for episode $episodeId")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to start download for episode $episodeId", e)
+                getOrCreateStateFlow(episodeId.toString()).value = DownloadState.Failed
+            }
+        }
+    }
+
+    suspend fun cancelEpisodeDownload(episodeId: UUID) {
+        withContext(Dispatchers.IO) {
+            PurefinDownloadService.sendRemoveDownload(context, episodeId.toString())
+            try {
+                offlineDataSource.deleteEpisodeAndCleanup(episodeId)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to remove episode from offline DB", e)
+            }
+        }
+    }
+
     private fun getOrCreateStateFlow(contentId: String): MutableStateFlow<DownloadState> {
         return stateFlows.getOrPut(contentId) { MutableStateFlow(DownloadState.NotDownloaded) }
     }
@@ -163,6 +231,60 @@ class MediaDownloadManager @Inject constructor(
         val hours = java.util.concurrent.TimeUnit.SECONDS.toHours(totalSeconds)
         val minutes = java.util.concurrent.TimeUnit.SECONDS.toMinutes(totalSeconds) % 60
         return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+    }
+
+    private fun BaseItemDto.toEpisode(serverUrl: String): Episode {
+        return Episode(
+            id = id,
+            seriesId = seriesId!!,
+            seasonId = parentId!!,
+            title = name ?: "Unknown title",
+            index = indexNumber ?: 0,
+            releaseDate = productionYear?.toString() ?: "—",
+            rating = officialRating ?: "NR",
+            runtime = formatRuntime(runTimeTicks),
+            progress = userData?.playedPercentage,
+            watched = userData?.played ?: false,
+            format = container?.uppercase() ?: "VIDEO",
+            synopsis = overview ?: "No synopsis available.",
+            heroImageUrl = JellyfinImageHelper.toImageUrl(
+                url = serverUrl,
+                itemId = id,
+                type = ImageType.PRIMARY
+            ),
+            cast = emptyList()
+        )
+    }
+
+    private fun BaseItemDto.toSeries(serverUrl: String): Series {
+        return Series(
+            id = id,
+            libraryId = parentId ?: UUID.randomUUID(),
+            name = name ?: "Unknown",
+            synopsis = overview ?: "No synopsis available",
+            year = productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
+            heroImageUrl = JellyfinImageHelper.toImageUrl(
+                url = serverUrl,
+                itemId = id,
+                type = ImageType.PRIMARY
+            ),
+            unwatchedEpisodeCount = userData?.unplayedItemCount ?: 0,
+            seasonCount = childCount ?: 0,
+            seasons = emptyList(),
+            cast = emptyList()
+        )
+    }
+
+    private fun BaseItemDto.toSeason(seriesId: UUID): Season {
+        return Season(
+            id = id,
+            seriesId = this.seriesId ?: seriesId,
+            name = name ?: "Unknown",
+            index = indexNumber ?: 0,
+            unwatchedEpisodeCount = userData?.unplayedItemCount ?: 0,
+            episodeCount = childCount ?: 0,
+            episodes = emptyList()
+        )
     }
 
     companion object {

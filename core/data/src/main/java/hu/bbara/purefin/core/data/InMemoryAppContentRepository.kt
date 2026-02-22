@@ -213,18 +213,18 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    suspend fun loadMovie(movie: Movie): Movie {
-        val movieItem = jellyfinApiClient.getItemInfo(movie.id)
+    suspend fun loadMovie(movieId: UUID): Movie {
+        val movieItem = jellyfinApiClient.getItemInfo(movieId)
             ?: throw RuntimeException("Movie not found")
-        val updatedMovie = movieItem.toMovie(serverUrl(), movie.libraryId)
+        val updatedMovie = movieItem.toMovie(serverUrl(), movieItem.parentId!!)
         mediaRepository._movies.update { it + (updatedMovie.id to updatedMovie) }
         return updatedMovie
     }
 
-    suspend fun loadSeries(series: Series): Series {
-        val seriesItem = jellyfinApiClient.getItemInfo(series.id)
+    suspend fun loadSeries(seriesId: UUID): Series {
+        val seriesItem = jellyfinApiClient.getItemInfo(seriesId)
             ?: throw RuntimeException("Series not found")
-        val updatedSeries = seriesItem.toSeries(serverUrl(), series.libraryId)
+        val updatedSeries = seriesItem.toSeries(serverUrl(), seriesItem.parentId!!)
         mediaRepository._series.update { it + (updatedSeries.id to updatedSeries) }
         return updatedSeries
     }

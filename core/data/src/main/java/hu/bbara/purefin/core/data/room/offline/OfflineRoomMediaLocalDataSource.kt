@@ -80,12 +80,37 @@ class OfflineRoomMediaLocalDataSource(
         }
     }
 
+    suspend fun saveSeason(season: Season) {
+        database.withTransaction {
+            seriesDao.getById(season.seriesId)
+                ?: throw RuntimeException("Cannot add season without series. Season: $season")
+            seasonDao.upsert(season.toEntity())
+        }
+    }
+
     suspend fun saveEpisode(episode: Episode) {
         database.withTransaction {
             seriesDao.getById(episode.seriesId)
                 ?: throw RuntimeException("Cannot add episode without series. Episode: $episode")
 
             episodeDao.upsert(episode.toEntity())
+        }
+    }
+
+    suspend fun deleteEpisodeAndCleanup(episodeId: UUID) {
+        database.withTransaction {
+            val episode = episodeDao.getById(episodeId) ?: return@withTransaction
+            episodeDao.deleteById(episodeId)
+
+            val remainingEpisodesInSeason = episodeDao.countBySeasonId(episode.seasonId)
+            if (remainingEpisodesInSeason == 0) {
+                seasonDao.deleteById(episode.seasonId)
+
+                val remainingSeasonsInSeries = seasonDao.countBySeriesId(episode.seriesId)
+                if (remainingSeasonsInSeries == 0) {
+                    seriesDao.deleteById(episode.seriesId)
+                }
+            }
         }
     }
 

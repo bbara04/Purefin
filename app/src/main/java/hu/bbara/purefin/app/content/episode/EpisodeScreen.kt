@@ -18,6 +18,7 @@ import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.model.Episode
+import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
 
 @Composable
@@ -36,6 +37,7 @@ fun EpisodeScreen(
     }
 
     val episode = viewModel.episode.collectAsState()
+    val downloadState = viewModel.downloadState.collectAsState()
 
     if (episode.value == null) {
         PurefinWaitingScreen()
@@ -44,7 +46,9 @@ fun EpisodeScreen(
 
     EpisodeScreenInternal(
         episode = episode.value!!,
+        downloadState = downloadState.value,
         onBack = viewModel::onBack,
+        onDownloadClick = viewModel::onDownloadClick,
         modifier = modifier
     )
 }
@@ -52,7 +56,9 @@ fun EpisodeScreen(
 @Composable
 private fun EpisodeScreenInternal(
     episode: Episode,
+    downloadState: DownloadState,
     onBack: () -> Unit,
+    onDownloadClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -79,6 +85,8 @@ private fun EpisodeScreenInternal(
             )
             EpisodeDetails(
                 episode = episode,
+                downloadState = downloadState,
+                onDownloadClick = onDownloadClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)

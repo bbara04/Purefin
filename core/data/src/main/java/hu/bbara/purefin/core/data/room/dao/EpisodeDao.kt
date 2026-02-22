@@ -41,4 +41,10 @@ interface EpisodeDao {
 
     @Query("DELETE FROM episodes WHERE seasonId = :seasonId")
     suspend fun deleteBySeasonId(seasonId: UUID)
+
+    @Query("DELETE FROM episodes WHERE id = :id")
+    suspend fun deleteById(id: UUID)
+
+    @Query("SELECT COUNT(*) FROM episodes WHERE seasonId = :seasonId")
+    suspend fun countBySeasonId(seasonId: UUID): Int
 }

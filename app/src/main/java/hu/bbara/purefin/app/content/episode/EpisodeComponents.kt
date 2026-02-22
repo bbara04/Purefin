@@ -17,7 +17,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +40,7 @@ import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.core.model.Episode
+import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
@@ -69,6 +72,8 @@ internal fun EpisodeTopBar(
 @Composable
 internal fun EpisodeDetails(
     episode: Episode,
+    downloadState: DownloadState,
+    onDownloadClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -153,8 +158,14 @@ internal fun EpisodeDetails(
                 MediaActionButton(
                     backgroundColor = MaterialTheme.colorScheme.secondary,
                     iconColor = MaterialTheme.colorScheme.onSecondary,
-                    icon = Icons.Outlined.Download,
-                    height = 48.dp
+                    icon = when (downloadState) {
+                        is DownloadState.NotDownloaded -> Icons.Outlined.Download
+                        is DownloadState.Downloading -> Icons.Outlined.Close
+                        is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
+                        is DownloadState.Failed -> Icons.Outlined.Download
+                    },
+                    height = 48.dp,
+                    onClick = onDownloadClick
                 )
             }
         }

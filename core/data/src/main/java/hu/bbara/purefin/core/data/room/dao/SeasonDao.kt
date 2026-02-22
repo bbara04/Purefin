@@ -25,4 +25,10 @@ interface SeasonDao {
 
     @Query("DELETE FROM seasons WHERE seriesId = :seriesId")
     suspend fun deleteBySeriesId(seriesId: UUID)
+
+    @Query("DELETE FROM seasons WHERE id = :id")
+    suspend fun deleteById(id: UUID)
+
+    @Query("SELECT COUNT(*) FROM seasons WHERE seriesId = :seriesId")
+    suspend fun countBySeriesId(seriesId: UUID): Int
 }

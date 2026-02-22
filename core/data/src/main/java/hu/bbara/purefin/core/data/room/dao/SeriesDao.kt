@@ -35,4 +35,7 @@ interface SeriesDao {
 
     @Query("DELETE FROM series")
     suspend fun clear()
+
+    @Query("DELETE FROM series WHERE id = :id")
+    suspend fun deleteById(id: UUID)
 }
