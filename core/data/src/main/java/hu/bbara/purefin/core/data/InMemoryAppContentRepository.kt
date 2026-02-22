@@ -13,16 +13,13 @@ import hu.bbara.purefin.core.model.MediaRepositoryState
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -42,10 +39,10 @@ import javax.inject.Singleton
 class InMemoryAppContentRepository @Inject constructor(
     val userSessionRepository: UserSessionRepository,
     val jellyfinApiClient: JellyfinApiClient,
-    private val homeCacheDataStore: DataStore<HomeCache>
-) : AppContentRepository {
+    private val homeCacheDataStore: DataStore<HomeCache>,
+    private val mediaRepository: InMemoryMediaRepository,
+) : AppContentRepository, MediaRepository by mediaRepository {
 
-    private val ready = CompletableDeferred<Unit>()
     private val readyMutex = Mutex()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var initialLoadTimestamp = 0L
@@ -55,23 +52,6 @@ class InMemoryAppContentRepository @Inject constructor(
 
     private val _libraries: MutableStateFlow<List<Library>> = MutableStateFlow(emptyList())
     override val libraries: StateFlow<List<Library>> = _libraries.asStateFlow()
-
-    private val _movies: MutableStateFlow<Map<UUID, Movie>> = MutableStateFlow(emptyMap())
-    override val movies: StateFlow<Map<UUID, Movie>> = _movies.asStateFlow()
-
-    private val _series: MutableStateFlow<Map<UUID, Series>> = MutableStateFlow(emptyMap())
-    override val series: StateFlow<Map<UUID, Series>> = _series.asStateFlow()
-
-    private val _episodes: MutableStateFlow<Map<UUID, Episode>> = MutableStateFlow(emptyMap())
-    override val episodes: StateFlow<Map<UUID, Episode>> = _episodes.asStateFlow()
-
-    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
-        scope.launch {
-            awaitReady()
-            ensureSeriesContentLoaded(seriesId)
-        }
-        return _series.map { it[seriesId] }
-    }
 
     private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
     override val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
@@ -136,8 +116,9 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     override suspend fun ensureReady() {
+        val ready = mediaRepository.ready
         if (ready.isCompleted) {
-            ready.await() // rethrows if completed exceptionally
+            ready.await()
             return
         }
 
@@ -155,10 +136,10 @@ class InMemoryAppContentRepository @Inject constructor(
                 persistHomeCache()
                 _state.value = MediaRepositoryState.Ready
                 initialLoadTimestamp = System.currentTimeMillis()
-                ready.complete(Unit)
+                mediaRepository.signalReady()
             } catch (t: Throwable) {
                 _state.value = MediaRepositoryState.Error(t)
-                ready.completeExceptionally(t)
+                mediaRepository.signalError(t)
                 throw t
             } finally {
                 readyMutex.unlock()
@@ -166,10 +147,6 @@ class InMemoryAppContentRepository @Inject constructor(
         } else {
             ready.await()
         }
-    }
-
-    private suspend fun awaitReady() {
-        ready.await()
     }
 
     suspend fun loadLibraries() {
@@ -186,10 +163,10 @@ class InMemoryAppContentRepository @Inject constructor(
         _libraries.value = filledLibraries
 
         val movies = filledLibraries.filter { it.type == CollectionType.MOVIES }.flatMap { it.movies.orEmpty() }
-        _movies.update { current -> current + movies.associateBy { it.id } }
+        mediaRepository._movies.update { current -> current + movies.associateBy { it.id } }
 
         val series = filledLibraries.filter { it.type == CollectionType.TVSHOWS }.flatMap { it.series.orEmpty() }
-        _series.update { current -> current + series.associateBy { it.id } }
+        mediaRepository._series.update { current -> current + series.associateBy { it.id } }
     }
 
     suspend fun loadLibrary(library: Library): Library {
@@ -207,19 +184,19 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    suspend fun loadMovie(movie: Movie) : Movie {
+    suspend fun loadMovie(movie: Movie): Movie {
         val movieItem = jellyfinApiClient.getItemInfo(movie.id)
             ?: throw RuntimeException("Movie not found")
         val updatedMovie = movieItem.toMovie(serverUrl(), movie.libraryId)
-        _movies.update { it + (updatedMovie.id to updatedMovie) }
+        mediaRepository._movies.update { it + (updatedMovie.id to updatedMovie) }
         return updatedMovie
     }
 
-    suspend fun loadSeries(series: Series) : Series {
+    suspend fun loadSeries(series: Series): Series {
         val seriesItem = jellyfinApiClient.getItemInfo(series.id)
             ?: throw RuntimeException("Series not found")
         val updatedSeries = seriesItem.toSeries(serverUrl(), series.libraryId)
-        _series.update { it + (updatedSeries.id to updatedSeries) }
+        mediaRepository._series.update { it + (updatedSeries.id to updatedSeries) }
         return updatedSeries
     }
 
@@ -242,7 +219,7 @@ class InMemoryAppContentRepository @Inject constructor(
             when (item.type) {
                 BaseItemKind.EPISODE -> {
                     val episode = item.toEpisode(serverUrl())
-                    _episodes.update { it + (episode.id to episode) }
+                    mediaRepository._episodes.update { it + (episode.id to episode) }
                 }
                 else -> { /* Do nothing */ }
             }
@@ -262,7 +239,7 @@ class InMemoryAppContentRepository @Inject constructor(
         // Load episodes
         nextUpItems.forEach { item ->
             val episode = item.toEpisode(serverUrl())
-            _episodes.update { it + (episode.id to episode) }
+            mediaRepository._episodes.update { it + (episode.id to episode) }
         }
     }
 
@@ -306,53 +283,12 @@ class InMemoryAppContentRepository @Inject constructor(
         //TODO Load seasons and episodes, other types are already loaded at this point.
     }
 
-    private suspend fun ensureSeriesContentLoaded(seriesId: UUID) {
-        awaitReady()
-        // Skip if content is already loaded in-memory
-        _series.value[seriesId]?.takeIf { it.seasons.isNotEmpty() }?.let { return }
-
-        val series = this.series.value[seriesId] ?: throw RuntimeException("Series not found")
-
-        val emptySeasonsItem = jellyfinApiClient.getSeasons(seriesId)
-        val emptySeasons = emptySeasonsItem.map { it.toSeason(serverUrl()) }
-        val filledSeasons = emptySeasons.map { season ->
-            val episodesItem = jellyfinApiClient.getEpisodesInSeason(seriesId, season.id)
-            val episodes = episodesItem.map { it.toEpisode(serverUrl()) }
-            season.copy(episodes = episodes)
-        }
-        val updatedSeries = series.copy(seasons = filledSeasons)
-        _series.update { it + (updatedSeries.id to updatedSeries) }
-
-        val allEpisodes = filledSeasons.flatMap { it.episodes }
-        _episodes.update { current -> current + allEpisodes.associateBy { it.id } }
-    }
-
-    override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
-        if (durationMs <= 0) return
-        val progressPercent = (positionMs.toDouble() / durationMs.toDouble()) * 100.0
-        val watched = progressPercent >= 90.0
-
-        if (_movies.value.containsKey(mediaId)) {
-            _movies.update { current ->
-                val movie = current[mediaId] ?: return@update current
-                current + (mediaId to movie.copy(progress = progressPercent, watched = watched))
-            }
-            return
-        }
-        if (_episodes.value.containsKey(mediaId)) {
-            _episodes.update { current ->
-                val episode = current[mediaId] ?: return@update current
-                current + (mediaId to episode.copy(progress = progressPercent, watched = watched))
-            }
-        }
-    }
-
     companion object {
         private const val REFRESH_MIN_INTERVAL_MS = 30_000L
     }
 
     override suspend fun refreshHomeData() {
-        awaitReady()
+        mediaRepository.ready.await()
         // Skip refresh if the initial load (or last refresh) just happened
         val elapsed = System.currentTimeMillis() - initialLoadTimestamp
         if (elapsed < REFRESH_MIN_INTERVAL_MS) return
@@ -397,7 +333,7 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    private fun BaseItemDto.toMovie(serverUrl: String, libraryId: UUID) : Movie {
+    private fun BaseItemDto.toMovie(serverUrl: String, libraryId: UUID): Movie {
         return Movie(
             id = this.id,
             libraryId = libraryId,
@@ -455,10 +391,6 @@ class InMemoryAppContentRepository @Inject constructor(
 
     private fun BaseItemDto.toEpisode(serverUrl: String): Episode {
         val releaseDate = formatReleaseDate(premiereDate, productionYear)
-        val rating = officialRating ?: "NR"
-        val runtime = formatRuntime(runTimeTicks)
-        val format = container?.uppercase() ?: "VIDEO"
-        val synopsis = overview ?: "No synopsis available."
         val heroImageUrl = id?.let { itemId ->
             JellyfinImageHelper.toImageUrl(
                 url = serverUrl,
@@ -473,12 +405,12 @@ class InMemoryAppContentRepository @Inject constructor(
             title = name ?: "Unknown title",
             index = indexNumber!!,
             releaseDate = releaseDate,
-            rating = rating,
-            runtime = runtime,
+            rating = officialRating ?: "NR",
+            runtime = formatRuntime(runTimeTicks),
             progress = userData!!.playedPercentage,
             watched = userData!!.played,
-            format = format,
-            synopsis = synopsis,
+            format = container?.uppercase() ?: "VIDEO",
+            synopsis = overview ?: "No synopsis available.",
             heroImageUrl = heroImageUrl,
             cast = emptyList()
         )

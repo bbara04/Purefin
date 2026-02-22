@@ -27,7 +27,7 @@ import javax.inject.Singleton
 @Singleton
 class CompositeMediaRepository @Inject constructor(
     private val offlineRepository: OfflineMediaRepository,
-    private val onlineRepository: AppContentRepository,
+    private val onlineRepository: InMemoryMediaRepository,
     private val userSessionRepository: UserSessionRepository,
 ) : MediaRepository {
 
