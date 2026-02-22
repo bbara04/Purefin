@@ -1,12 +1,7 @@
 package hu.bbara.purefin.feature.shared.content.episode
 
+import hu.bbara.purefin.core.model.CastMember
 import org.jellyfin.sdk.model.UUID
-
-data class CastMember(
-    val name: String,
-    val role: String,
-    val imageUrl: String?
-)
 
 data class EpisodeUiModel(
     val id: UUID,

@@ -180,16 +180,17 @@ internal fun EpisodeDetails(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Cast",
-            color = scheme.onBackground,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        MediaCastRow(
-            //TODO fix it
-            cast = emptyList()
-        )
+        if (episode.cast.isNotEmpty()) {
+            Text(
+                text = "Cast",
+                color = scheme.onBackground,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            MediaCastRow(
+                cast = episode.cast
+            )
+        }
     }
 }

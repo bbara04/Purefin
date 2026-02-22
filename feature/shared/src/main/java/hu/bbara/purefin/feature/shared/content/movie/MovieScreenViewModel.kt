@@ -23,7 +23,7 @@ class MovieScreenViewModel @Inject constructor(
     private val mediaDownloadManager: MediaDownloadManager
 ): ViewModel() {
 
-    private val _movie = MutableStateFlow<MovieUiModel?>(null)
+    private val _movie = MutableStateFlow<Movie?>(null)
     val movie = _movie.asStateFlow()
 
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
@@ -44,12 +44,12 @@ class MovieScreenViewModel @Inject constructor(
 
     fun selectMovie(movieId: UUID) {
         viewModelScope.launch {
-            val movieData = mediaRepository.movies.value[movieId]
-            if (movieData == null) {
+            val movie = mediaRepository.movies.value[movieId]
+            if (movie == null) {
                 _movie.value = null
                 return@launch
             }
-            _movie.value = movieData.toUiModel()
+            _movie.value = movie
 
             launch {
                 mediaDownloadManager.observeDownloadState(movieId.toString()).collect {
@@ -74,23 +74,6 @@ class MovieScreenViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun Movie.toUiModel(): MovieUiModel {
-        return MovieUiModel(
-            id = id,
-            title = title,
-            year = year,
-            rating = rating,
-            runtime = runtime,
-            format = format,
-            synopsis = synopsis,
-            heroImageUrl = heroImageUrl,
-            audioTrack = audioTrack,
-            subtitles = subtitles,
-            progress = progress,
-            cast = cast.map { CastMember(name = it.name, role = it.role, imageUrl = it.imageUrl) }
-        )
     }
 
 }

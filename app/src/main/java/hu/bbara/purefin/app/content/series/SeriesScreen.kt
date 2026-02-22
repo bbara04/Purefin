@@ -131,14 +131,16 @@ private fun SeriesScreenInternal(
                     episodes = selectedSeason.value.episodes,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Cast",
-                    color = scheme.onBackground,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                CastRow(cast = series.cast)
+                if(series.cast.isNotEmpty()) {
+                    Text(
+                        text = "Cast",
+                        color = scheme.onBackground,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    CastRow(cast = series.cast)
+                }
             }
         }
     }

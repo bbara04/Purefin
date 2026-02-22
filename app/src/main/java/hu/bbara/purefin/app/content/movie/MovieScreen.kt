@@ -16,16 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.app.content.ContentMockData
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.core.data.navigation.MovieDto
+import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
-import hu.bbara.purefin.feature.shared.content.movie.MovieUiModel
 
 @Composable
 fun MovieScreen(
@@ -70,7 +68,7 @@ fun MovieScreen(
 
 @Composable
 private fun MovieScreenInternal(
-    movie: MovieUiModel,
+    movie: Movie,
     downloadState: DownloadState = DownloadState.NotDownloaded,
     onDownloadClick: () -> Unit = {},
     onBack: () -> Unit,
@@ -108,14 +106,4 @@ private fun MovieScreenInternal(
             )
         }
     }
-}
-
-
-@Preview
-@Composable
-fun MovieScreenPreview() {
-    MovieScreenInternal(
-        movie = ContentMockData.movie(),
-        onBack = {}
-    )
 }
