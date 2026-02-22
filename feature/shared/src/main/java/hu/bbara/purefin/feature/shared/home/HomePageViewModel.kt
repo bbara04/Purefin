@@ -3,7 +3,7 @@ package hu.bbara.purefin.feature.shared.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.MediaRepository
+import hu.bbara.purefin.core.data.AppContentRepository
 import hu.bbara.purefin.core.data.domain.usecase.RefreshHomeDataUseCase
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.LibraryDto
@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomePageViewModel @Inject constructor(
-    private val mediaRepository: MediaRepository,
+    private val appContentRepository: AppContentRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
     private val refreshHomeDataUseCase: RefreshHomeDataUseCase
@@ -37,7 +37,7 @@ class HomePageViewModel @Inject constructor(
         initialValue = ""
     )
 
-    val libraries = mediaRepository.libraries.map { libraries ->
+    val libraries = appContentRepository.libraries.map { libraries ->
         libraries.map {
             LibraryItem(
                 id = it.id,
@@ -45,8 +45,8 @@ class HomePageViewModel @Inject constructor(
                 type = it.type,
                 posterUrl = it.posterUrl,
                 isEmpty = when(it.type) {
-                    CollectionType.MOVIES -> mediaRepository.movies.value.isEmpty()
-                    CollectionType.TVSHOWS -> mediaRepository.series.value.isEmpty()
+                    CollectionType.MOVIES -> appContentRepository.movies.value.isEmpty()
+                    CollectionType.TVSHOWS -> appContentRepository.series.value.isEmpty()
                     else -> true
                 }
             )
@@ -60,9 +60,9 @@ class HomePageViewModel @Inject constructor(
     )
 
     val continueWatching = combine(
-        mediaRepository.continueWatching,
-        mediaRepository.movies,
-        mediaRepository.episodes
+        appContentRepository.continueWatching,
+        appContentRepository.movies,
+        appContentRepository.episodes
     ) { list, moviesMap, episodesMap ->
         list.mapNotNull { media ->
             when (media) {
@@ -82,8 +82,8 @@ class HomePageViewModel @Inject constructor(
     )
 
     val nextUp = combine(
-        mediaRepository.nextUp,
-        mediaRepository.episodes
+        appContentRepository.nextUp,
+        appContentRepository.episodes
     ) { list, episodesMap ->
         list.mapNotNull { media ->
             when (media) {
@@ -100,10 +100,10 @@ class HomePageViewModel @Inject constructor(
     )
 
     val latestLibraryContent = combine(
-        mediaRepository.latestLibraryContent,
-        mediaRepository.movies,
-        mediaRepository.series,
-        mediaRepository.episodes
+        appContentRepository.latestLibraryContent,
+        appContentRepository.movies,
+        appContentRepository.series,
+        appContentRepository.episodes
     ) { libraryMap, moviesMap, seriesMap, episodesMap ->
         libraryMap.mapValues { (_, items) ->
             items.mapNotNull { media ->
@@ -131,7 +131,7 @@ class HomePageViewModel @Inject constructor(
     )
 
     init {
-        viewModelScope.launch { mediaRepository.ensureReady() }
+        viewModelScope.launch { appContentRepository.ensureReady() }
     }
 
     fun onLibrarySelected(id: UUID, name: String) {

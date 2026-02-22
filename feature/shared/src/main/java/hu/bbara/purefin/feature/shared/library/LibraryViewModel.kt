@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.feature.shared.home.PosterItem
-import hu.bbara.purefin.core.data.MediaRepository
+import hu.bbara.purefin.core.data.AppContentRepository
 import hu.bbara.purefin.core.data.navigation.MovieDto
 import hu.bbara.purefin.core.data.navigation.NavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
@@ -22,13 +22,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val mediaRepository: MediaRepository,
+    private val appContentRepository: AppContentRepository,
     private val navigationManager: NavigationManager
 ) : ViewModel() {
 
     private val selectedLibrary = MutableStateFlow<UUID?>(null)
 
-    val contents: StateFlow<List<PosterItem>> = combine(selectedLibrary, mediaRepository.libraries) {
+    val contents: StateFlow<List<PosterItem>> = combine(selectedLibrary, appContentRepository.libraries) {
         libraryId, libraries ->
         if (libraryId == null) {
             return@combine emptyList()
@@ -46,7 +46,7 @@ class LibraryViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
-        viewModelScope.launch { mediaRepository.ensureReady() }
+        viewModelScope.launch { appContentRepository.ensureReady() }
     }
 
     fun onMovieSelected(movieId: UUID) {

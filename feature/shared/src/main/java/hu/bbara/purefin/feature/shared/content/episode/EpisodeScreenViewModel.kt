@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import javax.inject.Inject
 
@@ -30,10 +29,6 @@ class EpisodeScreenViewModel @Inject constructor(
     ) { id, episodesMap ->
         id?.let { episodesMap[it] }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    init {
-        viewModelScope.launch { mediaRepository.ensureReady() }
-    }
 
     fun onBack() {
         navigationManager.pop()

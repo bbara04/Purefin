@@ -39,11 +39,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class InMemoryMediaRepository @Inject constructor(
+class InMemoryAppContentRepository @Inject constructor(
     val userSessionRepository: UserSessionRepository,
     val jellyfinApiClient: JellyfinApiClient,
     private val homeCacheDataStore: DataStore<HomeCache>
-) : MediaRepository {
+) : AppContentRepository {
 
     private val ready = CompletableDeferred<Unit>()
     private val readyMutex = Mutex()

@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import javax.inject.Inject
 
@@ -34,20 +33,14 @@ class SeriesViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    init {
-        viewModelScope.launch { mediaRepository.ensureReady() }
-    }
-
-    fun onSelectEpisode(seriesId: UUID, seasonId:UUID, episodeId: UUID) {
-        viewModelScope.launch {
-            navigationManager.navigate(Route.EpisodeRoute(
-                EpisodeDto(
-                    id = episodeId,
-                    seasonId = seasonId,
-                    seriesId = seriesId
-                )
-            ))
-        }
+    fun onSelectEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) {
+        navigationManager.navigate(Route.EpisodeRoute(
+            EpisodeDto(
+                id = episodeId,
+                seasonId = seasonId,
+                seriesId = seriesId
+            )
+        ))
     }
 
     fun onBack() {

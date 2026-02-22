@@ -22,23 +22,23 @@ import javax.inject.Singleton
 @Singleton
 class OfflineMediaRepository @Inject constructor(
     private val localDataSource: OfflineRoomMediaLocalDataSource
-) {
+) : MediaRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    val movies: StateFlow<Map<UUID, Movie>> = localDataSource.moviesFlow
+    override val movies: StateFlow<Map<UUID, Movie>> = localDataSource.moviesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
-    val series: StateFlow<Map<UUID, Series>> = localDataSource.seriesFlow
+    override val series: StateFlow<Map<UUID, Series>> = localDataSource.seriesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
-    val episodes: StateFlow<Map<UUID, Episode>> = localDataSource.episodesFlow
+    override val episodes: StateFlow<Map<UUID, Episode>> = localDataSource.episodesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
-    fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
+    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
         return localDataSource.observeSeriesWithContent(seriesId)
     }
 
-    suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
+    override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
         if (durationMs <= 0) return
         val progressPercent = (positionMs.toDouble() / durationMs.toDouble()) * 100.0
         val watched = progressPercent >= 90.0

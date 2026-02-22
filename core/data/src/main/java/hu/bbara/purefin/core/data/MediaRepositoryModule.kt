@@ -10,6 +10,9 @@ import dagger.hilt.components.SingletonComponent
 abstract class MediaRepositoryModule {
 
     @Binds
-    abstract fun bindInMemoryMediaRepository(impl: InMemoryMediaRepository): MediaRepository
+    abstract fun bindAppContentRepository(impl: InMemoryAppContentRepository): AppContentRepository
+
+    @Binds
+    abstract fun bindMediaRepository(impl: CompositeMediaRepository): MediaRepository
 
 }
