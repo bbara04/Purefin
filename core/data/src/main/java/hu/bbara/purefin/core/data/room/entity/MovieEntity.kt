@@ -1,4 +1,4 @@
-package hu.bbara.purefin.core.data.local.room
+package hu.bbara.purefin.core.data.room.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
@@ -8,13 +8,6 @@ import java.util.UUID
 
 @Entity(
     tableName = "movies",
-    foreignKeys = [
-        ForeignKey(
-            entity = LibraryEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["libraryId"],
-        ),
-    ],
     indices = [Index("libraryId")]
 )
 data class MovieEntity(

@@ -1,9 +1,9 @@
-package hu.bbara.purefin.core.data.local.room.dao
+package hu.bbara.purefin.core.data.room.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import hu.bbara.purefin.core.data.local.room.CastMemberEntity
+import hu.bbara.purefin.core.data.room.entity.CastMemberEntity
 import java.util.UUID
 
 @Dao

@@ -1,9 +1,9 @@
-package hu.bbara.purefin.core.data.local.room.dao
+package hu.bbara.purefin.core.data.room.dao
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import hu.bbara.purefin.core.data.local.room.SeasonEntity
+import hu.bbara.purefin.core.data.room.entity.SeasonEntity
 import java.util.UUID
 
 @Dao

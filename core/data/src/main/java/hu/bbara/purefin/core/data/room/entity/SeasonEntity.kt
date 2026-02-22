@@ -1,4 +1,4 @@
-package hu.bbara.purefin.core.data.local.room
+package hu.bbara.purefin.core.data.room.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey

@@ -1,56 +1,42 @@
-package hu.bbara.purefin.core.data.local.room
+package hu.bbara.purefin.core.data.room.offline
 
 import androidx.room.withTransaction
-import hu.bbara.purefin.core.data.local.room.dao.CastMemberDao
-import hu.bbara.purefin.core.data.local.room.dao.EpisodeDao
-import hu.bbara.purefin.core.data.local.room.dao.LibraryDao
-import hu.bbara.purefin.core.data.local.room.dao.MovieDao
-import hu.bbara.purefin.core.data.local.room.dao.SeasonDao
-import hu.bbara.purefin.core.data.local.room.dao.SeriesDao
-import hu.bbara.purefin.core.model.CastMember
+import hu.bbara.purefin.core.data.room.dao.EpisodeDao
+import hu.bbara.purefin.core.data.room.dao.MovieDao
+import hu.bbara.purefin.core.data.room.dao.SeasonDao
+import hu.bbara.purefin.core.data.room.dao.SeriesDao
+import hu.bbara.purefin.core.data.room.entity.EpisodeEntity
+import hu.bbara.purefin.core.data.room.entity.MovieEntity
+import hu.bbara.purefin.core.data.room.entity.SeasonEntity
+import hu.bbara.purefin.core.data.room.entity.SeriesEntity
 import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Library
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.jellyfin.sdk.model.api.CollectionType
 import java.util.UUID
 import javax.inject.Singleton
 
 @Singleton
-class RoomMediaLocalDataSource(
-    private val database: MediaDatabase,
+class OfflineRoomMediaLocalDataSource(
+    private val database: OfflineMediaDatabase,
     private val movieDao: MovieDao,
     private val seriesDao: SeriesDao,
     private val seasonDao: SeasonDao,
     private val episodeDao: EpisodeDao,
-    private val castMemberDao: CastMemberDao,
-    private val libraryDao: LibraryDao
 ) {
 
-    // Lightweight Flows for list screens (home, library)
-    val librariesFlow: Flow<List<Library>> = libraryDao.observeAllWithContent()
-        .map { relation ->
-            relation.map { libraryEntity ->
-                libraryEntity.library.toDomain(
-                    movies = libraryEntity.movies.map { it.toDomain(listOf()) },
-                    series = libraryEntity.series.map { it.toDomain(listOf(), listOf()) }
-                )
-            }
-        }
-
     val moviesFlow: Flow<Map<UUID, Movie>> = movieDao.observeAll()
-        .map { entities -> entities.associate { it.id to it.toDomain(cast = emptyList()) } }
+        .map { entities -> entities.associate { it.id to it.toDomain() } }
 
     val seriesFlow: Flow<Map<UUID, Series>> = seriesDao.observeAll()
         .map { entities ->
-            entities.associate { it.id to it.toDomain(seasons = emptyList(), cast = emptyList()) }
+            entities.associate { it.id to it.toDomain(seasons = emptyList()) }
         }
 
     val episodesFlow: Flow<Map<UUID, Episode>> = episodeDao.observeAll()
-        .map { entities -> entities.associate { it.id to it.toDomain(cast = emptyList()) } }
+        .map { entities -> entities.associate { it.id to it.toDomain() } }
 
     // Full content Flow for series detail screen (scoped to one series)
     fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> =
@@ -59,20 +45,11 @@ class RoomMediaLocalDataSource(
                 it.series.toDomain(
                     seasons = it.seasons.map { swe ->
                         swe.season.toDomain(
-                            episodes = swe.episodes.map { ep -> ep.toDomain(cast = emptyList()) }
+                            episodes = swe.episodes.map { ep -> ep.toDomain() }
                         )
-                    },
-                    cast = emptyList()
-                )
+                    }                )
             }
         }
-
-    suspend fun saveLibraries(libraries: List<Library>) {
-        database.withTransaction {
-            libraryDao.deleteAll()
-            libraryDao.upsertAll(libraries.map { it.toEntity() })
-        }
-    }
 
     suspend fun saveMovies(movies: List<Movie>) {
         database.withTransaction {
@@ -115,15 +92,13 @@ class RoomMediaLocalDataSource(
     suspend fun getMovies(): List<Movie> {
         val movies = movieDao.getAll()
         return movies.map { entity ->
-            val cast = castMemberDao.getByMovieId(entity.id).map { it.toDomain() }
-            entity.toDomain(cast)
+            entity.toDomain()
         }
     }
 
     suspend fun getMovie(id: UUID): Movie? {
         val entity = movieDao.getById(id) ?: return null
-        val cast = castMemberDao.getByMovieId(id).map { it.toDomain() }
-        return entity.toDomain(cast)
+        return entity.toDomain()
     }
 
     suspend fun getSeries(): List<Series> {
@@ -136,24 +111,21 @@ class RoomMediaLocalDataSource(
 
     private suspend fun getSeriesInternal(id: UUID, includeContent: Boolean): Series? {
         val entity = seriesDao.getById(id) ?: return null
-        val cast = castMemberDao.getBySeriesId(id).map { it.toDomain() }
         val seasons = if (includeContent) {
             seasonDao.getBySeriesId(id).map { seasonEntity ->
                 val episodes = episodeDao.getBySeasonId(seasonEntity.id).map { episodeEntity ->
-                    val episodeCast = castMemberDao.getByEpisodeId(episodeEntity.id).map { it.toDomain() }
-                    episodeEntity.toDomain(episodeCast)
+                    episodeEntity.toDomain()
                 }
                 seasonEntity.toDomain(episodes)
             }
         } else emptyList()
-        return entity.toDomain(seasons, cast)
+        return entity.toDomain(seasons)
     }
 
     suspend fun getSeason(seriesId: UUID, seasonId: UUID): Season? {
         val seasonEntity = seasonDao.getById(seasonId) ?: return null
         val episodes = episodeDao.getBySeasonId(seasonId).map { episodeEntity ->
-            val episodeCast = castMemberDao.getByEpisodeId(episodeEntity.id).map { it.toDomain() }
-            episodeEntity.toDomain(episodeCast)
+            episodeEntity.toDomain()
         }
         return seasonEntity.toDomain(episodes)
     }
@@ -161,8 +133,7 @@ class RoomMediaLocalDataSource(
     suspend fun getSeasons(seriesId: UUID): List<Season> {
         return seasonDao.getBySeriesId(seriesId).map { seasonEntity ->
             val episodes = episodeDao.getBySeasonId(seasonEntity.id).map { episodeEntity ->
-                val episodeCast = castMemberDao.getByEpisodeId(episodeEntity.id).map { it.toDomain() }
-                episodeEntity.toDomain(episodeCast)
+                episodeEntity.toDomain()
             }
             seasonEntity.toDomain(episodes)
         }
@@ -170,14 +141,12 @@ class RoomMediaLocalDataSource(
 
     suspend fun getEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID): Episode? {
         val episodeEntity = episodeDao.getById(episodeId) ?: return null
-        val cast = castMemberDao.getByEpisodeId(episodeId).map { it.toDomain() }
-        return episodeEntity.toDomain(cast)
+        return episodeEntity.toDomain()
     }
 
     suspend fun getEpisodeById(episodeId: UUID): Episode? {
         val episodeEntity = episodeDao.getById(episodeId) ?: return null
-        val cast = castMemberDao.getByEpisodeId(episodeId).map { it.toDomain() }
-        return episodeEntity.toDomain(cast)
+        return episodeEntity.toDomain()
     }
 
     suspend fun updateWatchProgress(mediaId: UUID, progress: Double?, watched: Boolean) {
@@ -199,32 +168,9 @@ class RoomMediaLocalDataSource(
 
     suspend fun getEpisodesBySeries(seriesId: UUID): List<Episode> {
         return episodeDao.getBySeriesId(seriesId).map { episodeEntity ->
-            val cast = castMemberDao.getByEpisodeId(episodeEntity.id).map { it.toDomain() }
-            episodeEntity.toDomain(cast)
+            episodeEntity.toDomain()
         }
     }
-
-    private fun Library.toEntity() = LibraryEntity(
-        id = id,
-        name = name,
-        type = when (type) {
-            CollectionType.MOVIES -> "MOVIES"
-            CollectionType.TVSHOWS -> "TVSHOWS"
-            else -> throw UnsupportedOperationException("Unsupported library type: $type")
-        }
-    )
-
-    private fun LibraryEntity.toDomain(series: List<Series>, movies: List<Movie>) = Library(
-        id = id,
-        name = name,
-        type = when (type) {
-            "MOVIES" -> CollectionType.MOVIES
-            "TVSHOWS" -> CollectionType.TVSHOWS
-            else -> throw UnsupportedOperationException("Unsupported library type: $type")
-        },
-        movies = if (type == "MOVIES") movies else null,
-        series = if (type == "TVSHOWS") series else null,
-    )
 
     private fun Movie.toEntity() = MovieEntity(
         id = id,
@@ -278,7 +224,7 @@ class RoomMediaLocalDataSource(
         heroImageUrl = heroImageUrl
     )
 
-    private fun MovieEntity.toDomain(cast: List<CastMember>) = Movie(
+    private fun MovieEntity.toDomain() = Movie(
         id = id,
         libraryId = libraryId,
         title = title,
@@ -292,10 +238,10 @@ class RoomMediaLocalDataSource(
         heroImageUrl = heroImageUrl,
         audioTrack = audioTrack,
         subtitles = subtitles,
-        cast = cast
+        cast = emptyList()
     )
 
-    private fun SeriesEntity.toDomain(seasons: List<Season>, cast: List<CastMember>) = Series(
+    private fun SeriesEntity.toDomain(seasons: List<Season>) = Series(
         id = id,
         libraryId = libraryId,
         name = name,
@@ -305,7 +251,7 @@ class RoomMediaLocalDataSource(
         unwatchedEpisodeCount = unwatchedEpisodeCount,
         seasonCount = seasonCount,
         seasons = seasons,
-        cast = cast
+        cast = emptyList()
     )
 
     private fun SeasonEntity.toDomain(episodes: List<Episode>) = Season(
@@ -318,7 +264,7 @@ class RoomMediaLocalDataSource(
         episodes = episodes
     )
 
-    private fun EpisodeEntity.toDomain(cast: List<CastMember>) = Episode(
+    private fun EpisodeEntity.toDomain() = Episode(
         id = id,
         seriesId = seriesId,
         seasonId = seasonId,
@@ -332,33 +278,6 @@ class RoomMediaLocalDataSource(
         watched = watched,
         format = format,
         heroImageUrl = heroImageUrl,
-        cast = cast
-    )
-
-    private fun CastMember.toMovieEntity(movieId: UUID) = CastMemberEntity(
-        name = name,
-        role = role,
-        imageUrl = imageUrl,
-        movieId = movieId
-    )
-
-    private fun CastMember.toSeriesEntity(seriesId: UUID) = CastMemberEntity(
-        name = name,
-        role = role,
-        imageUrl = imageUrl,
-        seriesId = seriesId
-    )
-
-    private fun CastMember.toEpisodeEntity(episodeId: UUID) = CastMemberEntity(
-        name = name,
-        role = role,
-        imageUrl = imageUrl,
-        episodeId = episodeId
-    )
-
-    private fun CastMemberEntity.toDomain() = CastMember(
-        name = name,
-        role = role,
-        imageUrl = imageUrl
+        cast = emptyList()
     )
 }
