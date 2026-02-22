@@ -177,7 +177,7 @@ class InMemoryMediaRepository @Inject constructor(
         //TODO add support for playlists
         val filteredLibraries =
             librariesItem.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS }
-        val emptyLibraries = filteredLibraries.map { it.toLibrary() }
+        val emptyLibraries = filteredLibraries.map { it.toLibrary(serverUrl()) }
         _libraries.value = emptyLibraries
 
         val filledLibraries = emptyLibraries.map { library ->
@@ -369,17 +369,27 @@ class InMemoryMediaRepository @Inject constructor(
         return userSessionRepository.serverUrl.first()
     }
 
-    private fun BaseItemDto.toLibrary(): Library {
+    private fun BaseItemDto.toLibrary(serverUrl: String): Library {
         return when (this.collectionType) {
             CollectionType.MOVIES -> Library(
                 id = this.id,
                 name = this.name!!,
+                posterUrl = JellyfinImageHelper.toImageUrl(
+                    url = serverUrl,
+                    itemId = this.id,
+                    type = ImageType.PRIMARY
+                ),
                 type = CollectionType.MOVIES,
                 movies = emptyList()
             )
             CollectionType.TVSHOWS -> Library(
                 id = this.id,
                 name = this.name!!,
+                posterUrl = JellyfinImageHelper.toImageUrl(
+                    url = serverUrl,
+                    itemId = this.id,
+                    type = ImageType.PRIMARY
+                ),
                 type = CollectionType.TVSHOWS,
                 series = emptyList()
             )

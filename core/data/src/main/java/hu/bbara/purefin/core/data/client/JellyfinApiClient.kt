@@ -110,7 +110,7 @@ class JellyfinApiClient @Inject constructor(
             ItemFields.PARENT_ID,
             ItemFields.DATE_LAST_REFRESHED,
             ItemFields.OVERVIEW,
-            ItemFields.SEASON_USER_DATA
+            ItemFields.SEASON_USER_DATA,
         )
 
     suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
@@ -119,7 +119,7 @@ class JellyfinApiClient @Inject constructor(
         }
         val getItemsRequest = GetItemsRequest(
             userId = getUserId(),
-            enableImages = false,
+            enableImages = true,
             parentId = libraryId,
             fields = itemFields,
             enableUserData = true,

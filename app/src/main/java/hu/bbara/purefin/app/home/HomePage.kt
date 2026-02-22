@@ -6,8 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Movie
-import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -29,7 +27,6 @@ import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.HomeTopBar
 import hu.bbara.purefin.app.home.ui.LibrariesContent
 import hu.bbara.purefin.feature.shared.home.HomePageViewModel
-import org.jellyfin.sdk.model.api.CollectionType
 
 @Composable
 fun HomePage(
@@ -44,11 +41,7 @@ fun HomePage(
         HomeNavItem(
             id = it.id,
             label = it.name,
-            icon = when (it.type) {
-                CollectionType.MOVIES -> Icons.Outlined.Movie
-                CollectionType.TVSHOWS -> Icons.Outlined.Tv
-                else -> Icons.Outlined.Collections
-            },
+            posterUrl = it.posterUrl
         )
     }
     val continueWatching = viewModel.continueWatching.collectAsState()

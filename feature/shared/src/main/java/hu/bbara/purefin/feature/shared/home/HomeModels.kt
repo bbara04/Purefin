@@ -46,6 +46,7 @@ data class LibraryItem(
     val id: UUID,
     val name: String,
     val type: CollectionType,
+    val posterUrl: String,
     val isEmpty: Boolean
 )
 

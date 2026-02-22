@@ -4,9 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.MediaRepository
-import hu.bbara.purefin.core.model.Media
 import hu.bbara.purefin.core.data.domain.usecase.RefreshHomeDataUseCase
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.LibraryDto
 import hu.bbara.purefin.core.data.navigation.MovieDto
@@ -14,6 +12,7 @@ import hu.bbara.purefin.core.data.navigation.NavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.core.model.Media
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -22,7 +21,6 @@ import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
-import org.jellyfin.sdk.model.api.ImageType
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,6 +43,7 @@ class HomePageViewModel @Inject constructor(
                 id = it.id,
                 name = it.name,
                 type = it.type,
+                posterUrl = it.posterUrl,
                 isEmpty = when(it.type) {
                     CollectionType.MOVIES -> mediaRepository.movies.value.isEmpty()
                     CollectionType.TVSHOWS -> mediaRepository.series.value.isEmpty()

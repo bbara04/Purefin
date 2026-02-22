@@ -7,6 +7,7 @@ data class Library(
     val id: UUID,
     val name: String,
     val type: CollectionType,
+    val posterUrl: String,
     val series: List<Series>? = null,
     val movies: List<Movie>? = null,
 ) {
