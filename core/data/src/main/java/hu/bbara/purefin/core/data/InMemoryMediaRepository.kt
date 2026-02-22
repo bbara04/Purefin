@@ -7,7 +7,6 @@ import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -36,11 +35,8 @@ class InMemoryMediaRepository @Inject constructor(
 ) : MediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    @Volatile internal var ready = CompletableDeferred<Unit>()
 
-    internal fun reset() {
-        ready = CompletableDeferred()
-    }
+    override val ready: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     internal val _movies: MutableStateFlow<Map<UUID, Movie>> = MutableStateFlow(emptyMap())
     override val movies: StateFlow<Map<UUID, Movie>> = _movies.asStateFlow()
@@ -50,25 +46,27 @@ class InMemoryMediaRepository @Inject constructor(
 
     internal val _episodes: MutableStateFlow<Map<UUID, Episode>> = MutableStateFlow(emptyMap())
     override val episodes: StateFlow<Map<UUID, Episode>> = _episodes.asStateFlow()
-
-    internal fun signalReady() {
-        ready.complete(Unit)
+    override fun upsertMovies(movies: List<Movie>) {
+        _movies.update { current -> current + movies.associateBy { it.id } }
     }
 
-    internal fun signalError(t: Throwable) {
-        ready.completeExceptionally(t)
+    override fun upsertSeries(series: List<Series>) {
+        _series.update { current -> current + series.associateBy { it.id } }
     }
 
-    private suspend fun awaitReady() {
-        ready.await()
+    override fun upsertEpisodes(episodes: List<Episode>) {
+        _episodes.update { current -> current + episodes.associateBy { it.id } }
     }
 
     override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
         scope.launch {
-            awaitReady()
             ensureSeriesContentLoaded(seriesId)
         }
         return _series.map { it[seriesId] }
+    }
+
+    override fun setReady() {
+        ready.value = true
     }
 
     private suspend fun ensureSeriesContentLoaded(seriesId: UUID) {

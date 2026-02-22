@@ -1,5 +1,6 @@
 package hu.bbara.purefin.core.data
 
+import android.util.Log
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
@@ -11,7 +12,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.util.UUID
 import javax.inject.Inject
@@ -28,14 +31,24 @@ import javax.inject.Singleton
 class CompositeMediaRepository @Inject constructor(
     private val offlineRepository: OfflineMediaRepository,
     private val onlineRepository: InMemoryMediaRepository,
-    private val userSessionRepository: UserSessionRepository,
+    private val networkMonitor: NetworkMonitor,
 ) : MediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    override val ready: StateFlow<Boolean> = combine(
+        offlineRepository.ready,
+        onlineRepository.ready
+    ) { offlineReady, onlineReady ->
+        offlineReady && onlineReady
+    }.stateIn(scope, SharingStarted.Eagerly, false)
+
+    private val isOnline: StateFlow<Boolean> = networkMonitor.isOnline
+        .stateIn(scope, SharingStarted.Eagerly, false)
+
     private val activeRepository: Flow<MediaRepository> =
-        userSessionRepository.isOfflineMode.flatMapLatest { offline ->
-            kotlinx.coroutines.flow.flowOf(if (offline) offlineRepository else onlineRepository)
+        networkMonitor.isOnline.flatMapLatest { online ->
+            flowOf(if (online) onlineRepository else offlineRepository)
         }
 
     override val movies: StateFlow<Map<UUID, Movie>> = activeRepository
@@ -50,13 +63,42 @@ class CompositeMediaRepository @Inject constructor(
         .flatMapLatest { it.episodes }
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
+    override fun upsertMovies(movies: List<Movie>) {
+        if (!isOnline.value) {
+            Log.e("CompositeMediaRepository", "upsertMovies called in offline mode")
+            return
+        }
+        onlineRepository.upsertMovies(movies)
+    }
+
+    override fun upsertSeries(series: List<Series>) {
+        if (!isOnline.value) {
+            Log.e("CompositeMediaRepository", "upsertSeries called in offline mode")
+            return
+        }
+        onlineRepository.upsertSeries(series)
+    }
+
+    override fun upsertEpisodes(episodes: List<Episode>) {
+        if (!isOnline.value) {
+            Log.e("CompositeMediaRepository", "upsertEpisodes called in offline mode")
+            return
+        }
+        onlineRepository.upsertEpisodes(episodes)
+    }
+
     override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
         return activeRepository.flatMapLatest { it.observeSeriesWithContent(seriesId) }
     }
 
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
-        val isOffline = userSessionRepository.isOfflineMode.stateIn(scope).value
-        val repo = if (isOffline) offlineRepository else onlineRepository
+        val isOnline = networkMonitor.isOnline.stateIn(scope).value
+        val repo = if (isOnline) onlineRepository else offlineRepository
         repo.updateWatchProgress(mediaId, positionMs, durationMs)
+    }
+
+    override fun setReady() {
+        onlineRepository.setReady()
+        offlineRepository.setReady()
     }
 }
