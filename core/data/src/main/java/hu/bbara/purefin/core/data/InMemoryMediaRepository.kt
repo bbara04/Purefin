@@ -36,7 +36,11 @@ class InMemoryMediaRepository @Inject constructor(
 ) : MediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    internal val ready = CompletableDeferred<Unit>()
+    @Volatile internal var ready = CompletableDeferred<Unit>()
+
+    internal fun reset() {
+        ready = CompletableDeferred()
+    }
 
     internal val _movies: MutableStateFlow<Map<UUID, Movie>> = MutableStateFlow(emptyMap())
     override val movies: StateFlow<Map<UUID, Movie>> = _movies.asStateFlow()

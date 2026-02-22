@@ -131,7 +131,13 @@ class HomePageViewModel @Inject constructor(
     )
 
     init {
-        viewModelScope.launch { appContentRepository.ensureReady() }
+        viewModelScope.launch {
+            try {
+                appContentRepository.ensureReady()
+            } catch (e: Exception) {
+                // State is already set to Error by ensureReady; don't crash the app
+            }
+        }
     }
 
     fun onLibrarySelected(id: UUID, name: String) {

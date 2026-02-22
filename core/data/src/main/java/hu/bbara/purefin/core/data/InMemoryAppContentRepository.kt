@@ -41,6 +41,7 @@ class InMemoryAppContentRepository @Inject constructor(
     val jellyfinApiClient: JellyfinApiClient,
     private val homeCacheDataStore: DataStore<HomeCache>,
     private val mediaRepository: InMemoryMediaRepository,
+    private val networkMonitor: NetworkMonitor,
 ) : AppContentRepository, MediaRepository by mediaRepository {
 
     private val readyMutex = Mutex()
@@ -65,7 +66,23 @@ class InMemoryAppContentRepository @Inject constructor(
     init {
         scope.launch {
             loadFromCache()
-            runCatching { ensureReady() }
+            networkMonitor.isOnline.collect { isOnline ->
+                userSessionRepository.setOfflineMode(!isOnline)
+                if (isOnline) {
+                    if (mediaRepository.ready.isCompleted) {
+                        // Reset so ensureReady() performs a fresh network load
+                        mediaRepository.reset()
+                        _state.value = MediaRepositoryState.Loading
+                    }
+                    runCatching { ensureReady() }
+                } else {
+                    // Going offline – complete ready with cached data so waiters don't hang
+                    if (!mediaRepository.ready.isCompleted) {
+                        _state.value = MediaRepositoryState.Ready
+                        mediaRepository.signalReady()
+                    }
+                }
+            }
         }
     }
 
@@ -116,6 +133,18 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     override suspend fun ensureReady() {
+        val isOffline = userSessionRepository.isOfflineMode.first()
+        if (isOffline) {
+            // Offline mode: use cached data without network calls
+            val ready = mediaRepository.ready
+            if (!ready.isCompleted) {
+                _state.value = MediaRepositoryState.Ready
+                mediaRepository.signalReady()
+            }
+            mediaRepository.ready.await()
+            return
+        }
+
         val ready = mediaRepository.ready
         if (ready.isCompleted) {
             ready.await()
@@ -125,8 +154,8 @@ class InMemoryAppContentRepository @Inject constructor(
         // Only the first caller runs the loading logic; others wait on the deferred.
         if (readyMutex.tryLock()) {
             try {
-                if (ready.isCompleted) {
-                    ready.await()
+                if (mediaRepository.ready.isCompleted) {
+                    mediaRepository.ready.await()
                     return
                 }
                 loadLibraries()
@@ -145,7 +174,7 @@ class InMemoryAppContentRepository @Inject constructor(
                 readyMutex.unlock()
             }
         } else {
-            ready.await()
+            mediaRepository.ready.await()
         }
     }
 
@@ -288,6 +317,9 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     override suspend fun refreshHomeData() {
+        val isOffline = userSessionRepository.isOfflineMode.first()
+        if (isOffline) return
+
         mediaRepository.ready.await()
         // Skip refresh if the initial load (or last refresh) just happened
         val elapsed = System.currentTimeMillis() - initialLoadTimestamp
