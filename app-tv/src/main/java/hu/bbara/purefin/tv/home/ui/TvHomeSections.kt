@@ -18,16 +18,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -49,7 +53,6 @@ import hu.bbara.purefin.common.ui.PosterCard
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import androidx.compose.material3.IconButtonDefaults
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
@@ -63,6 +66,12 @@ fun TvContinueWatchingSection(
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val firstItemFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(items.isNotEmpty()) {
+        if (items.isNotEmpty()) {
+            firstItemFocusRequester.requestFocus()
+        }
+    }
     if (items.isEmpty()) return
     TvSectionHeader(
         title = "Continue Watching",
@@ -73,9 +82,10 @@ fun TvContinueWatchingSection(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(items = items) { item ->
+        itemsIndexed(items = items) { index, item ->
             TvContinueWatchingCard(
                 item = item,
+                focusRequester = if (index == 0) firstItemFocusRequester else null,
                 onMovieSelected = onMovieSelected,
                 onEpisodeSelected = onEpisodeSelected
             )
@@ -87,6 +97,7 @@ fun TvContinueWatchingSection(
 fun TvContinueWatchingCard(
     item: ContinueWatchingItem,
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
@@ -146,6 +157,7 @@ fun TvContinueWatchingCard(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
+                    .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
                     .onFocusChanged { isFocused = it.isFocused }
                     .clickable {
                         openItem(item)
