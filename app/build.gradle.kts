@@ -17,14 +17,18 @@ android {
         applicationId = "hu.bbara.purefin"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1000001
+        versionCode = 1000002
         versionName = "0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Enables code-related app optimization.
+            isMinifyEnabled = true
+
+            // Enables resource shrinking.
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
