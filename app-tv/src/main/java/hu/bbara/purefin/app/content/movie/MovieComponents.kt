@@ -33,7 +33,7 @@ import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
-import hu.bbara.purefin.feature.shared.content.movie.MovieUiModel
+import hu.bbara.purefin.core.model.Movie
 
 @Composable
 internal fun MovieTopBar(
@@ -64,7 +64,7 @@ internal fun MovieTopBar(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun MovieDetails(
-    movie: MovieUiModel,
+    movie: Movie,
     onPlay: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -132,16 +132,18 @@ internal fun MovieDetails(
             subtitles = movie.subtitles
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = "Cast",
-            color = scheme.onBackground,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        MediaCastRow(
-            cast = emptyList()
-        )
+        if (movie.cast.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "Cast",
+                color = scheme.onBackground,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            MediaCastRow(
+                cast = movie.cast
+            )
+        }
     }
 }

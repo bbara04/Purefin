@@ -8,7 +8,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,10 +65,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -650,14 +655,18 @@ private fun TvTrackSelectionPanel(
                 ) {
                     options.forEach { option ->
                         val selected = option.id == selectedId
+                        var isTrackFocused by remember { mutableStateOf(false) }
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .then(if (isTrackFocused) Modifier.border(2.dp, scheme.primary, RoundedCornerShape(12.dp)) else Modifier)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(
-                                    if (selected) scheme.primary.copy(alpha = 0.15f)
+                                    if (isTrackFocused) scheme.primary.copy(alpha = 0.3f)
+                                    else if (selected) scheme.primary.copy(alpha = 0.15f)
                                     else scheme.surfaceVariant.copy(alpha = 0.6f)
                                 )
+                                .onFocusChanged { isTrackFocused = it.isFocused }
                                 .clickable { onSelect(option) }
                                 .padding(horizontal = 20.dp, vertical = 14.dp)
                         ) {
@@ -724,14 +733,18 @@ private fun TvQueuePanel(
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(uiState.queue) { item ->
+                            var isQueueFocused by remember { mutableStateOf(false) }
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .then(if (isQueueFocused) Modifier.border(2.dp, scheme.primary, RoundedCornerShape(12.dp)) else Modifier)
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(
-                                        if (item.isCurrent) scheme.primary.copy(alpha = 0.15f)
+                                        if (isQueueFocused) scheme.primary.copy(alpha = 0.35f)
+                                        else if (item.isCurrent) scheme.primary.copy(alpha = 0.15f)
                                         else scheme.surfaceVariant.copy(alpha = 0.8f)
                                     )
+                                    .onFocusChanged { isQueueFocused = it.isFocused }
                                     .clickable { onSelect(item.id) }
                                     .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -790,12 +803,19 @@ private fun TvIconButton(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
+    var isFocused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(targetValue = if (isFocused) 1.1f else 1.0f, label = "scale")
+    val borderColor by animateColorAsState(targetValue = if (isFocused) scheme.primary else Color.Transparent, label = "border")
+
     Box(
         modifier = modifier
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .widthIn(min = size.dp)
             .height(size.dp)
+            .border(if (isFocused) 2.dp else 0.dp, borderColor, RoundedCornerShape(50))
             .clip(RoundedCornerShape(50))
-            .background(scheme.background.copy(alpha = 0.65f))
+            .background(if (isFocused) scheme.primary.copy(alpha = 0.5f) else scheme.background.copy(alpha = 0.65f))
+            .onFocusChanged { isFocused = it.isFocused }
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {

@@ -1,15 +1,15 @@
 package hu.bbara.purefin.app.content.series
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,47 +61,35 @@ private fun SeriesScreenInternal(
 ) {
     val scheme = MaterialTheme.colorScheme
     val textMutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
+    val hPad = Modifier.padding(horizontal = 16.dp)
 
-    fun getDefaultSeason() : Season {
+    fun getDefaultSeason(): Season {
         for (season in series.seasons) {
-            val firstUnwatchedEpisode = season.episodes.firstOrNull {
-                it.watched.not()
-            }
-            if (firstUnwatchedEpisode != null) {
-                return season
-            }
+            val firstUnwatchedEpisode = season.episodes.firstOrNull { it.watched.not() }
+            if (firstUnwatchedEpisode != null) return season
         }
         return series.seasons.first()
     }
     val selectedSeason = remember { mutableStateOf<Season>(getDefaultSeason()) }
 
-    Scaffold(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            SeriesTopBar(
-                onBack = onBack,
-                modifier = Modifier
-            )
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .background(scheme.background)
+    ) {
+        item {
+            Box {
+                MediaHero(
+                    imageUrl = series.heroImageUrl,
+                    heightFraction = 0.30f,
+                    backgroundColor = scheme.background,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                SeriesTopBar(onBack = onBack)
+            }
         }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            MediaHero(
-                imageUrl = series.heroImageUrl,
-                heightFraction = 0.30f,
-                backgroundColor = MaterialTheme.colorScheme.background,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-            ) {
+        item {
+            Column(modifier = hPad) {
                 Text(
                     text = series.name,
                     color = scheme.onBackground,
@@ -111,34 +99,52 @@ private fun SeriesScreenInternal(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 SeriesMetaChips(series = series)
-                Spacer(modifier = Modifier.height(24.dp))
-                SeriesActionButtons()
-                Spacer(modifier = Modifier.height(24.dp))
-                MediaSynopsis(
-                    synopsis = series.synopsis,
-                    bodyColor = textMutedStrong,
-                    bodyFontSize = 13.sp,
-                    bodyLineHeight = null,
-                    titleSpacing = 8.dp
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                SeasonTabs(
-                    seasons = series.seasons,
-                    selectedSeason = selectedSeason.value,
-                    onSelect = { selectedSeason.value = it }
-                )
-                EpisodeCarousel(
-                    episodes = selectedSeason.value.episodes,
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Cast",
-                    color = scheme.onBackground,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                CastRow(cast = series.cast)
+            }
+        }
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+            SeriesActionButtons(modifier = hPad)
+        }
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+            MediaSynopsis(
+                synopsis = series.synopsis,
+                bodyColor = textMutedStrong,
+                bodyFontSize = 13.sp,
+                bodyLineHeight = null,
+                titleSpacing = 8.dp,
+                modifier = hPad
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+            SeasonTabs(
+                seasons = series.seasons,
+                selectedSeason = selectedSeason.value,
+                onSelect = { selectedSeason.value = it },
+                modifier = hPad
+            )
+        }
+        item {
+            EpisodeCarousel(
+                episodes = selectedSeason.value.episodes,
+                modifier = hPad
+            )
+        }
+        if (series.cast.isNotEmpty()) {
+            item {
+                Column(modifier = hPad) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Cast",
+                        color = scheme.onBackground,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    CastRow(cast = series.cast)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }

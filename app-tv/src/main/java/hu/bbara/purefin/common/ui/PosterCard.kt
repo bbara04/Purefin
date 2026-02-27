@@ -1,5 +1,6 @@
 package hu.bbara.purefin.common.ui
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,9 +13,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -41,6 +48,8 @@ fun PosterCard(
     val scheme = MaterialTheme.colorScheme
     val context = LocalContext.current
     val density = LocalDensity.current
+    var isFocused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
     val posterWidth = 144.dp
     val posterHeight = posterWidth * 3 / 2
@@ -64,6 +73,7 @@ fun PosterCard(
     Column(
         modifier = Modifier
             .width(posterWidth)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
     ) {
         Box() {
             PurefinAsyncImage(
@@ -72,8 +82,13 @@ fun PosterCard(
                 modifier = Modifier
                     .aspectRatio(2f / 3f)
                     .clip(RoundedCornerShape(14.dp))
-                    .border(1.dp, scheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+                    .border(
+                        width = if (isFocused) 2.dp else 1.dp,
+                        color = if (isFocused) scheme.primary else scheme.outlineVariant.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(14.dp)
+                    )
                     .background(scheme.surfaceVariant)
+                    .onFocusChanged { isFocused = it.isFocused }
                     .clickable(onClick = { openItem(item) }),
                 contentScale = ContentScale.Crop
             )

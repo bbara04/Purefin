@@ -1,5 +1,6 @@
 package hu.bbara.purefin.app.content.series
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,10 +36,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -124,7 +131,7 @@ internal fun SeasonTabs(
             SeasonTab(
                 name = season.name,
                 isSelected = season == selectedSeason,
-                modifier = Modifier.clickable { onSelect(season) }
+                onSelect = { onSelect(season) }
             )
         }
     }
@@ -134,28 +141,34 @@ internal fun SeasonTabs(
 private fun SeasonTab(
     name: String,
     isSelected: Boolean,
+    onSelect: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
     val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
-    val color = if (isSelected) scheme.primary else mutedStrong
-    val borderColor = if (isSelected) scheme.primary else Color.Transparent
+    var isFocused by remember { mutableStateOf(false) }
+    val color = if (isSelected || isFocused) scheme.primary else mutedStrong
+    val underlineColor = if (isSelected || isFocused) scheme.primary else Color.Transparent
+    val underlineHeight = if (isFocused) 3.dp else 2.dp
+
     Column(
         modifier = modifier
             .padding(bottom = 8.dp)
+            .onFocusChanged { isFocused = it.isFocused }
+            .clickable { onSelect() }
     ) {
         Text(
             text = name,
             color = color,
             fontSize = 13.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+            fontWeight = if (isSelected || isFocused) FontWeight.Bold else FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
-                .height(2.dp)
+                .height(underlineHeight)
                 .width(52.dp)
-                .background(borderColor)
+                .background(underlineColor)
         )
     }
 }
@@ -191,9 +204,14 @@ private fun EpisodeCard(
 ) {
     val scheme = MaterialTheme.colorScheme
     val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
+    var isFocused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
+
     Column(
         modifier = Modifier
             .width(260.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .onFocusChanged { isFocused = it.isFocused }
             .clickable { viewModel.onSelectEpisode(
                 seriesId = episode.seriesId,
                 seasonId = episode.seasonId,
@@ -207,7 +225,11 @@ private fun EpisodeCard(
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(12.dp))
                 .background(scheme.surface)
-                .border(1.dp, scheme.outlineVariant, RoundedCornerShape(12.dp))
+                .border(
+                    width = if (isFocused) 2.dp else 1.dp,
+                    color = if (isFocused) scheme.primary else scheme.outlineVariant,
+                    shape = RoundedCornerShape(12.dp)
+                )
         ) {
             PurefinAsyncImage(
                 model = episode.heroImageUrl,

@@ -1,5 +1,6 @@
 package hu.bbara.purefin.tv.home.ui
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,9 +28,15 @@ import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -87,6 +94,8 @@ fun TvContinueWatchingCard(
 
     val context = LocalContext.current
     val density = LocalDensity.current
+    var isFocused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
     val imageUrl = when (item.type) {
         BaseItemKind.MOVIE -> item.movie?.heroImageUrl
@@ -118,13 +127,18 @@ fun TvContinueWatchingCard(
         modifier = modifier
             .width(cardWidth)
             .wrapContentHeight()
+            .graphicsLayer { scaleX = scale; scaleY = scale }
     ) {
         Box(
             modifier = Modifier
                 .width(cardWidth)
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, scheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .border(
+                    width = if (isFocused) 2.dp else 1.dp,
+                    color = if (isFocused) scheme.primary else scheme.outlineVariant.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .background(scheme.surfaceVariant)
         ) {
             PurefinAsyncImage(
@@ -132,6 +146,7 @@ fun TvContinueWatchingCard(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
+                    .onFocusChanged { isFocused = it.isFocused }
                     .clickable {
                         openItem(item)
                     },
@@ -201,6 +216,8 @@ fun TvNextUpCard(
 
     val context = LocalContext.current
     val density = LocalDensity.current
+    var isFocused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
     val imageUrl = item.episode.heroImageUrl
 
@@ -221,13 +238,18 @@ fun TvNextUpCard(
         modifier = modifier
             .width(cardWidth)
             .wrapContentHeight()
+            .graphicsLayer { scaleX = scale; scaleY = scale }
     ) {
         Box(
             modifier = Modifier
                 .width(cardWidth)
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, scheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                .border(
+                    width = if (isFocused) 2.dp else 1.dp,
+                    color = if (isFocused) scheme.primary else scheme.outlineVariant.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .background(scheme.surfaceVariant)
         ) {
             PurefinAsyncImage(
@@ -235,6 +257,7 @@ fun TvNextUpCard(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
+                    .onFocusChanged { isFocused = it.isFocused }
                     .clickable {
                         openItem(item)
                     },
