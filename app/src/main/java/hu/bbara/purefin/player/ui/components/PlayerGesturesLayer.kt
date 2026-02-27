@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -31,7 +33,8 @@ fun PlayerGesturesLayer(
 ) {
     val density = LocalDensity.current
     val horizontalThresholdPx = with(density) { HorizontalSeekGestureHelper.START_THRESHOLD.toPx() }
-    val directionThresholdPx = with(density) { 20.dp.toPx() } // Threshold to determine drag direction
+    val directionThresholdPx = with(density) { 20.dp.toPx() }
+    val dragActive = remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -39,8 +42,9 @@ fun PlayerGesturesLayer(
             .fillMaxHeight(0.90f)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { onTap() },
+                    onTap = { if (!dragActive.value) onTap() },
                     onDoubleTap = { offset ->
+                        if (dragActive.value) return@detectTapGestures
                         val screenWidth = size.width
                         val oneThird = screenWidth / 3
                         val secondThird = oneThird * 2
@@ -56,6 +60,7 @@ fun PlayerGesturesLayer(
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
                     val startX = down.position.x
+                    dragActive.value = false
 
                     var accumulatedDrag = Offset.Zero
                     var dragDirection: DragDirection? = null
@@ -63,12 +68,12 @@ fun PlayerGesturesLayer(
                     var isHorizontalDragActive = false
                     var lastPreviewDelta: Long? = null
 
-                    val dragResult = drag(down.id) { change ->
+                    drag(down.id) { change ->
                         val delta = change.positionChange()
                         accumulatedDrag += delta
 
-                        // Determine direction if not yet determined
                         if (dragDirection == null && (abs(accumulatedDrag.x) > directionThresholdPx || abs(accumulatedDrag.y) > directionThresholdPx)) {
+                            dragActive.value = true
                             dragDirection = if (abs(accumulatedDrag.x) > abs(accumulatedDrag.y)) {
                                 DragDirection.HORIZONTAL
                             } else {
@@ -76,7 +81,6 @@ fun PlayerGesturesLayer(
                             }
                         }
 
-                        // Handle based on determined direction
                         when (dragDirection) {
                             DragDirection.HORIZONTAL -> {
                                 accumulatedHorizontalDrag += delta.x
@@ -101,13 +105,10 @@ fun PlayerGesturesLayer(
                                     onVerticalDragRight(delta.y)
                                 }
                             }
-                            null -> {
-                                // Direction not determined yet, keep accumulating
-                            }
+                            null -> {}
                         }
                     }
 
-                    // Handle drag end
                     if (dragDirection == DragDirection.HORIZONTAL && isHorizontalDragActive) {
                         val deltaMs = HorizontalSeekGestureHelper.deltaMs(accumulatedHorizontalDrag)
                         if (deltaMs != 0L) {
