@@ -52,8 +52,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -137,8 +135,16 @@ fun TvPlayerScreen(
     }
 
     val focusRequester = remember { FocusRequester() }
+    val seekBarFocusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+    LaunchedEffect(controlsVisible) {
+        if (controlsVisible) {
+            seekBarFocusRequester.requestFocus()
+        } else {
+            focusRequester.requestFocus()
+        }
     }
 
     Box(
@@ -149,8 +155,17 @@ fun TvPlayerScreen(
             .onPreviewKeyEvent { event ->
                 if (!controlsVisible && event.type == KeyEventType.KeyDown) {
                     when (event.key) {
+                        Key.DirectionLeft -> {
+                            viewModel.seekBy(-10_000)
+                            viewModel.showControls()
+                            true
+                        }
+                        Key.DirectionRight -> {
+                            viewModel.seekBy(10_000)
+                            viewModel.showControls()
+                            true
+                        }
                         Key.DirectionUp, Key.DirectionDown,
-                        Key.DirectionLeft, Key.DirectionRight,
                         Key.DirectionCenter, Key.Enter -> {
                             viewModel.showControls()
                             true
@@ -185,6 +200,7 @@ fun TvPlayerScreen(
             TvPlayerControlsOverlay(
                 modifier = Modifier.fillMaxSize(),
                 uiState = uiState,
+                seekBarFocusRequester = seekBarFocusRequester,
                 onBack = onBack,
                 onPlayPause = { viewModel.togglePlayPause() },
                 onSeek = { viewModel.seekTo(it) },
@@ -250,6 +266,7 @@ private enum class TrackPanelType { AUDIO, SUBTITLES, QUALITY }
 @Composable
 private fun TvPlayerControlsOverlay(
     uiState: PlayerUiState,
+    seekBarFocusRequester: FocusRequester,
     onBack: () -> Unit,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -288,6 +305,7 @@ private fun TvPlayerControlsOverlay(
         )
         TvPlayerBottomSection(
             uiState = uiState,
+            seekBarFocusRequester = seekBarFocusRequester,
             onPlayPause = onPlayPause,
             onSeek = onSeek,
             onSeekRelative = onSeekRelative,
@@ -355,6 +373,7 @@ private fun TvPlayerTopBar(
 @Composable
 private fun TvPlayerBottomSection(
     uiState: PlayerUiState,
+    seekBarFocusRequester: FocusRequester,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
@@ -406,7 +425,9 @@ private fun TvPlayerBottomSection(
             bufferedMs = uiState.bufferedMs,
             chapterMarkers = uiState.chapters,
             adMarkers = uiState.ads,
-            onSeek = onSeek
+            onSeek = onSeek,
+            onSeekRelative = onSeekRelative,
+            focusRequester = seekBarFocusRequester
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
@@ -484,6 +505,8 @@ private fun TvPlayerSeekBar(
     chapterMarkers: List<TimedMarker>,
     adMarkers: List<TimedMarker>,
     onSeek: (Long) -> Unit,
+    onSeekRelative: (Long) -> Unit,
+    focusRequester: FocusRequester = remember { FocusRequester() },
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -493,12 +516,33 @@ private fun TvPlayerSeekBar(
     val progressRatio = (position.toFloat() / safeDuration).coerceIn(0f, 1f)
     val combinedMarkers = chapterMarkers.map { it.copy(type = MarkerType.CHAPTER) } +
             adMarkers.map { it.copy(type = MarkerType.AD) }
+    var isFocused by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 4.dp)
-            .height(32.dp),
+            .height(32.dp)
+            .focusRequester(focusRequester)
+            .onFocusChanged { isFocused = it.isFocused }
+            .onPreviewKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown) {
+                    when (event.key) {
+                        Key.DirectionLeft -> {
+                            onSeekRelative(-10_000)
+                            true
+                        }
+                        Key.DirectionRight -> {
+                            onSeekRelative(10_000)
+                            true
+                        }
+                        else -> false
+                    }
+                } else {
+                    false
+                }
+            }
+            .focusable(),
         contentAlignment = Alignment.Center
     ) {
         Canvas(
@@ -506,7 +550,7 @@ private fun TvPlayerSeekBar(
                 .fillMaxSize()
                 .padding(horizontal = 2.dp, vertical = 10.dp)
         ) {
-            val trackHeight = 4f
+            val trackHeight = if (isFocused) 6f else 4f
             val trackTop = size.height / 2 - trackHeight / 2
             drawRect(
                 color = scheme.onSurface.copy(alpha = 0.2f),
@@ -524,12 +568,19 @@ private fun TvPlayerSeekBar(
                 size = Size(width = progressWidth, height = trackHeight),
                 topLeft = Offset(0f, trackTop)
             )
-            val thumbRadius = 7.dp.toPx()
+            val thumbRadius = if (isFocused) 9.dp.toPx() else 7.dp.toPx()
             drawCircle(
-                color = scheme.primary,
+                color = if (isFocused) scheme.primary else scheme.primary,
                 radius = thumbRadius,
                 center = Offset(progressWidth.coerceIn(0f, size.width), size.height / 2)
             )
+            if (isFocused) {
+                drawCircle(
+                    color = scheme.primary.copy(alpha = 0.3f),
+                    radius = thumbRadius + 4.dp.toPx(),
+                    center = Offset(progressWidth.coerceIn(0f, size.width), size.height / 2)
+                )
+            }
             combinedMarkers.forEach { marker ->
                 val x = (marker.positionMs.toFloat() / safeDuration) * size.width
                 val color = if (marker.type == MarkerType.AD) scheme.secondary else scheme.primary
@@ -540,17 +591,6 @@ private fun TvPlayerSeekBar(
                 )
             }
         }
-        Slider(
-            value = position.toFloat(),
-            onValueChange = { onSeek(it.toLong()) },
-            valueRange = 0f..safeDuration.toFloat(),
-            colors = SliderDefaults.colors(
-                thumbColor = Color.Transparent,
-                activeTrackColor = Color.Transparent,
-                inactiveTrackColor = Color.Transparent
-            ),
-            modifier = Modifier.fillMaxSize()
-        )
     }
 }
 
