@@ -203,6 +203,11 @@ class PlayerViewModel @Inject constructor(
         if (_controlsVisible.value) scheduleAutoHide()
     }
 
+    fun hideControls() {
+        _controlsVisible.value = false
+        autoHideJob?.cancel()
+    }
+
     private fun scheduleAutoHide() {
         autoHideJob?.cancel()
         if (!player.isPlaying) return
