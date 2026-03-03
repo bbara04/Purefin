@@ -20,9 +20,14 @@ import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ImageType
@@ -70,6 +75,37 @@ class MediaDownloadManager @Inject constructor(
             }
         })
     }
+
+    /**
+     * Polls the download index every 500 ms and emits a map of contentId → progress (0–100)
+     * for every download that is currently queued or in progress.
+     * Uses the download index directly so it always reflects the true download state,
+     * regardless of listener callback timing.
+     */
+    fun observeActiveDownloads(): Flow<Map<String, Float>> = flow {
+        while (true) {
+            try {
+                val result = buildMap<String, Float> {
+                    val cursor = downloadManager.downloadIndex.getDownloads(
+                        Download.STATE_QUEUED,
+                        Download.STATE_DOWNLOADING,
+                        Download.STATE_RESTARTING
+                    )
+                    cursor.use {
+                        while (it.moveToNext()) {
+                            val d = it.download
+                            put(d.request.id, d.percentDownloaded)
+                        }
+                    }
+                }
+                emit(result)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to poll active downloads", e)
+                emit(emptyMap())
+            }
+            delay(500)
+        }
+    }.flowOn(Dispatchers.IO).distinctUntilChanged()
 
     fun observeDownloadState(contentId: String): StateFlow<DownloadState> {
         val flow = getOrCreateStateFlow(contentId)
