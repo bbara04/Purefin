@@ -11,6 +11,7 @@ import hu.bbara.purefin.core.data.room.dao.EpisodeDao
 import hu.bbara.purefin.core.data.room.dao.MovieDao
 import hu.bbara.purefin.core.data.room.dao.SeasonDao
 import hu.bbara.purefin.core.data.room.dao.SeriesDao
+import hu.bbara.purefin.core.data.room.dao.SmartDownloadDao
 import hu.bbara.purefin.core.data.room.offline.OfflineMediaDatabase
 import hu.bbara.purefin.core.data.room.offline.OfflineRoomMediaLocalDataSource
 import javax.inject.Singleton
@@ -38,6 +39,9 @@ object MediaDatabaseModule {
 
     @Provides
     fun provideOfflineEpisodeDao(db: OfflineMediaDatabase) = db.episodeDao()
+
+    @Provides
+    fun provideSmartDownloadDao(db: OfflineMediaDatabase): SmartDownloadDao = db.smartDownloadDao()
 
     @Provides
     @Singleton

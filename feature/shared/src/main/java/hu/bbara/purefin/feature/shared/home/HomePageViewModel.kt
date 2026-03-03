@@ -12,6 +12,7 @@ import hu.bbara.purefin.core.data.navigation.NavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.feature.download.MediaDownloadManager
 import hu.bbara.purefin.core.model.Media
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,7 +32,8 @@ class HomePageViewModel @Inject constructor(
     private val appContentRepository: AppContentRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
-    private val refreshHomeDataUseCase: RefreshHomeDataUseCase
+    private val refreshHomeDataUseCase: RefreshHomeDataUseCase,
+    private val mediaDownloadManager: MediaDownloadManager,
 ) : ViewModel() {
 
     private val _isRefreshing = MutableStateFlow(false)
@@ -199,6 +201,11 @@ class HomePageViewModel @Inject constructor(
                 // Refresh is best-effort; don't crash on failure
             }
         }
+        viewModelScope.launch {
+            try {
+                mediaDownloadManager.syncSmartDownloads()
+            } catch (_: Exception) { }
+        }
     }
 
     fun onRefresh() {
@@ -211,6 +218,11 @@ class HomePageViewModel @Inject constructor(
             } finally {
                 _isRefreshing.value = false
             }
+        }
+        viewModelScope.launch {
+            try {
+                mediaDownloadManager.syncSmartDownloads()
+            } catch (_: Exception) { }
         }
     }
 

@@ -8,10 +8,12 @@ import hu.bbara.purefin.core.data.room.dao.EpisodeDao
 import hu.bbara.purefin.core.data.room.dao.MovieDao
 import hu.bbara.purefin.core.data.room.dao.SeasonDao
 import hu.bbara.purefin.core.data.room.dao.SeriesDao
+import hu.bbara.purefin.core.data.room.dao.SmartDownloadDao
 import hu.bbara.purefin.core.data.room.entity.EpisodeEntity
 import hu.bbara.purefin.core.data.room.entity.MovieEntity
 import hu.bbara.purefin.core.data.room.entity.SeasonEntity
 import hu.bbara.purefin.core.data.room.entity.SeriesEntity
+import hu.bbara.purefin.core.data.room.entity.SmartDownloadEntity
 
 @Database(
     entities = [
@@ -19,8 +21,9 @@ import hu.bbara.purefin.core.data.room.entity.SeriesEntity
         SeriesEntity::class,
         SeasonEntity::class,
         EpisodeEntity::class,
+        SmartDownloadEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(UuidConverters::class)
@@ -29,4 +32,5 @@ abstract class OfflineMediaDatabase : RoomDatabase() {
     abstract fun seriesDao(): SeriesDao
     abstract fun seasonDao(): SeasonDao
     abstract fun episodeDao(): EpisodeDao
+    abstract fun smartDownloadDao(): SmartDownloadDao
 }

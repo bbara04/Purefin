@@ -89,6 +89,7 @@ private fun SeriesScreenInternal(
 
     val seriesDownloadState by viewModel.seriesDownloadState.collectAsState()
     val seasonDownloadState by viewModel.seasonDownloadState.collectAsState()
+    val isSmartDownloadEnabled by viewModel.isSmartDownloadEnabled.collectAsState()
 
     LaunchedEffect(selectedSeason.value) {
         viewModel.observeSeasonDownloadState(selectedSeason.value.episodes)
@@ -134,7 +135,9 @@ private fun SeriesScreenInternal(
                 SeriesActionButtons(
                     nextUpEpisode = nextUpEpisode,
                     downloadState = seriesDownloadState,
-                    onDownloadClick = { viewModel.downloadSeries(series) }
+                    isSmartDownloadEnabled = isSmartDownloadEnabled,
+                    onDownloadAllClick = { viewModel.downloadSeries(series) },
+                    onSmartDownloadToggle = { viewModel.toggleSmartDownload(series.id) }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 MediaSynopsis(

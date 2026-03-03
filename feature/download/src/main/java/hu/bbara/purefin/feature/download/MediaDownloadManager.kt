@@ -13,6 +13,8 @@ import hu.bbara.purefin.core.data.InMemoryMediaRepository
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.room.dao.MovieDao
+import hu.bbara.purefin.core.data.room.dao.SmartDownloadDao
+import hu.bbara.purefin.core.data.room.entity.SmartDownloadEntity
 import hu.bbara.purefin.core.data.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.model.Episode
@@ -46,6 +48,7 @@ class MediaDownloadManager @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val offlineDataSource: OfflineRoomMediaLocalDataSource,
     private val movieDao: MovieDao,
+    private val smartDownloadDao: SmartDownloadDao,
     private val userSessionRepository: UserSessionRepository,
     private val inMemoryMediaRepository: InMemoryMediaRepository,
 ) {
@@ -261,6 +264,76 @@ class MediaDownloadManager @Inject constructor(
         }
     }
 
+    // ── Smart Download ──────────────────────────────────────────────────
+
+    suspend fun enableSmartDownload(seriesId: UUID) {
+        smartDownloadDao.insert(SmartDownloadEntity(seriesId))
+        syncSmartDownloadsForSeries(seriesId)
+    }
+
+    suspend fun disableSmartDownload(seriesId: UUID) {
+        smartDownloadDao.delete(seriesId)
+    }
+
+    fun isSmartDownloadEnabled(seriesId: UUID): Flow<Boolean> = smartDownloadDao.observe(seriesId)
+
+    suspend fun syncSmartDownloads() {
+        withContext(Dispatchers.IO) {
+            val enabled = smartDownloadDao.getAll()
+            for (entry in enabled) {
+                try {
+                    syncSmartDownloadsForSeries(entry.seriesId)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Smart download sync failed for series ${entry.seriesId}", e)
+                }
+            }
+        }
+    }
+
+    private suspend fun syncSmartDownloadsForSeries(seriesId: UUID) {
+        withContext(Dispatchers.IO) {
+            val serverUrl = userSessionRepository.serverUrl.first().trim()
+
+            // 1. Get currently downloaded episodes for this series
+            val downloadedEpisodes = offlineDataSource.getEpisodesBySeries(seriesId)
+
+            // 2. Check watched status from server and delete watched downloads
+            val unwatchedDownloaded = mutableListOf<UUID>()
+            for (episode in downloadedEpisodes) {
+                val itemInfo = jellyfinApiClient.getItemInfo(episode.id)
+                val isWatched = itemInfo?.userData?.played ?: false
+                if (isWatched) {
+                    Log.d(TAG, "Smart download: removing watched episode ${episode.title}")
+                    cancelEpisodeDownload(episode.id)
+                } else {
+                    unwatchedDownloaded.add(episode.id)
+                }
+            }
+
+            // 3. Get all episodes of the series from the server in order
+            val seasons = jellyfinApiClient.getSeasons(seriesId)
+            val allEpisodes = mutableListOf<BaseItemDto>()
+            for (season in seasons) {
+                val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, season.id)
+                allEpisodes.addAll(episodes)
+            }
+
+            // 4. Find unwatched episodes not already downloaded
+            val needed = SMART_DOWNLOAD_COUNT - unwatchedDownloaded.size
+            if (needed <= 0) return@withContext
+
+            val toDownload = allEpisodes
+                .filter { ep -> ep.userData?.played != true && ep.id !in unwatchedDownloaded }
+                .take(needed)
+                .map { it.id }
+
+            if (toDownload.isNotEmpty()) {
+                Log.d(TAG, "Smart download: queuing ${toDownload.size} episodes for series $seriesId")
+                downloadEpisodes(toDownload)
+            }
+        }
+    }
+
     private fun getOrCreateStateFlow(contentId: String): MutableStateFlow<DownloadState> {
         return stateFlows.getOrPut(contentId) { MutableStateFlow(DownloadState.NotDownloaded) }
     }
@@ -339,5 +412,6 @@ class MediaDownloadManager @Inject constructor(
 
     companion object {
         private const val TAG = "MediaDownloadManager"
+        private const val SMART_DOWNLOAD_COUNT = 5
     }
 }

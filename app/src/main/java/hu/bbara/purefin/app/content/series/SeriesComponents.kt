@@ -33,14 +33,20 @@ import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.DownloadDone
+import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
@@ -116,10 +122,14 @@ internal fun SeriesMetaChips(series: Series) {
 internal fun SeriesActionButtons(
     nextUpEpisode: Episode?,
     downloadState: DownloadState,
-    onDownloadClick: () -> Unit,
+    isSmartDownloadEnabled: Boolean,
+    onDownloadAllClick: () -> Unit,
+    onSmartDownloadToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val scheme = MaterialTheme.colorScheme
+    var showDownloadDialog by remember { mutableStateOf(false) }
     val episodeId = nextUpEpisode?.id
     val playAction = remember(episodeId) {
         episodeId?.let { id ->
@@ -148,18 +158,72 @@ internal fun SeriesActionButtons(
         )
         Spacer(modifier = Modifier.width(12.dp))
         MediaActionButton(
-            backgroundColor = MaterialTheme.colorScheme.secondary,
-            iconColor = MaterialTheme.colorScheme.onSecondary,
-            icon = when (downloadState) {
-                is DownloadState.NotDownloaded -> Icons.Outlined.Download
-                is DownloadState.Downloading -> Icons.Outlined.Close
-                is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
-                is DownloadState.Failed -> Icons.Outlined.Download
+            backgroundColor = if (isSmartDownloadEnabled) scheme.primary else scheme.secondary,
+            iconColor = if (isSmartDownloadEnabled) scheme.onPrimary else scheme.onSecondary,
+            icon = when {
+                isSmartDownloadEnabled -> Icons.Outlined.Autorenew
+                downloadState is DownloadState.Downloading -> Icons.Outlined.Close
+                downloadState is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
+                else -> Icons.Outlined.Download
             },
             height = 32.dp,
-            onClick = onDownloadClick
+            onClick = { showDownloadDialog = true }
         )
     }
+
+    if (showDownloadDialog) {
+        DownloadOptionsDialog(
+            isSmartDownloadEnabled = isSmartDownloadEnabled,
+            onDownloadAll = {
+                showDownloadDialog = false
+                onDownloadAllClick()
+            },
+            onSmartDownload = {
+                showDownloadDialog = false
+                onSmartDownloadToggle()
+            },
+            onDismiss = { showDownloadDialog = false }
+        )
+    }
+}
+
+@Composable
+private fun DownloadOptionsDialog(
+    isSmartDownloadEnabled: Boolean,
+    onDownloadAll: () -> Unit,
+    onSmartDownload: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Download") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "Choose how to download this series.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                if (isSmartDownloadEnabled) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Smart download is currently enabled.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDownloadAll) {
+                Text("Download All")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onSmartDownload) {
+                Text(if (isSmartDownloadEnabled) "Disable Smart Download" else "Smart Download")
+            }
+        }
+    )
 }
 
 @Composable
