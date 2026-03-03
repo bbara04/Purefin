@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.AppContentRepository
 import hu.bbara.purefin.core.data.navigation.NavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
+import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.download.MediaDownloadManager
@@ -27,6 +28,7 @@ class EpisodeScreenViewModel @Inject constructor(
 ): ViewModel() {
 
     private val _episodeId = MutableStateFlow<UUID?>(null)
+    private val _seriesId = MutableStateFlow<UUID?>(null)
 
     val episode: StateFlow<Episode?> = combine(
         _episodeId,
@@ -47,8 +49,15 @@ class EpisodeScreenViewModel @Inject constructor(
         navigationManager.navigate(Route.PlayerRoute(mediaId = id))
     }
 
+    fun onPlaybackStarted() {
+        val seriesId = _seriesId.value ?: return
+        navigationManager.pop()
+        navigationManager.navigate(Route.SeriesRoute(SeriesDto(id = seriesId)))
+    }
+
     fun selectEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) {
         _episodeId.value = episodeId
+        _seriesId.value = seriesId
         viewModelScope.launch {
             mediaDownloadManager.observeDownloadState(episodeId.toString()).collect {
                 _downloadState.value = it

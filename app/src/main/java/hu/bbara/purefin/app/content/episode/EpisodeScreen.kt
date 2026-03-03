@@ -69,7 +69,7 @@ fun EpisodeScreen(
         episode = episode.value!!,
         downloadState = downloadState.value,
         onBack = viewModel::onBack,
-        onPlaybackStarted = viewModel::onBack,
+        onPlaybackStarted = viewModel::onPlaybackStarted,
         onDownloadClick = onDownloadClick,
         modifier = modifier
     )
