@@ -29,7 +29,8 @@ fun PlayerGesturesLayer(
     onVerticalDragLeft: (delta: Float) -> Unit,
     onVerticalDragRight: (delta: Float) -> Unit,
     onHorizontalDragPreview: (deltaMs: Long?) -> Unit = {},
-    onHorizontalDrag: (deltaMs: Long) -> Unit,
+    onHorizontalDragSeekTo: (positionMs: Long) -> Unit,
+    currentPositionProvider: () -> Long,
 ) {
     val density = LocalDensity.current
     val horizontalThresholdPx = with(density) { HorizontalSeekGestureHelper.START_THRESHOLD.toPx() }
@@ -67,6 +68,7 @@ fun PlayerGesturesLayer(
                     var accumulatedHorizontalDrag = 0f
                     var isHorizontalDragActive = false
                     var lastPreviewDelta: Long? = null
+                    var startPositionMs = 0L
 
                     drag(down.id) { change ->
                         val delta = change.positionChange()
@@ -86,6 +88,7 @@ fun PlayerGesturesLayer(
                                 accumulatedHorizontalDrag += delta.x
                                 if (!isHorizontalDragActive && abs(accumulatedHorizontalDrag) >= horizontalThresholdPx) {
                                     isHorizontalDragActive = true
+                                    startPositionMs = currentPositionProvider()
                                 }
                                 if (isHorizontalDragActive) {
                                     change.consume()
@@ -112,7 +115,8 @@ fun PlayerGesturesLayer(
                     if (dragDirection == DragDirection.HORIZONTAL && isHorizontalDragActive) {
                         val deltaMs = HorizontalSeekGestureHelper.deltaMs(accumulatedHorizontalDrag)
                         if (deltaMs != 0L) {
-                            onHorizontalDrag(deltaMs)
+                            val targetMs = (startPositionMs + deltaMs).coerceAtLeast(0L)
+                            onHorizontalDragSeekTo(targetMs)
                             onHorizontalDragPreview(deltaMs)
                         }
                     }

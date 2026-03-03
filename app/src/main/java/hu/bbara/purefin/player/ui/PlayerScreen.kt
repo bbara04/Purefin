@@ -120,10 +120,10 @@ fun PlayerScreen(
             onHorizontalDragPreview = {
                 horizontalSeekFeedback = it
             },
-            onHorizontalDrag = {
-                viewModel.seekBy(it)
-                horizontalSeekFeedback = it
-            }
+            onHorizontalDragSeekTo = {
+                viewModel.seekTo(it)
+            },
+            currentPositionProvider = { uiState.positionMs }
         )
 
         EmptyValueTimedVisibility(
