@@ -116,11 +116,16 @@ class PlayerManager @Inject constructor(
         startProgressLoop()
     }
 
-    fun play(mediaItem: MediaItem, mediaContext: MediaContext? = null) {
+    fun play(mediaItem: MediaItem, mediaContext: MediaContext? = null, startPositionMs: Long? = null) {
         currentMediaContext = mediaContext
-        player.setMediaItem(mediaItem)
+        if (startPositionMs != null) {
+            player.setMediaItem(mediaItem, startPositionMs)
+        } else {
+            player.setMediaItem(mediaItem)
+        }
         player.prepare()
         player.playWhenReady = true
+        _progress.value = PlaybackProgressSnapshot()
         refreshMetadata(mediaItem)
         refreshQueue()
         _playbackState.update { it.copy(isEnded = false, error = null) }

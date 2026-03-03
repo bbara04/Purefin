@@ -148,10 +148,7 @@ class PlayerViewModel @Inject constructor(
                 val preferenceKey = mediaRepository.episodes.value[uuid]?.seriesId?.toString() ?: id
                 val mediaContext = MediaContext(mediaId = id, preferenceKey = preferenceKey)
 
-                playerManager.play(mediaItem, mediaContext)
-
-                // Seek to resume position after play() is called
-                resumePositionMs?.let { playerManager.seekTo(it) }
+                playerManager.play(mediaItem, mediaContext, resumePositionMs)
 
                 if (dataErrorMessage != null) {
                     dataErrorMessage = null
