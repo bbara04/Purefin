@@ -1,5 +1,6 @@
 package hu.bbara.purefin.app.content.series
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -36,7 +38,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -51,6 +55,8 @@ import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
+import hu.bbara.purefin.common.ui.components.MediaResumeButton
+import hu.bbara.purefin.player.PlayerActivity
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
 import hu.bbara.purefin.core.model.CastMember
@@ -104,8 +110,28 @@ internal fun SeriesMetaChips(series: Series) {
 }
 
 @Composable
-internal fun SeriesActionButtons(modifier: Modifier = Modifier) {
-    Row() {
+internal fun SeriesActionButtons(nextUpEpisode: Episode?, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val episodeId = nextUpEpisode?.id
+    val playAction = remember(episodeId) {
+        episodeId?.let { id ->
+            {
+                val intent = Intent(context, PlayerActivity::class.java)
+                intent.putExtra("MEDIA_ID", id.toString())
+                context.startActivity(intent)
+            }
+        }
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (playAction != null && nextUpEpisode != null) {
+            MediaResumeButton(
+                text = if ((nextUpEpisode.progress ?: 0.0) > 0.0 && !nextUpEpisode.watched) "Resume" else "Play",
+                progress = nextUpEpisode.progress?.div(100)?.toFloat() ?: 0f,
+                onClick = playAction,
+                modifier = Modifier.sizeIn(maxWidth = 200.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+        }
         MediaActionButton(
             backgroundColor = MaterialTheme.colorScheme.secondary,
             iconColor = MaterialTheme.colorScheme.onSecondary,

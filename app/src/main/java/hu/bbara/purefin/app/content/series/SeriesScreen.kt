@@ -74,6 +74,11 @@ private fun SeriesScreenInternal(
         return series.seasons.first()
     }
     val selectedSeason = remember { mutableStateOf<Season>(getDefaultSeason()) }
+    val nextUpEpisode = remember(series) {
+        series.seasons.firstNotNullOfOrNull { season ->
+            season.episodes.firstOrNull { !it.watched }
+        } ?: series.seasons.firstOrNull()?.episodes?.firstOrNull()
+    }
 
     Scaffold(
         modifier = modifier,
@@ -112,7 +117,7 @@ private fun SeriesScreenInternal(
                 Spacer(modifier = Modifier.height(16.dp))
                 SeriesMetaChips(series = series)
                 Spacer(modifier = Modifier.height(24.dp))
-                SeriesActionButtons()
+                SeriesActionButtons(nextUpEpisode = nextUpEpisode)
                 Spacer(modifier = Modifier.height(24.dp))
                 MediaSynopsis(
                     synopsis = series.synopsis,
