@@ -164,7 +164,9 @@ class MediaDownloadManager @Inject constructor(
                 offlineDataSource.saveMovies(listOf(movie))
 
                 Log.d(TAG, "Starting download for '${movie.title}' from: $url")
-                val request = DownloadRequest.Builder(movieId.toString(), url.toUri()).build()
+                val request = DownloadRequest.Builder(movieId.toString(), url.toUri())
+                    .setData(movie.title.toByteArray(Charsets.UTF_8))
+                    .build()
                 PurefinDownloadService.sendAddDownload(context, request)
                 Log.d(TAG, "Download request sent for $movieId")
             } catch (e: Exception) {
@@ -226,7 +228,9 @@ class MediaDownloadManager @Inject constructor(
                 offlineDataSource.saveEpisode(episode)
 
                 Log.d(TAG, "Starting download for episode '${episode.title}' from: $url")
-                val request = DownloadRequest.Builder(episodeId.toString(), url.toUri()).build()
+                val request = DownloadRequest.Builder(episodeId.toString(), url.toUri())
+                    .setData(episode.title.toByteArray(Charsets.UTF_8))
+                    .build()
                 PurefinDownloadService.sendAddDownload(context, request)
                 Log.d(TAG, "Download request sent for episode $episodeId")
             } catch (e: Exception) {

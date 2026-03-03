@@ -79,7 +79,10 @@ class PurefinDownloadService : DownloadService(
         }
 
         val title = if (activeDownloads.size == 1) {
-            "Downloading"
+            activeDownloads[0].request.data
+                ?.toString(Charsets.UTF_8)
+                ?.takeIf { it.isNotBlank() }
+                ?: "Downloading"
         } else {
             "Downloading ${activeDownloads.size} files"
         }
