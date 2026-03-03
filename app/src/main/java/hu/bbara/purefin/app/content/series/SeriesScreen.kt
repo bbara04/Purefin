@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
 
 @Composable
@@ -43,8 +45,12 @@ fun SeriesScreen(
 
     val seriesData = series.value
     if (seriesData != null && seriesData.seasons.isNotEmpty()) {
+        LaunchedEffect(seriesData) {
+            viewModel.observeSeriesDownloadState(seriesData)
+        }
         SeriesScreenInternal(
             series = seriesData,
+            viewModel = viewModel,
             onBack = viewModel::onBack,
             modifier = modifier
         )
@@ -56,6 +62,7 @@ fun SeriesScreen(
 @Composable
 private fun SeriesScreenInternal(
     series: Series,
+    viewModel: SeriesViewModel,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -78,6 +85,13 @@ private fun SeriesScreenInternal(
         series.seasons.firstNotNullOfOrNull { season ->
             season.episodes.firstOrNull { !it.watched }
         } ?: series.seasons.firstOrNull()?.episodes?.firstOrNull()
+    }
+
+    val seriesDownloadState by viewModel.seriesDownloadState.collectAsState()
+    val seasonDownloadState by viewModel.seasonDownloadState.collectAsState()
+
+    LaunchedEffect(selectedSeason.value) {
+        viewModel.observeSeasonDownloadState(selectedSeason.value.episodes)
     }
 
     Scaffold(
@@ -117,7 +131,11 @@ private fun SeriesScreenInternal(
                 Spacer(modifier = Modifier.height(16.dp))
                 SeriesMetaChips(series = series)
                 Spacer(modifier = Modifier.height(24.dp))
-                SeriesActionButtons(nextUpEpisode = nextUpEpisode)
+                SeriesActionButtons(
+                    nextUpEpisode = nextUpEpisode,
+                    downloadState = seriesDownloadState,
+                    onDownloadClick = { viewModel.downloadSeries(series) }
+                )
                 Spacer(modifier = Modifier.height(24.dp))
                 MediaSynopsis(
                     synopsis = series.synopsis,
@@ -130,6 +148,8 @@ private fun SeriesScreenInternal(
                 SeasonTabs(
                     seasons = series.seasons,
                     selectedSeason = selectedSeason.value,
+                    seasonDownloadState = seasonDownloadState,
+                    onSeasonDownloadClick = { viewModel.downloadSeason(selectedSeason.value.episodes) },
                     onSelect = { selectedSeason.value = it }
                 )
                 EpisodeCarousel(

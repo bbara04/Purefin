@@ -30,7 +30,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.Icon
@@ -59,6 +61,7 @@ import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.player.PlayerActivity
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
+import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
@@ -110,7 +113,12 @@ internal fun SeriesMetaChips(series: Series) {
 }
 
 @Composable
-internal fun SeriesActionButtons(nextUpEpisode: Episode?, modifier: Modifier = Modifier) {
+internal fun SeriesActionButtons(
+    nextUpEpisode: Episode?,
+    downloadState: DownloadState,
+    onDownloadClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     val episodeId = nextUpEpisode?.id
     val playAction = remember(episodeId) {
@@ -142,8 +150,14 @@ internal fun SeriesActionButtons(nextUpEpisode: Episode?, modifier: Modifier = M
         MediaActionButton(
             backgroundColor = MaterialTheme.colorScheme.secondary,
             iconColor = MaterialTheme.colorScheme.onSecondary,
-            icon = Icons.Outlined.Download,
-            height = 32.dp
+            icon = when (downloadState) {
+                is DownloadState.NotDownloaded -> Icons.Outlined.Download
+                is DownloadState.Downloading -> Icons.Outlined.Close
+                is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
+                is DownloadState.Failed -> Icons.Outlined.Download
+            },
+            height = 32.dp,
+            onClick = onDownloadClick
         )
     }
 }
@@ -152,6 +166,8 @@ internal fun SeriesActionButtons(nextUpEpisode: Episode?, modifier: Modifier = M
 internal fun SeasonTabs(
     seasons: List<Season>,
     selectedSeason: Season?,
+    seasonDownloadState: DownloadState,
+    onSeasonDownloadClick: () -> Unit,
     modifier: Modifier = Modifier,
     onSelect: (Season) -> Unit
 ) {
@@ -159,7 +175,8 @@ internal fun SeasonTabs(
         modifier = modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         seasons.forEach { season ->
             SeasonTab(
@@ -168,6 +185,18 @@ internal fun SeasonTabs(
                 modifier = Modifier.clickable { onSelect(season) }
             )
         }
+        MediaActionButton(
+            backgroundColor = MaterialTheme.colorScheme.secondary,
+            iconColor = MaterialTheme.colorScheme.onSecondary,
+            icon = when (seasonDownloadState) {
+                is DownloadState.NotDownloaded -> Icons.Outlined.Download
+                is DownloadState.Downloading -> Icons.Outlined.Close
+                is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
+                is DownloadState.Failed -> Icons.Outlined.Download
+            },
+            height = 28.dp,
+            onClick = onSeasonDownloadClick
+        )
     }
 }
 

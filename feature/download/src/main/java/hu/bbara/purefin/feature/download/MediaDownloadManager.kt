@@ -20,6 +20,8 @@ import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -236,6 +238,14 @@ class MediaDownloadManager @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to start download for episode $episodeId", e)
                 getOrCreateStateFlow(episodeId.toString()).value = DownloadState.Failed
+            }
+        }
+    }
+
+    suspend fun downloadEpisodes(episodeIds: List<UUID>) {
+        coroutineScope {
+            for (episodeId in episodeIds) {
+                launch { downloadEpisode(episodeId) }
             }
         }
     }
