@@ -297,15 +297,18 @@ class InMemoryAppContentRepository @Inject constructor(
         if (!isOnline) return
 
         if(loadJob?.isActive == true) {
+            loadJob?.join()
             return
         }
-        loadJob = scope.launch {
+        val job = scope.launch {
             loadLibraries()
             loadContinueWatching()
             loadNextUp()
             loadLatestLibraryContent()
             persistHomeCache()
         }
+        loadJob = job
+        job.join()
     }
 
     private suspend fun serverUrl(): String {

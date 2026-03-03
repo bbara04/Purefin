@@ -13,7 +13,10 @@ import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.model.Media
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -30,6 +33,9 @@ class HomePageViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
     private val refreshHomeDataUseCase: RefreshHomeDataUseCase
 ) : ViewModel() {
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     private val _url = userSessionRepository.serverUrl.stateIn(
         scope = viewModelScope,
@@ -191,6 +197,19 @@ class HomePageViewModel @Inject constructor(
                 refreshHomeDataUseCase()
             } catch (e: Exception) {
                 // Refresh is best-effort; don't crash on failure
+            }
+        }
+    }
+
+    fun onRefresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                refreshHomeDataUseCase()
+            } catch (e: Exception) {
+                // Refresh is best-effort; don't crash on failure
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }

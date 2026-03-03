@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,21 +18,29 @@ import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     libraries: List<LibraryItem>,
     libraryContent: Map<UUID, List<PosterItem>>,
     continueWatching: List<ContinueWatchingItem>,
     nextUp: List<NextUpItem>,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+    ) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
@@ -68,5 +78,6 @@ fun HomeContent(
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
+    }
     }
 }
