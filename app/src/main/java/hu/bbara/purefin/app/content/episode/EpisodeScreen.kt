@@ -1,5 +1,9 @@
 package hu.bbara.purefin.app.content.episode
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +43,23 @@ fun EpisodeScreen(
     val episode = viewModel.episode.collectAsState()
     val downloadState = viewModel.downloadState.collectAsState()
 
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Proceed with download regardless — notification is nice-to-have
+        viewModel.onDownloadClick()
+    }
+
+    val onDownloadClick = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+            && downloadState.value is DownloadState.NotDownloaded
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            viewModel.onDownloadClick()
+        }
+    }
+
     if (episode.value == null) {
         PurefinWaitingScreen()
         return
@@ -48,7 +69,7 @@ fun EpisodeScreen(
         episode = episode.value!!,
         downloadState = downloadState.value,
         onBack = viewModel::onBack,
-        onDownloadClick = viewModel::onDownloadClick,
+        onDownloadClick = onDownloadClick,
         modifier = modifier
     )
 }
