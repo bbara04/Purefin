@@ -1,5 +1,5 @@
 
-Purefin
+# Purefin
 
 An open-source Jellyfin client for Android and Android TV, built with modern Android development practices.
 
