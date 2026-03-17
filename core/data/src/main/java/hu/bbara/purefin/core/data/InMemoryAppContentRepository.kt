@@ -1,5 +1,6 @@
 package hu.bbara.purefin.core.data
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import hu.bbara.purefin.core.data.cache.CachedMediaItem
 import hu.bbara.purefin.core.data.cache.HomeCache
@@ -159,7 +160,11 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     suspend fun loadLibraries() {
-        val librariesItem = jellyfinApiClient.getLibraries()
+        val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
+            .getOrElse { error ->
+                Log.w(TAG, "Unable to load libraries", error)
+                return
+            }
         //TODO add support for playlists
         val filteredLibraries =
             librariesItem.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS }
@@ -179,7 +184,11 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     suspend fun loadLibrary(library: Library): Library {
-        val contentItem = jellyfinApiClient.getLibraryContent(library.id)
+        val contentItem = runCatching { jellyfinApiClient.getLibraryContent(library.id) }
+            .getOrElse { error ->
+                Log.w(TAG, "Unable to load library ${library.id}", error)
+                return library
+            }
         when (library.type) {
             CollectionType.MOVIES -> {
                 val movies = contentItem.map { it.toMovie(serverUrl(), library.id) }
@@ -194,23 +203,37 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     suspend fun loadMovie(movieId: UUID): Movie {
-        val movieItem = jellyfinApiClient.getItemInfo(movieId)
-            ?: throw RuntimeException("Movie not found")
+        val cachedMovie = mediaRepository.movies.value[movieId]
+        val movieItem = runCatching { jellyfinApiClient.getItemInfo(movieId) }
+            .getOrElse { error ->
+                Log.w(TAG, "Unable to load movie $movieId", error)
+                null
+            }
+            ?: return cachedMovie ?: throw RuntimeException("Movie not found")
         val updatedMovie = movieItem.toMovie(serverUrl(), movieItem.parentId!!)
         mediaRepository.upsertMovies(listOf(updatedMovie))
         return updatedMovie
     }
 
     suspend fun loadSeries(seriesId: UUID): Series {
-        val seriesItem = jellyfinApiClient.getItemInfo(seriesId)
-            ?: throw RuntimeException("Series not found")
+        val cachedSeries = mediaRepository.series.value[seriesId]
+        val seriesItem = runCatching { jellyfinApiClient.getItemInfo(seriesId) }
+            .getOrElse { error ->
+                Log.w(TAG, "Unable to load series $seriesId", error)
+                null
+            }
+            ?: return cachedSeries ?: throw RuntimeException("Series not found")
         val updatedSeries = seriesItem.toSeries(serverUrl(), seriesItem.parentId!!)
         mediaRepository.upsertSeries(listOf(updatedSeries))
         return updatedSeries
     }
 
     suspend fun loadContinueWatching() {
-        val continueWatchingItems = jellyfinApiClient.getContinueWatching()
+        val continueWatchingItems = runCatching { jellyfinApiClient.getContinueWatching() }
+            .getOrElse { error ->
+                Log.w(TAG, "Unable to load continue watching", error)
+                return
+            }
         val items = continueWatchingItems.mapNotNull { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
@@ -236,7 +259,11 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     suspend fun loadNextUp() {
-        val nextUpItems = jellyfinApiClient.getNextUpEpisodes()
+        val nextUpItems = runCatching { jellyfinApiClient.getNextUpEpisodes() }
+            .getOrElse { error ->
+                Log.w(TAG, "Unable to load next up", error)
+                return
+            }
         val items = nextUpItems.map { item ->
             Media.EpisodeMedia(
                 episodeId = item.id,
@@ -254,11 +281,19 @@ class InMemoryAppContentRepository @Inject constructor(
 
     suspend fun loadLatestLibraryContent() {
         // TODO Make libraries accessible in a field or something that is not this ugly.
-        val librariesItem = jellyfinApiClient.getLibraries()
+        val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
+            .getOrElse { error ->
+                Log.w(TAG, "Unable to load latest library content", error)
+                return
+            }
         val filterLibraries =
             librariesItem.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS }
         val latestLibraryContents = filterLibraries.associate { library ->
-            val latestFromLibrary = jellyfinApiClient.getLatestFromLibrary(library.id)
+            val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
+                .getOrElse { error ->
+                    Log.w(TAG, "Unable to load latest items for library ${library.id}", error)
+                    emptyList()
+                }
             library.id to when (library.collectionType) {
                 CollectionType.MOVIES -> {
                     latestFromLibrary.map {
@@ -293,19 +328,22 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     override suspend fun refreshHomeData() {
-        val isOnline = networkMonitor.isOnline.first()
-        if (!isOnline) return
-
         if(loadJob?.isActive == true) {
             loadJob?.join()
             return
         }
         val job = scope.launch {
-            loadLibraries()
-            loadContinueWatching()
-            loadNextUp()
-            loadLatestLibraryContent()
-            persistHomeCache()
+            runCatching {
+                val isOnline = networkMonitor.isOnline.first()
+                if (!isOnline) return@runCatching
+                loadLibraries()
+                loadContinueWatching()
+                loadNextUp()
+                loadLatestLibraryContent()
+                persistHomeCache()
+            }.onFailure { error ->
+                Log.w(TAG, "Home refresh failed; keeping cached content", error)
+            }
         }
         loadJob = job
         job.join()
@@ -444,5 +482,9 @@ class InMemoryAppContentRepository @Inject constructor(
         } else {
             "${minutes}m"
         }
+    }
+
+    companion object {
+        private const val TAG = "InMemoryAppContentRepo"
     }
 }

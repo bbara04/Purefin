@@ -8,7 +8,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadManager
 import dagger.hilt.android.scopes.ViewModelScoped
+import hu.bbara.purefin.core.data.MediaRepository
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.session.UserSessionRepository
@@ -26,36 +29,13 @@ import javax.inject.Inject
 @ViewModelScoped
 class PlayerMediaRepository @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
-    private val userSessionRepository: UserSessionRepository
+    private val userSessionRepository: UserSessionRepository,
+    private val mediaRepository: MediaRepository,
+    private val downloadManager: DownloadManager
 ) {
 
     suspend fun getMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? = withContext(Dispatchers.IO) {
-        val mediaSources = jellyfinApiClient.getMediaSources(mediaId)
-        val selectedMediaSource = mediaSources.firstOrNull() ?: return@withContext null
-        val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
-            mediaId = mediaId,
-            mediaSource = selectedMediaSource
-        ) ?: return@withContext null
-        val baseItem = jellyfinApiClient.getItemInfo(mediaId)
-
-        // Calculate resume position
-        val resumePositionMs = calculateResumePosition(baseItem, selectedMediaSource)
-
-        val serverUrl = userSessionRepository.serverUrl.first()
-        val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, mediaId, ImageType.PRIMARY)
-
-        val subtitleConfigs = buildExternalSubtitleConfigs(serverUrl, mediaId, selectedMediaSource)
-
-        val mediaItem = createMediaItem(
-            mediaId = mediaId.toString(),
-            playbackUrl = playbackUrl,
-            title = baseItem?.name ?: selectedMediaSource.name!!,
-            subtitle = "S${baseItem!!.parentIndexNumber}:E${baseItem.indexNumber}",
-            artworkUrl = artworkUrl,
-            subtitleConfigurations = subtitleConfigs
-        )
-
-        Pair(mediaItem, resumePositionMs)
+        buildOnlineMediaItem(mediaId) ?: buildOfflineMediaItem(mediaId)
     }
 
     private fun calculateResumePosition(
@@ -83,30 +63,125 @@ class PlayerMediaRepository @Inject constructor(
     }
 
     suspend fun getNextUpMediaItems(episodeId: UUID, existingIds: Set<String>, count: Int = 5): List<MediaItem> = withContext(Dispatchers.IO) {
-        val serverUrl = userSessionRepository.serverUrl.first()
-        val episodes = jellyfinApiClient.getNextEpisodes(episodeId = episodeId, count = count)
-        episodes.mapNotNull { episode ->
-            val id = episode.id ?: return@mapNotNull null
-            val stringId = id.toString()
-            if (existingIds.contains(stringId)) {
-                return@mapNotNull null
+        runCatching {
+            val serverUrl = userSessionRepository.serverUrl.first()
+            val episodes = jellyfinApiClient.getNextEpisodes(episodeId = episodeId, count = count)
+            episodes.mapNotNull { episode ->
+                val id = episode.id ?: return@mapNotNull null
+                val stringId = id.toString()
+                if (existingIds.contains(stringId)) {
+                    return@mapNotNull null
+                }
+                val mediaSources = jellyfinApiClient.getMediaSources(id)
+                val selectedMediaSource = mediaSources.firstOrNull() ?: return@mapNotNull null
+                val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
+                    mediaId = id,
+                    mediaSource = selectedMediaSource
+                ) ?: return@mapNotNull null
+                val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, id, ImageType.PRIMARY)
+                val subtitleConfigs = buildExternalSubtitleConfigs(serverUrl, id, selectedMediaSource)
+                createMediaItem(
+                    mediaId = stringId,
+                    playbackUrl = playbackUrl,
+                    title = episode.name ?: selectedMediaSource.name!!,
+                    subtitle = "S${episode.parentIndexNumber}:E${episode.indexNumber}",
+                    artworkUrl = artworkUrl,
+                    subtitleConfigurations = subtitleConfigs
+                )
             }
-            val mediaSources = jellyfinApiClient.getMediaSources(id)
-            val selectedMediaSource = mediaSources.firstOrNull() ?: return@mapNotNull null
+        }.getOrElse { error ->
+            Log.w("PlayerMediaRepo", "Unable to load next-up items for $episodeId", error)
+            emptyList()
+        }
+    }
+
+    private suspend fun buildOnlineMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? {
+        return runCatching {
+            val mediaSources = jellyfinApiClient.getMediaSources(mediaId)
+            val selectedMediaSource = mediaSources.firstOrNull() ?: return null
             val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
-                mediaId = id,
+                mediaId = mediaId,
                 mediaSource = selectedMediaSource
-            ) ?: return@mapNotNull null
-            val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, id, ImageType.PRIMARY)
-            val subtitleConfigs = buildExternalSubtitleConfigs(serverUrl, id, selectedMediaSource)
-            createMediaItem(
-                mediaId = stringId,
+            ) ?: return null
+            val baseItem = jellyfinApiClient.getItemInfo(mediaId)
+
+            val resumePositionMs = calculateResumePosition(baseItem, selectedMediaSource)
+            val serverUrl = userSessionRepository.serverUrl.first()
+            val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, mediaId, ImageType.PRIMARY)
+            val subtitleConfigs = buildExternalSubtitleConfigs(serverUrl, mediaId, selectedMediaSource)
+
+            val mediaItem = createMediaItem(
+                mediaId = mediaId.toString(),
                 playbackUrl = playbackUrl,
-                title = episode.name ?: selectedMediaSource.name!!,
-                subtitle = "S${episode.parentIndexNumber}:E${episode.indexNumber}",
+                title = baseItem?.name ?: selectedMediaSource.name.orEmpty(),
+                subtitle = baseItem?.let { episodeSubtitle(it.parentIndexNumber, it.indexNumber) },
                 artworkUrl = artworkUrl,
                 subtitleConfigurations = subtitleConfigs
             )
+
+            mediaItem to resumePositionMs
+        }.getOrElse { error ->
+            Log.w("PlayerMediaRepo", "Falling back to offline playback for $mediaId", error)
+            null
+        }
+    }
+
+    private suspend fun buildOfflineMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? {
+        val download = downloadManager.downloadIndex.getDownload(mediaId.toString())
+            ?.takeIf { it.state == Download.STATE_COMPLETED }
+            ?: return null
+
+        val serverUrl = userSessionRepository.serverUrl.first()
+        val movie = mediaRepository.movies.value[mediaId]
+        val episode = mediaRepository.episodes.value[mediaId]
+
+        val title = movie?.title ?: episode?.title ?: String(download.request.data, Charsets.UTF_8).ifBlank {
+            "Offline media"
+        }
+        val subtitle = episode?.let { episodeSubtitle(null, it.index) }
+        val artworkUrl = when {
+            movie != null -> movie.heroImageUrl
+            episode != null -> episode.heroImageUrl
+            else -> JellyfinImageHelper.toImageUrl(serverUrl, mediaId, ImageType.PRIMARY)
+        }
+        val resumePositionMs = resumePositionFor(movie, episode)
+
+        val mediaItem = createMediaItem(
+            mediaId = mediaId.toString(),
+            playbackUrl = download.request.uri.toString(),
+            title = title,
+            subtitle = subtitle,
+            artworkUrl = artworkUrl,
+        )
+        return mediaItem to resumePositionMs
+    }
+
+    private fun resumePositionFor(movie: hu.bbara.purefin.core.model.Movie?, episode: hu.bbara.purefin.core.model.Episode?): Long? {
+        val progress = movie?.progress ?: episode?.progress ?: return null
+        val runtime = movie?.runtime ?: episode?.runtime ?: return null
+        val durationMs = parseRuntimeToMs(runtime) ?: return null
+        if (durationMs <= 0L) return null
+        return (durationMs * (progress / 100.0)).toLong().takeIf { it > 0L }
+    }
+
+    private fun parseRuntimeToMs(runtime: String): Long? {
+        val trimmed = runtime.trim()
+        if (trimmed.isBlank() || trimmed == "—") return null
+
+        val hourMatch = Regex("(\\d+)h").find(trimmed)?.groupValues?.get(1)?.toLongOrNull() ?: 0L
+        val minuteMatch = Regex("(\\d+)m").find(trimmed)?.groupValues?.get(1)?.toLongOrNull() ?: 0L
+        val totalMinutes = hourMatch * 60L + minuteMatch
+        return if (totalMinutes > 0L) totalMinutes * 60_000L else null
+    }
+
+    private fun episodeSubtitle(seasonNumber: Int?, episodeNumber: Int?): String? {
+        if (seasonNumber == null && episodeNumber == null) return null
+        return buildString {
+            if (seasonNumber != null) append("S").append(seasonNumber)
+            if (episodeNumber != null) {
+                if (isNotEmpty()) append(":")
+                append("E").append(episodeNumber)
+            }
         }
     }
 
