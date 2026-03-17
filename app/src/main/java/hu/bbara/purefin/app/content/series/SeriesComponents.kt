@@ -33,7 +33,6 @@ import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.DownloadDone
-import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.AlertDialog
@@ -121,10 +120,10 @@ internal fun SeriesMetaChips(series: Series) {
 @Composable
 internal fun SeriesActionButtons(
     nextUpEpisode: Episode?,
-    downloadState: DownloadState,
-    isSmartDownloadEnabled: Boolean,
-    onDownloadAllClick: () -> Unit,
-    onSmartDownloadToggle: () -> Unit,
+    seriesDownloadState: DownloadState,
+    selectedSeason: Season,
+    seasonDownloadState: DownloadState,
+    onDownloadOptionSelected: (SeriesDownloadOption) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -158,12 +157,11 @@ internal fun SeriesActionButtons(
         )
         Spacer(modifier = Modifier.width(12.dp))
         MediaActionButton(
-            backgroundColor = if (isSmartDownloadEnabled) scheme.primary else scheme.secondary,
-            iconColor = if (isSmartDownloadEnabled) scheme.onPrimary else scheme.onSecondary,
+            backgroundColor = scheme.secondary,
+            iconColor = scheme.onSecondary,
             icon = when {
-                isSmartDownloadEnabled -> Icons.Outlined.Autorenew
-                downloadState is DownloadState.Downloading -> Icons.Outlined.Close
-                downloadState is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
+                seriesDownloadState is DownloadState.Downloading -> Icons.Outlined.Close
+                seriesDownloadState is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
                 else -> Icons.Outlined.Download
             },
             height = 32.dp,
@@ -173,25 +171,28 @@ internal fun SeriesActionButtons(
 
     if (showDownloadDialog) {
         DownloadOptionsDialog(
-            isSmartDownloadEnabled = isSmartDownloadEnabled,
-            onDownloadAll = {
+            selectedSeasonName = selectedSeason.name,
+            seasonDownloadState = seasonDownloadState,
+            onDownloadOptionSelected = {
                 showDownloadDialog = false
-                onDownloadAllClick()
-            },
-            onSmartDownload = {
-                showDownloadDialog = false
-                onSmartDownloadToggle()
+                onDownloadOptionSelected(it)
             },
             onDismiss = { showDownloadDialog = false }
         )
     }
 }
 
+internal enum class SeriesDownloadOption {
+    SEASON,
+    SERIES,
+    SMART
+}
+
 @Composable
 private fun DownloadOptionsDialog(
-    isSmartDownloadEnabled: Boolean,
-    onDownloadAll: () -> Unit,
-    onSmartDownload: () -> Unit,
+    selectedSeasonName: String,
+    seasonDownloadState: DownloadState,
+    onDownloadOptionSelected: (SeriesDownloadOption) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -203,24 +204,27 @@ private fun DownloadOptionsDialog(
                     text = "Choose how to download this series.",
                     style = MaterialTheme.typography.bodyMedium
                 )
-                if (isSmartDownloadEnabled) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Smart download is currently enabled.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDownloadAll) {
-                Text("Download All")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { onDownloadOptionSelected(SeriesDownloadOption.SEASON) }) {
+                    Text(
+                        when (seasonDownloadState) {
+                            is DownloadState.Downloaded -> "$selectedSeasonName Downloaded"
+                            is DownloadState.Downloading -> "Downloading $selectedSeasonName"
+                            else -> "Download $selectedSeasonName"
+                        }
+                    )
+                }
+                TextButton(onClick = { onDownloadOptionSelected(SeriesDownloadOption.SERIES) }) {
+                    Text("Download All")
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onSmartDownload) {
-                Text(if (isSmartDownloadEnabled) "Disable Smart Download" else "Smart Download")
+            TextButton(onClick = { onDownloadOptionSelected(SeriesDownloadOption.SMART) }) {
+                Text("Smart Download")
             }
         }
     )
@@ -230,8 +234,6 @@ private fun DownloadOptionsDialog(
 internal fun SeasonTabs(
     seasons: List<Season>,
     selectedSeason: Season?,
-    seasonDownloadState: DownloadState,
-    onSeasonDownloadClick: () -> Unit,
     modifier: Modifier = Modifier,
     onSelect: (Season) -> Unit
 ) {
@@ -249,18 +251,6 @@ internal fun SeasonTabs(
                 modifier = Modifier.clickable { onSelect(season) }
             )
         }
-        MediaActionButton(
-            backgroundColor = MaterialTheme.colorScheme.secondary,
-            iconColor = MaterialTheme.colorScheme.onSecondary,
-            icon = when (seasonDownloadState) {
-                is DownloadState.NotDownloaded -> Icons.Outlined.Download
-                is DownloadState.Downloading -> Icons.Outlined.Close
-                is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
-                is DownloadState.Failed -> Icons.Outlined.Download
-            },
-            height = 28.dp,
-            onClick = onSeasonDownloadClick
-        )
     }
 }
 

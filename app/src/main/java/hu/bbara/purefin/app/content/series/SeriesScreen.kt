@@ -89,8 +89,6 @@ private fun SeriesScreenInternal(
 
     val seriesDownloadState by viewModel.seriesDownloadState.collectAsState()
     val seasonDownloadState by viewModel.seasonDownloadState.collectAsState()
-    val isSmartDownloadEnabled by viewModel.isSmartDownloadEnabled.collectAsState()
-
     LaunchedEffect(selectedSeason.value) {
         viewModel.observeSeasonDownloadState(selectedSeason.value.episodes)
     }
@@ -134,10 +132,19 @@ private fun SeriesScreenInternal(
                 Spacer(modifier = Modifier.height(24.dp))
                 SeriesActionButtons(
                     nextUpEpisode = nextUpEpisode,
-                    downloadState = seriesDownloadState,
-                    isSmartDownloadEnabled = isSmartDownloadEnabled,
-                    onDownloadAllClick = { viewModel.downloadSeries(series) },
-                    onSmartDownloadToggle = { viewModel.toggleSmartDownload(series.id) }
+                    seriesDownloadState = seriesDownloadState,
+                    selectedSeason = selectedSeason.value,
+                    seasonDownloadState = seasonDownloadState,
+                    onDownloadOptionSelected = { option ->
+                        when (option) {
+                            SeriesDownloadOption.SEASON ->
+                                viewModel.downloadSeason(selectedSeason.value.episodes)
+                            SeriesDownloadOption.SERIES ->
+                                viewModel.downloadSeries(series)
+                            SeriesDownloadOption.SMART ->
+                                viewModel.enableSmartDownload(series.id)
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 MediaSynopsis(
@@ -151,8 +158,6 @@ private fun SeriesScreenInternal(
                 SeasonTabs(
                     seasons = series.seasons,
                     selectedSeason = selectedSeason.value,
-                    seasonDownloadState = seasonDownloadState,
-                    onSeasonDownloadClick = { viewModel.downloadSeason(selectedSeason.value.episodes) },
                     onSelect = { selectedSeason.value = it }
                 )
                 EpisodeCarousel(

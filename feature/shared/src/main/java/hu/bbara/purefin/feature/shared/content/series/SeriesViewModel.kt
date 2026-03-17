@@ -39,13 +39,6 @@ class SeriesViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val isSmartDownloadEnabled: StateFlow<Boolean> = _seriesId
-        .flatMapLatest { id ->
-            if (id != null) mediaDownloadManager.isSmartDownloadEnabled(id) else flowOf(false)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
-
     private val _seriesDownloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
     val seriesDownloadState: StateFlow<DownloadState> = _seriesDownloadState
 
@@ -83,13 +76,9 @@ class SeriesViewModel @Inject constructor(
         }
     }
 
-    fun toggleSmartDownload(seriesId: UUID) {
+    fun enableSmartDownload(seriesId: UUID) {
         viewModelScope.launch {
-            if (isSmartDownloadEnabled.value) {
-                mediaDownloadManager.disableSmartDownload(seriesId)
-            } else {
-                mediaDownloadManager.enableSmartDownload(seriesId)
-            }
+            mediaDownloadManager.enableSmartDownload(seriesId)
         }
     }
 
