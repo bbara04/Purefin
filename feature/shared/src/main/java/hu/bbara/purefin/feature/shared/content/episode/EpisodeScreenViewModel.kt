@@ -37,6 +37,13 @@ class EpisodeScreenViewModel @Inject constructor(
         id?.let { episodesMap[it] }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val seriesTitle: StateFlow<String?> = combine(
+        _seriesId,
+        appContentRepository.series
+    ) { seriesId, seriesMap ->
+        seriesId?.let { id -> seriesMap[id]?.name }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
     val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
 
@@ -52,6 +59,11 @@ class EpisodeScreenViewModel @Inject constructor(
     fun onPlaybackStarted() {
         val seriesId = _seriesId.value ?: return
         navigationManager.pop()
+        navigationManager.navigate(Route.SeriesRoute(SeriesDto(id = seriesId)))
+    }
+
+    fun onSeriesClick() {
+        val seriesId = _seriesId.value ?: return
         navigationManager.navigate(Route.SeriesRoute(SeriesDto(id = seriesId)))
     }
 

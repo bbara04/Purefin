@@ -41,6 +41,7 @@ fun EpisodeScreen(
     }
 
     val episode = viewModel.episode.collectAsState()
+    val seriesTitle = viewModel.seriesTitle.collectAsState()
     val downloadState = viewModel.downloadState.collectAsState()
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -67,8 +68,10 @@ fun EpisodeScreen(
 
     EpisodeScreenInternal(
         episode = episode.value!!,
+        seriesTitle = seriesTitle.value,
         downloadState = downloadState.value,
         onBack = viewModel::onBack,
+        onSeriesClick = viewModel::onSeriesClick,
         onPlaybackStarted = viewModel::onPlaybackStarted,
         onDownloadClick = onDownloadClick,
         modifier = modifier
@@ -78,8 +81,10 @@ fun EpisodeScreen(
 @Composable
 private fun EpisodeScreenInternal(
     episode: Episode,
+    seriesTitle: String?,
     downloadState: DownloadState,
     onBack: () -> Unit,
+    onSeriesClick: () -> Unit,
     onPlaybackStarted: () -> Unit,
     onDownloadClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -90,7 +95,9 @@ private fun EpisodeScreenInternal(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             EpisodeTopBar(
+                seriesTitle = seriesTitle,
                 onBack = onBack,
+                onSeriesClick = onSeriesClick,
                 modifier = Modifier
             )
         }

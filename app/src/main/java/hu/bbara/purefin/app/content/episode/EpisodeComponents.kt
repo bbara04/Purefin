@@ -1,7 +1,10 @@
 package hu.bbara.purefin.app.content.episode
 
 import android.content.Intent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -28,8 +32,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaCastRow
@@ -45,9 +51,12 @@ import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
 internal fun EpisodeTopBar(
+    seriesTitle: String?,
     onBack: () -> Unit,
+    onSeriesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scheme = MaterialTheme.colorScheme
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -61,6 +70,30 @@ internal fun EpisodeTopBar(
             contentDescription = "Back",
             onClick = onBack
         )
+        if (!seriesTitle.isNullOrBlank()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = seriesTitle,
+                    color = scheme.onBackground,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(scheme.background.copy(alpha = 0.65f))
+                        .clickable(onClick = onSeriesClick)
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                )
+            }
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
             GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
