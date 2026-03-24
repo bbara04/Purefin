@@ -29,6 +29,11 @@ class ProgressManager @Inject constructor(
     private var lastDurationMs: Long = 0L
     private var isPaused: Boolean = false
 
+    fun syncProgress(snapshot: PlaybackProgressSnapshot) {
+        lastPositionMs = snapshot.positionMs
+        lastDurationMs = snapshot.durationMs
+    }
+
     fun bind(
         playbackState: StateFlow<PlaybackStateSnapshot>,
         progress: StateFlow<PlaybackProgressSnapshot>,

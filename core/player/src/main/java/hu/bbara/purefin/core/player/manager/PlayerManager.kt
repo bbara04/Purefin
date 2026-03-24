@@ -235,6 +235,16 @@ class PlayerManager @Inject constructor(
         _playbackState.update { it.copy(error = null) }
     }
 
+    fun snapshotProgress(): PlaybackProgressSnapshot {
+        val duration = player.duration.takeIf { it > 0 } ?: _progress.value.durationMs
+        return PlaybackProgressSnapshot(
+            durationMs = duration,
+            positionMs = player.currentPosition,
+            bufferedMs = player.bufferedPosition,
+            isLive = player.isCurrentMediaItemLive
+        )
+    }
+
     private suspend fun applyTrackPreferences() {
         val context = currentMediaContext ?: return
         val preferences = trackPreferencesRepository.getMediaPreferences(context.preferenceKey).firstOrNull() ?: return
@@ -307,15 +317,7 @@ class PlayerManager @Inject constructor(
     private fun startProgressLoop() {
         scope.launch {
             while (isActive) {
-                val duration = player.duration.takeIf { it > 0 } ?: _progress.value.durationMs
-                val position = player.currentPosition
-                val buffered = player.bufferedPosition
-                _progress.value = PlaybackProgressSnapshot(
-                    durationMs = duration,
-                    positionMs = position,
-                    bufferedMs = buffered,
-                    isLive = player.isCurrentMediaItemLive
-                )
+                _progress.value = snapshotProgress()
                 delay(500)
             }
         }

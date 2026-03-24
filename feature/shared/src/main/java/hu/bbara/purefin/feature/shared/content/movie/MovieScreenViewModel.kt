@@ -10,8 +10,11 @@ import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.download.MediaDownloadManager
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import javax.inject.Inject
@@ -23,8 +26,14 @@ class MovieScreenViewModel @Inject constructor(
     private val mediaDownloadManager: MediaDownloadManager
 ): ViewModel() {
 
-    private val _movie = MutableStateFlow<Movie?>(null)
-    val movie = _movie.asStateFlow()
+    private val _movieId = MutableStateFlow<UUID?>(null)
+
+    val movie: StateFlow<Movie?> = combine(
+        _movieId,
+        mediaRepository.movies
+    ) { movieId, movies ->
+        movieId?.let { movies[it] }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
     val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
@@ -34,7 +43,7 @@ class MovieScreenViewModel @Inject constructor(
     }
 
     fun onPlay() {
-        val id = _movie.value?.id?.toString() ?: return
+        val id = movie.value?.id?.toString() ?: return
         navigationManager.navigate(Route.PlayerRoute(mediaId = id))
     }
 
@@ -43,24 +52,16 @@ class MovieScreenViewModel @Inject constructor(
     }
 
     fun selectMovie(movieId: UUID) {
+        _movieId.value = movieId
         viewModelScope.launch {
-            val movie = mediaRepository.movies.value[movieId]
-            if (movie == null) {
-                _movie.value = null
-                return@launch
-            }
-            _movie.value = movie
-
-            launch {
-                mediaDownloadManager.observeDownloadState(movieId.toString()).collect {
-                    _downloadState.value = it
-                }
+            mediaDownloadManager.observeDownloadState(movieId.toString()).collect {
+                _downloadState.value = it
             }
         }
     }
 
     fun onDownloadClick() {
-        val movieId = _movie.value?.id ?: return
+        val movieId = movie.value?.id ?: return
         viewModelScope.launch {
             when (_downloadState.value) {
                 is DownloadState.NotDownloaded, is DownloadState.Failed -> {

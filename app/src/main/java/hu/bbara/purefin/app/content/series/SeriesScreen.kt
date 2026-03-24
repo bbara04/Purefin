@@ -15,8 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -80,7 +81,8 @@ private fun SeriesScreenInternal(
         }
         return series.seasons.first()
     }
-    val selectedSeason = remember { mutableStateOf<Season>(getDefaultSeason()) }
+    var selectedSeasonId by remember(series.id) { mutableStateOf(getDefaultSeason().id) }
+    val selectedSeason = series.seasons.firstOrNull { it.id == selectedSeasonId } ?: getDefaultSeason()
     val nextUpEpisode = remember(series) {
         series.seasons.firstNotNullOfOrNull { season ->
             season.episodes.firstOrNull { !it.watched }
@@ -89,8 +91,8 @@ private fun SeriesScreenInternal(
 
     val seriesDownloadState by viewModel.seriesDownloadState.collectAsState()
     val seasonDownloadState by viewModel.seasonDownloadState.collectAsState()
-    LaunchedEffect(selectedSeason.value) {
-        viewModel.observeSeasonDownloadState(selectedSeason.value.episodes)
+    LaunchedEffect(selectedSeason.id, selectedSeason.episodes) {
+        viewModel.observeSeasonDownloadState(selectedSeason.episodes)
     }
 
     Scaffold(
@@ -133,12 +135,12 @@ private fun SeriesScreenInternal(
                 SeriesActionButtons(
                     nextUpEpisode = nextUpEpisode,
                     seriesDownloadState = seriesDownloadState,
-                    selectedSeason = selectedSeason.value,
+                    selectedSeason = selectedSeason,
                     seasonDownloadState = seasonDownloadState,
                     onDownloadOptionSelected = { option ->
                         when (option) {
                             SeriesDownloadOption.SEASON ->
-                                viewModel.downloadSeason(selectedSeason.value.episodes)
+                                viewModel.downloadSeason(selectedSeason.episodes)
                             SeriesDownloadOption.SERIES ->
                                 viewModel.downloadSeries(series)
                             SeriesDownloadOption.SMART ->
@@ -157,11 +159,11 @@ private fun SeriesScreenInternal(
                 Spacer(modifier = Modifier.height(24.dp))
                 SeasonTabs(
                     seasons = series.seasons,
-                    selectedSeason = selectedSeason.value,
-                    onSelect = { selectedSeason.value = it }
+                    selectedSeason = selectedSeason,
+                    onSelect = { selectedSeasonId = it.id }
                 )
                 EpisodeCarousel(
-                    episodes = selectedSeason.value.episodes,
+                    episodes = selectedSeason.episodes,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 if(series.cast.isNotEmpty()) {

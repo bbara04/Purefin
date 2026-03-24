@@ -251,6 +251,7 @@ class PlayerViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         autoHideJob?.cancel()
+        progressManager.syncProgress(playerManager.snapshotProgress())
         progressManager.release()
         playerManager.release()
     }
