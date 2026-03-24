@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,8 +27,11 @@ import hu.bbara.purefin.core.data.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
+import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
+import hu.bbara.purefin.ui.theme.AppTheme
+import java.util.UUID
 
 @Composable
 fun EpisodeScreen(
@@ -142,4 +146,43 @@ private fun EpisodeScreenInternal(
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun EpisodeScreenPreview() {
+    AppTheme {
+        EpisodeScreenInternal(
+            episode = previewEpisode(),
+            seriesTitle = "Severance",
+            topBarShortcut = EpisodeTopBarShortcut.Series(onClick = {}),
+            downloadState = DownloadState.Downloading(progressPercent = 0.42f),
+            onBack = {},
+            onSeriesClick = {},
+            onDownloadClick = {}
+        )
+    }
+}
 
+private fun previewEpisode(): Episode {
+    val seriesId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+    val seasonId = UUID.fromString("22222222-2222-2222-2222-222222222222")
+    return Episode(
+        id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
+        seriesId = seriesId,
+        seasonId = seasonId,
+        index = 4,
+        title = "The You You Are",
+        synopsis = "Mark is pulled deeper into Lumon's fractured world as the team chases a clue that reframes everything they thought they understood.",
+        releaseDate = "2025",
+        rating = "16+",
+        runtime = "49m",
+        progress = 63.0,
+        watched = false,
+        format = "4K",
+        heroImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+        cast = listOf(
+            CastMember("Adam Scott", "Mark Scout", null),
+            CastMember("Britt Lower", "Helly R.", null),
+            CastMember("John Turturro", "Irving B.", null)
+        )
+    )
+}

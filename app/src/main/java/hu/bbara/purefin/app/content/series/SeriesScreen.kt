@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,10 +28,14 @@ import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.core.data.navigation.SeriesDto
+import hu.bbara.purefin.core.model.CastMember
+import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
+import hu.bbara.purefin.ui.theme.AppTheme
+import java.util.UUID
 
 @Composable
 fun SeriesScreen(
@@ -51,7 +56,19 @@ fun SeriesScreen(
         }
         SeriesScreenInternal(
             series = seriesData,
-            viewModel = viewModel,
+            seriesDownloadState = viewModel.seriesDownloadState.collectAsState().value,
+            seasonDownloadState = viewModel.seasonDownloadState.collectAsState().value,
+            onDownloadOptionSelected = { option, selectedSeason ->
+                when (option) {
+                    SeriesDownloadOption.SEASON ->
+                        viewModel.downloadSeason(selectedSeason.episodes)
+                    SeriesDownloadOption.SERIES ->
+                        viewModel.downloadSeries(seriesData)
+                    SeriesDownloadOption.SMART ->
+                        viewModel.enableSmartDownload(seriesData.id)
+                }
+            },
+            onObserveSeasonDownloadState = viewModel::observeSeasonDownloadState,
             onBack = viewModel::onBack,
             modifier = modifier
         )
@@ -63,7 +80,10 @@ fun SeriesScreen(
 @Composable
 private fun SeriesScreenInternal(
     series: Series,
-    viewModel: SeriesViewModel,
+    seriesDownloadState: DownloadState,
+    seasonDownloadState: DownloadState,
+    onDownloadOptionSelected: (SeriesDownloadOption, Season) -> Unit,
+    onObserveSeasonDownloadState: (List<Episode>) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -89,10 +109,8 @@ private fun SeriesScreenInternal(
         } ?: series.seasons.firstOrNull()?.episodes?.firstOrNull()
     }
 
-    val seriesDownloadState by viewModel.seriesDownloadState.collectAsState()
-    val seasonDownloadState by viewModel.seasonDownloadState.collectAsState()
     LaunchedEffect(selectedSeason.id, selectedSeason.episodes) {
-        viewModel.observeSeasonDownloadState(selectedSeason.episodes)
+        onObserveSeasonDownloadState(selectedSeason.episodes)
     }
 
     Scaffold(
@@ -138,14 +156,7 @@ private fun SeriesScreenInternal(
                     selectedSeason = selectedSeason,
                     seasonDownloadState = seasonDownloadState,
                     onDownloadOptionSelected = { option ->
-                        when (option) {
-                            SeriesDownloadOption.SEASON ->
-                                viewModel.downloadSeason(selectedSeason.episodes)
-                            SeriesDownloadOption.SERIES ->
-                                viewModel.downloadSeries(series)
-                            SeriesDownloadOption.SMART ->
-                                viewModel.enableSmartDownload(series.id)
-                        }
+                        onDownloadOptionSelected(option, selectedSeason)
                     }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -179,4 +190,115 @@ private fun SeriesScreenInternal(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SeriesScreenPreview() {
+    AppTheme {
+        SeriesScreenInternal(
+            series = previewSeries(),
+            seriesDownloadState = DownloadState.Downloading(progressPercent = 0.58f),
+            seasonDownloadState = DownloadState.NotDownloaded,
+            onDownloadOptionSelected = { _, _ -> },
+            onObserveSeasonDownloadState = {},
+            onBack = {}
+        )
+    }
+}
+
+private fun previewSeries(): Series {
+    val libraryId = UUID.fromString("66666666-6666-6666-6666-666666666666")
+    val seriesId = UUID.fromString("77777777-7777-7777-7777-777777777777")
+    val seasonOneId = UUID.fromString("88888888-8888-8888-8888-888888888888")
+    val seasonTwoId = UUID.fromString("99999999-9999-9999-9999-999999999999")
+
+    val seasonOneEpisodes = listOf(
+        Episode(
+            id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"),
+            seriesId = seriesId,
+            seasonId = seasonOneId,
+            index = 1,
+            title = "A Fresh Start",
+            synopsis = "A fractured crew tries to reassemble after a year apart.",
+            releaseDate = "2024",
+            rating = "16+",
+            runtime = "51m",
+            progress = 100.0,
+            watched = true,
+            format = "4K",
+            heroImageUrl = "https://images.unsplash.com/photo-1497032205916-ac775f0649ae",
+            cast = emptyList()
+        ),
+        Episode(
+            id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2"),
+            seriesId = seriesId,
+            seasonId = seasonOneId,
+            index = 2,
+            title = "Signals",
+            synopsis = "Anomalies around the station point to a cover-up.",
+            releaseDate = "2024",
+            rating = "16+",
+            runtime = "48m",
+            progress = 34.0,
+            watched = false,
+            format = "4K",
+            heroImageUrl = "https://images.unsplash.com/photo-1520034475321-cbe63696469a",
+            cast = emptyList()
+        )
+    )
+    val seasonTwoEpisodes = listOf(
+        Episode(
+            id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3"),
+            seriesId = seriesId,
+            seasonId = seasonTwoId,
+            index = 1,
+            title = "Return Window",
+            synopsis = "A high-risk jump changes the rules of the mission.",
+            releaseDate = "2025",
+            rating = "16+",
+            runtime = "54m",
+            progress = null,
+            watched = false,
+            format = "4K",
+            heroImageUrl = "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429",
+            cast = emptyList()
+        )
+    )
+
+    return Series(
+        id = seriesId,
+        libraryId = libraryId,
+        name = "Constellation",
+        synopsis = "When an experiment in orbit goes wrong, the survivors return home to a world that no longer fits their memories.",
+        year = "2024",
+        heroImageUrl = "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa",
+        unwatchedEpisodeCount = 2,
+        seasonCount = 2,
+        seasons = listOf(
+            Season(
+                id = seasonOneId,
+                seriesId = seriesId,
+                name = "Season 1",
+                index = 1,
+                unwatchedEpisodeCount = 1,
+                episodeCount = seasonOneEpisodes.size,
+                episodes = seasonOneEpisodes
+            ),
+            Season(
+                id = seasonTwoId,
+                seriesId = seriesId,
+                name = "Season 2",
+                index = 2,
+                unwatchedEpisodeCount = 1,
+                episodeCount = seasonTwoEpisodes.size,
+                episodes = seasonTwoEpisodes
+            )
+        ),
+        cast = listOf(
+            CastMember("Noomi Rapace", "Jo", null),
+            CastMember("Jonathan Banks", "Henry", null),
+            CastMember("James D'Arcy", "Magnus", null)
+        )
+    )
 }
