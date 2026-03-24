@@ -63,15 +63,18 @@ import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
-import hu.bbara.purefin.player.PlayerActivity
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
-import hu.bbara.purefin.feature.download.DownloadState
+import hu.bbara.purefin.core.data.navigation.EpisodeDto
+import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
+import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
+import hu.bbara.purefin.player.PlayerActivity
 
 @Composable
 internal fun SeriesTopBar(
@@ -127,14 +130,24 @@ internal fun SeriesActionButtons(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val navigationManager = LocalNavigationManager.current
     val scheme = MaterialTheme.colorScheme
     var showDownloadDialog by remember { mutableStateOf(false) }
     val episodeId = nextUpEpisode?.id
-    val playAction = remember(episodeId) {
-        episodeId?.let { id ->
+    val playAction = remember(nextUpEpisode) {
+        nextUpEpisode?.let { episode ->
             {
+                navigationManager.navigate(
+                    Route.EpisodeRoute(
+                        EpisodeDto(
+                            id = episode.id,
+                            seasonId = episode.seasonId,
+                            seriesId = episode.seriesId
+                        )
+                    )
+                )
                 val intent = Intent(context, PlayerActivity::class.java)
-                intent.putExtra("MEDIA_ID", id.toString())
+                intent.putExtra("MEDIA_ID", episode.id.toString())
                 context.startActivity(intent)
             }
         }

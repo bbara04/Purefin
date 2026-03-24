@@ -107,7 +107,6 @@ internal fun EpisodeDetails(
     episode: Episode,
     downloadState: DownloadState,
     onDownloadClick: () -> Unit,
-    onPlaybackStarted: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -118,7 +117,6 @@ internal fun EpisodeDetails(
             val intent = Intent(context, PlayerActivity::class.java)
             intent.putExtra("MEDIA_ID", episode.id.toString())
             context.startActivity(intent)
-            onPlaybackStarted()
         }
     }
 

@@ -72,7 +72,6 @@ fun EpisodeScreen(
         downloadState = downloadState.value,
         onBack = viewModel::onBack,
         onSeriesClick = viewModel::onSeriesClick,
-        onPlaybackStarted = viewModel::onPlaybackStarted,
         onDownloadClick = onDownloadClick,
         modifier = modifier
     )
@@ -85,7 +84,6 @@ private fun EpisodeScreenInternal(
     downloadState: DownloadState,
     onBack: () -> Unit,
     onSeriesClick: () -> Unit,
-    onPlaybackStarted: () -> Unit,
     onDownloadClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -117,7 +115,6 @@ private fun EpisodeScreenInternal(
                 episode = episode,
                 downloadState = downloadState,
                 onDownloadClick = onDownloadClick,
-                onPlaybackStarted = onPlaybackStarted,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
