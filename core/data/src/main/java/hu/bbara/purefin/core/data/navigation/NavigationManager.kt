@@ -1,6 +1,7 @@
 package hu.bbara.purefin.core.data.navigation
 
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,3 +44,5 @@ class DefaultNavigationManager : NavigationManager {
 
 val LocalNavigationManager: ProvidableCompositionLocal<NavigationManager> =
     staticCompositionLocalOf { error("NavigationManager not provided") }
+
+val LocalNavigationBackStack = compositionLocalOf<List<Route>> { emptyList() }

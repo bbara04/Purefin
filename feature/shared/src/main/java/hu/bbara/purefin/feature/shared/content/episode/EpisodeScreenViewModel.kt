@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.AppContentRepository
 import hu.bbara.purefin.core.data.navigation.NavigationManager
+import hu.bbara.purefin.core.data.navigation.Route
+import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.download.MediaDownloadManager
@@ -50,7 +52,8 @@ class EpisodeScreenViewModel @Inject constructor(
     }
 
     fun onSeriesClick() {
-        navigationManager.pop()
+        val seriesId = _seriesId.value ?: return
+        navigationManager.navigate(Route.SeriesRoute(SeriesDto(id = seriesId)))
     }
 
     fun selectEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) {

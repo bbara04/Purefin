@@ -34,6 +34,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.client.JellyfinAuthInterceptor
+import hu.bbara.purefin.core.data.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.NavigationCommand
 import hu.bbara.purefin.core.data.navigation.NavigationManager
@@ -165,7 +166,10 @@ class PurefinActivity : ComponentActivity() {
                 }
             }
 
-            CompositionLocalProvider(LocalNavigationManager provides navigationManager) {
+            CompositionLocalProvider(
+                LocalNavigationManager provides navigationManager,
+                LocalNavigationBackStack provides backStack.toList()
+            ) {
                 NavDisplay(
                     backStack = backStack,
                     onBack = { navigationManager.pop() },

@@ -15,12 +15,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
+import hu.bbara.purefin.core.data.navigation.LocalNavigationBackStack
+import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
+import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
@@ -31,6 +35,9 @@ fun EpisodeScreen(
     viewModel: EpisodeScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
+    val navigationManager = LocalNavigationManager.current
+    val backStack = LocalNavigationBackStack.current
+    val previousRoute = remember(backStack) { backStack.getOrNull(backStack.lastIndex - 1) }
 
     LaunchedEffect(episode) {
         viewModel.selectEpisode(
@@ -69,6 +76,15 @@ fun EpisodeScreen(
     EpisodeScreenInternal(
         episode = episode.value!!,
         seriesTitle = seriesTitle.value,
+        topBarShortcut = remember(previousRoute) {
+            when (previousRoute) {
+                is Route.SeriesRoute -> EpisodeTopBarShortcut.Home {
+                    navigationManager.replaceAll(Route.Home)
+                }
+                Route.Home -> EpisodeTopBarShortcut.Series(viewModel::onSeriesClick)
+                else -> null
+            }
+        },
         downloadState = downloadState.value,
         onBack = viewModel::onBack,
         onSeriesClick = viewModel::onSeriesClick,
@@ -81,6 +97,7 @@ fun EpisodeScreen(
 private fun EpisodeScreenInternal(
     episode: Episode,
     seriesTitle: String?,
+    topBarShortcut: EpisodeTopBarShortcut?,
     downloadState: DownloadState,
     onBack: () -> Unit,
     onSeriesClick: () -> Unit,
@@ -94,6 +111,7 @@ private fun EpisodeScreenInternal(
         topBar = {
             EpisodeTopBar(
                 seriesTitle = seriesTitle,
+                shortcut = topBarShortcut,
                 onBack = onBack,
                 onSeriesClick = onSeriesClick,
                 modifier = Modifier
@@ -123,3 +141,5 @@ private fun EpisodeScreenInternal(
         }
     }
 }
+
+

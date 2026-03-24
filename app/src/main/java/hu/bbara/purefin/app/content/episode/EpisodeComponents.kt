@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -49,9 +50,23 @@ import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.player.PlayerActivity
 
+internal sealed interface EpisodeTopBarShortcut {
+    val label: String
+    val onClick: () -> Unit
+
+    data class Series(override val onClick: () -> Unit) : EpisodeTopBarShortcut {
+        override val label: String = "Series"
+    }
+
+    data class Home(override val onClick: () -> Unit) : EpisodeTopBarShortcut {
+        override val label: String = "Home"
+    }
+}
+
 @Composable
 internal fun EpisodeTopBar(
     seriesTitle: String?,
+    shortcut: EpisodeTopBarShortcut?,
     onBack: () -> Unit,
     onSeriesClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -70,29 +85,50 @@ internal fun EpisodeTopBar(
             contentDescription = "Back",
             onClick = onBack
         )
-        if (!seriesTitle.isNullOrBlank()) {
+        when {
+            shortcut != null -> {
+                Box(
+                    modifier = Modifier
+                        .height(52.dp)
+                        .clickable(onClick = shortcut.onClick),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = shortcut.label,
+                        color = scheme.onBackground,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(scheme.background.copy(alpha = 0.65f))
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                    )
+                }
+            }
+            !seriesTitle.isNullOrBlank() -> {
             Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp),
+                    .height(52.dp)
+                    .clickable(onClick = onSeriesClick),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = seriesTitle,
                     color = scheme.onBackground,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
+                        .clip(CircleShape)
                         .background(scheme.background.copy(alpha = 0.65f))
-                        .clickable(onClick = onSeriesClick)
                         .padding(horizontal = 16.dp, vertical = 10.dp)
-                )
+                    )
+                }
             }
-        } else {
-            Spacer(modifier = Modifier.weight(1f))
+            else -> Spacer(modifier = Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
