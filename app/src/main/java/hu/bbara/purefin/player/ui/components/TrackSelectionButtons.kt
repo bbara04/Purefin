@@ -3,13 +3,18 @@ package hu.bbara.purefin.player.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -17,7 +22,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ClosedCaption
 import androidx.compose.material.icons.outlined.HighQuality
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -25,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.common.ui.components.PurefinIconButton
 import hu.bbara.purefin.core.player.model.TrackOption
@@ -37,8 +46,6 @@ fun QualitySelectionButton(
     overlayController: PersistentOverlayController,
     modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
-
     PurefinIconButton(
         icon = Icons.Outlined.HighQuality,
         contentDescription = "Quality",
@@ -48,6 +55,7 @@ fun QualitySelectionButton(
                     title = "Quality",
                     options = options,
                     selectedId = selectedId,
+                    onClose = { overlayController.hide() },
                     onSelect = { option ->
                         onSelect(option)
                         overlayController.hide()
@@ -76,6 +84,7 @@ fun AudioSelectionButton(
                     title = "Audio",
                     options = options,
                     selectedId = selectedId,
+                    onClose = { overlayController.hide() },
                     onSelect = { option ->
                         onSelect(option)
                         overlayController.hide()
@@ -104,6 +113,7 @@ fun SubtitlesSelectionButton(
                     title = "Subtitles",
                     options = options,
                     selectedId = selectedId,
+                    onClose = { overlayController.hide() },
                     onSelect = { option ->
                         onSelect(option)
                         overlayController.hide()
@@ -121,6 +131,7 @@ private fun TrackSelectionPanel(
     options: List<TrackOption>,
     selectedId: String?,
     onSelect: (TrackOption) -> Unit,
+    onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -128,7 +139,10 @@ private fun TrackSelectionPanel(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .fillMaxHeight()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .navigationBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -136,35 +150,63 @@ private fun TrackSelectionPanel(
             ),
         contentAlignment = Alignment.BottomEnd
     ) {
-        Column(
+        Surface(
             modifier = Modifier
-                .widthIn(min = 200.dp, max = 320.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(scheme.surface.copy(alpha = 0.98f))
-                .padding(vertical = 12.dp, horizontal = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .sizeIn(
+                    minWidth = 280.dp,
+                    maxWidth = 280.dp,
+                    minHeight = 220.dp,
+                    maxHeight = 360.dp
+                )
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 24.dp)),
+            color = scheme.surface.copy(alpha = 0.97f)
         ) {
-            Text(
-                text = title,
-                color = scheme.onSurface,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-
             Column(
                 modifier = Modifier
-                    .heightIn(max = 400.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = 12.dp, vertical = 12.dp)
             ) {
-                options.forEach { option ->
-                    val selected = option.id == selectedId
-                    TrackOptionItem(
-                        label = option.label,
-                        selected = selected,
-                        onClick = { onSelect(option) }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 4.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = title,
+                        color = scheme.onSurface,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
                     )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .clickable(onClick = onClose)
+                            .padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Close,
+                            contentDescription = "Close $title",
+                            tint = scheme.onSurface
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 292.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    options.forEach { option ->
+                        val selected = option.id == selectedId
+                        TrackOptionItem(
+                            label = option.label,
+                            selected = selected,
+                            onClick = { onSelect(option) }
+                        )
+                    }
                 }
             }
         }
@@ -183,7 +225,8 @@ private fun TrackOptionItem(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .padding(vertical = 3.dp)
+            .clip(RoundedCornerShape(14.dp))
             .background(
                 if (selected) {
                     scheme.primary.copy(alpha = 0.15f)
@@ -198,7 +241,9 @@ private fun TrackOptionItem(
             text = label,
             color = scheme.onSurface,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
