@@ -55,7 +55,6 @@ import kotlin.math.roundToInt
 fun PlayerScreen(
     viewModel: PlayerViewModel,
     onBack: () -> Unit
-
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val controlsVisible by viewModel.controlsVisible.collectAsState()
