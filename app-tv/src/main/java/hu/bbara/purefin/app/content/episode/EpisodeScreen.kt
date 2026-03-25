@@ -39,6 +39,8 @@ import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
+import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
+import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
 
@@ -48,6 +50,8 @@ fun EpisodeScreen(
     viewModel: EpisodeScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
+    val navigationManager = LocalNavigationManager.current
+
     LaunchedEffect(episode) {
         viewModel.selectEpisode(
             seriesId = episode.seriesId,
@@ -57,16 +61,23 @@ fun EpisodeScreen(
     }
 
     val episode = viewModel.episode.collectAsState()
+    val selectedEpisode = episode.value
 
-    if (episode.value == null) {
+    if (selectedEpisode == null) {
         PurefinWaitingScreen()
         return
     }
 
     EpisodeScreenInternal(
-        episode = episode.value!!,
+        episode = selectedEpisode,
         onBack = viewModel::onBack,
-        onPlay = viewModel::onPlay,
+        onPlay = remember(selectedEpisode.id, navigationManager) {
+            {
+                navigationManager.navigate(
+                    Route.PlayerRoute(mediaId = selectedEpisode.id.toString())
+                )
+            }
+        },
         modifier = modifier
     )
 }
