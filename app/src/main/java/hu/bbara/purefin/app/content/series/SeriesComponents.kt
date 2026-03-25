@@ -166,7 +166,7 @@ internal fun SeriesActionButtons(
             backgroundColor = MaterialTheme.colorScheme.secondary,
             iconColor = MaterialTheme.colorScheme.onSecondary,
             icon = Icons.Outlined.Add,
-            height = 32.dp
+            height = 48.dp
         )
         Spacer(modifier = Modifier.width(12.dp))
         MediaActionButton(
@@ -177,7 +177,7 @@ internal fun SeriesActionButtons(
                 seriesDownloadState is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
                 else -> Icons.Outlined.Download
             },
-            height = 32.dp,
+            height = 48.dp,
             onClick = { showDownloadDialog = true }
         )
     }

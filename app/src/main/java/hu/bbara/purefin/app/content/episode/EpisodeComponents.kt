@@ -194,15 +194,6 @@ internal fun EpisodeDetails(
         Spacer(modifier = Modifier.height(24.dp))
 
         Row() {
-//            MediaPlayButton(
-//                backgroundColor = MaterialTheme.colorScheme.primary,
-//                foregroundColor = MaterialTheme.colorScheme.onPrimary,
-//                text = if (episode.progress == null) "Play" else "Resume",
-//                subText = if (episode.progress == null) null else "${episode.progress.toInt() }%",
-//                modifier = Modifier.weight(1f),
-//                size = 48.dp,
-//                onClick = playAction
-//            )
             MediaResumeButton(
                 text = if (episode.progress == null) "Play" else "Resume",
                 progress = episode.progress?.div(100)?.toFloat() ?: 0f,
