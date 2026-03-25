@@ -69,7 +69,7 @@ fun SeriesScreen(
                 }
             },
             onObserveSeasonDownloadState = viewModel::observeSeasonDownloadState,
-            onBack = viewModel::onBack,
+            onBack = viewModel::onGoHome,
             modifier = modifier
         )
     } else {

@@ -57,15 +57,10 @@ internal sealed interface EpisodeTopBarShortcut {
     data class Series(override val onClick: () -> Unit) : EpisodeTopBarShortcut {
         override val label: String = "Series"
     }
-
-    data class Home(override val onClick: () -> Unit) : EpisodeTopBarShortcut {
-        override val label: String = "Home"
-    }
 }
 
 @Composable
 internal fun EpisodeTopBar(
-    seriesTitle: String?,
     shortcut: EpisodeTopBarShortcut?,
     onBack: () -> Unit,
     onSeriesClick: () -> Unit,
@@ -80,55 +75,37 @@ internal fun EpisodeTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GhostIconButton(
-            icon = Icons.Outlined.ArrowBack,
-            contentDescription = "Back",
-            onClick = onBack
-        )
-        when {
-            shortcut != null -> {
-                Box(
-                    modifier = Modifier
-                        .height(52.dp)
-                        .clickable(onClick = shortcut.onClick),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = shortcut.label,
-                        color = scheme.onBackground,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            GhostIconButton(
+                icon = Icons.Outlined.ArrowBack,
+                contentDescription = "Back",
+                onClick = onBack
+            )
+            when {
+                shortcut != null -> {
+                    Box(
                         modifier = Modifier
-                            .clip(CircleShape)
-                            .background(scheme.background.copy(alpha = 0.65f))
-                            .padding(horizontal = 16.dp, vertical = 10.dp)
-                    )
+                            .height(52.dp)
+                            .clickable(onClick = shortcut.onClick),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = shortcut.label,
+                            color = scheme.onBackground,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(scheme.background.copy(alpha = 0.65f))
+                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                        )
+                    }
                 }
             }
-            !seriesTitle.isNullOrBlank() -> {
-            Box(
-                modifier = Modifier
-                    .height(52.dp)
-                    .clickable(onClick = onSeriesClick),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = seriesTitle,
-                    color = scheme.onBackground,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(scheme.background.copy(alpha = 0.65f))
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                    )
-                }
-            }
-            else -> Spacer(modifier = Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })

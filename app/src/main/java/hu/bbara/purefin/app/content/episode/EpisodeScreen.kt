@@ -52,7 +52,6 @@ fun EpisodeScreen(
     }
 
     val episode = viewModel.episode.collectAsState()
-    val seriesTitle = viewModel.seriesTitle.collectAsState()
     val downloadState = viewModel.downloadState.collectAsState()
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -79,12 +78,8 @@ fun EpisodeScreen(
 
     EpisodeScreenInternal(
         episode = episode.value!!,
-        seriesTitle = seriesTitle.value,
         topBarShortcut = remember(previousRoute) {
             when (previousRoute) {
-                is Route.SeriesRoute -> EpisodeTopBarShortcut.Home {
-                    navigationManager.replaceAll(Route.Home)
-                }
                 Route.Home -> EpisodeTopBarShortcut.Series(viewModel::onSeriesClick)
                 else -> null
             }
@@ -100,7 +95,6 @@ fun EpisodeScreen(
 @Composable
 private fun EpisodeScreenInternal(
     episode: Episode,
-    seriesTitle: String?,
     topBarShortcut: EpisodeTopBarShortcut?,
     downloadState: DownloadState,
     onBack: () -> Unit,
@@ -114,7 +108,6 @@ private fun EpisodeScreenInternal(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             EpisodeTopBar(
-                seriesTitle = seriesTitle,
                 shortcut = topBarShortcut,
                 onBack = onBack,
                 onSeriesClick = onSeriesClick,
@@ -152,7 +145,6 @@ private fun EpisodeScreenPreview() {
     AppTheme {
         EpisodeScreenInternal(
             episode = previewEpisode(),
-            seriesTitle = "Severance",
             topBarShortcut = EpisodeTopBarShortcut.Series(onClick = {}),
             downloadState = DownloadState.Downloading(progressPercent = 0.42f),
             onBack = {},
