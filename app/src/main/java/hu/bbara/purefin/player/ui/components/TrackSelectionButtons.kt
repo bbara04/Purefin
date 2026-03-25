@@ -142,12 +142,7 @@ private fun TrackSelectionPanel(
             .fillMaxHeight()
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .navigationBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = { /* Prevent clicks from bubbling */ }
-            ),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.BottomEnd
     ) {
         Surface(
@@ -158,7 +153,12 @@ private fun TrackSelectionPanel(
                     minHeight = 220.dp,
                     maxHeight = 360.dp
                 )
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 24.dp)),
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 24.dp))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { /* Consume taps inside the panel so outside taps dismiss the overlay. */ }
+                ),
             color = scheme.surface.copy(alpha = 0.97f)
         ) {
             Column(
