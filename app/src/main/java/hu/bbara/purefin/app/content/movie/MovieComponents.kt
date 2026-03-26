@@ -136,13 +136,6 @@ internal fun MovieDetails(
                 MediaActionButton(
                     backgroundColor = MaterialTheme.colorScheme.secondary,
                     iconColor = MaterialTheme.colorScheme.onSecondary,
-                    icon = Icons.Outlined.Add,
-                    height = 48.dp
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                MediaActionButton(
-                    backgroundColor = MaterialTheme.colorScheme.secondary,
-                    iconColor = MaterialTheme.colorScheme.onSecondary,
                     icon = when (downloadState) {
                         is DownloadState.NotDownloaded -> Icons.Outlined.Download
                         is DownloadState.Downloading -> Icons.Outlined.Close
