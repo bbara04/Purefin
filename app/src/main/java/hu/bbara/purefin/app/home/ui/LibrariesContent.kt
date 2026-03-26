@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 
@@ -52,6 +53,7 @@ fun LibraryListItem(
         PurefinAsyncImage(
             model = item.posterUrl,
             contentDescription = item.label,
+            contentScale = ContentScale.Inside,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
