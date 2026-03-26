@@ -10,6 +10,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -33,10 +38,13 @@ fun PlayerSeekBar(
 ) {
     val scheme = MaterialTheme.colorScheme
     val safeDuration = durationMs.takeIf { it > 0 } ?: 1L
-    val position = positionMs.coerceIn(0, safeDuration)
+    val currentPosition = positionMs.coerceIn(0, safeDuration)
+    var sliderPosition by remember { mutableFloatStateOf(currentPosition.toFloat()) }
+    var isScrubbing by remember { mutableStateOf(false) }
+    val sliderValue = if (isScrubbing) sliderPosition else currentPosition.toFloat()
     val bufferRatio = (bufferedMs.toFloat() / safeDuration).coerceIn(0f, 1f)
     val combinedMarkers = chapterMarkers.map { it.copy(type = MarkerType.CHAPTER) } + adMarkers.map { it.copy(type = MarkerType.AD) }
-    val progressRatio = (position.toFloat() / safeDuration).coerceIn(0f, 1f)
+    val progressRatio = (sliderValue / safeDuration).coerceIn(0f, 1f)
 
     Box(
         modifier = modifier
@@ -90,12 +98,20 @@ fun PlayerSeekBar(
             }
         }
         Slider(
-            value = position.toFloat(),
+            value = sliderValue,
             onValueChange = { newValue ->
-                onScrubStarted()
-                onSeek(newValue.toLong())
+                if (!isScrubbing) {
+                    isScrubbing = true
+                    onScrubStarted()
+                }
+                sliderPosition = newValue
             },
-            onValueChangeFinished = onScrubFinished,
+            onValueChangeFinished = {
+                val targetPosition = sliderPosition.toLong().coerceIn(0L, safeDuration)
+                isScrubbing = false
+                onSeek(targetPosition)
+                onScrubFinished()
+            },
             valueRange = 0f..safeDuration.toFloat(),
             colors = SliderDefaults.colors(
                 thumbColor = Color.Transparent,
