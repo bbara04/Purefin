@@ -12,8 +12,8 @@ import hu.bbara.purefin.core.data.navigation.NavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.data.session.UserSessionRepository
-import hu.bbara.purefin.feature.download.MediaDownloadManager
 import hu.bbara.purefin.core.model.Media
+import hu.bbara.purefin.feature.download.MediaDownloadManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +28,7 @@ import org.jellyfin.sdk.model.api.CollectionType
 import javax.inject.Inject
 
 @HiltViewModel
-class HomePageViewModel @Inject constructor(
+class AppViewModel @Inject constructor(
     private val appContentRepository: AppContentRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,

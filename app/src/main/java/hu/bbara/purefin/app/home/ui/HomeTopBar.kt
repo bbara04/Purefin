@@ -7,23 +7,24 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cloud
-import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import hu.bbara.purefin.common.ui.components.PurefinIconButton
-import hu.bbara.purefin.common.ui.components.SearchField
+import androidx.hilt.navigation.compose.hiltViewModel
+import hu.bbara.purefin.common.ui.components.PurefinSearchBar
+import hu.bbara.purefin.feature.shared.search.SearchViewModel
 
 @Composable
 fun HomeTopBar(
     modifier: Modifier = Modifier,
+    searchViewModel: SearchViewModel = hiltViewModel()
 ) {
     val scheme = MaterialTheme.colorScheme
+    val searchResult = searchViewModel.searchResult.collectAsState()
 
     Box(
         modifier = modifier
@@ -37,15 +38,16 @@ fun HomeTopBar(
                 .padding(horizontal = 16.dp, vertical = 16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.Start),
         ) {
-            SearchField(
-                value = "",
-                onValueChange = {},
-                placeholder = "Search",
-                backgroundColor = scheme.secondaryContainer,
-                textColor = scheme.onSecondaryContainer,
-                cursorColor = scheme.onSecondaryContainer,
+            PurefinSearchBar(
+                onQueryChange = {
+                    searchViewModel.search(it)
+                },
+                onSearch = {
+                    searchViewModel.search(it)
+                },
+                searchResults = searchResult.value,
                 modifier = Modifier.weight(1.0f, true),
             )
         }

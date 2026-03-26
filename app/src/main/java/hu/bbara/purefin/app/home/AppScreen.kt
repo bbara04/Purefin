@@ -11,11 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import hu.bbara.purefin.app.home.ui.HomeNavItem
-import hu.bbara.purefin.feature.shared.home.HomePageViewModel
+import hu.bbara.purefin.feature.shared.home.AppViewModel
 
 @Composable
 fun AppScreen(
-    viewModel: HomePageViewModel = hiltViewModel(),
+    viewModel: AppViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }

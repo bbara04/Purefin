@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import hu.bbara.purefin.feature.shared.home.HomePageViewModel
+import hu.bbara.purefin.feature.shared.home.AppViewModel
 import hu.bbara.purefin.tv.home.ui.TvHomeContent
 import hu.bbara.purefin.tv.home.ui.TvHomeDrawerContent
 import hu.bbara.purefin.tv.home.ui.TvHomeMockData
@@ -31,7 +31,7 @@ import org.jellyfin.sdk.model.api.CollectionType
 
 @Composable
 fun TvHomePage(
-    viewModel: HomePageViewModel = hiltViewModel(),
+    viewModel: AppViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
