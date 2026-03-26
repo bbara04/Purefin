@@ -5,6 +5,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -42,6 +47,7 @@ import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.login.ui.LoginScreen
 import hu.bbara.purefin.ui.theme.AppTheme
+import hu.bbara.purefin.ui.theme.backgroundDark
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okio.Path.Companion.toPath
@@ -172,7 +178,31 @@ class TvActivity : ComponentActivity() {
                 NavDisplay(
                     backStack = backStack,
                     onBack = { navigationManager.pop() },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().background(backgroundDark),
+                    transitionSpec = {
+                        fadeIn(
+                            animationSpec = tween(
+                                durationMillis = 140
+                            )
+                        ) togetherWith
+                            fadeOut(animationSpec = tween(durationMillis = 140))
+                    },
+                    popTransitionSpec = {
+                        fadeIn(
+                            animationSpec = tween(
+                                durationMillis = 140
+                            )
+                        ) togetherWith
+                            fadeOut(animationSpec = tween(durationMillis = 140))
+                    },
+                    predictivePopTransitionSpec = { _ ->
+                        fadeIn(
+                            animationSpec = tween(
+                                durationMillis = 140
+                            )
+                        ) togetherWith
+                            fadeOut(animationSpec = tween(durationMillis = 140))
+                    },
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),
                         rememberViewModelStoreNavEntryDecorator(),
