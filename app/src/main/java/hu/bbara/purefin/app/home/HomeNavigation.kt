@@ -8,6 +8,6 @@ import hu.bbara.purefin.core.data.navigation.Route
  */
 fun EntryProviderScope<Route>.homeSection() {
     entry<Route.Home> {
-        HomePage()
+        AppScreen()
     }
 }
