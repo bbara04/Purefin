@@ -37,10 +37,15 @@ fun PurefinSearchBar(
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
     searchResults: List<SearchResult>,
+    onExpandedChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var query by remember { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
+    val setExpanded: (Boolean) -> Unit = {
+        expanded = it
+        onExpandedChange(it)
+    }
 
     Box(
         modifier
@@ -61,22 +66,22 @@ fun PurefinSearchBar(
                     },
                     onSearch = {
                         onSearch(query)
-                        expanded = false
+                        setExpanded(false)
                     },
                     expanded = expanded,
-                    onExpandedChange = { expanded = it },
+                    onExpandedChange = setExpanded,
                     placeholder = { Text("Search") }
                 )
             },
             expanded = expanded,
-            onExpandedChange = { expanded = it },
+            onExpandedChange = setExpanded,
         ) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 120.dp),
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = modifier.background(MaterialTheme.colorScheme.background)
+                modifier = Modifier.background(MaterialTheme.colorScheme.background)
             ) {
                 items(searchResults) { item ->
                     SearchResultCard(item)

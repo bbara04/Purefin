@@ -52,9 +52,6 @@ fun TvHomeTopBar(
                 value = "",
                 onValueChange = {},
                 placeholder = "Search",
-                backgroundColor = scheme.secondaryContainer,
-                textColor = scheme.onSecondaryContainer,
-                cursorColor = scheme.onSecondaryContainer,
                 modifier = Modifier.weight(1.0f, true),
             )
             PurefinIconButton(

@@ -50,6 +50,9 @@ fun AppScreen(
             onMovieSelected = viewModel::onMovieSelected,
             onSeriesSelected = viewModel::onSeriesSelected,
             onEpisodeSelected = viewModel::onEpisodeSelected,
+            onProfileClick = {},
+            onSettingsClick = {},
+            onLogoutClick = viewModel::logout,
             selectedTab = selectedTab,
             onTabSelected = { selectedTab = it },
             modifier = modifier.fillMaxSize()
@@ -57,6 +60,9 @@ fun AppScreen(
         1 -> LibrariesScreen(
             items = libraryNavItems,
             onLibrarySelected = { item -> viewModel.onLibrarySelected(item.id, item.label) },
+            onProfileClick = {},
+            onSettingsClick = {},
+            onLogoutClick = viewModel::logout,
             selectedTab = selectedTab,
             onTabSelected = { selectedTab = it },
             modifier = modifier.fillMaxSize()

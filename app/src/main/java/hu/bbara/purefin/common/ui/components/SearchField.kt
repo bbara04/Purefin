@@ -20,29 +20,37 @@ fun SearchField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    backgroundColor: Color,
-    textColor: Color,
-    cursorColor: Color,
+    backgroundColor: Color = Color.Unspecified,
+    textColor: Color = Color.Unspecified,
+    cursorColor: Color = Color.Unspecified,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val resolvedBackgroundColor =
+        if (backgroundColor == Color.Unspecified) scheme.surfaceVariant else backgroundColor
+    val resolvedTextColor = if (textColor == Color.Unspecified) scheme.onSurface else textColor
+    val resolvedCursorColor = if (cursorColor == Color.Unspecified) scheme.primary else cursorColor
 
     TextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(32.dp)),
-        placeholder = { Text(placeholder, color = scheme.onSurfaceVariant) },
-        leadingIcon =
-            { Icon(imageVector = Icons.Outlined.Search, contentDescription = null, tint = scheme.onSurfaceVariant) },
+            .clip(RoundedCornerShape(12.dp)),
+        singleLine = true,
+        placeholder = { Text(placeholder) },
+        leadingIcon = { Icon(imageVector = Icons.Outlined.Search, contentDescription = null) },
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = backgroundColor,
-            unfocusedContainerColor = backgroundColor,
+            focusedContainerColor = resolvedBackgroundColor,
+            unfocusedContainerColor = resolvedBackgroundColor,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = cursorColor,
-            focusedTextColor = textColor,
-            unfocusedTextColor = textColor,
+            cursorColor = resolvedCursorColor,
+            focusedTextColor = resolvedTextColor,
+            unfocusedTextColor = resolvedTextColor,
+            focusedLeadingIconColor = scheme.onSurfaceVariant,
+            unfocusedLeadingIconColor = scheme.onSurfaceVariant,
+            focusedPlaceholderColor = scheme.onSurfaceVariant,
+            unfocusedPlaceholderColor = scheme.onSurfaceVariant,
         ))
 }

@@ -25,6 +25,9 @@ fun HomeScreen(
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onLogoutClick: () -> Unit,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -34,7 +37,11 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
-            HomeTopBar()
+            HomeTopBar(
+                onProfileClick = onProfileClick,
+                onSettingsClick = onSettingsClick,
+                onLogoutClick = onLogoutClick
+            )
         },
         bottomBar = {
             AppBottomBar(

@@ -14,6 +14,9 @@ import hu.bbara.purefin.app.home.ui.LibrariesContent
 fun LibrariesScreen(
     items: List<HomeNavItem>,
     onLibrarySelected: (HomeNavItem) -> Unit,
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onLogoutClick: () -> Unit,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -23,7 +26,11 @@ fun LibrariesScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
-            HomeTopBar()
+            HomeTopBar(
+                onProfileClick = onProfileClick,
+                onSettingsClick = onSettingsClick,
+                onLogoutClick = onLogoutClick
+            )
         },
         bottomBar = {
             AppBottomBar(
