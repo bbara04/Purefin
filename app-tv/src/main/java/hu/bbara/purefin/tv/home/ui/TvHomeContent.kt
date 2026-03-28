@@ -33,15 +33,31 @@ fun TvHomeContent(
     val visibleLibraries = remember(libraries, libraryContent) {
         libraries.filter { libraryContent[it.id]?.isEmpty() != true }
     }
-    val continueWatchingFocusRequester = remember { FocusRequester() }
-    val nextUpFocusRequester = remember { FocusRequester() }
-    val libraryFocusRequesters = remember(visibleLibraries.map { it.id }) {
-        visibleLibraries.associate { it.id to FocusRequester() }
+    val continueWatchingSectionFocusRequester = remember { FocusRequester() }
+    val continueWatchingFirstItemFocusRequester = remember { FocusRequester() }
+    val nextUpSectionFocusRequester = remember { FocusRequester() }
+    val nextUpFirstItemFocusRequester = remember { FocusRequester() }
+    val librarySectionFocusRequesters = remember(visibleLibraries.map { it.id }) {
+        visibleLibraries.associate { library -> library.id to FocusRequester() }
+    }
+    val libraryFirstItemFocusRequesters = remember(visibleLibraries.map { it.id }) {
+        visibleLibraries.associate { library -> library.id to FocusRequester() }
     }
     val firstSectionFocusRequester = when {
-        continueWatching.isNotEmpty() -> continueWatchingFocusRequester
-        nextUp.isNotEmpty() -> nextUpFocusRequester
-        else -> visibleLibraries.firstOrNull()?.let { libraryFocusRequesters[it.id] }
+        continueWatching.isNotEmpty() -> continueWatchingSectionFocusRequester
+        nextUp.isNotEmpty() -> nextUpSectionFocusRequester
+        else -> visibleLibraries.firstOrNull()?.let { librarySectionFocusRequesters[it.id] }
+    }
+    val firstVisibleLibrarySectionFocusRequester = visibleLibraries.firstOrNull()
+        ?.let { librarySectionFocusRequesters[it.id] }
+    val firstHomeRowBelowContinueWatching = when {
+        nextUp.isNotEmpty() -> nextUpSectionFocusRequester
+        else -> firstVisibleLibrarySectionFocusRequester
+    }
+    val firstHomeRowAboveLibraries = when {
+        nextUp.isNotEmpty() -> nextUpSectionFocusRequester
+        continueWatching.isNotEmpty() -> continueWatchingSectionFocusRequester
+        else -> null
     }
 
     LaunchedEffect(firstSectionFocusRequester) {
@@ -59,11 +75,9 @@ fun TvHomeContent(
         item {
             TvContinueWatchingSection(
                 items = continueWatching,
-                firstItemFocusRequester = continueWatchingFocusRequester,
-                downFocusRequester = when {
-                    nextUp.isNotEmpty() -> nextUpFocusRequester
-                    else -> visibleLibraries.firstOrNull()?.let { libraryFocusRequesters[it.id] }
-                },
+                sectionFocusRequester = continueWatchingSectionFocusRequester,
+                firstItemFocusRequester = continueWatchingFirstItemFocusRequester,
+                downFocusRequester = firstHomeRowBelowContinueWatching,
                 onMovieSelected = onMovieSelected,
                 onEpisodeSelected = onEpisodeSelected
             )
@@ -74,9 +88,11 @@ fun TvHomeContent(
         item {
             TvNextUpSection(
                 items = nextUp,
-                firstItemFocusRequester = nextUpFocusRequester,
-                upFocusRequester = continueWatching.takeIf { it.isNotEmpty() }?.let { continueWatchingFocusRequester },
-                downFocusRequester = visibleLibraries.firstOrNull()?.let { libraryFocusRequesters[it.id] },
+                sectionFocusRequester = nextUpSectionFocusRequester,
+                firstItemFocusRequester = nextUpFirstItemFocusRequester,
+                upFocusRequester = continueWatching.takeIf { it.isNotEmpty() }
+                    ?.let { continueWatchingSectionFocusRequester },
+                downFocusRequester = firstVisibleLibrarySectionFocusRequester,
                 onEpisodeSelected = onEpisodeSelected
             )
         }
@@ -88,28 +104,25 @@ fun TvHomeContent(
             key = { it.id }
         ) { item ->
             val libraryIndex = visibleLibraries.indexOfFirst { it.id == item.id }
-            val previousLibraryFocusRequester = visibleLibraries
+            val previousLibrarySectionFocusRequester = visibleLibraries
                 .getOrNull(libraryIndex - 1)
-                ?.let { libraryFocusRequesters[it.id] }
-            val nextLibraryFocusRequester = visibleLibraries
+                ?.let { librarySectionFocusRequesters[it.id] }
+            val nextLibrarySectionFocusRequester = visibleLibraries
                 .getOrNull(libraryIndex + 1)
-                ?.let { libraryFocusRequesters[it.id] }
+                ?.let { librarySectionFocusRequesters[it.id] }
 
             TvLibraryPosterSection(
                 title = item.name,
                 items = libraryContent[item.id] ?: emptyList(),
                 action = "See All",
-                firstItemFocusRequester = libraryFocusRequesters[item.id],
+                sectionFocusRequester = librarySectionFocusRequesters.getValue(item.id),
+                firstItemFocusRequester = libraryFirstItemFocusRequesters.getValue(item.id),
                 upFocusRequester = if (libraryIndex == 0) {
-                    when {
-                        nextUp.isNotEmpty() -> nextUpFocusRequester
-                        continueWatching.isNotEmpty() -> continueWatchingFocusRequester
-                        else -> null
-                    }
+                    firstHomeRowAboveLibraries
                 } else {
-                    previousLibraryFocusRequester
+                    previousLibrarySectionFocusRequester
                 },
-                downFocusRequester = nextLibraryFocusRequester,
+                downFocusRequester = nextLibrarySectionFocusRequester,
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected

@@ -32,6 +32,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -54,6 +56,7 @@ import kotlin.math.nextUp
 @Composable
 fun TvContinueWatchingSection(
     items: List<ContinueWatchingItem>,
+    sectionFocusRequester: FocusRequester,
     firstItemFocusRequester: FocusRequester? = null,
     upFocusRequester: FocusRequester? = null,
     downFocusRequester: FocusRequester? = null,
@@ -67,7 +70,10 @@ fun TvContinueWatchingSection(
         action = null
     )
     LazyRow(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .focusRequester(sectionFocusRequester)
+            .focusRestorer(firstItemFocusRequester ?: FocusRequester.Default),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -161,7 +167,11 @@ fun TvContinueWatchingCard(
         modifier = modifier
             .width(cardWidth)
             .wrapContentHeight()
-            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(0.5f, 0f)
+            }
     ) {
         Box(
             modifier = Modifier
@@ -217,6 +227,7 @@ fun TvContinueWatchingCard(
 @Composable
 fun TvNextUpSection(
     items: List<NextUpItem>,
+    sectionFocusRequester: FocusRequester,
     firstItemFocusRequester: FocusRequester? = null,
     upFocusRequester: FocusRequester? = null,
     downFocusRequester: FocusRequester? = null,
@@ -229,7 +240,10 @@ fun TvNextUpSection(
         action = null
     )
     LazyRow(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .focusRequester(sectionFocusRequester)
+            .focusRestorer(firstItemFocusRequester ?: FocusRequester.Default),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -313,7 +327,11 @@ fun TvNextUpCard(
         modifier = modifier
             .width(cardWidth)
             .wrapContentHeight()
-            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(0.5f, 0f)
+            }
     ) {
         Box(
             modifier = Modifier
@@ -364,6 +382,7 @@ fun TvLibraryPosterSection(
     title: String,
     items: List<PosterItem>,
     action: String?,
+    sectionFocusRequester: FocusRequester,
     firstItemFocusRequester: FocusRequester? = null,
     upFocusRequester: FocusRequester? = null,
     downFocusRequester: FocusRequester? = null,
@@ -377,7 +396,10 @@ fun TvLibraryPosterSection(
         action = action
     )
     LazyRow(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .focusRequester(sectionFocusRequester)
+            .focusRestorer(firstItemFocusRequester ?: FocusRequester.Default),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
