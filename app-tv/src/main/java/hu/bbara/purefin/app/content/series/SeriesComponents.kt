@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -27,9 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Cast
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,8 +50,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
+import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
@@ -70,23 +66,10 @@ internal fun SeriesTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    MediaDetailsTopBar(
+        onBack = onBack,
         modifier = modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        GhostIconButton(
-            onClick = onBack,
-            icon = Icons.Outlined.ArrowBack,
-            contentDescription = "Back")
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
-            GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
-        }
-    }
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
