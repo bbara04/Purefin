@@ -10,6 +10,19 @@ data class TvHomeNavItem(
     val selected: Boolean = false
 )
 
+enum class TvHomeTabDestination {
+    SEARCH,
+    HOME,
+    LIBRARY
+}
+
+data class TvHomeTabItem(
+    val destination: TvHomeTabDestination,
+    val label: String,
+    val icon: ImageVector,
+    val libraryId: UUID? = null
+)
+
 data class TvHomeUser(
     val name: String,
     val plan: String
