@@ -14,11 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,7 +31,6 @@ import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
-import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
@@ -138,21 +134,6 @@ private fun MovieScreenInternal(
                     onClick = onPlay,
                     modifier = Modifier.sizeIn(maxWidth = 200.dp).focusRequester(playFocusRequester)
                 )
-                VerticalDivider(
-                    color = scheme.secondary,
-                    thickness = 4.dp,
-                    modifier = Modifier
-                        .height(48.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                Row {
-                    MediaActionButton(
-                        backgroundColor = scheme.secondary,
-                        iconColor = scheme.onSecondary,
-                        icon = Icons.Outlined.Add,
-                        height = 48.dp
-                    )
-                }
             }
         }
         item {

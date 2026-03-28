@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +49,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
@@ -82,18 +80,6 @@ internal fun SeriesMetaChips(series: Series) {
     ) {
         MediaMetaChip(text = series.year)
         MediaMetaChip(text = "${series.seasonCount} Seasons")
-    }
-}
-
-@Composable
-internal fun SeriesActionButtons(modifier: Modifier = Modifier) {
-    Row() {
-        MediaActionButton(
-            backgroundColor = MaterialTheme.colorScheme.secondary,
-            iconColor = MaterialTheme.colorScheme.onSecondary,
-            icon = Icons.Outlined.Add,
-            height = 32.dp
-        )
     }
 }
 

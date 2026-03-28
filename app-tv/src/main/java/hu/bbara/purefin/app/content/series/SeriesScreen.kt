@@ -103,10 +103,6 @@ private fun SeriesScreenInternal(
         }
         item {
             Spacer(modifier = Modifier.height(24.dp))
-            SeriesActionButtons(modifier = hPad)
-        }
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
             MediaSynopsis(
                 synopsis = series.synopsis,
                 bodyColor = textMutedStrong,
