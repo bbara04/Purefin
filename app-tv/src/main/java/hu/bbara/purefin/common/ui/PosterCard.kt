@@ -20,6 +20,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -41,6 +44,9 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 fun PosterCard(
     item: PosterItem,
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
+    upFocusRequester: FocusRequester? = null,
+    downFocusRequester: FocusRequester? = null,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
@@ -70,8 +76,22 @@ fun PosterCard(
         .data(item.imageUrl)
         .size(with(density) { posterWidth.roundToPx() }, with(density) { posterHeight.roundToPx() })
         .build()
+
+    val imageFocusModifier = Modifier
+        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+        .then(
+            if (upFocusRequester != null || downFocusRequester != null) {
+                Modifier.focusProperties {
+                    upFocusRequester?.let { up = it }
+                    downFocusRequester?.let { down = it }
+                }
+            } else {
+                Modifier
+            }
+        )
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(posterWidth)
             .graphicsLayer { scaleX = scale; scaleY = scale }
     ) {
@@ -79,7 +99,7 @@ fun PosterCard(
             PurefinAsyncImage(
                 model = imageRequest,
                 contentDescription = null,
-                modifier = Modifier
+                modifier = imageFocusModifier
                     .aspectRatio(2f / 3f)
                     .clip(RoundedCornerShape(14.dp))
                     .border(

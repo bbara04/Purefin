@@ -8,7 +8,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
@@ -27,6 +30,24 @@ fun TvHomeContent(
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val visibleLibraries = remember(libraries, libraryContent) {
+        libraries.filter { libraryContent[it.id]?.isEmpty() != true }
+    }
+    val continueWatchingFocusRequester = remember { FocusRequester() }
+    val nextUpFocusRequester = remember { FocusRequester() }
+    val libraryFocusRequesters = remember(visibleLibraries.map { it.id }) {
+        visibleLibraries.associate { it.id to FocusRequester() }
+    }
+    val firstSectionFocusRequester = when {
+        continueWatching.isNotEmpty() -> continueWatchingFocusRequester
+        nextUp.isNotEmpty() -> nextUpFocusRequester
+        else -> visibleLibraries.firstOrNull()?.let { libraryFocusRequesters[it.id] }
+    }
+
+    LaunchedEffect(firstSectionFocusRequester) {
+        firstSectionFocusRequester?.requestFocus()
+    }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -38,6 +59,11 @@ fun TvHomeContent(
         item {
             TvContinueWatchingSection(
                 items = continueWatching,
+                firstItemFocusRequester = continueWatchingFocusRequester,
+                downFocusRequester = when {
+                    nextUp.isNotEmpty() -> nextUpFocusRequester
+                    else -> visibleLibraries.firstOrNull()?.let { libraryFocusRequesters[it.id] }
+                },
                 onMovieSelected = onMovieSelected,
                 onEpisodeSelected = onEpisodeSelected
             )
@@ -48,6 +74,9 @@ fun TvHomeContent(
         item {
             TvNextUpSection(
                 items = nextUp,
+                firstItemFocusRequester = nextUpFocusRequester,
+                upFocusRequester = continueWatching.takeIf { it.isNotEmpty() }?.let { continueWatchingFocusRequester },
+                downFocusRequester = visibleLibraries.firstOrNull()?.let { libraryFocusRequesters[it.id] },
                 onEpisodeSelected = onEpisodeSelected
             )
         }
@@ -55,13 +84,32 @@ fun TvHomeContent(
             Spacer(modifier = Modifier.height(16.dp))
         }
         items(
-            items = libraries.filter { libraryContent[it.id]?.isEmpty() != true },
+            items = visibleLibraries,
             key = { it.id }
         ) { item ->
+            val libraryIndex = visibleLibraries.indexOfFirst { it.id == item.id }
+            val previousLibraryFocusRequester = visibleLibraries
+                .getOrNull(libraryIndex - 1)
+                ?.let { libraryFocusRequesters[it.id] }
+            val nextLibraryFocusRequester = visibleLibraries
+                .getOrNull(libraryIndex + 1)
+                ?.let { libraryFocusRequesters[it.id] }
+
             TvLibraryPosterSection(
                 title = item.name,
                 items = libraryContent[item.id] ?: emptyList(),
                 action = "See All",
+                firstItemFocusRequester = libraryFocusRequesters[item.id],
+                upFocusRequester = if (libraryIndex == 0) {
+                    when {
+                        nextUp.isNotEmpty() -> nextUpFocusRequester
+                        continueWatching.isNotEmpty() -> continueWatchingFocusRequester
+                        else -> null
+                    }
+                } else {
+                    previousLibraryFocusRequester
+                },
+                downFocusRequester = nextLibraryFocusRequester,
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected
