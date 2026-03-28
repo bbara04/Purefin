@@ -13,19 +13,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -275,27 +268,6 @@ fun TvNextUpCard(
                     },
                 contentScale = ContentScale.Crop,
             )
-            IconButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 8.dp, bottom = 16.dp)
-                    .clip(CircleShape)
-                    .background(scheme.secondary)
-                    .size(36.dp),
-                onClick = {
-                    openItem(item)
-                },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = scheme.secondary,
-                    contentColor = scheme.onSecondary
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.PlayArrow,
-                    contentDescription = "Play",
-                    modifier = Modifier.size(28.dp),
-                )
-            }
         }
         Column(modifier = Modifier.padding(top = 12.dp)) {
             Text(
