@@ -16,7 +16,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,77 +73,85 @@ private fun SeriesScreenInternal(
         return series.seasons.first()
     }
     val selectedSeason = remember { mutableStateOf<Season>(getDefaultSeason()) }
+    val firstContentFocusRequester = remember { FocusRequester() }
 
-    LazyColumn(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(scheme.background)
     ) {
-        item {
-            Box {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            item {
                 MediaHero(
                     imageUrl = series.heroImageUrl,
                     heightFraction = 0.30f,
                     backgroundColor = scheme.background,
                     modifier = Modifier.fillMaxWidth()
                 )
-                SeriesTopBar(onBack = onBack)
             }
-        }
-        item {
-            Column(modifier = hPad) {
-                Text(
-                    text = series.name,
-                    color = scheme.onBackground,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 36.sp
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                SeriesMetaChips(series = series)
-            }
-        }
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-            MediaSynopsis(
-                synopsis = series.synopsis,
-                bodyColor = textMutedStrong,
-                bodyFontSize = 13.sp,
-                bodyLineHeight = null,
-                titleSpacing = 8.dp,
-                modifier = hPad
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-            SeasonTabs(
-                seasons = series.seasons,
-                selectedSeason = selectedSeason.value,
-                onSelect = { selectedSeason.value = it },
-                modifier = hPad
-            )
-        }
-        item {
-            EpisodeCarousel(
-                episodes = selectedSeason.value.episodes,
-                modifier = hPad
-            )
-        }
-        if (series.cast.isNotEmpty()) {
             item {
                 Column(modifier = hPad) {
-                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Cast",
+                        text = series.name,
                         color = scheme.onBackground,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 36.sp
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    CastRow(cast = series.cast)
                     Spacer(modifier = Modifier.height(16.dp))
+                    SeriesMetaChips(series = series)
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                MediaSynopsis(
+                    synopsis = series.synopsis,
+                    bodyColor = textMutedStrong,
+                    bodyFontSize = 13.sp,
+                    bodyLineHeight = null,
+                    titleSpacing = 8.dp,
+                    modifier = hPad
+                )
+            }
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                SeasonTabs(
+                    seasons = series.seasons,
+                    selectedSeason = selectedSeason.value,
+                    firstItemFocusRequester = firstContentFocusRequester,
+                    onSelect = { selectedSeason.value = it },
+                    modifier = hPad
+                )
+            }
+            item {
+                EpisodeCarousel(
+                    episodes = selectedSeason.value.episodes,
+                    modifier = hPad
+                )
+            }
+            if (series.cast.isNotEmpty()) {
+                item {
+                    Column(modifier = hPad) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Cast",
+                            color = scheme.onBackground,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        CastRow(cast = series.cast)
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
+        SeriesTopBar(
+            onBack = onBack,
+            downFocusRequester = firstContentFocusRequester,
+            modifier = Modifier.align(Alignment.TopStart)
+        )
     }
 }

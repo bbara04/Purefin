@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -94,98 +95,104 @@ private fun EpisodeScreenInternal(
         playFocusRequester.requestFocus()
     }
 
-    LazyColumn(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(scheme.background)
     ) {
-        item {
-            Box {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            item {
                 MediaHero(
                     imageUrl = episode.heroImageUrl,
                     backgroundColor = scheme.background,
                     heightFraction = 0.30f,
                     modifier = Modifier.fillMaxWidth()
                 )
-                EpisodeTopBar(onBack = onBack)
             }
-        }
-        item {
-            Column(modifier = hPad) {
-                Text(
-                    text = episode.title,
-                    color = scheme.onBackground,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 38.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Episode ${episode.index}",
-                    color = scheme.onBackground,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    MediaMetaChip(text = episode.releaseDate)
-                    MediaMetaChip(text = episode.rating)
-                    MediaMetaChip(text = episode.runtime)
-                    MediaMetaChip(
-                        text = episode.format,
-                        background = scheme.primary.copy(alpha = 0.2f),
-                        border = scheme.primary.copy(alpha = 0.3f),
-                        textColor = scheme.primary
-                    )
-                }
-            }
-        }
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-            MediaSynopsis(
-                synopsis = episode.synopsis,
-                modifier = hPad
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(modifier = hPad) {
-                MediaResumeButton(
-                    text = if (episode.progress == null) "Play" else "Resume",
-                    progress = episode.progress?.div(100)?.toFloat() ?: 0f,
-                    onClick = onPlay,
-                    modifier = Modifier.sizeIn(maxWidth = 200.dp).focusRequester(playFocusRequester)
-                )
-            }
-        }
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-            MediaPlaybackSettings(
-                backgroundColor = scheme.surface,
-                foregroundColor = scheme.onSurface,
-                audioTrack = "ENG",
-                subtitles = "ENG",
-                modifier = hPad
-            )
-        }
-        if (episode.cast.isNotEmpty()) {
             item {
                 Column(modifier = hPad) {
-                    Spacer(modifier = Modifier.height(24.dp))
                     Text(
-                        text = "Cast",
+                        text = episode.title,
                         color = scheme.onBackground,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 38.sp
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    MediaCastRow(cast = episode.cast)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Episode ${episode.index}",
+                        color = scheme.onBackground,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        MediaMetaChip(text = episode.releaseDate)
+                        MediaMetaChip(text = episode.rating)
+                        MediaMetaChip(text = episode.runtime)
+                        MediaMetaChip(
+                            text = episode.format,
+                            background = scheme.primary.copy(alpha = 0.2f),
+                            border = scheme.primary.copy(alpha = 0.3f),
+                            textColor = scheme.primary
+                        )
+                    }
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                MediaSynopsis(
+                    synopsis = episode.synopsis,
+                    modifier = hPad
+                )
+            }
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(modifier = hPad) {
+                    MediaResumeButton(
+                        text = if (episode.progress == null) "Play" else "Resume",
+                        progress = episode.progress?.div(100)?.toFloat() ?: 0f,
+                        onClick = onPlay,
+                        modifier = Modifier.sizeIn(maxWidth = 200.dp).focusRequester(playFocusRequester)
+                    )
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                MediaPlaybackSettings(
+                    backgroundColor = scheme.surface,
+                    foregroundColor = scheme.onSurface,
+                    audioTrack = "ENG",
+                    subtitles = "ENG",
+                    modifier = hPad
+                )
+            }
+            if (episode.cast.isNotEmpty()) {
+                item {
+                    Column(modifier = hPad) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "Cast",
+                            color = scheme.onBackground,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        MediaCastRow(cast = episode.cast)
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
+        EpisodeTopBar(
+            onBack = onBack,
+            downFocusRequester = playFocusRequester,
+            modifier = Modifier.align(Alignment.TopStart)
+        )
     }
 }

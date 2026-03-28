@@ -38,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -62,11 +64,13 @@ import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
 @Composable
 internal fun SeriesTopBar(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    downFocusRequester: FocusRequester? = null
 ) {
     MediaDetailsTopBar(
         onBack = onBack,
-        modifier = modifier
+        modifier = modifier,
+        downFocusRequester = downFocusRequester
     )
 }
 
@@ -88,6 +92,7 @@ internal fun SeasonTabs(
     seasons: List<Season>,
     selectedSeason: Season?,
     modifier: Modifier = Modifier,
+    firstItemFocusRequester: FocusRequester? = null,
     onSelect: (Season) -> Unit
 ) {
     Row(
@@ -96,11 +101,16 @@ internal fun SeasonTabs(
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        seasons.forEach { season ->
+        seasons.forEachIndexed { index, season ->
             SeasonTab(
                 name = season.name,
                 isSelected = season == selectedSeason,
-                onSelect = { onSelect(season) }
+                onSelect = { onSelect(season) },
+                modifier = if (index == 0 && firstItemFocusRequester != null) {
+                    Modifier.focusRequester(firstItemFocusRequester)
+                } else {
+                    Modifier
+                }
             )
         }
     }
