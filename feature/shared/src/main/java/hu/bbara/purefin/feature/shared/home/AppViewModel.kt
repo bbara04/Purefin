@@ -61,12 +61,6 @@ class AppViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val isOfflineMode = userSessionRepository.isOfflineMode.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = false
-    )
-
     val continueWatching = combine(
         appContentRepository.continueWatching,
         appContentRepository.movies,
@@ -229,12 +223,6 @@ class AppViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             userSessionRepository.setLoggedIn(false)
-        }
-    }
-
-    fun toggleOfflineMode() {
-        viewModelScope.launch {
-            userSessionRepository.setOfflineMode(!isOfflineMode.value)
         }
     }
 

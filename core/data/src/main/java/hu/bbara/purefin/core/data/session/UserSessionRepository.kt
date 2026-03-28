@@ -51,10 +51,4 @@ class UserSessionRepository @Inject constructor(
     }
 
     val isOfflineMode: Flow<Boolean> = session.map { it.isOfflineMode }.distinctUntilChanged()
-
-    suspend fun setOfflineMode(isOffline: Boolean) {
-        userSessionDataStore.updateData {
-            it.copy(isOfflineMode = isOffline)
-        }
-    }
 }

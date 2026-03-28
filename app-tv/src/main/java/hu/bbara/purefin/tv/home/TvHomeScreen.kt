@@ -36,7 +36,6 @@ fun TvHomeScreen(
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(1) }
     val libraries by viewModel.libraries.collectAsState()
-    val isOfflineMode by viewModel.isOfflineMode.collectAsState()
     val continueWatching by viewModel.continueWatching.collectAsState()
     val nextUp by viewModel.nextUp.collectAsState()
     val latestLibraryContent by viewModel.latestLibraryContent.collectAsState()
@@ -96,9 +95,7 @@ fun TvHomeScreen(
                 selectedTabIndex = safeSelectedTabIndex,
                 onTabSelected = { index, _ ->
                     selectedTabIndex = index
-                },
-                isOfflineMode = isOfflineMode,
-                onToggleOfflineMode = viewModel::toggleOfflineMode
+                }
             )
         }
     ) { innerPadding ->

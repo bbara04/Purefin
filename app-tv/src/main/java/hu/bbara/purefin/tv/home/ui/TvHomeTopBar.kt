@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cloud
-import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import hu.bbara.purefin.common.ui.components.PurefinIconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,8 +25,6 @@ fun TvHomeTopBar(
     tabs: List<TvHomeTabItem>,
     selectedTabIndex: Int,
     onTabSelected: (Int, TvHomeTabItem) -> Unit,
-    isOfflineMode: Boolean,
-    onToggleOfflineMode: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -75,11 +69,6 @@ fun TvHomeTopBar(
                     )
                 }
             }
-            PurefinIconButton(
-                icon = if (isOfflineMode) Icons.Outlined.CloudOff else Icons.Outlined.Cloud,
-                contentDescription = if (isOfflineMode) "Switch to Online" else "Switch to Offline",
-                onClick = onToggleOfflineMode
-            )
         }
     }
 }
