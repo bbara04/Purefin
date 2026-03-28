@@ -29,7 +29,7 @@ import hu.bbara.purefin.tv.library.ui.TvLibraryContent
 import org.jellyfin.sdk.model.api.CollectionType
 
 @Composable
-fun TvHomePage(
+fun TvHomeScreen(
     viewModel: AppViewModel = hiltViewModel(),
     libraryViewModel: LibraryViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
