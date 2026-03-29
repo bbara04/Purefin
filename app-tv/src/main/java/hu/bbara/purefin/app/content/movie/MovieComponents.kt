@@ -31,11 +31,13 @@ internal const val MoviePlayButtonTag = "movie-play-button"
 internal fun MovieTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    backFocusRequester: FocusRequester? = null,
     downFocusRequester: FocusRequester? = null
 ) {
     MediaDetailsTopBar(
         onBack = onBack,
         modifier = modifier,
+        backFocusRequester = backFocusRequester,
         downFocusRequester = downFocusRequester
     )
 }

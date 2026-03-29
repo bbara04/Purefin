@@ -71,23 +71,22 @@ internal fun SeriesScreenContent(
             season.episodes.firstOrNull { !it.watched }
         } ?: series.seasons.firstOrNull()?.episodes?.firstOrNull()
     }
+    val backFocusRequester = remember { FocusRequester() }
     val playFocusRequester = remember { FocusRequester() }
     val firstContentFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(series.id, nextUpEpisode?.id) {
-        if (nextUpEpisode != null) {
-            playFocusRequester.requestFocus()
-        } else {
-            firstContentFocusRequester.requestFocus()
-        }
+    LaunchedEffect(series.id) {
+        backFocusRequester.requestFocus()
     }
 
     TvMediaDetailScaffold(
         heroImageUrl = series.heroImageUrl,
+        resetScrollKey = series.id,
         modifier = modifier,
         topBar = {
             SeriesTopBar(
                 onBack = onBack,
+                backFocusRequester = backFocusRequester,
                 downFocusRequester = nextUpEpisode?.let { playFocusRequester } ?: firstContentFocusRequester,
                 modifier = Modifier.align(Alignment.TopStart)
             )

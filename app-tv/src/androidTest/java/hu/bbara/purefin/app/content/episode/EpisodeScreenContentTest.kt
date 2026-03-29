@@ -1,13 +1,18 @@
 package hu.bbara.purefin.app.content.episode
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.input.key.Key
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
@@ -16,13 +21,14 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
 
+@OptIn(ExperimentalTestApi::class)
 class EpisodeScreenContentTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun episodeScreenContent_showsSeriesContext_andFocusesPlayButton() {
+    fun episodeScreenContent_showsSeriesContext_andMovesFromBackToPlayButton() {
         composeRule.setContent {
             AppTheme {
                 EpisodeScreenContent(
@@ -42,8 +48,15 @@ class EpisodeScreenContentTest {
         composeRule.onNodeWithText("Episode 4").assertIsDisplayed()
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
         composeRule.onAllNodesWithText("Playback").assertCountEquals(1)
-        composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsDisplayed().assertIsFocused()
+        composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsDisplayed()
         composeRule.onNodeWithText("Series").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Back")
+            .assertIsDisplayed()
+            .assertIsFocused()
+            .performKeyInput {
+                pressKey(Key.DirectionDown)
+            }
+        composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsFocused()
     }
 
     @Test

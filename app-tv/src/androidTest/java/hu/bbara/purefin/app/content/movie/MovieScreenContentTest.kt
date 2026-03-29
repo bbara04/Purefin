@@ -1,14 +1,18 @@
 package hu.bbara.purefin.app.content.movie
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.input.key.Key
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.ui.theme.AppTheme
@@ -16,13 +20,14 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
 
+@OptIn(ExperimentalTestApi::class)
 class MovieScreenContentTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun movieScreenContent_showsTvHeader_andFocusesPlayButton() {
+    fun movieScreenContent_focusesBack_thenMovesToPlayButton() {
         composeRule.setContent {
             AppTheme {
                 MovieScreenContent(
@@ -38,8 +43,14 @@ class MovieScreenContentTest {
         composeRule.onNodeWithText("Blade Runner 2049").assertIsDisplayed()
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
         composeRule.onAllNodesWithText("Playback").assertCountEquals(1)
-        composeRule.onNodeWithTag(MoviePlayButtonTag).assertIsDisplayed().assertIsFocused()
-        composeRule.onNodeWithContentDescription("Back").assertIsDisplayed()
+        composeRule.onNodeWithTag(MoviePlayButtonTag).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Back")
+            .assertIsDisplayed()
+            .assertIsFocused()
+            .performKeyInput {
+                pressKey(Key.DirectionDown)
+            }
+        composeRule.onNodeWithTag(MoviePlayButtonTag).assertIsFocused()
     }
 
     private fun sampleMovie(progress: Double?): Movie {

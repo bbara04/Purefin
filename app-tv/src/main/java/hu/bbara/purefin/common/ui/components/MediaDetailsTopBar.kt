@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -49,10 +50,16 @@ internal fun MediaDetailsTopBar(
     shortcut: MediaDetailsTopBarShortcut? = null,
     onCastClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
+    backFocusRequester: FocusRequester? = null,
     downFocusRequester: FocusRequester? = null
 ) {
     val downModifier = if (downFocusRequester != null) {
         Modifier.focusProperties { down = downFocusRequester }
+    } else {
+        Modifier
+    }
+    val backModifier = if (backFocusRequester != null) {
+        Modifier.focusRequester(backFocusRequester)
     } else {
         Modifier
     }
@@ -70,7 +77,7 @@ internal fun MediaDetailsTopBar(
                 icon = Icons.AutoMirrored.Outlined.ArrowBack,
                 contentDescription = "Back",
                 onClick = onBack,
-                modifier = downModifier
+                modifier = backModifier.then(downModifier)
             )
             if (shortcut != null) {
                 GhostTextButton(

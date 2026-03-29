@@ -83,19 +83,22 @@ internal fun EpisodeScreenContent(
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val backFocusRequester = remember { FocusRequester() }
     val playFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(episode.id) {
-        playFocusRequester.requestFocus()
+        backFocusRequester.requestFocus()
     }
 
     TvMediaDetailScaffold(
         heroImageUrl = episode.heroImageUrl,
+        resetScrollKey = episode.id,
         modifier = modifier,
         topBar = {
             EpisodeTopBar(
                 onBack = onBack,
                 shortcut = topBarShortcut,
+                backFocusRequester = backFocusRequester,
                 downFocusRequester = playFocusRequester,
                 modifier = Modifier.align(Alignment.TopStart)
             )

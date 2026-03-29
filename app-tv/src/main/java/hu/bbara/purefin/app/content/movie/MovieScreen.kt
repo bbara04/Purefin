@@ -52,18 +52,21 @@ internal fun MovieScreenContent(
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val backFocusRequester = remember { FocusRequester() }
     val playFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(movie.id) {
-        playFocusRequester.requestFocus()
+        backFocusRequester.requestFocus()
     }
 
     TvMediaDetailScaffold(
         heroImageUrl = movie.heroImageUrl,
+        resetScrollKey = movie.id,
         modifier = modifier,
         topBar = {
             MovieTopBar(
                 onBack = onBack,
+                backFocusRequester = backFocusRequester,
                 downFocusRequester = playFocusRequester,
                 modifier = Modifier.align(Alignment.TopStart)
             )

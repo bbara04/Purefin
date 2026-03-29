@@ -1,11 +1,16 @@
 package hu.bbara.purefin.app.content.series
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.input.key.Key
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
@@ -15,13 +20,14 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
 
+@OptIn(ExperimentalTestApi::class)
 class SeriesScreenContentTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun seriesScreenContent_focusesPrimaryAction_whenNextUpExists() {
+    fun seriesScreenContent_movesFromBackToPrimaryAction_whenNextUpExists() {
         composeRule.setContent {
             AppTheme {
                 SeriesScreenContent(
@@ -37,13 +43,20 @@ class SeriesScreenContentTest {
         composeRule.onNodeWithText("Severance").assertIsDisplayed()
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
         composeRule.onNodeWithText("Up Next").assertIsDisplayed()
-        composeRule.onNodeWithTag(SeriesPlayButtonTag).assertIsDisplayed().assertIsFocused()
+        composeRule.onNodeWithTag(SeriesPlayButtonTag).assertIsDisplayed()
         composeRule.onNodeWithText("Season 1").assertIsDisplayed()
         composeRule.onNodeWithText("Good News About Hell").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Back")
+            .assertIsDisplayed()
+            .assertIsFocused()
+            .performKeyInput {
+                pressKey(Key.DirectionDown)
+            }
+        composeRule.onNodeWithTag(SeriesPlayButtonTag).assertIsFocused()
     }
 
     @Test
-    fun seriesScreenContent_focusesFirstSeason_whenNoPlayableEpisodeExists() {
+    fun seriesScreenContent_movesFromBackToFirstSeason_whenNoPlayableEpisodeExists() {
         composeRule.setContent {
             AppTheme {
                 SeriesScreenContent(
@@ -58,7 +71,14 @@ class SeriesScreenContentTest {
 
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
         composeRule.onNodeWithText("Library Status").assertIsDisplayed()
-        composeRule.onNodeWithTag(SeriesFirstSeasonTabTag).assertIsDisplayed().assertIsFocused()
+        composeRule.onNodeWithTag(SeriesFirstSeasonTabTag).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Back")
+            .assertIsDisplayed()
+            .assertIsFocused()
+            .performKeyInput {
+                pressKey(Key.DirectionDown)
+            }
+        composeRule.onNodeWithTag(SeriesFirstSeasonTabTag).assertIsFocused()
     }
 
     private fun sampleSeriesWithEpisodes(): Series {

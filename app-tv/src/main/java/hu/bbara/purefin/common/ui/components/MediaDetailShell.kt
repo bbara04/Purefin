@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,6 +34,7 @@ private val MediaDetailPanelShape = RoundedCornerShape(28.dp)
 @Composable
 internal fun TvMediaDetailScaffold(
     heroImageUrl: String,
+    resetScrollKey: Any,
     modifier: Modifier = Modifier,
     heroHeightFraction: Float = 0.48f,
     topBar: @Composable BoxScope.() -> Unit,
@@ -40,6 +43,11 @@ internal fun TvMediaDetailScaffold(
 ) {
     val scheme = MaterialTheme.colorScheme
     val contentPadding = Modifier.padding(horizontal = MediaDetailHorizontalPadding)
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(resetScrollKey) {
+        listState.scrollToItem(0)
+    }
 
     Box(
         modifier = modifier
@@ -47,6 +55,7 @@ internal fun TvMediaDetailScaffold(
             .background(scheme.background)
     ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize()
         ) {
             item {

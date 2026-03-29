@@ -53,12 +53,14 @@ internal fun EpisodeTopBar(
     onBack: () -> Unit,
     shortcut: EpisodeTopBarShortcut? = null,
     modifier: Modifier = Modifier,
+    backFocusRequester: FocusRequester? = null,
     downFocusRequester: FocusRequester? = null
 ) {
     MediaDetailsTopBar(
         onBack = onBack,
         shortcut = shortcut?.let { MediaDetailsTopBarShortcut(label = it.label, onClick = it.onClick) },
         modifier = modifier,
+        backFocusRequester = backFocusRequester,
         downFocusRequester = downFocusRequester
     )
 }
