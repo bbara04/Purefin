@@ -36,6 +36,7 @@ import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
+import hu.bbara.purefin.core.data.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
@@ -48,6 +49,8 @@ fun EpisodeScreen(
     modifier: Modifier = Modifier
 ) {
     val navigationManager = LocalNavigationManager.current
+    val backStack = LocalNavigationBackStack.current
+    val previousRoute = remember(backStack) { backStack.getOrNull(backStack.lastIndex - 1) }
 
     LaunchedEffect(episode) {
         viewModel.selectEpisode(
@@ -67,6 +70,12 @@ fun EpisodeScreen(
 
     EpisodeScreenInternal(
         episode = selectedEpisode,
+        topBarShortcut = remember(previousRoute, viewModel) {
+            episodeTopBarShortcut(
+                previousRoute = previousRoute,
+                onSeriesClick = viewModel::onSeriesClick
+            )
+        },
         onBack = viewModel::onBack,
         onPlay = remember(selectedEpisode.id, navigationManager) {
             {
@@ -83,6 +92,7 @@ fun EpisodeScreen(
 @Composable
 private fun EpisodeScreenInternal(
     episode: Episode,
+    topBarShortcut: EpisodeTopBarShortcut?,
     onBack: () -> Unit,
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
@@ -191,6 +201,7 @@ private fun EpisodeScreenInternal(
         }
         EpisodeTopBar(
             onBack = onBack,
+            shortcut = topBarShortcut,
             downFocusRequester = playFocusRequester,
             modifier = Modifier.align(Alignment.TopStart)
         )
