@@ -2,6 +2,7 @@ package hu.bbara.purefin.app.content.episode
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,7 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
-import hu.bbara.purefin.common.ui.components.MediaDetailHeaderRow
+import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
+import hu.bbara.purefin.common.ui.components.MediaDetailPlaybackSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
@@ -99,30 +101,39 @@ internal fun EpisodeScreenContent(
             )
         },
         heroContent = {
-            MediaDetailHeaderRow(
-                leftContent = { headerModifier ->
-                    EpisodeHeroSection(
-                        episode = episode,
-                        seriesTitle = seriesTitle,
-                        onPlay = onPlay,
-                        playFocusRequester = playFocusRequester,
-                        modifier = headerModifier
-                    )
-                },
-                rightContent = { panelModifier ->
-                    EpisodeOverviewPanel(
-                        episode = episode,
-                        modifier = panelModifier
-                    )
-                }
+            EpisodeHeroSection(
+                episode = episode,
+                seriesTitle = seriesTitle,
+                onPlay = onPlay,
+                playFocusRequester = playFocusRequester,
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
     ) {
+        item {
+            Column(modifier = it.fillMaxWidth()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                MediaDetailOverviewSection(
+                    synopsis = episode.synopsis,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
+        item {
+            Column(modifier = it.fillMaxWidth()) {
+                MediaDetailPlaybackSection(
+                    audioTrack = "ENG",
+                    subtitles = "ENG",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+        }
         if (episode.cast.isNotEmpty()) {
             item {
-                Column(modifier = it) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                Column(modifier = it.fillMaxWidth()) {
                     MediaDetailSectionTitle(text = "Cast")
                     Spacer(modifier = Modifier.height(14.dp))
                     MediaCastRow(cast = episode.cast)

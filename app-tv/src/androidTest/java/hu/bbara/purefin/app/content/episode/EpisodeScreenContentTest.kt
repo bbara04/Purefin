@@ -40,6 +40,8 @@ class EpisodeScreenContentTest {
         composeRule.onNodeWithText("Severance").assertIsDisplayed()
         composeRule.onNodeWithText("The You You Are").assertIsDisplayed()
         composeRule.onNodeWithText("Episode 4").assertIsDisplayed()
+        composeRule.onNodeWithText("Overview").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Playback").assertCountEquals(1)
         composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsDisplayed().assertIsFocused()
         composeRule.onNodeWithText("Series").assertIsDisplayed()
     }
@@ -63,6 +65,8 @@ class EpisodeScreenContentTest {
 
         composeRule.waitForIdle()
 
+        composeRule.onNodeWithText("Overview").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Playback").assertCountEquals(1)
         composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsDisplayed()
         composeRule.onAllNodesWithText("Series").assertCountEquals(0)
     }

@@ -35,6 +35,7 @@ class SeriesScreenContentTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Severance").assertIsDisplayed()
+        composeRule.onNodeWithText("Overview").assertIsDisplayed()
         composeRule.onNodeWithText("Up Next").assertIsDisplayed()
         composeRule.onNodeWithTag(SeriesPlayButtonTag).assertIsDisplayed().assertIsFocused()
         composeRule.onNodeWithText("Season 1").assertIsDisplayed()
@@ -55,6 +56,7 @@ class SeriesScreenContentTest {
 
         composeRule.waitForIdle()
 
+        composeRule.onNodeWithText("Overview").assertIsDisplayed()
         composeRule.onNodeWithText("Library Status").assertIsDisplayed()
         composeRule.onNodeWithTag(SeriesFirstSeasonTabTag).assertIsDisplayed().assertIsFocused()
     }

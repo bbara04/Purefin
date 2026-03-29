@@ -1,9 +1,11 @@
 package hu.bbara.purefin.app.content.movie
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -34,7 +36,8 @@ class MovieScreenContentTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Blade Runner 2049").assertIsDisplayed()
-        composeRule.onNodeWithText("Playback").assertIsDisplayed()
+        composeRule.onNodeWithText("Overview").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Playback").assertCountEquals(1)
         composeRule.onNodeWithTag(MoviePlayButtonTag).assertIsDisplayed().assertIsFocused()
         composeRule.onNodeWithContentDescription("Back").assertIsDisplayed()
     }

@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -22,6 +24,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import hu.bbara.purefin.common.ui.MediaSynopsis
 
 internal val MediaDetailHorizontalPadding = 48.dp
 private val MediaDetailPanelShape = RoundedCornerShape(28.dp)
@@ -112,6 +115,48 @@ internal fun MediaDetailSectionTitle(
         fontWeight = FontWeight.Bold,
         modifier = modifier
     )
+}
+
+@Composable
+internal fun MediaDetailOverviewSection(
+    synopsis: String,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    MediaSynopsis(
+        synopsis = synopsis,
+        modifier = modifier,
+        title = "Overview",
+        titleColor = scheme.onBackground,
+        bodyColor = scheme.onSurfaceVariant.copy(alpha = 0.85f),
+        titleFontSize = 22.sp,
+        bodyFontSize = 16.sp,
+        bodyLineHeight = 24.sp,
+        titleSpacing = 14.dp,
+        collapsedLines = 5,
+        collapseInitially = false
+    )
+}
+
+@Composable
+internal fun MediaDetailPlaybackSection(
+    audioTrack: String,
+    subtitles: String,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    Column(modifier = modifier) {
+        MediaDetailSectionTitle(text = "Playback")
+        Spacer(modifier = Modifier.height(14.dp))
+        MediaPlaybackSettings(
+            backgroundColor = scheme.surfaceContainerHigh,
+            foregroundColor = scheme.onBackground,
+            audioTrack = audioTrack,
+            subtitles = subtitles
+        )
+    }
 }
 
 @Composable

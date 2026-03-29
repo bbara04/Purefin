@@ -21,9 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
-import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.core.model.Movie
 
@@ -90,44 +88,6 @@ internal fun MovieHeroSection(
                 .sizeIn(minWidth = 216.dp, maxWidth = 240.dp)
                 .focusRequester(playFocusRequester)
                 .testTag(MoviePlayButtonTag)
-        )
-    }
-}
-
-@Composable
-internal fun MovieOverviewPanel(
-    movie: Movie,
-    modifier: Modifier = Modifier
-) {
-    val scheme = MaterialTheme.colorScheme
-    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.85f)
-
-    Column(modifier = modifier) {
-        MediaSynopsis(
-            synopsis = movie.synopsis,
-            title = "Overview",
-            titleColor = scheme.onSurface,
-            bodyColor = mutedStrong,
-            titleFontSize = 20.sp,
-            bodyFontSize = 16.sp,
-            bodyLineHeight = 24.sp,
-            titleSpacing = 10.dp,
-            collapsedLines = 5,
-            collapseInitially = false
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = "Playback",
-            color = scheme.onSurface,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(14.dp))
-        MediaPlaybackSettings(
-            backgroundColor = scheme.surfaceContainerHigh,
-            foregroundColor = scheme.onSurface,
-            audioTrack = movie.audioTrack,
-            subtitles = movie.subtitles
         )
     }
 }

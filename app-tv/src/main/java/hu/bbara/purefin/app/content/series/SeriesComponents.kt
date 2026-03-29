@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
@@ -249,28 +248,16 @@ internal fun SeriesHeroSection(
 }
 
 @Composable
-internal fun SeriesOverviewPanel(
-    series: Series,
+internal fun SeriesStatusPanel(
     nextUpEpisode: Episode?,
+    seasonCount: Int,
+    unwatchedEpisodeCount: Int,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
     val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.85f)
 
     Column(modifier = modifier) {
-        MediaSynopsis(
-            synopsis = series.synopsis,
-            title = "Overview",
-            titleColor = scheme.onSurface,
-            bodyColor = mutedStrong,
-            titleFontSize = 20.sp,
-            bodyFontSize = 16.sp,
-            bodyLineHeight = 24.sp,
-            titleSpacing = 10.dp,
-            collapsedLines = 5,
-            collapseInitially = false
-        )
-        Spacer(modifier = Modifier.height(24.dp))
         MediaDetailSectionTitle(
             text = if (nextUpEpisode != null) "Up Next" else "Library Status",
             modifier = Modifier.fillMaxWidth()
@@ -280,7 +267,7 @@ internal fun SeriesOverviewPanel(
             text = if (nextUpEpisode != null) {
                 nextUpEpisode.title
             } else {
-                "${series.seasonCount} seasons ready to browse"
+                "$seasonCount seasons ready to browse"
             },
             color = scheme.onSurface,
             fontSize = 18.sp,
@@ -293,7 +280,7 @@ internal fun SeriesOverviewPanel(
             text = if (nextUpEpisode != null) {
                 "Episode ${nextUpEpisode.index} • ${nextUpEpisode.runtime}"
             } else {
-                "${series.unwatchedEpisodeCount} unwatched episodes"
+                "$unwatchedEpisodeCount unwatched episodes"
             },
             color = mutedStrong,
             fontSize = 14.sp,
