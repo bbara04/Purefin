@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -39,11 +41,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,8 +55,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
+import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
+import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
+import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
 import hu.bbara.purefin.core.model.CastMember
@@ -60,6 +67,9 @@ import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
+
+internal const val SeriesPlayButtonTag = "series-play-button"
+internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"
 
 @Composable
 internal fun SeriesTopBar(
@@ -93,6 +103,7 @@ internal fun SeasonTabs(
     selectedSeason: Season?,
     modifier: Modifier = Modifier,
     firstItemFocusRequester: FocusRequester? = null,
+    firstItemTestTag: String? = null,
     onSelect: (Season) -> Unit
 ) {
     Row(
@@ -106,11 +117,21 @@ internal fun SeasonTabs(
                 name = season.name,
                 isSelected = season == selectedSeason,
                 onSelect = { onSelect(season) },
-                modifier = if (index == 0 && firstItemFocusRequester != null) {
-                    Modifier.focusRequester(firstItemFocusRequester)
-                } else {
-                    Modifier
-                }
+                modifier = Modifier
+                    .then(
+                        if (index == 0 && firstItemFocusRequester != null) {
+                            Modifier.focusRequester(firstItemFocusRequester)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .then(
+                        if (index == 0 && firstItemTestTag != null) {
+                            Modifier.testTag(firstItemTestTag)
+                        } else {
+                            Modifier
+                        }
+                    )
             )
         }
     }
@@ -173,6 +194,111 @@ internal fun EpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modif
         items(episodes) { episode ->
             EpisodeCard(episode = episode)
         }
+    }
+}
+
+@Composable
+internal fun SeriesHeroSection(
+    series: Series,
+    nextUpEpisode: Episode?,
+    onPlayEpisode: (Episode) -> Unit,
+    playFocusRequester: FocusRequester,
+    firstContentFocusRequester: FocusRequester,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.82f)
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .widthIn(max = 760.dp)
+    ) {
+        Text(
+            text = series.name,
+            color = scheme.onBackground,
+            fontSize = 42.sp,
+            fontWeight = FontWeight.Bold,
+            lineHeight = 48.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(modifier = Modifier.height(18.dp))
+        SeriesMetaChips(series = series)
+        Spacer(modifier = Modifier.height(24.dp))
+        if (nextUpEpisode != null) {
+            MediaResumeButton(
+                text = nextUpEpisode.playButtonText(),
+                progress = nextUpEpisode.progress?.div(100)?.toFloat() ?: 0f,
+                onClick = { onPlayEpisode(nextUpEpisode) },
+                modifier = Modifier
+                    .sizeIn(minWidth = 216.dp, maxWidth = 240.dp)
+                    .focusRequester(playFocusRequester)
+                    .focusProperties { down = firstContentFocusRequester }
+                    .testTag(SeriesPlayButtonTag)
+            )
+        } else {
+            Text(
+                text = "Choose a season below to start watching.",
+                color = mutedStrong,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+internal fun SeriesOverviewPanel(
+    series: Series,
+    nextUpEpisode: Episode?,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.85f)
+
+    Column(modifier = modifier) {
+        MediaSynopsis(
+            synopsis = series.synopsis,
+            title = "Overview",
+            titleColor = scheme.onSurface,
+            bodyColor = mutedStrong,
+            titleFontSize = 20.sp,
+            bodyFontSize = 16.sp,
+            bodyLineHeight = 24.sp,
+            titleSpacing = 10.dp,
+            collapsedLines = 5,
+            collapseInitially = false
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        MediaDetailSectionTitle(
+            text = if (nextUpEpisode != null) "Up Next" else "Library Status",
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        Text(
+            text = if (nextUpEpisode != null) {
+                nextUpEpisode.title
+            } else {
+                "${series.seasonCount} seasons ready to browse"
+            },
+            color = scheme.onSurface,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = if (nextUpEpisode != null) {
+                "Episode ${nextUpEpisode.index} • ${nextUpEpisode.runtime}"
+            } else {
+                "${series.unwatchedEpisodeCount} unwatched episodes"
+            },
+            color = mutedStrong,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -289,4 +415,8 @@ internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {
         nameSize = 11.sp,
         roleSize = 10.sp
     )
+}
+
+private fun Episode.playButtonText(): String {
+    return if ((progress ?: 0.0) > 0.0 && !watched) "Resume" else "Play"
 }
