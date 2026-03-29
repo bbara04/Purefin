@@ -9,6 +9,7 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.scopes.ViewModelScoped
+import hu.bbara.purefin.core.data.client.PlaybackReportContext
 import hu.bbara.purefin.core.player.model.QueueItemUi
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
@@ -73,14 +74,20 @@ class PlayerManager @Inject constructor(
                 state.copy(
                     isBuffering = buffering,
                     isEnded = ended,
-                    error = if (playbackState == Player.STATE_IDLE) state.error else null
+                    error = if (playbackState == Player.STATE_IDLE) state.error else null,
+                    errorCode = if (playbackState == Player.STATE_IDLE) state.errorCode else null
                 )
             }
             if (ended) player.pause()
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            _playbackState.update { it.copy(error = error.errorCodeName ?: error.localizedMessage ?: "Playback error") }
+            _playbackState.update {
+                it.copy(
+                    error = error.errorCodeName ?: error.localizedMessage ?: "Playback error",
+                    errorCode = error.errorCode
+                )
+            }
         }
 
         override fun onTracksChanged(tracks: Tracks) {
@@ -128,7 +135,27 @@ class PlayerManager @Inject constructor(
         _progress.value = PlaybackProgressSnapshot()
         refreshMetadata(mediaItem)
         refreshQueue()
-        _playbackState.update { it.copy(isEnded = false, error = null) }
+        _playbackState.update { it.copy(isEnded = false, error = null, errorCode = null) }
+    }
+
+    fun replaceCurrentMediaItem(mediaItem: MediaItem, mediaContext: MediaContext? = null, startPositionMs: Long? = null) {
+        currentMediaContext = mediaContext
+        val currentIndex = player.currentMediaItemIndex.takeIf { it != C.INDEX_UNSET } ?: run {
+            play(mediaItem, mediaContext, startPositionMs)
+            return
+        }
+
+        player.replaceMediaItem(currentIndex, mediaItem)
+        if (startPositionMs != null) {
+            player.seekTo(currentIndex, startPositionMs)
+        } else {
+            player.seekToDefaultPosition(currentIndex)
+        }
+        player.prepare()
+        player.playWhenReady = true
+        refreshMetadata(mediaItem)
+        refreshQueue()
+        _playbackState.update { it.copy(isEnded = false, error = null, errorCode = null) }
     }
 
     fun addToQueue(mediaItem: MediaItem) {
@@ -232,7 +259,7 @@ class PlayerManager @Inject constructor(
     }
 
     fun clearError() {
-        _playbackState.update { it.copy(error = null) }
+        _playbackState.update { it.copy(error = null, errorCode = null) }
     }
 
     fun snapshotProgress(): PlaybackProgressSnapshot {
@@ -341,10 +368,12 @@ class PlayerManager @Inject constructor(
     }
 
     private fun refreshMetadata(mediaItem: MediaItem?) {
+        val playbackReportContext = mediaItem?.localConfiguration?.tag as? PlaybackReportContext
         _metadata.value = MetadataState(
             mediaId = mediaItem?.mediaId,
             title = mediaItem?.mediaMetadata?.title?.toString(),
-            subtitle = mediaItem?.mediaMetadata?.subtitle?.toString()
+            subtitle = mediaItem?.mediaMetadata?.subtitle?.toString(),
+            playbackReportContext = playbackReportContext
         )
     }
 
@@ -357,7 +386,8 @@ data class PlaybackStateSnapshot(
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
     val isEnded: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val errorCode: Int? = null
 )
 
 data class PlaybackProgressSnapshot(
@@ -370,7 +400,8 @@ data class PlaybackProgressSnapshot(
 data class MetadataState(
     val mediaId: String? = null,
     val title: String? = null,
-    val subtitle: String? = null
+    val subtitle: String? = null,
+    val playbackReportContext: PlaybackReportContext? = null
 )
 
 data class MediaContext(

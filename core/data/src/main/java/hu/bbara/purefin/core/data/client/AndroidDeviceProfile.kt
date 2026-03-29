@@ -1,5 +1,7 @@
 package hu.bbara.purefin.core.data.client
 
+import android.content.Context
+import android.media.AudioManager
 import android.media.MediaCodecList
 import android.util.Log
 import org.jellyfin.sdk.model.api.DeviceProfile
@@ -14,32 +16,59 @@ import org.jellyfin.sdk.model.api.SubtitleProfile
  */
 object AndroidDeviceProfile {
 
-    fun create(): DeviceProfile {
-        // Debug: Log all available decoders
-        CodecDebugHelper.logAvailableDecoders()
+    private const val TAG = "AndroidDeviceProfile"
+    private const val DEFAULT_MAX_AUDIO_CHANNELS = 8
 
-        val audioCodecs = getAudioCodecs()
-        val videoCodecs = getVideoCodecs()
+    @Volatile
+    private var cachedSnapshot: CapabilitySnapshot? = null
 
-        Log.d("AndroidDeviceProfile", "Supported audio codecs: ${audioCodecs.joinToString()}")
-        Log.d("AndroidDeviceProfile", "Supported video codecs: ${videoCodecs.joinToString()}")
+    data class CapabilitySnapshot(
+        val deviceProfile: DeviceProfile,
+        val maxAudioChannels: Int
+    )
 
-        // Check specifically for DTS
-        val hasDTS = CodecDebugHelper.hasDecoderFor("audio/vnd.dts")
-        val hasDTSHD = CodecDebugHelper.hasDecoderFor("audio/vnd.dts.hd")
-        Log.d("AndroidDeviceProfile", "Has DTS decoder: $hasDTS, Has DTS-HD decoder: $hasDTSHD")
+    fun getSnapshot(context: Context): CapabilitySnapshot {
+        cachedSnapshot?.let { return it }
 
+        return synchronized(this) {
+            cachedSnapshot?.let { return@synchronized it }
+
+            val applicationContext = context.applicationContext
+
+            // Debug logging is noisy and expensive, so keep it to debug builds/devices only when needed.
+            val audioCodecs = getAudioCodecs()
+            val videoCodecs = getVideoCodecs()
+            val maxAudioChannels = resolveMaxAudioChannels(applicationContext)
+
+            Log.d(TAG, "Supported audio codecs: ${audioCodecs.joinToString()}")
+            Log.d(TAG, "Supported video codecs: ${videoCodecs.joinToString()}")
+            Log.d(TAG, "Max audio channels: $maxAudioChannels")
+
+            val snapshot = CapabilitySnapshot(
+                deviceProfile = buildDeviceProfile(audioCodecs, videoCodecs),
+                maxAudioChannels = maxAudioChannels
+            )
+            cachedSnapshot = snapshot
+            snapshot
+        }
+    }
+
+    fun create(context: Context): DeviceProfile = getSnapshot(context).deviceProfile
+
+    private fun buildDeviceProfile(
+        audioCodecs: List<String>,
+        videoCodecs: List<String>
+    ): DeviceProfile {
         return DeviceProfile(
-            name = "Android",
+            name = "Android Media3",
             maxStaticBitrate = 100_000_000,
             maxStreamingBitrate = 100_000_000,
 
             // Direct play profiles - what we can play natively
-            // By specifying supported codecs, Jellyfin will transcode unsupported formats like DTS-HD
             directPlayProfiles = listOf(
                 DirectPlayProfile(
                     type = DlnaProfileType.VIDEO,
-                    container = "mp4,m4v,mkv,webm",
+                    container = "mp4,m4v,mkv,webm,ts,mov",
                     videoCodec = videoCodecs.joinToString(","),
                     audioCodec = audioCodecs.joinToString(",")
                 )
@@ -77,15 +106,18 @@ object AndroidDeviceProfile {
     private fun getAudioCodecs(): List<String> {
         val supportedCodecs = mutableListOf<String>()
 
-        // Common codecs supported on most Android devices
         val commonCodecs = listOf(
-            "aac" to android.media.MediaFormat.MIMETYPE_AUDIO_AAC,
-            "mp3" to android.media.MediaFormat.MIMETYPE_AUDIO_MPEG,
-            "ac3" to android.media.MediaFormat.MIMETYPE_AUDIO_AC3,
-            "eac3" to android.media.MediaFormat.MIMETYPE_AUDIO_EAC3,
-            "flac" to android.media.MediaFormat.MIMETYPE_AUDIO_FLAC,
-            "vorbis" to android.media.MediaFormat.MIMETYPE_AUDIO_VORBIS,
-            "opus" to android.media.MediaFormat.MIMETYPE_AUDIO_OPUS
+            "aac" to "audio/mp4a-latm",
+            "mp3" to "audio/mpeg",
+            "ac3" to "audio/ac3",
+            "eac3" to "audio/eac3",
+            "dts" to "audio/vnd.dts",
+            "dtshd_ma" to "audio/vnd.dts.hd",
+            "truehd" to "audio/true-hd",
+            "flac" to "audio/flac",
+            "vorbis" to "audio/vorbis",
+            "opus" to "audio/opus",
+            "alac" to "audio/alac"
         )
 
         for ((codecName, mimeType) in commonCodecs) {
@@ -109,12 +141,12 @@ object AndroidDeviceProfile {
         val supportedCodecs = mutableListOf<String>()
 
         val commonCodecs = listOf(
-            "h264" to android.media.MediaFormat.MIMETYPE_VIDEO_AVC,
-            "hevc" to android.media.MediaFormat.MIMETYPE_VIDEO_HEVC,
-            "vp9" to android.media.MediaFormat.MIMETYPE_VIDEO_VP9,
-            "vp8" to android.media.MediaFormat.MIMETYPE_VIDEO_VP8,
-            "mpeg4" to android.media.MediaFormat.MIMETYPE_VIDEO_MPEG4,
-            "av1" to android.media.MediaFormat.MIMETYPE_VIDEO_AV1
+            "h264" to "video/avc",
+            "hevc" to "video/hevc",
+            "vp9" to "video/x-vnd.on2.vp9",
+            "vp8" to "video/x-vnd.on2.vp8",
+            "mpeg4" to "video/mp4v-es",
+            "av1" to "video/av01"
         )
 
         for ((codecName, mimeType) in commonCodecs) {
@@ -135,15 +167,58 @@ object AndroidDeviceProfile {
      * Check if a specific decoder (not encoder) is supported on this device.
      */
     private fun isCodecSupported(mimeType: String): Boolean {
-        return try {
+        val platformSupport = try {
             val codecList = MediaCodecList(MediaCodecList.ALL_CODECS)
             codecList.codecInfos.any { codecInfo ->
                 !codecInfo.isEncoder &&
                 codecInfo.supportedTypes.any { it.equals(mimeType, ignoreCase = true) }
             }
         } catch (_: Exception) {
-            // If we can't determine, assume not supported
             false
+        }
+
+        if (platformSupport) {
+            return true
+        }
+
+        return isCodecSupportedByFfmpeg(mimeType)
+    }
+
+    private fun isCodecSupportedByFfmpeg(mimeType: String): Boolean {
+        return runCatching {
+            val ffmpegLibraryClass = Class.forName("androidx.media3.decoder.ffmpeg.FfmpegLibrary")
+            val supportsFormat = ffmpegLibraryClass.getMethod("supportsFormat", String::class.java)
+            supportsFormat.invoke(null, mimeType) as? Boolean ?: false
+        }.getOrElse { false }
+    }
+
+    private fun resolveMaxAudioChannels(context: Context): Int {
+        val audioManager = context.getSystemService(AudioManager::class.java) ?: return DEFAULT_MAX_AUDIO_CHANNELS
+        return runCatching {
+            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            val maxDeviceChannels = devices
+                .flatMap { device ->
+                    buildList {
+                        addAll(device.channelCounts.toList())
+                        addAll(device.channelMasks.map(::channelMaskToCount))
+                        addAll(device.channelIndexMasks.map { Integer.bitCount(it) })
+                    }
+                }
+                .maxOrNull()
+
+            maxDeviceChannels
+                ?.takeIf { it > 0 }
+                ?: DEFAULT_MAX_AUDIO_CHANNELS
+        }.getOrElse {
+            DEFAULT_MAX_AUDIO_CHANNELS
+        }
+    }
+
+    private fun channelMaskToCount(mask: Int): Int {
+        return if (mask == 0) {
+            0
+        } else {
+            Integer.bitCount(mask)
         }
     }
 }

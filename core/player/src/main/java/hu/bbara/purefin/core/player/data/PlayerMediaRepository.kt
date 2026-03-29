@@ -13,6 +13,7 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.MediaRepository
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
+import hu.bbara.purefin.core.data.client.PlaybackReportContext
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import kotlinx.coroutines.Dispatchers
@@ -34,8 +35,8 @@ class PlayerMediaRepository @Inject constructor(
     private val downloadManager: DownloadManager
 ) {
 
-    suspend fun getMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? = withContext(Dispatchers.IO) {
-        buildOnlineMediaItem(mediaId) ?: buildOfflineMediaItem(mediaId)
+    suspend fun getMediaItem(mediaId: UUID, forceTranscode: Boolean = false): Pair<MediaItem, Long?>? = withContext(Dispatchers.IO) {
+        buildOnlineMediaItem(mediaId, forceTranscode) ?: buildOfflineMediaItem(mediaId)
     }
 
     private fun calculateResumePosition(
@@ -72,21 +73,18 @@ class PlayerMediaRepository @Inject constructor(
                 if (existingIds.contains(stringId)) {
                     return@mapNotNull null
                 }
-                val mediaSources = jellyfinApiClient.getMediaSources(id)
-                val selectedMediaSource = mediaSources.firstOrNull() ?: return@mapNotNull null
-                val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
-                    mediaId = id,
-                    mediaSource = selectedMediaSource
-                ) ?: return@mapNotNull null
+                val playbackDecision = jellyfinApiClient.getPlaybackDecision(id) ?: return@mapNotNull null
+                val selectedMediaSource = playbackDecision.mediaSource
                 val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, id, ImageType.PRIMARY)
                 val subtitleConfigs = buildExternalSubtitleConfigs(serverUrl, id, selectedMediaSource)
                 createMediaItem(
                     mediaId = stringId,
-                    playbackUrl = playbackUrl,
+                    playbackUrl = playbackDecision.url,
                     title = episode.name ?: selectedMediaSource.name!!,
                     subtitle = "S${episode.parentIndexNumber}:E${episode.indexNumber}",
                     artworkUrl = artworkUrl,
-                    subtitleConfigurations = subtitleConfigs
+                    subtitleConfigurations = subtitleConfigs,
+                    tag = playbackDecision.reportContext
                 )
             }
         }.getOrElse { error ->
@@ -95,14 +93,13 @@ class PlayerMediaRepository @Inject constructor(
         }
     }
 
-    private suspend fun buildOnlineMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? {
+    private suspend fun buildOnlineMediaItem(mediaId: UUID, forceTranscode: Boolean): Pair<MediaItem, Long?>? {
         return runCatching {
-            val mediaSources = jellyfinApiClient.getMediaSources(mediaId)
-            val selectedMediaSource = mediaSources.firstOrNull() ?: return null
-            val playbackUrl = jellyfinApiClient.getMediaPlaybackUrl(
+            val playbackDecision = jellyfinApiClient.getPlaybackDecision(
                 mediaId = mediaId,
-                mediaSource = selectedMediaSource
+                forceTranscode = forceTranscode
             ) ?: return null
+            val selectedMediaSource = playbackDecision.mediaSource
             val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
             val resumePositionMs = calculateResumePosition(baseItem, selectedMediaSource)
@@ -112,11 +109,12 @@ class PlayerMediaRepository @Inject constructor(
 
             val mediaItem = createMediaItem(
                 mediaId = mediaId.toString(),
-                playbackUrl = playbackUrl,
+                playbackUrl = playbackDecision.url,
                 title = baseItem?.name ?: selectedMediaSource.name.orEmpty(),
                 subtitle = baseItem?.let { episodeSubtitle(it.parentIndexNumber, it.indexNumber) },
                 artworkUrl = artworkUrl,
-                subtitleConfigurations = subtitleConfigs
+                subtitleConfigurations = subtitleConfigs,
+                tag = playbackDecision.reportContext
             )
 
             mediaItem to resumePositionMs
@@ -247,7 +245,8 @@ class PlayerMediaRepository @Inject constructor(
         title: String,
         subtitle: String?,
         artworkUrl: String,
-        subtitleConfigurations: List<MediaItem.SubtitleConfiguration> = emptyList()
+        subtitleConfigurations: List<MediaItem.SubtitleConfiguration> = emptyList(),
+        tag: PlaybackReportContext? = null
     ): MediaItem {
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
@@ -258,6 +257,7 @@ class PlayerMediaRepository @Inject constructor(
             .setUri(playbackUrl.toUri())
             .setMediaId(mediaId)
             .setMediaMetadata(metadata)
+            .setTag(tag)
             .setSubtitleConfigurations(subtitleConfigurations)
             .build()
     }
