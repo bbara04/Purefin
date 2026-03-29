@@ -3,11 +3,13 @@ package hu.bbara.purefin.app.content.series
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,10 +30,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
+import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.core.data.navigation.SeriesDto
+import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
+import org.jellyfin.sdk.model.UUID
 
 @Composable
 fun SeriesScreen(
@@ -48,6 +55,7 @@ fun SeriesScreen(
         SeriesScreenInternal(
             series = seriesData,
             onBack = viewModel::onBack,
+            onPlayEpisode = viewModel::onPlayEpisode,
             modifier = modifier
         )
     } else {
@@ -59,6 +67,7 @@ fun SeriesScreen(
 private fun SeriesScreenInternal(
     series: Series,
     onBack: () -> Unit,
+    onPlayEpisode: (UUID) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -72,8 +81,22 @@ private fun SeriesScreenInternal(
         }
         return series.seasons.first()
     }
-    val selectedSeason = remember { mutableStateOf<Season>(getDefaultSeason()) }
+    val selectedSeason = remember(series.id) { mutableStateOf(getDefaultSeason()) }
+    val nextUpEpisode = remember(series.id) {
+        series.seasons.firstNotNullOfOrNull { season ->
+            season.episodes.firstOrNull { !it.watched }
+        } ?: series.seasons.firstOrNull()?.episodes?.firstOrNull()
+    }
+    val playFocusRequester = remember { FocusRequester() }
     val firstContentFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(series.id, nextUpEpisode?.id) {
+        if (nextUpEpisode != null) {
+            playFocusRequester.requestFocus()
+        } else {
+            firstContentFocusRequester.requestFocus()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -102,6 +125,22 @@ private fun SeriesScreenInternal(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     SeriesMetaChips(series = series)
+                }
+            }
+            if (nextUpEpisode != null) {
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Row(modifier = hPad) {
+                        MediaResumeButton(
+                            text = nextUpEpisode.playButtonText(),
+                            progress = nextUpEpisode.progress?.div(100)?.toFloat() ?: 0f,
+                            onClick = { onPlayEpisode(nextUpEpisode.id) },
+                            modifier = Modifier
+                                .sizeIn(maxWidth = 200.dp)
+                                .focusRequester(playFocusRequester)
+                                .focusProperties { down = firstContentFocusRequester }
+                        )
+                    }
                 }
             }
             item {
@@ -150,8 +189,12 @@ private fun SeriesScreenInternal(
         }
         SeriesTopBar(
             onBack = onBack,
-            downFocusRequester = firstContentFocusRequester,
+            downFocusRequester = nextUpEpisode?.let { playFocusRequester } ?: firstContentFocusRequester,
             modifier = Modifier.align(Alignment.TopStart)
         )
     }
+}
+
+private fun Episode.playButtonText(): String {
+    return if ((progress ?: 0.0) > 0.0 && !watched) "Resume" else "Play"
 }

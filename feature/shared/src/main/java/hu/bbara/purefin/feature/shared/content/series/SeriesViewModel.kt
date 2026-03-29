@@ -114,6 +114,10 @@ class SeriesViewModel @Inject constructor(
         ))
     }
 
+    fun onPlayEpisode(episodeId: UUID) {
+        navigationManager.navigate(Route.PlayerRoute(mediaId = episodeId.toString()))
+    }
+
     fun onBack() {
         navigationManager.pop()
     }
