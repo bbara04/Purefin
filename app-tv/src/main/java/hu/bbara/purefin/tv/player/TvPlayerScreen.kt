@@ -68,17 +68,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -134,16 +134,14 @@ fun TvPlayerScreen(
         if (uiState.isPlaying) showQueuePanel = false
     }
 
-    val focusRequester = remember { FocusRequester() }
-    val seekBarFocusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    val hiddenControlFocusRequester = remember { FocusRequester() }
+    val controlsFocusRequester = remember { FocusRequester() }
+
     LaunchedEffect(controlsVisible) {
         if (controlsVisible) {
-            seekBarFocusRequester.requestFocus()
+            controlsFocusRequester.requestFocus()
         } else {
-            focusRequester.requestFocus()
+            hiddenControlFocusRequester.requestFocus()
         }
     }
 
@@ -151,7 +149,7 @@ fun TvPlayerScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .focusRequester(focusRequester)
+            .focusRequester(hiddenControlFocusRequester)
             .onPreviewKeyEvent { event ->
                 if (!controlsVisible && event.type == KeyEventType.KeyDown) {
                     when (event.key) {
@@ -200,7 +198,7 @@ fun TvPlayerScreen(
             TvPlayerControlsOverlay(
                 modifier = Modifier.fillMaxSize(),
                 uiState = uiState,
-                seekBarFocusRequester = seekBarFocusRequester,
+                focusRequester = controlsFocusRequester,
                 onBack = onBack,
                 onPlayPause = { viewModel.togglePlayPause() },
                 onSeek = { viewModel.seekTo(it) },
@@ -266,7 +264,7 @@ private enum class TrackPanelType { AUDIO, SUBTITLES, QUALITY }
 @Composable
 private fun TvPlayerControlsOverlay(
     uiState: PlayerUiState,
-    seekBarFocusRequester: FocusRequester,
+    focusRequester: FocusRequester,
     onBack: () -> Unit,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -305,7 +303,7 @@ private fun TvPlayerControlsOverlay(
         )
         TvPlayerBottomSection(
             uiState = uiState,
-            seekBarFocusRequester = seekBarFocusRequester,
+            focusRequester = focusRequester,
             onPlayPause = onPlayPause,
             onSeek = onSeek,
             onSeekRelative = onSeekRelative,
@@ -373,7 +371,7 @@ private fun TvPlayerTopBar(
 @Composable
 private fun TvPlayerBottomSection(
     uiState: PlayerUiState,
-    seekBarFocusRequester: FocusRequester,
+    focusRequester: FocusRequester,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
@@ -427,7 +425,8 @@ private fun TvPlayerBottomSection(
             adMarkers = uiState.ads,
             onSeek = onSeek,
             onSeekRelative = onSeekRelative,
-            focusRequester = seekBarFocusRequester
+            togglePlayState = onPlayPause,
+            focusRequester = focusRequester
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
@@ -506,6 +505,7 @@ private fun TvPlayerSeekBar(
     adMarkers: List<TimedMarker>,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
+    togglePlayState: () -> Unit,
     focusRequester: FocusRequester = remember { FocusRequester() },
     modifier: Modifier = Modifier
 ) {
@@ -534,6 +534,10 @@ private fun TvPlayerSeekBar(
                         }
                         Key.DirectionRight -> {
                             onSeekRelative(10_000)
+                            true
+                        }
+                        Key.Enter -> {
+                            togglePlayState()
                             true
                         }
                         else -> false
