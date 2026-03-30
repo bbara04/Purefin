@@ -50,6 +50,7 @@ fun AppScreen(
             onMovieSelected = viewModel::onMovieSelected,
             onSeriesSelected = viewModel::onSeriesSelected,
             onEpisodeSelected = viewModel::onEpisodeSelected,
+            onLibrarySelected = { library -> viewModel.onLibrarySelected(library.id, library.name) },
             onProfileClick = {},
             onSettingsClick = {},
             onLogoutClick = viewModel::logout,

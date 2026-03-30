@@ -24,7 +24,7 @@ data class SearchResult(
                 id = series.id,
                 title = series.name,
                 posterUrl = imageUrl,
-                type = BaseItemKind.MOVIE
+                type = BaseItemKind.SERIES
             )
         }
     }
