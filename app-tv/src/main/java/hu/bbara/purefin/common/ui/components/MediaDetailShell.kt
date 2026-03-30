@@ -1,12 +1,10 @@
 package hu.bbara.purefin.common.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,12 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaSynopsis
 
 internal val MediaDetailHorizontalPadding = 48.dp
-private val MediaDetailPanelShape = RoundedCornerShape(28.dp)
 
 @Composable
 internal fun TvMediaDetailScaffold(
@@ -78,37 +73,6 @@ internal fun TvMediaDetailScaffold(
             bodyContent(contentPadding)
         }
         topBar()
-    }
-}
-
-@Composable
-internal fun MediaDetailHeaderRow(
-    modifier: Modifier = Modifier,
-    leftWeight: Float = 1.1f,
-    rightWeight: Float = 0.9f,
-    verticalAlignment: Alignment.Vertical = Alignment.Bottom,
-    leftContent: @Composable (Modifier) -> Unit,
-    rightContent: @Composable ColumnScope.(Modifier) -> Unit
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(40.dp),
-        verticalAlignment = verticalAlignment
-    ) {
-        leftContent(Modifier.weight(leftWeight))
-        Column(
-            modifier = Modifier
-                .weight(rightWeight)
-                .background(
-                    color = scheme.surface.copy(alpha = 0.9f),
-                    shape = MediaDetailPanelShape
-                )
-                .padding(28.dp)
-        ) {
-            rightContent(Modifier.fillMaxWidth())
-        }
     }
 }
 

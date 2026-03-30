@@ -56,7 +56,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
-import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
@@ -228,6 +227,33 @@ internal fun SeriesHeroSection(
         SeriesMetaChips(series = series)
         Spacer(modifier = Modifier.height(24.dp))
         if (nextUpEpisode != null) {
+            Text(
+                text = nextUpEpisode.heroStatusText(),
+                color = scheme.primary,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = nextUpEpisode.title,
+                color = scheme.onBackground,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Episode ${nextUpEpisode.index} • ${nextUpEpisode.runtime}",
+                color = mutedStrong,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(24.dp))
             MediaResumeButton(
                 text = nextUpEpisode.playButtonText(),
                 progress = nextUpEpisode.progress?.div(100)?.toFloat() ?: 0f,
@@ -246,48 +272,6 @@ internal fun SeriesHeroSection(
                 fontWeight = FontWeight.Medium
             )
         }
-    }
-}
-
-@Composable
-internal fun SeriesStatusPanel(
-    nextUpEpisode: Episode?,
-    seasonCount: Int,
-    unwatchedEpisodeCount: Int,
-    modifier: Modifier = Modifier
-) {
-    val scheme = MaterialTheme.colorScheme
-    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.85f)
-
-    Column(modifier = modifier) {
-        MediaDetailSectionTitle(
-            text = if (nextUpEpisode != null) "Up Next" else "Library Status",
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(14.dp))
-        Text(
-            text = if (nextUpEpisode != null) {
-                nextUpEpisode.title
-            } else {
-                "$seasonCount seasons ready to browse"
-            },
-            color = scheme.onSurface,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = if (nextUpEpisode != null) {
-                "Episode ${nextUpEpisode.index} • ${nextUpEpisode.runtime}"
-            } else {
-                "$unwatchedEpisodeCount unwatched episodes"
-            },
-            color = mutedStrong,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
-        )
     }
 }
 
@@ -408,4 +392,8 @@ internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {
 
 private fun Episode.playButtonText(): String {
     return if ((progress ?: 0.0) > 0.0 && !watched) "Resume" else "Play"
+}
+
+private fun Episode.heroStatusText(): String {
+    return if ((progress ?: 0.0) > 0.0 && !watched) "Continue Watching" else "Up Next"
 }

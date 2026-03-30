@@ -42,10 +42,11 @@ class SeriesScreenContentTest {
 
         composeRule.onNodeWithText("Severance").assertIsDisplayed()
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
-        composeRule.onNodeWithText("Up Next").assertIsDisplayed()
+        composeRule.onNodeWithText("Continue Watching").assertIsDisplayed()
         composeRule.onNodeWithTag(SeriesPlayButtonTag).assertIsDisplayed()
         composeRule.onNodeWithText("Season 1").assertIsDisplayed()
         composeRule.onNodeWithText("Good News About Hell").assertIsDisplayed()
+        composeRule.onNodeWithText("Episode 1 • 57m").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Back")
             .assertIsDisplayed()
             .assertIsFocused()
@@ -70,7 +71,7 @@ class SeriesScreenContentTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
-        composeRule.onNodeWithText("Library Status").assertIsDisplayed()
+        composeRule.onNodeWithText("Choose a season below to start watching.").assertIsDisplayed()
         composeRule.onNodeWithTag(SeriesFirstSeasonTabTag).assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Back")
             .assertIsDisplayed()

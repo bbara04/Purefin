@@ -15,12 +15,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
-import hu.bbara.purefin.common.ui.components.MediaDetailHeaderRow
 import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
 import hu.bbara.purefin.core.data.navigation.SeriesDto
-import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
@@ -92,25 +90,13 @@ internal fun SeriesScreenContent(
             )
         },
         heroContent = {
-            MediaDetailHeaderRow(
-                leftContent = { headerModifier ->
-                    SeriesHeroSection(
-                        series = series,
-                        nextUpEpisode = nextUpEpisode,
-                        onPlayEpisode = { onPlayEpisode(it.id) },
-                        playFocusRequester = playFocusRequester,
-                        firstContentFocusRequester = firstContentFocusRequester,
-                        modifier = headerModifier
-                    )
-                },
-                rightContent = { panelModifier ->
-                    SeriesStatusPanel(
-                        nextUpEpisode = nextUpEpisode,
-                        seasonCount = series.seasonCount,
-                        unwatchedEpisodeCount = series.unwatchedEpisodeCount,
-                        modifier = panelModifier
-                    )
-                }
+            SeriesHeroSection(
+                series = series,
+                nextUpEpisode = nextUpEpisode,
+                onPlayEpisode = { onPlayEpisode(it.id) },
+                playFocusRequester = playFocusRequester,
+                firstContentFocusRequester = firstContentFocusRequester,
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
