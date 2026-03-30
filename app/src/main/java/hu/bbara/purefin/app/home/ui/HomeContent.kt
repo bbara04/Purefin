@@ -71,7 +71,6 @@ fun HomeContent(
             LibraryPosterSection(
                 title = item.name,
                 items = libraryContent[item.id] ?: emptyList(),
-                action = "See All",
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected

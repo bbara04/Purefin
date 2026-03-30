@@ -1,6 +1,5 @@
 package hu.bbara.purefin.app.home.ui
 
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,18 +12,11 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,12 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.request.ImageRequest
 import hu.bbara.purefin.common.ui.PosterCard
+import hu.bbara.purefin.common.ui.components.MediaProgressBar
+import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
-import hu.bbara.purefin.common.ui.components.MediaProgressBar
-import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
-import hu.bbara.purefin.player.PlayerActivity
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
 import kotlin.math.nextUp
@@ -266,7 +257,7 @@ fun NextUpCard(
 fun LibraryPosterSection(
     title: String,
     items: List<PosterItem>,
-    action: String?,
+    action: String? = null,
     modifier: Modifier = Modifier,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
