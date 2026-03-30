@@ -131,7 +131,7 @@ fun TvPlayerScreen(
     }
 
     LaunchedEffect(uiState.isPlaying) {
-        if (uiState.isPlaying) showQueuePanel = false
+        if (uiState.isPlaying) viewModel.hideControls()
     }
 
     val hiddenControlFocusRequester = remember { FocusRequester() }
