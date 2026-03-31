@@ -11,6 +11,7 @@ data class CachedMediaItem(
 
 @Serializable
 data class HomeCache(
+    val suggestions: List<CachedMediaItem> = emptyList(),
     val continueWatching: List<CachedMediaItem> = emptyList(),
     val nextUp: List<CachedMediaItem> = emptyList(),
     val latestLibraryContent: Map<String, List<CachedMediaItem>> = emptyMap()

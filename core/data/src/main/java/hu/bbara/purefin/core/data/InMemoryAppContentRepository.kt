@@ -58,6 +58,9 @@ class InMemoryAppContentRepository @Inject constructor(
     private val _libraries: MutableStateFlow<List<Library>> = MutableStateFlow(emptyList())
 
     override val libraries: StateFlow<List<Library>> = _libraries.asStateFlow()
+    private val _suggestions: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
+
+    override val suggestions: StateFlow<List<Media>> = _suggestions.asStateFlow()
     private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
 
     override val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
@@ -92,6 +95,9 @@ class InMemoryAppContentRepository @Inject constructor(
 
     private suspend fun loadFromCache() {
         val cache = homeCacheDataStore.data.first()
+        if (cache.suggestions.isNotEmpty()) {
+            _suggestions.value = cache.suggestions.mapNotNull { it.toMedia() }
+        }
         if (cache.continueWatching.isNotEmpty()) {
             _continueWatching.value = cache.continueWatching.mapNotNull { it.toMedia() }
         }
@@ -108,6 +114,7 @@ class InMemoryAppContentRepository @Inject constructor(
 
     private suspend fun persistHomeCache() {
         val cache = HomeCache(
+            suggestions = _suggestions.value.map { it.toCachedItem() },
             continueWatching = _continueWatching.value.map { it.toCachedItem() },
             nextUp = _nextUp.value.map { it.toCachedItem() },
             latestLibraryContent = _latestLibraryContent.value.map { (uuid, items) ->
@@ -150,6 +157,7 @@ class InMemoryAppContentRepository @Inject constructor(
         contentRepositoryReady.value = true
         loadJob?.cancel()
         loadJob = scope.launch {
+            loadSuggestions()
             loadContinueWatching()
             loadNextUp()
             loadLatestLibraryContent()
@@ -226,6 +234,36 @@ class InMemoryAppContentRepository @Inject constructor(
         val updatedSeries = seriesItem.toSeries(serverUrl(), seriesItem.parentId!!)
         mediaRepository.upsertSeries(listOf(updatedSeries))
         return updatedSeries
+    }
+
+    suspend fun loadSuggestions() {
+        val suggestionsItems = runCatching { jellyfinApiClient.getSuggestions() }
+            .getOrElse { error ->
+                Log.w(TAG, "Unable to load suggestions", error)
+                return
+            }
+        val items = suggestionsItems.mapNotNull { item ->
+            when (item.type) {
+                BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
+                BaseItemKind.EPISODE -> Media.EpisodeMedia(
+                    episodeId = item.id,
+                    seriesId = item.seriesId!!
+                )
+                else -> throw UnsupportedOperationException("Unsupported item type: ${item.type}")
+            }
+        }
+        _suggestions.value = items
+
+        //Load episodes, Movies are already loaded at this point
+        suggestionsItems.forEach { item ->
+            when (item.type) {
+                BaseItemKind.EPISODE -> {
+                    val episode = item.toEpisode(serverUrl())
+                    mediaRepository.upsertEpisodes(listOf(episode))
+                }
+                else -> { /* Do nothing */ }
+            }
+        }
     }
 
     suspend fun loadContinueWatching() {
@@ -337,6 +375,7 @@ class InMemoryAppContentRepository @Inject constructor(
                 val isOnline = networkMonitor.isOnline.first()
                 if (!isOnline) return@runCatching
                 loadLibraries()
+                loadSuggestions()
                 loadContinueWatching()
                 loadNextUp()
                 loadLatestLibraryContent()

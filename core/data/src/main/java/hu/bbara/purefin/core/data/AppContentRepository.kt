@@ -8,6 +8,7 @@ import java.util.UUID
 interface AppContentRepository : MediaRepository {
 
     val libraries: StateFlow<List<Library>>
+    val suggestions: StateFlow<List<Media>>
     val continueWatching: StateFlow<List<Media>>
     val nextUp: StateFlow<List<Media>>
     val latestLibraryContent: StateFlow<Map<UUID, List<Media>>>

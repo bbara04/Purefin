@@ -1,5 +1,6 @@
 package hu.bbara.purefin.app.home.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,16 +8,23 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.app.home.ui.continuewatching.ContinueWatchingSection
-import hu.bbara.purefin.app.home.ui.featured.HomeFeaturedSection
+import hu.bbara.purefin.app.home.ui.featured.SuggestionsSection
 import hu.bbara.purefin.app.home.ui.library.LibraryPosterSection
 import hu.bbara.purefin.app.home.ui.nextup.NextUpSection
 import hu.bbara.purefin.app.home.ui.shared.HomeEmptyState
@@ -27,6 +35,7 @@ import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.shared.home.SuggestedItem
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -38,6 +47,7 @@ import java.util.UUID as JavaUuid
 fun HomeContent(
     libraries: List<LibraryItem>,
     libraryContent: Map<UUID, List<PosterItem>>,
+    suggestions: List<SuggestedItem>,
     continueWatching: List<ContinueWatchingItem>,
     nextUp: List<NextUpItem>,
     isRefreshing: Boolean,
@@ -53,33 +63,33 @@ fun HomeContent(
     val visibleLibraries = remember(libraries, libraryContent) {
         libraries.filter { libraryContent[it.id].orEmpty().isNotEmpty() }
     }
-    val featuredItems = remember(continueWatching, nextUp, visibleLibraries, libraryContent) {
-        buildFeaturedItems(
-            continueWatching = continueWatching,
-            nextUp = nextUp,
-            visibleLibraries = visibleLibraries,
-            libraryContent = libraryContent
-        )
+    val listState = rememberLazyListState()
+    var pendingInitialSuggestionsReveal by rememberSaveable { mutableStateOf(suggestions.isEmpty()) }
+    var userInteractedBeforeSuggestionsLoaded by rememberSaveable { mutableStateOf(false) }
+
+    val hasContent = libraryContent.isNotEmpty() || continueWatching.isNotEmpty() || nextUp.isNotEmpty() || suggestions.isNotEmpty()
+
+    LaunchedEffect(listState, pendingInitialSuggestionsReveal) {
+        if (!pendingInitialSuggestionsReveal) return@LaunchedEffect
+        snapshotFlow { listState.isScrollInProgress }
+            .collect { isScrolling ->
+                if (isScrolling) {
+                    userInteractedBeforeSuggestionsLoaded = true
+                }
+            }
     }
-    val featuredLead = featuredItems.firstOrNull()
-    val filteredContinueWatching = remember(continueWatching, featuredLead) {
-        if (featuredLead?.source == FeaturedHomeSource.CONTINUE_WATCHING) {
-            continueWatching.filterNot { it.id == featuredLead.id }
-        } else {
-            continueWatching
+
+    LaunchedEffect(
+        suggestions.isNotEmpty(),
+        pendingInitialSuggestionsReveal,
+        userInteractedBeforeSuggestionsLoaded
+    ) {
+        if (!suggestions.isNotEmpty() || !pendingInitialSuggestionsReveal) return@LaunchedEffect
+        if (!userInteractedBeforeSuggestionsLoaded) {
+            listState.scrollToItem(0)
         }
+        pendingInitialSuggestionsReveal = false
     }
-    val filteredNextUp = remember(nextUp, featuredLead) {
-        if (featuredLead?.source == FeaturedHomeSource.NEXT_UP) {
-            nextUp.filterNot { it.id == featuredLead.id }
-        } else {
-            nextUp
-        }
-    }
-    val hasContent = featuredItems.isNotEmpty() ||
-        filteredContinueWatching.isNotEmpty() ||
-        filteredNextUp.isNotEmpty() ||
-        visibleLibraries.isNotEmpty()
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -92,40 +102,43 @@ fun HomeContent(
                 .background(scheme.background)
         ) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                if (featuredItems.isNotEmpty()) {
+                if (suggestions.isNotEmpty()) {
                     item(key = "featured") {
-                        HomeFeaturedSection(
-                            items = featuredItems,
-                            onOpenFeaturedItem = { item ->
-                                openHomeDestination(
-                                    destination = item.destination,
-                                    onMovieSelected = onMovieSelected,
-                                    onSeriesSelected = onSeriesSelected,
-                                    onEpisodeSelected = onEpisodeSelected
-                                )
+                        SuggestionsSection(
+                            items = suggestions,
+                            onItemOpen = { item ->
+                                when (item.type) {
+                                    BaseItemKind.MOVIE -> onMovieSelected(item.id)
+                                    BaseItemKind.SERIES -> onSeriesSelected(item.id)
+                                    BaseItemKind.EPISODE -> onEpisodeSelected(item.id, item.id, item.id)
+                                    else -> {
+                                        Log.e("HomeContent", "Unsupported item type: ${item.type}")
+                                    }
+                                }
                             }
                         )
                     }
                 }
 
-                if (filteredContinueWatching.isNotEmpty()) {
+                if (continueWatching.isNotEmpty()) {
                     item(key = "continue-watching") {
                         ContinueWatchingSection(
-                            items = filteredContinueWatching,
+                            items = continueWatching,
                             onMovieSelected = onMovieSelected,
                             onEpisodeSelected = onEpisodeSelected
                         )
                     }
                 }
 
-                if (filteredNextUp.isNotEmpty()) {
+                if (nextUp.isNotEmpty()) {
                     item(key = "next-up") {
                         NextUpSection(
-                            items = filteredNextUp,
+                            items = nextUp,
                             onEpisodeSelected = onEpisodeSelected
                         )
                     }
@@ -158,197 +171,6 @@ fun HomeContent(
     }
 }
 
-private fun buildFeaturedItems(
-    continueWatching: List<ContinueWatchingItem>,
-    nextUp: List<NextUpItem>,
-    visibleLibraries: List<LibraryItem>,
-    libraryContent: Map<UUID, List<PosterItem>>
-): List<FeaturedHomeItem> {
-    val candidates = buildList {
-        addAll(continueWatching.map { it.toFeaturedHomeItem() })
-        addAll(nextUp.map { it.toFeaturedHomeItem() })
-        visibleLibraries.forEach { library ->
-            libraryContent[library.id]
-                .orEmpty()
-                .firstOrNull()
-                ?.let { add(it.toFeaturedHomeItem(library)) }
-        }
-    }
-    return candidates
-        .distinctBy { "${it.destination.kind}:${it.id}" }
-        .take(5)
-}
-
-private fun ContinueWatchingItem.toFeaturedHomeItem(): FeaturedHomeItem {
-    return when (type) {
-        BaseItemKind.MOVIE -> {
-            val movie = movie!!
-            FeaturedHomeItem(
-                id = movie.id,
-                source = FeaturedHomeSource.CONTINUE_WATCHING,
-                badge = "Continue watching",
-                title = movie.title,
-                supportingText = listOf(movie.year, movie.runtime)
-                    .filter { it.isNotBlank() }
-                    .joinToString(" • "),
-                description = movie.synopsis,
-                metadata = listOf(movie.year, movie.runtime, movie.rating, movie.format)
-                    .filter { it.isNotBlank() },
-                imageUrl = movie.heroImageUrl,
-                ctaLabel = "Continue",
-                progress = progress.toFloat() / 100f,
-                destination = HomeDestination(
-                    kind = HomeDestinationKind.MOVIE,
-                    id = movie.id
-                )
-            )
-        }
-
-        BaseItemKind.EPISODE -> {
-            val episode = episode!!
-            FeaturedHomeItem(
-                id = episode.id,
-                source = FeaturedHomeSource.CONTINUE_WATCHING,
-                badge = "Continue watching",
-                title = episode.title,
-                supportingText = listOf("Episode ${episode.index}", episode.runtime)
-                    .filter { it.isNotBlank() }
-                    .joinToString(" • "),
-                description = episode.synopsis,
-                metadata = listOf(episode.releaseDate, episode.runtime, episode.rating, episode.format)
-                    .filter { it.isNotBlank() },
-                imageUrl = episode.heroImageUrl,
-                ctaLabel = "Continue",
-                progress = progress.toFloat() / 100f,
-                destination = HomeDestination(
-                    kind = HomeDestinationKind.EPISODE,
-                    id = episode.id,
-                    seriesId = episode.seriesId,
-                    seasonId = episode.seasonId
-                )
-            )
-        }
-
-        else -> throw IllegalArgumentException("Unsupported featured type: $type")
-    }
-}
-
-private fun NextUpItem.toFeaturedHomeItem(): FeaturedHomeItem {
-    return FeaturedHomeItem(
-        id = episode.id,
-        source = FeaturedHomeSource.NEXT_UP,
-        badge = "Next up",
-        title = episode.title,
-        supportingText = listOf("Episode ${episode.index}", episode.runtime)
-            .filter { it.isNotBlank() }
-            .joinToString(" • "),
-        description = episode.synopsis,
-        metadata = listOf(episode.releaseDate, episode.runtime, episode.rating)
-            .filter { it.isNotBlank() },
-        imageUrl = episode.heroImageUrl,
-        ctaLabel = "Up next",
-        destination = HomeDestination(
-            kind = HomeDestinationKind.EPISODE,
-            id = episode.id,
-            seriesId = episode.seriesId,
-            seasonId = episode.seasonId
-        )
-    )
-}
-
-private fun PosterItem.toFeaturedHomeItem(library: LibraryItem): FeaturedHomeItem {
-    return when (type) {
-        BaseItemKind.MOVIE -> {
-            val movie = movie!!
-            FeaturedHomeItem(
-                id = movie.id,
-                source = FeaturedHomeSource.LIBRARY,
-                badge = library.name,
-                title = movie.title,
-                supportingText = listOf(movie.year, movie.runtime)
-                    .filter { it.isNotBlank() }
-                    .joinToString(" • "),
-                description = movie.synopsis,
-                metadata = listOf(movie.year, movie.runtime, movie.rating)
-                    .filter { it.isNotBlank() },
-                imageUrl = movie.heroImageUrl,
-                ctaLabel = "Open",
-                destination = HomeDestination(
-                    kind = HomeDestinationKind.MOVIE,
-                    id = movie.id
-                )
-            )
-        }
-
-        BaseItemKind.SERIES -> {
-            val series = series!!
-            FeaturedHomeItem(
-                id = series.id,
-                source = FeaturedHomeSource.LIBRARY,
-                badge = library.name,
-                title = series.name,
-                supportingText = when {
-                    series.unwatchedEpisodeCount > 0 ->
-                        "${series.unwatchedEpisodeCount} unwatched episodes"
-                    else -> "${series.seasonCount} seasons"
-                },
-                description = series.synopsis,
-                metadata = listOf(series.year, "${series.seasonCount} seasons")
-                    .filter { it.isNotBlank() },
-                imageUrl = series.heroImageUrl,
-                ctaLabel = "Open",
-                destination = HomeDestination(
-                    kind = HomeDestinationKind.SERIES,
-                    id = series.id
-                )
-            )
-        }
-
-        BaseItemKind.EPISODE -> {
-            val episode = episode!!
-            FeaturedHomeItem(
-                id = episode.id,
-                source = FeaturedHomeSource.LIBRARY,
-                badge = library.name,
-                title = episode.title,
-                supportingText = listOf("Episode ${episode.index}", episode.runtime)
-                    .filter { it.isNotBlank() }
-                    .joinToString(" • "),
-                description = episode.synopsis,
-                metadata = listOf(episode.releaseDate, episode.runtime, episode.rating)
-                    .filter { it.isNotBlank() },
-                imageUrl = episode.heroImageUrl,
-                ctaLabel = "Open",
-                destination = HomeDestination(
-                    kind = HomeDestinationKind.EPISODE,
-                    id = episode.id,
-                    seriesId = episode.seriesId,
-                    seasonId = episode.seasonId
-                )
-            )
-        }
-
-        else -> throw IllegalArgumentException("Unsupported featured type: $type")
-    }
-}
-
-private fun openHomeDestination(
-    destination: HomeDestination,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
-) {
-    when (destination.kind) {
-        HomeDestinationKind.MOVIE -> onMovieSelected(destination.id)
-        HomeDestinationKind.SERIES -> onSeriesSelected(destination.id)
-        HomeDestinationKind.EPISODE -> onEpisodeSelected(
-            destination.seriesId ?: return,
-            destination.seasonId ?: return,
-            destination.id
-        )
-    }
-}
-
 @Preview(name = "Home Full", showBackground = true, widthDp = 412, heightDp = 915)
 @Composable
 private fun HomeContentPreview() {
@@ -356,6 +178,7 @@ private fun HomeContentPreview() {
         HomeContent(
             libraries = homePreviewLibraries(),
             libraryContent = homePreviewLibraryContent(),
+            suggestions = emptyList(),
             continueWatching = homePreviewContinueWatching(),
             nextUp = homePreviewNextUp(),
             isRefreshing = false,
@@ -376,6 +199,7 @@ private fun HomeLibrariesOnlyPreview() {
         HomeContent(
             libraries = homePreviewLibraries(),
             libraryContent = homePreviewLibraryContent(),
+            suggestions = emptyList(),
             continueWatching = emptyList(),
             nextUp = emptyList(),
             isRefreshing = false,
@@ -396,6 +220,7 @@ private fun HomeEmptyPreview() {
         HomeContent(
             libraries = emptyList(),
             libraryContent = emptyMap(),
+            suggestions = emptyList(),
             continueWatching = emptyList(),
             nextUp = emptyList(),
             isRefreshing = false,

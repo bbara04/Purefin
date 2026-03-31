@@ -22,6 +22,7 @@ import hu.bbara.purefin.app.home.ui.homePreviewLibraryContent
 import hu.bbara.purefin.app.home.ui.homePreviewNextUp
 import hu.bbara.purefin.app.home.ui.search.HomeSearchOverlay
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.shared.home.SuggestedItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
@@ -33,6 +34,7 @@ import org.jellyfin.sdk.model.UUID
 fun HomeScreen(
     libraries: List<LibraryItem>,
     libraryContent: Map<UUID, List<PosterItem>>,
+    suggestions: List<SuggestedItem>,
     continueWatching: List<ContinueWatchingItem>,
     nextUp: List<NextUpItem>,
     isRefreshing: Boolean,
@@ -84,6 +86,7 @@ fun HomeScreen(
             HomeContent(
                 libraries = libraries,
                 libraryContent = libraryContent,
+                suggestions = suggestions,
                 continueWatching = continueWatching,
                 nextUp = nextUp,
                 isRefreshing = isRefreshing,
@@ -122,6 +125,7 @@ private fun HomeScreenPreview() {
         HomeScreen(
             libraries = homePreviewLibraries(),
             libraryContent = homePreviewLibraryContent(),
+            suggestions = emptyList(),
             continueWatching = homePreviewContinueWatching(),
             nextUp = homePreviewNextUp(),
             isRefreshing = false,

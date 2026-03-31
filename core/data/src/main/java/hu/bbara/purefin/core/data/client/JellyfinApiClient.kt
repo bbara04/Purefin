@@ -12,6 +12,7 @@ import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.extensions.mediaInfoApi
 import org.jellyfin.sdk.api.client.extensions.playStateApi
+import org.jellyfin.sdk.api.client.extensions.suggestionsApi
 import org.jellyfin.sdk.api.client.extensions.tvShowsApi
 import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
@@ -25,6 +26,7 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaSourceInfo
+import org.jellyfin.sdk.model.api.MediaType
 import org.jellyfin.sdk.model.api.PlayMethod
 import org.jellyfin.sdk.model.api.PlaybackInfoDto
 import org.jellyfin.sdk.model.api.PlaybackInfoResponse
@@ -134,6 +136,25 @@ class JellyfinApiClient @Inject constructor(
         )
         val response = api.itemsApi.getItems(getItemsRequest)
         Log.d("getLibraryContent", response.content.toString())
+        response.content.items
+    }
+
+    suspend fun getSuggestions(): List<BaseItemDto> = withContext(Dispatchers.IO) {
+        if (!ensureConfigured()) {
+            return@withContext emptyList()
+        }
+        val userId = getUserId()
+        if (userId == null) {
+            return@withContext emptyList()
+        }
+        val response = api.suggestionsApi.getSuggestions(
+            userId = userId,
+            mediaType = listOf(MediaType.VIDEO),
+            type = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+            limit = 8,
+            enableTotalRecordCount = true
+        )
+        Log.d("getSuggestions", response.content.toString())
         response.content.items
     }
 

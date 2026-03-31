@@ -39,12 +39,6 @@ class AppViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
-    private val _url = userSessionRepository.serverUrl.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = ""
-    )
-
     val libraries = appContentRepository.libraries.map { libraries ->
         libraries.map {
             LibraryItem(
@@ -60,6 +54,32 @@ class AppViewModel @Inject constructor(
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val suggestions = combine(
+        appContentRepository.suggestions,
+        appContentRepository.movies,
+        appContentRepository.series,
+        appContentRepository.episodes
+    ) { list, moviesMap, seriesMap, episodesMap ->
+        list.mapNotNull { media ->
+            when (media) {
+                is Media.MovieMedia -> moviesMap[media.movieId]?.let {
+                    SuggestedMovie(movie = it)
+                }
+                is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
+                    SuggestedSeries(series = it)
+                }
+                is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
+                    SuggestedEpisode(episode = it)
+                }
+                else -> null
+            }
+        }.distinctBy { it.id }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
 
     val continueWatching = combine(
         appContentRepository.continueWatching,

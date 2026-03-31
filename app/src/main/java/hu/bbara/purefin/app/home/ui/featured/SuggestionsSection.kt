@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -22,12 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.app.home.ui.FeaturedHomeItem
+import hu.bbara.purefin.feature.shared.home.SuggestedItem
 
 @Composable
-fun HomeFeaturedSection(
-    items: List<FeaturedHomeItem>,
-    onOpenFeaturedItem: (FeaturedHomeItem) -> Unit,
+fun SuggestionsSection(
+    items: List<SuggestedItem>,
+    onItemOpen: (SuggestedItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
@@ -44,9 +42,9 @@ fun HomeFeaturedSection(
             pageSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()
         ) { page ->
-            HomeFeaturedCard(
+            SuggestionCard(
                 item = items[page],
-                onClick = { onOpenFeaturedItem(items[page]) }
+                onClick = { onItemOpen(items[page]) }
             )
         }
         if (items.size > 1) {

@@ -24,13 +24,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.app.home.ui.FeaturedHomeItem
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
+import hu.bbara.purefin.feature.shared.home.SuggestedItem
 
 @Composable
-internal fun HomeFeaturedCard(
-    item: FeaturedHomeItem,
+internal fun SuggestionCard(
+    item: SuggestedItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -108,9 +108,9 @@ internal fun HomeFeaturedCard(
                     }
                 }
             }
-            if (item.progress != null && item.progress > 0f) {
+            if (item.progress != null && item.progress!! > 0f) {
                 MediaProgressBar(
-                    progress = item.progress.coerceIn(0f, 1f),
+                    progress = item.progress!!.coerceIn(0f, 1f),
                     foregroundColor = scheme.primary,
                     backgroundColor = Color.White.copy(alpha = 0.26f),
                     modifier = Modifier.align(Alignment.BottomStart)

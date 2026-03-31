@@ -22,6 +22,7 @@ fun AppScreen(
 
     val libraries by viewModel.libraries.collectAsState()
     val libraryContent by viewModel.latestLibraryContent.collectAsState()
+    val suggestions by viewModel.suggestions.collectAsState()
     val continueWatching by viewModel.continueWatching.collectAsState()
     val nextUp by viewModel.nextUp.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -43,6 +44,7 @@ fun AppScreen(
         0 -> HomeScreen(
             libraries = libraries,
             libraryContent = libraryContent,
+            suggestions = suggestions,
             continueWatching = continueWatching,
             nextUp = nextUp,
             isRefreshing = isRefreshing,
