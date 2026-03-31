@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -39,11 +40,12 @@ fun SuggestionsSection(
 
     Column(
         verticalArrangement = Arrangement.spacedBy(14.dp),
-        modifier = modifier
+        modifier = modifier.fillMaxWidth()
     ) {
         HorizontalPager(
             state = pagerState,
-            contentPadding = PaddingValues(start = 16.dp, end = 56.dp),
+            pageSize = PageSize.Fixed(360.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
             pageSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()
         ) { page ->
