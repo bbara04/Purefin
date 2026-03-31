@@ -77,9 +77,6 @@ internal fun SuggestionCard(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = item.title
-                    )
-                    Text(
                         text = item.title,
                         style = MaterialTheme.typography.headlineMedium,
                         color = Color.White,
