@@ -27,7 +27,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.FilledTonalButton
@@ -161,12 +160,18 @@ private fun HomeFeaturedCard(
                     .fillMaxSize()
                     .padding(24.dp)
             ) {
-                ContentBadge(
-                    text = item.badge,
-                    containerColor = scheme.surface.copy(alpha = 0.88f),
-                    contentColor = scheme.onSurface
-                )
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = item.title
+                    )
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     if (item.metadata.isNotEmpty()) {
                         Text(
                             text = item.metadata.joinToString(" • "),
@@ -176,14 +181,6 @@ private fun HomeFeaturedCard(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
                     if (description.isNotBlank()) {
                         Text(
                             text = description,
@@ -193,14 +190,6 @@ private fun HomeFeaturedCard(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.widthIn(max = 520.dp)
                         )
-                    }
-                    FilledTonalButton(onClick = onClick) {
-                        Icon(
-                            imageVector = Icons.Filled.PlayArrow,
-                            contentDescription = null
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = item.ctaLabel)
                     }
                 }
             }
@@ -275,7 +264,7 @@ private fun ContinueWatchingCard(
 
     Surface(
         shape = RoundedCornerShape(26.dp),
-        color = scheme.surfaceContainerLow,
+        color = scheme.surfaceContainer,
         tonalElevation = 3.dp,
         modifier = modifier.width(320.dp)
     ) {
@@ -298,7 +287,7 @@ private fun ContinueWatchingCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
-                    .background(scheme.surfaceVariant)
+                    .background(scheme.surfaceContainer)
             ) {
                 if (imageUrl != null) {
                     PurefinAsyncImage(
@@ -320,12 +309,6 @@ private fun ContinueWatchingCard(
                                 )
                             )
                         )
-                )
-                ContentBadge(
-                    text = "Continue",
-                    containerColor = scheme.surface.copy(alpha = 0.9f),
-                    contentColor = scheme.onSurface,
-                    modifier = Modifier.padding(14.dp)
                 )
                 MediaProgressBar(
                     progress = (item.progress.toFloat() / 100f).coerceIn(0f, 1f),
@@ -406,9 +389,7 @@ private fun NextUpCard(
                 .fillMaxWidth()
                 .clickable {
                     onEpisodeSelected(
-                        item.episode.seriesId,
-                        item.episode.seasonId,
-                        item.episode.id
+                        item.episode.seriesId, item.episode.seasonId, item.episode.id
                     )
                 }
         ) {
@@ -436,12 +417,6 @@ private fun NextUpCard(
                                 )
                             )
                         )
-                )
-                ContentBadge(
-                    text = "Up next",
-                    containerColor = scheme.secondaryContainer.copy(alpha = 0.9f),
-                    contentColor = scheme.onSecondaryContainer,
-                    modifier = Modifier.padding(12.dp)
                 )
             }
             Column(
@@ -535,9 +510,8 @@ private fun HomeBrowseCard(
     }
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(12.dp),
         color = scheme.surfaceContainer,
-        tonalElevation = 1.dp,
         modifier = modifier.width(188.dp)
     ) {
         Column(
@@ -555,14 +529,15 @@ private fun HomeBrowseCard(
                         else -> Unit
                     }
                 }
-                .padding(12.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 10f)
-                    .clip(RoundedCornerShape(18.dp))
-                    .border(1.dp, scheme.outlineVariant.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                    .border(
+                        1.dp, scheme.outlineVariant.copy(alpha = 0.35f), RoundedCornerShape(18.dp)
+                    )
                     .background(scheme.surfaceVariant)
             ) {
                 PurefinAsyncImage(
@@ -610,22 +585,24 @@ private fun HomeBrowseCard(
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (supportingText.isNotBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
+            Column(modifier = modifier.padding(12.dp)) {
                 Text(
-                    text = supportingText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurfaceVariant,
-                    maxLines = 1,
+                    text = item.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (supportingText.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = supportingText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }

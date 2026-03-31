@@ -13,7 +13,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.model.Episode
@@ -85,15 +84,7 @@ fun HomeContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            scheme.primaryContainer.copy(alpha = 0.24f),
-                            scheme.surface.copy(alpha = 0.92f),
-                            scheme.background
-                        )
-                    )
-                )
+                .background(scheme.background)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -358,10 +349,10 @@ private fun openHomeDestination(
 private fun HomeContentPreview() {
     AppTheme(darkTheme = true) {
         HomeContent(
-            libraries = previewLibraries(),
-            libraryContent = previewLibraryContent(),
-            continueWatching = previewContinueWatching(),
-            nextUp = previewNextUp(),
+            libraries = homePreviewLibraries(),
+            libraryContent = homePreviewLibraryContent(),
+            continueWatching = homePreviewContinueWatching(),
+            nextUp = homePreviewNextUp(),
             isRefreshing = false,
             onRefresh = {},
             onMovieSelected = {},
@@ -378,8 +369,8 @@ private fun HomeContentPreview() {
 private fun HomeLibrariesOnlyPreview() {
     AppTheme(darkTheme = true) {
         HomeContent(
-            libraries = previewLibraries(),
-            libraryContent = previewLibraryContent(),
+            libraries = homePreviewLibraries(),
+            libraryContent = homePreviewLibraryContent(),
             continueWatching = emptyList(),
             nextUp = emptyList(),
             isRefreshing = false,
@@ -413,7 +404,7 @@ private fun HomeEmptyPreview() {
     }
 }
 
-private fun previewLibraries(): List<LibraryItem> {
+internal fun homePreviewLibraries(): List<LibraryItem> {
     return listOf(
         LibraryItem(
             id = JavaUuid.fromString("11111111-1111-1111-1111-111111111111"),
@@ -432,8 +423,8 @@ private fun previewLibraries(): List<LibraryItem> {
     )
 }
 
-private fun previewLibraryContent(): Map<UUID, List<PosterItem>> {
-    val movie = previewMovie(
+internal fun homePreviewLibraryContent(): Map<UUID, List<PosterItem>> {
+    val movie = homePreviewMovie(
         id = "33333333-3333-3333-3333-333333333333",
         title = "Blade Runner 2049",
         year = "2017",
@@ -445,7 +436,7 @@ private fun previewLibraryContent(): Map<UUID, List<PosterItem>> {
         progress = 42.0,
         watched = false
     )
-    val secondMovie = previewMovie(
+    val secondMovie = homePreviewMovie(
         id = "44444444-4444-4444-4444-444444444444",
         title = "Arrival",
         year = "2016",
@@ -457,8 +448,8 @@ private fun previewLibraryContent(): Map<UUID, List<PosterItem>> {
         progress = null,
         watched = false
     )
-    val series = previewSeries()
-    val episode = previewEpisode(
+    val series = homePreviewSeries()
+    val episode = homePreviewEpisode(
         id = "66666666-6666-6666-6666-666666666666",
         title = "Signals",
         index = 2,
@@ -472,22 +463,22 @@ private fun previewLibraryContent(): Map<UUID, List<PosterItem>> {
     )
 
     return mapOf(
-        previewLibraries()[0].id to listOf(
+        homePreviewLibraries()[0].id to listOf(
             PosterItem(type = BaseItemKind.MOVIE, movie = movie),
             PosterItem(type = BaseItemKind.MOVIE, movie = secondMovie)
         ),
-        previewLibraries()[1].id to listOf(
+        homePreviewLibraries()[1].id to listOf(
             PosterItem(type = BaseItemKind.SERIES, series = series),
             PosterItem(type = BaseItemKind.EPISODE, episode = episode)
         )
     )
 }
 
-private fun previewContinueWatching(): List<ContinueWatchingItem> {
+internal fun homePreviewContinueWatching(): List<ContinueWatchingItem> {
     return listOf(
         ContinueWatchingItem(
             type = BaseItemKind.MOVIE,
-            movie = previewMovie(
+            movie = homePreviewMovie(
                 id = "77777777-7777-7777-7777-777777777777",
                 title = "Dune: Part Two",
                 year = "2024",
@@ -502,7 +493,7 @@ private fun previewContinueWatching(): List<ContinueWatchingItem> {
         ),
         ContinueWatchingItem(
             type = BaseItemKind.EPISODE,
-            episode = previewEpisode(
+            episode = homePreviewEpisode(
                 id = "88888888-8888-8888-8888-888888888888",
                 title = "A Fresh Start",
                 index = 1,
@@ -518,10 +509,10 @@ private fun previewContinueWatching(): List<ContinueWatchingItem> {
     )
 }
 
-private fun previewNextUp(): List<NextUpItem> {
+internal fun homePreviewNextUp(): List<NextUpItem> {
     return listOf(
         NextUpItem(
-            episode = previewEpisode(
+            episode = homePreviewEpisode(
                 id = "99999999-9999-9999-9999-999999999999",
                 title = "Return Window",
                 index = 3,
@@ -537,7 +528,7 @@ private fun previewNextUp(): List<NextUpItem> {
     )
 }
 
-private fun previewMovie(
+internal fun homePreviewMovie(
     id: String,
     title: String,
     year: String,
@@ -567,7 +558,7 @@ private fun previewMovie(
     )
 }
 
-private fun previewSeries(): Series {
+internal fun homePreviewSeries(): Series {
     return Series(
         id = JavaUuid.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
         libraryId = JavaUuid.fromString("cccccccc-cccc-cccc-cccc-cccccccccccc"),
@@ -582,7 +573,7 @@ private fun previewSeries(): Series {
     )
 }
 
-private fun previewEpisode(
+internal fun homePreviewEpisode(
     id: String,
     title: String,
     index: Int,

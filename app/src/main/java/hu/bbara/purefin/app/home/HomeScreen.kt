@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,14 +13,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.tooling.preview.Preview
 import hu.bbara.purefin.app.home.ui.HomeContent
-import hu.bbara.purefin.app.home.ui.HomeDiscoveryTopBar
 import hu.bbara.purefin.app.home.ui.HomeSearchOverlay
+import hu.bbara.purefin.app.home.ui.HomeTopBar
+import hu.bbara.purefin.app.home.ui.homePreviewContinueWatching
+import hu.bbara.purefin.app.home.ui.homePreviewLibraries
+import hu.bbara.purefin.app.home.ui.homePreviewLibraryContent
+import hu.bbara.purefin.app.home.ui.homePreviewNextUp
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,9 +48,6 @@ fun HomeScreen(
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState()
-    )
     var isSearchVisible by rememberSaveable { mutableStateOf(false) }
     val subtitle = remember(continueWatching, nextUp, libraries) {
         when {
@@ -60,15 +60,13 @@ fun HomeScreen(
 
     Scaffold(
         modifier = modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+            .fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
-            HomeDiscoveryTopBar(
+            HomeTopBar(
                 title = "Watch now",
                 subtitle = subtitle,
-                scrollBehavior = scrollBehavior,
                 onSearchClick = { isSearchVisible = true },
                 onProfileClick = onProfileClick,
                 onSettingsClick = onSettingsClick,
@@ -114,5 +112,29 @@ fun HomeScreen(
                     .padding(innerPadding)
             )
         }
+    }
+}
+
+@Preview(name = "Home Screen", showBackground = true, widthDp = 412, heightDp = 915)
+@Composable
+private fun HomeScreenPreview() {
+    AppTheme(darkTheme = true) {
+        HomeScreen(
+            libraries = homePreviewLibraries(),
+            libraryContent = homePreviewLibraryContent(),
+            continueWatching = homePreviewContinueWatching(),
+            nextUp = homePreviewNextUp(),
+            isRefreshing = false,
+            onRefresh = {},
+            onMovieSelected = {},
+            onSeriesSelected = {},
+            onEpisodeSelected = { _, _, _ -> },
+            onLibrarySelected = {},
+            onProfileClick = {},
+            onSettingsClick = {},
+            onLogoutClick = {},
+            selectedTab = 0,
+            onTabSelected = {}
+        )
     }
 }
