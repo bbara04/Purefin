@@ -6,8 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +38,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaCastRow
-import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
@@ -114,7 +111,6 @@ internal fun EpisodeTopBar(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun EpisodeDetails(
     episode: Episode,
@@ -134,37 +130,6 @@ internal fun EpisodeDetails(
     }
 
     Column(modifier = modifier) {
-        Text(
-            text = episode.title,
-            color = scheme.onBackground,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 38.sp
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Episode ${episode.index}",
-            color = scheme.onBackground,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            MediaMetaChip(text = episode.releaseDate)
-            MediaMetaChip(text = episode.rating)
-            MediaMetaChip(text = episode.runtime)
-            MediaMetaChip(
-                text = episode.format,
-                background = scheme.primary.copy(alpha = 0.2f),
-                border = scheme.primary.copy(alpha = 0.3f),
-                textColor = scheme.primary
-            )
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-
         MediaSynopsis(
             synopsis = episode.synopsis
         )

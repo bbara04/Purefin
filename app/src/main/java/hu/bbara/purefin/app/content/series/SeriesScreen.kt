@@ -19,7 +19,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -128,28 +134,13 @@ private fun SeriesScreenInternal(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            MediaHero(
-                imageUrl = series.heroImageUrl,
-                heightFraction = 0.30f,
-                backgroundColor = MaterialTheme.colorScheme.background,
-                modifier = Modifier.fillMaxWidth()
-            )
+            SeriesHeroSection(series = series)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(bottom = innerPadding.calculateBottomPadding())
             ) {
-                Text(
-                    text = series.name,
-                    color = scheme.onBackground,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 36.sp
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                SeriesMetaChips(series = series)
-                Spacer(modifier = Modifier.height(24.dp))
                 SeriesActionButtons(
                     nextUpEpisode = nextUpEpisode,
                     seriesDownloadState = seriesDownloadState,
@@ -188,6 +179,58 @@ private fun SeriesScreenInternal(
                     CastRow(cast = series.cast)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SeriesHeroSection(
+    series: Series,
+    modifier: Modifier = Modifier,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val sectionHeight = screenHeight * 0.4f
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(sectionHeight)
+    ) {
+        MediaHero(
+            imageUrl = series.heroImageUrl,
+            backgroundColor = scheme.background,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Transparent,
+                            scheme.background.copy(alpha = 0.5f),
+                            scheme.background
+                        )
+                    )
+                )
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomStart)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = series.name,
+                color = scheme.onBackground,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 36.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            SeriesMetaChips(series = series)
         }
     }
 }

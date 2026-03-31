@@ -4,30 +4,44 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.LocalNavigationBackStack
-import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
-import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.CastMember
+import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
 import hu.bbara.purefin.ui.theme.AppTheme
@@ -39,7 +53,6 @@ fun EpisodeScreen(
     viewModel: EpisodeScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val navigationManager = LocalNavigationManager.current
     val backStack = LocalNavigationBackStack.current
     val previousRoute = remember(backStack) { backStack.getOrNull(backStack.lastIndex - 1) }
 
@@ -120,12 +133,7 @@ private fun EpisodeScreenInternal(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            MediaHero(
-                imageUrl = episode.heroImageUrl,
-                backgroundColor = MaterialTheme.colorScheme.background,
-                heightFraction = 0.30f,
-                modifier = Modifier.fillMaxWidth()
-            )
+            EpisodeHeroSection(episode = episode)
             EpisodeDetails(
                 episode = episode,
                 downloadState = downloadState,
@@ -136,6 +144,86 @@ private fun EpisodeScreenInternal(
                     .padding(bottom = innerPadding.calculateBottomPadding())
             )
         }
+    }
+}
+
+@Composable
+private fun EpisodeHeroSection(
+    episode: Episode,
+    modifier: Modifier = Modifier,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val sectionHeight = screenHeight * 0.4f
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(sectionHeight)
+    ) {
+        MediaHero(
+            imageUrl = episode.heroImageUrl,
+            backgroundColor = scheme.background,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Transparent,
+                            scheme.background.copy(alpha = 0.5f),
+                            scheme.background
+                        )
+                    )
+                )
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomStart)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = episode.title,
+                color = scheme.onBackground,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 38.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Episode ${episode.index}",
+                color = scheme.onBackground,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            EpisodeMetaChips(episode = episode)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EpisodeMetaChips(episode: Episode) {
+    val scheme = MaterialTheme.colorScheme
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        MediaMetaChip(text = episode.releaseDate)
+        MediaMetaChip(text = episode.rating)
+        MediaMetaChip(text = episode.runtime)
+        MediaMetaChip(
+            text = episode.format,
+            background = scheme.primary.copy(alpha = 0.2f),
+            border = scheme.primary.copy(alpha = 0.3f),
+            textColor = scheme.primary
+        )
     }
 }
 

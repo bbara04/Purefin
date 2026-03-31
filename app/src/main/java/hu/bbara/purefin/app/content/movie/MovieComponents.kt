@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,9 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.Close
@@ -33,7 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaCastRow
-import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
@@ -89,30 +85,6 @@ internal fun MovieDetails(
     }
 
     Column(modifier = modifier) {
-        Text(
-            text = movie.title,
-            color = scheme.onBackground,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 38.sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            MediaMetaChip(text = movie.year)
-            MediaMetaChip(text = movie.rating)
-            MediaMetaChip(text = movie.runtime)
-            MediaMetaChip(
-                text = movie.format,
-                background = scheme.primary.copy(alpha = 0.2f),
-                border = scheme.primary.copy(alpha = 0.3f),
-                textColor = scheme.primary
-            )
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-
         MediaSynopsis(
             synopsis = movie.synopsis
         )
