@@ -22,10 +22,10 @@ import hu.bbara.purefin.app.home.ui.homePreviewLibraryContent
 import hu.bbara.purefin.app.home.ui.homePreviewNextUp
 import hu.bbara.purefin.app.home.ui.search.HomeSearchOverlay
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.SuggestedItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.shared.home.SuggestedItem
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.UUID
 
@@ -67,8 +67,6 @@ fun HomeScreen(
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
             HomeTopBar(
-                title = "Watch now",
-                subtitle = subtitle,
                 onSearchClick = { isSearchVisible = true },
                 onProfileClick = onProfileClick,
                 onSettingsClick = onSettingsClick,

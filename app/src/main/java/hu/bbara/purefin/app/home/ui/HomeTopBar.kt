@@ -1,6 +1,7 @@
 package hu.bbara.purefin.app.home.ui
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -11,6 +12,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -20,16 +22,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import hu.bbara.purefin.common.ui.components.PurefinLogo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
-    title: String,
-    subtitle: String,
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -41,27 +46,37 @@ fun HomeTopBar(
 
     TopAppBar(
         title = {
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+            Row(
+                modifier = Modifier,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PurefinLogo(
+                    contentDescription = "Purefin",
+                    modifier = Modifier.size(48.dp),
+                    contentScale = ContentScale.Fit,
                 )
                 Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    text = "PureFin",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = FontStyle.Italic,
+                    color = scheme.onSecondary
                 )
             }
         },
         actions = {
-            IconButton(onClick = onSearchClick) {
+            IconButton(
+                onClick = onSearchClick,
+                colors = IconButtonColors(
+                    containerColor = scheme.secondary,
+                    contentColor = scheme.onSecondary,
+                    disabledContainerColor = scheme.secondary,
+                    disabledContentColor = scheme.onSecondary)
+            ) {
                 Icon(
                     imageVector = Icons.Outlined.Search,
-                    contentDescription = "Search"
+                    contentDescription = "Search",
                 )
             }
             IconButton(
