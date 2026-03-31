@@ -17,6 +17,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -31,6 +32,10 @@ fun SuggestionsSection(
     if (items.isEmpty()) return
 
     val pagerState = rememberPagerState(pageCount = { items.size })
+
+    LaunchedEffect(Unit) {
+        pagerState.scrollToPage(0)
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(14.dp),
