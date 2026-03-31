@@ -2,6 +2,7 @@ package hu.bbara.purefin.app.home.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -72,26 +73,31 @@ fun HomeTopBar(
                     containerColor = scheme.secondary,
                     contentColor = scheme.onSecondary,
                     disabledContainerColor = scheme.secondary,
-                    disabledContentColor = scheme.onSecondary)
+                    disabledContentColor = scheme.onSecondary),
+                modifier = Modifier.size(50.dp),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = "Search",
+                    modifier = Modifier.size(30.dp),
                 )
             }
+            Spacer(modifier = Modifier.size(12.dp))
             IconButton(
                 onClick = { isProfileMenuExpanded = true },
+                colors = IconButtonColors(
+                    containerColor = scheme.secondary,
+                    contentColor = scheme.onSecondary,
+                    disabledContainerColor = scheme.secondary,
+                    disabledContentColor = scheme.onSecondary),
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(50.dp)
                     .clip(CircleShape),
             ) {
-                HomeAvatar(
-                    size = 40.dp,
-                    borderWidth = 1.dp,
-                    borderColor = scheme.outlineVariant,
-                    backgroundColor = scheme.secondaryContainer,
-                    icon = Icons.Outlined.Person,
-                    iconTint = scheme.onSecondaryContainer
+                Icon(
+                    imageVector = Icons.Outlined.Person,
+                    contentDescription = "Profile",
+                    modifier = Modifier.size(30.dp),
                 )
             }
             DropdownMenu(
