@@ -6,9 +6,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import hu.bbara.purefin.app.home.ui.HomeNavItem
 import hu.bbara.purefin.app.home.ui.DefaultTopBar
-import hu.bbara.purefin.app.home.ui.LibrariesContent
+import hu.bbara.purefin.app.home.ui.HomeNavItem
+import hu.bbara.purefin.app.home.ui.libraries.LibrariesContent
 
 @Composable
 fun LibrariesScreen(

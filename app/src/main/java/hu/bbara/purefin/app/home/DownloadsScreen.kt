@@ -6,7 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import hu.bbara.purefin.app.home.ui.DownloadsContent
+import hu.bbara.purefin.app.home.ui.downloads.DownloadsContent
 
 @Composable
 fun DownloadsScreen(

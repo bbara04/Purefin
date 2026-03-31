@@ -15,12 +15,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import hu.bbara.purefin.app.home.ui.HomeContent
-import hu.bbara.purefin.app.home.ui.HomeSearchOverlay
 import hu.bbara.purefin.app.home.ui.HomeTopBar
 import hu.bbara.purefin.app.home.ui.homePreviewContinueWatching
 import hu.bbara.purefin.app.home.ui.homePreviewLibraries
 import hu.bbara.purefin.app.home.ui.homePreviewLibraryContent
 import hu.bbara.purefin.app.home.ui.homePreviewNextUp
+import hu.bbara.purefin.app.home.ui.search.HomeSearchOverlay
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
