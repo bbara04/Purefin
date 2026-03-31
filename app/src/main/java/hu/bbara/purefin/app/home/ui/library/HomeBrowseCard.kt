@@ -1,7 +1,6 @@
 package hu.bbara.purefin.app.home.ui.library
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -84,10 +83,7 @@ internal fun HomeBrowseCard(
                     .fillMaxWidth()
                     .aspectRatio(16f / 10f)
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                    .border(
-                        1.dp, scheme.outlineVariant.copy(alpha = 0.35f), RoundedCornerShape(18.dp)
-                    )
-                    .background(scheme.surfaceVariant)
+                    .background(scheme.surface)
             ) {
                 PurefinAsyncImage(
                     model = item.imageUrl,
@@ -147,7 +143,7 @@ internal fun HomeBrowseCard(
                     Text(
                         text = supportingText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = scheme.onSurfaceVariant,
+                        color = scheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

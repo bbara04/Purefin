@@ -32,7 +32,6 @@ internal fun HomeSearchResultCard(
     Surface(
         shape = RoundedCornerShape(22.dp),
         color = scheme.surfaceContainer,
-        tonalElevation = 2.dp,
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))

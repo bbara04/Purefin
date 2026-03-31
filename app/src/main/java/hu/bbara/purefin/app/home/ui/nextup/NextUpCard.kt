@@ -37,7 +37,6 @@ internal fun NextUpCard(
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = scheme.surfaceContainer,
-        tonalElevation = 2.dp,
         modifier = modifier.width(256.dp)
     ) {
         Column(
@@ -53,7 +52,7 @@ internal fun NextUpCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 10f)
-                    .background(scheme.surfaceVariant)
+                    .background(scheme.surface)
             ) {
                 PurefinAsyncImage(
                     model = item.episode.heroImageUrl,
@@ -91,7 +90,7 @@ internal fun NextUpCard(
                         .filter { it.isNotBlank() }
                         .joinToString(" • "),
                     style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurfaceVariant,
+                    color = scheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

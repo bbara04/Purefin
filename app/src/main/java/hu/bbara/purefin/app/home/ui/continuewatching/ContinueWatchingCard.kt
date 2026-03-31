@@ -59,7 +59,6 @@ internal fun ContinueWatchingCard(
     Surface(
         shape = RoundedCornerShape(26.dp),
         color = scheme.surfaceContainer,
-        tonalElevation = 3.dp,
         modifier = modifier.width(320.dp)
     ) {
         Column(
@@ -126,7 +125,7 @@ internal fun ContinueWatchingCard(
                     Text(
                         text = supportingText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = scheme.onSurfaceVariant,
+                        color = scheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

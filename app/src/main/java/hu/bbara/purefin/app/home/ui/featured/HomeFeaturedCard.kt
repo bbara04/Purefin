@@ -40,7 +40,6 @@ internal fun HomeFeaturedCard(
     Surface(
         color = scheme.surfaceContainerLow,
         shape = RoundedCornerShape(30.dp),
-        tonalElevation = 4.dp,
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(30.dp))
@@ -63,9 +62,9 @@ internal fun HomeFeaturedCard(
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color.Black.copy(alpha = 0.08f),
-                                Color.Black.copy(alpha = 0.18f),
-                                Color.Black.copy(alpha = 0.72f)
+                                Color.Black.copy(alpha = 0.44f),
+                                Color.Black.copy(alpha = 0.44f),
+                                Color.Black.copy(alpha = 0.80f)
                             )
                         )
                     )
@@ -115,6 +114,7 @@ internal fun HomeFeaturedCard(
                     foregroundColor = scheme.primary,
                     backgroundColor = Color.White.copy(alpha = 0.26f),
                     modifier = Modifier.align(Alignment.BottomStart)
+                        .padding(bottom = 6.dp, start = 6.dp, end = 6.dp)
                 )
             }
         }

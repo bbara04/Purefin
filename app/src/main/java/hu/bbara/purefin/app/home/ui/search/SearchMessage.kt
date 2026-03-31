@@ -28,7 +28,6 @@ internal fun SearchMessage(
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 1.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Box(

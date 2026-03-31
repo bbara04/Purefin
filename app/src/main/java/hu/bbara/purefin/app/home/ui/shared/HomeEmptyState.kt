@@ -33,7 +33,6 @@ fun HomeEmptyState(
     Surface(
         shape = RoundedCornerShape(30.dp),
         color = scheme.surfaceContainerLow,
-        tonalElevation = 2.dp,
         modifier = modifier.padding(horizontal = 16.dp)
     ) {
         Column(
