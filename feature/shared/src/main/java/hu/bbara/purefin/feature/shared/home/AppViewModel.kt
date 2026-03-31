@@ -152,16 +152,6 @@ class AppViewModel @Inject constructor(
         initialValue = emptyMap()
     )
 
-    init {
-        viewModelScope.launch {
-            try {
-                appContentRepository.ensureReady()
-            } catch (e: Exception) {
-                // State is already set to Error by ensureReady; don't crash the app
-            }
-        }
-    }
-
     fun onLibrarySelected(id: UUID, name: String) {
         viewModelScope.launch {
             navigationManager.navigate(Route.LibraryRoute(library = LibraryDto(id = id, name = name)))
