@@ -27,13 +27,10 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.request.ImageRequest
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.UnwatchedEpisodeIndicator
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
@@ -53,13 +50,10 @@ fun PosterCard(
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val context = LocalContext.current
-    val density = LocalDensity.current
     var isFocused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
     val posterWidth = 144.dp
-    val posterHeight = posterWidth * 3 / 2
 
     fun openItem(posterItem: PosterItem) {
         when (posterItem.type) {
@@ -72,11 +66,6 @@ fun PosterCard(
             else -> {}
         }
     }
-
-    val imageRequest = ImageRequest.Builder(context)
-        .data(item.imageUrl)
-        .size(with(density) { posterWidth.roundToPx() }, with(density) { posterHeight.roundToPx() })
-        .build()
 
     val imageFocusModifier = Modifier
         .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
@@ -102,7 +91,7 @@ fun PosterCard(
     ) {
         Box() {
             PurefinAsyncImage(
-                model = imageRequest,
+                model = item.imageUrl,
                 contentDescription = null,
                 modifier = imageFocusModifier
                     .aspectRatio(2f / 3f)

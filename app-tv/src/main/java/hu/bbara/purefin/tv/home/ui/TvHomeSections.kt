@@ -31,8 +31,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -42,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.request.ImageRequest
 import hu.bbara.purefin.common.ui.PosterCard
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
@@ -118,7 +117,6 @@ fun TvContinueWatchingCard(
     }
 
     val cardWidth = 280.dp
-    val cardHeight = cardWidth * 9 / 16
 
     fun openItem(item: ContinueWatchingItem) {
         when (item.type) {
@@ -131,11 +129,6 @@ fun TvContinueWatchingCard(
             else -> {}
         }
     }
-
-    val imageRequest = ImageRequest.Builder(context)
-        .data(imageUrl)
-        .size(with(density) { cardWidth.roundToPx() }, with(density) { cardHeight.roundToPx() })
-        .build()
 
     val imageFocusModifier = Modifier
         .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
@@ -186,7 +179,7 @@ fun TvContinueWatchingCard(
                 .background(scheme.surfaceVariant)
         ) {
             PurefinAsyncImage(
-                model = imageRequest,
+                model = imageUrl,
                 contentDescription = null,
                 modifier = imageFocusModifier
                     .fillMaxSize()
@@ -277,25 +270,17 @@ fun TvNextUpCard(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    val context = LocalContext.current
-    val density = LocalDensity.current
     var isFocused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
     val imageUrl = item.episode.heroImageUrl
 
     val cardWidth = 280.dp
-    val cardHeight = cardWidth * 9 / 16
 
     fun openItem(item: NextUpItem) {
         val episode = item.episode
         onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
     }
-
-    val imageRequest = ImageRequest.Builder(context)
-        .data(imageUrl)
-        .size(with(density) { cardWidth.roundToPx() }, with(density) { cardHeight.roundToPx() })
-        .build()
 
     val imageFocusModifier = Modifier
         .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
@@ -346,7 +331,7 @@ fun TvNextUpCard(
                 .background(scheme.surfaceVariant)
         ) {
             PurefinAsyncImage(
-                model = imageRequest,
+                model = imageUrl,
                 contentDescription = null,
                 modifier = imageFocusModifier
                     .fillMaxSize()
