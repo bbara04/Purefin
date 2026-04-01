@@ -150,9 +150,18 @@ data class PosterItem(
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
     val imageUrl: String = when (type) {
-        BaseItemKind.MOVIE -> movie!!.imageUrlPrefix
-        BaseItemKind.EPISODE -> episode!!.imageUrlPrefix
-        BaseItemKind.SERIES -> series!!.imageUrlPrefix
+        BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = movie!!.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
+        BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = episode!!.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
+        BaseItemKind.SERIES -> JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = series!!.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
     fun watched() = when (type) {
