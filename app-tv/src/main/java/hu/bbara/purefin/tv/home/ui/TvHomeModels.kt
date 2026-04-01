@@ -13,7 +13,8 @@ data class TvHomeNavItem(
 enum class TvHomeTabDestination {
     SEARCH,
     HOME,
-    LIBRARY
+    LIBRARY,
+    SETTINGS
 }
 
 data class TvHomeTabItem(

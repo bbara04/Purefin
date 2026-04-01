@@ -7,6 +7,7 @@ import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -43,6 +44,13 @@ fun TvHomeScreen(
 
     val tabs = remember(libraries) {
         buildList {
+            add(
+                TvHomeTabItem(
+                    destination = TvHomeTabDestination.SETTINGS,
+                    label = "Settings",
+                    icon = Icons.Outlined.Settings,
+                )
+            )
             add(
                 TvHomeTabItem(
                     destination = TvHomeTabDestination.SEARCH,
@@ -100,6 +108,7 @@ fun TvHomeScreen(
         }
     ) { innerPadding ->
         when (selectedTab?.destination) {
+            TvHomeTabDestination.SETTINGS,
             TvHomeTabDestination.LIBRARY -> {
                 TvLibraryContent(
                     libraryItems = selectedLibraryItems,
@@ -108,7 +117,6 @@ fun TvHomeScreen(
                     modifier = Modifier.padding(innerPadding)
                 )
             }
-
             TvHomeTabDestination.SEARCH,
             TvHomeTabDestination.HOME,
             null -> {
