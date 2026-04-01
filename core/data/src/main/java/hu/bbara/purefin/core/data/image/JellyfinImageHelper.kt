@@ -31,7 +31,10 @@ class JellyfinImageHelper {
                 .toString()
         }
 
-        fun finishImageUrl(prefixImageUrl: String, imageType: ImageType): String {
+        fun finishImageUrl(prefixImageUrl: String?, imageType: ImageType): String {
+            if (prefixImageUrl.isNullOrEmpty()) {
+                return ""
+            }
             return StringBuilder()
                 .append(prefixImageUrl)
                 .append(imageType.serialName)

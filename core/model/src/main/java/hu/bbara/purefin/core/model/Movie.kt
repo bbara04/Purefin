@@ -13,7 +13,7 @@ data class Movie(
     val runtime: String,
     val format: String,
     val synopsis: String,
-    val heroImageUrl: String,
+    val imageUrlPrefix: String,
     val audioTrack: String,
     val subtitles: String,
     val cast: List<CastMember>

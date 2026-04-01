@@ -23,7 +23,6 @@ import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ImageType
@@ -156,10 +156,9 @@ class MediaDownloadManager @Inject constructor(
                     runtime = formatRuntime(itemInfo.runTimeTicks),
                     synopsis = itemInfo.overview ?: "No synopsis available",
                     format = itemInfo.container?.uppercase() ?: "VIDEO",
-                    heroImageUrl = JellyfinImageHelper.toImageUrl(
+                    imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(
                         url = serverUrl,
-                        itemId = itemInfo.id,
-                        type = ImageType.PRIMARY
+                        itemId = itemInfo.id
                     ),
                     subtitles = "ENG",
                     audioTrack = "ENG",

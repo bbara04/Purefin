@@ -124,6 +124,7 @@ class PlayerMediaRepository @Inject constructor(
         }
     }
 
+    @OptIn(UnstableApi::class)
     private suspend fun buildOfflineMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? {
         val download = downloadManager.downloadIndex.getDownload(mediaId.toString())
             ?.takeIf { it.state == Download.STATE_COMPLETED }
@@ -138,7 +139,7 @@ class PlayerMediaRepository @Inject constructor(
         }
         val subtitle = episode?.let { episodeSubtitle(null, it.index) }
         val artworkUrl = when {
-            movie != null -> movie.heroImageUrl
+            movie != null -> JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY)
             episode != null -> episode.heroImageUrl
             else -> JellyfinImageHelper.toImageUrl(serverUrl, mediaId, ImageType.PRIMARY)
         }

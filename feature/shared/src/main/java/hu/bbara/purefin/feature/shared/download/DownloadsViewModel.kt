@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.OfflineMediaRepository
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.MovieDto
 import hu.bbara.purefin.core.data.navigation.NavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ImageType
 import javax.inject.Inject
 
 @HiltViewModel
@@ -70,7 +72,7 @@ class DownloadsViewModel @Inject constructor(
                     contentId = contentId,
                     title = movie.title,
                     subtitle = "",
-                    imageUrl = movie.heroImageUrl,
+                    imageUrl = JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY),
                     progress = progress
                 )
             } else {

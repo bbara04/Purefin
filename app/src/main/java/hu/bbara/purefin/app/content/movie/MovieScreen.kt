@@ -35,12 +35,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.MovieDto
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
 import hu.bbara.purefin.ui.theme.AppTheme
+import org.jellyfin.sdk.model.api.ImageType
 import java.util.UUID
 
 @Composable
@@ -135,7 +137,7 @@ fun MediaHeroSection(
             .height(sectionHeight)
     ) {
         MediaHero(
-            imageUrl = movie.heroImageUrl,
+            imageUrl = JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY),
             backgroundColor = MaterialTheme.colorScheme.background,
             modifier = Modifier.fillMaxSize()
         )
@@ -209,7 +211,7 @@ private fun previewMovie(): Movie =
         runtime = "2h 44m",
         format = "Dolby Vision",
         synopsis = "A new blade runner uncovers a buried secret that forces him to trace the vanished footsteps of Rick Deckard.",
-        heroImageUrl = "https://images.unsplash.com/photo-1519608487953-e999c86e7455",
+        imageUrlPrefix = "https://images.unsplash.com/photo-1519608487953-e999c86e7455",
         audioTrack = "English 5.1",
         subtitles = "English CC",
         cast = listOf(

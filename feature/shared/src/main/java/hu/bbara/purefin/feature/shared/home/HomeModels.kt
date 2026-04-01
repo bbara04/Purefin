@@ -1,11 +1,13 @@
 package hu.bbara.purefin.feature.shared.home
 
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Series
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
+import org.jellyfin.sdk.model.api.ImageType
 
 
 sealed interface SuggestedItem {
@@ -74,7 +76,10 @@ data class SuggestedMovie (
     override val id: UUID = movie.id,
     override val title: String = movie.title,
     override val description: String = movie.synopsis,
-    override val imageUrl: String = movie.heroImageUrl
+    override val imageUrl: String = JellyfinImageHelper.finishImageUrl(
+        prefixImageUrl = movie.imageUrlPrefix,
+        imageType = ImageType.PRIMARY
+        )
 ) : SuggestedItem
 
 data class ContinueWatchingItem(
@@ -139,7 +144,7 @@ data class PosterItem(
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
     val imageUrl: String = when (type) {
-        BaseItemKind.MOVIE -> movie!!.heroImageUrl
+        BaseItemKind.MOVIE -> movie!!.imageUrlPrefix
         BaseItemKind.EPISODE -> episode!!.heroImageUrl
         BaseItemKind.SERIES -> series!!.heroImageUrl
         else -> throw IllegalArgumentException("Invalid type: $type")

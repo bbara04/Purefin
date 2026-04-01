@@ -65,7 +65,7 @@ class MovieScreenContentTest {
             runtime = "164m",
             format = "4K",
             synopsis = "Officer K uncovers a secret that sends him searching for Rick Deckard.",
-            heroImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+            imageUrlPrefix = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
             audioTrack = "ENG 5.1",
             subtitles = "ENG",
             cast = listOf(

@@ -1,7 +1,6 @@
 package hu.bbara.purefin.core.data.room.entity
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
@@ -21,7 +20,7 @@ data class MovieEntity(
     val runtime: String,
     val format: String,
     val synopsis: String,
-    val heroImageUrl: String,
+    val imageUrlPrefix: String,
     val audioTrack: String,
     val subtitles: String
 )

@@ -208,7 +208,7 @@ class OfflineRoomMediaLocalDataSource(
         runtime = runtime,
         format = format,
         synopsis = synopsis,
-        heroImageUrl = heroImageUrl,
+        imageUrlPrefix = imageUrlPrefix,
         audioTrack = audioTrack,
         subtitles = subtitles
     )
@@ -260,7 +260,7 @@ class OfflineRoomMediaLocalDataSource(
         runtime = runtime,
         format = format,
         synopsis = synopsis,
-        heroImageUrl = heroImageUrl,
+        imageUrlPrefix = imageUrlPrefix,
         audioTrack = audioTrack,
         subtitles = subtitles,
         cast = emptyList()

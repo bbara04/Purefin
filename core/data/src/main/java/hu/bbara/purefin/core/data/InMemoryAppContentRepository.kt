@@ -433,10 +433,9 @@ class InMemoryAppContentRepository @Inject constructor(
             runtime = formatRuntime(this.runTimeTicks),
             synopsis = this.overview ?: "No synopsis available",
             format = container?.uppercase() ?: "VIDEO",
-            heroImageUrl = JellyfinImageHelper.toImageUrl(
+            imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(
                 url = serverUrl,
                 itemId = this.id,
-                type = ImageType.PRIMARY
             ),
             subtitles = "ENG",
             audioTrack = "ENG",

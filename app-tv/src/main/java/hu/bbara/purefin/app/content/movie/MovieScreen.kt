@@ -19,9 +19,11 @@ import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
 import hu.bbara.purefin.common.ui.components.MediaDetailPlaybackSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.MovieDto
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
+import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 fun MovieScreen(
@@ -60,7 +62,7 @@ internal fun MovieScreenContent(
     }
 
     TvMediaDetailScaffold(
-        heroImageUrl = movie.heroImageUrl,
+        heroImageUrl = JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY),
         resetScrollKey = movie.id,
         modifier = modifier,
         topBar = {

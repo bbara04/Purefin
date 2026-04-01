@@ -39,11 +39,13 @@ import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.PosterCard
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.ImageType
 import kotlin.math.nextUp
 
 @Composable
@@ -67,8 +69,6 @@ fun TvContinueWatchingSection(
         itemsIndexed(items = items) { index, item ->
             TvContinueWatchingCard(
                 item = item,
-                isFirstItem = index == 0,
-                isLastItem = index == items.lastIndex,
                 onMovieSelected = onMovieSelected,
                 onEpisodeSelected = onEpisodeSelected
             )
@@ -80,8 +80,6 @@ fun TvContinueWatchingSection(
 fun TvContinueWatchingCard(
     item: ContinueWatchingItem,
     modifier: Modifier = Modifier,
-    isFirstItem: Boolean = false,
-    isLastItem: Boolean = false,
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
@@ -91,7 +89,10 @@ fun TvContinueWatchingCard(
     val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
     val imageUrl = when (item.type) {
-        BaseItemKind.MOVIE -> item.movie?.heroImageUrl
+        BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = item.movie?.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
         BaseItemKind.EPISODE -> item.episode?.heroImageUrl
         else -> null
     }
