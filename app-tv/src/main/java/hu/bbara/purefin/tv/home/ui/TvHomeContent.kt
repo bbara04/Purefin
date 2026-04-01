@@ -1,6 +1,5 @@
 package hu.bbara.purefin.tv.home.ui
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,9 +22,8 @@ import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
 
-@SuppressLint("RememberInComposition")
 @Composable
-fun TvHomeScreen(
+fun TvHomeContent(
     libraries: List<LibraryItem>,
     libraryContent: Map<UUID, List<PosterItem>>,
     continueWatching: List<ContinueWatchingItem>,
@@ -44,7 +42,6 @@ fun TvHomeScreen(
         libraryContent.keys.associateWith { FocusRequester() }
     }
 
-
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -59,7 +56,7 @@ fun TvHomeScreen(
                 onMovieSelected = onMovieSelected,
                 onEpisodeSelected = onEpisodeSelected,
                 modifier = Modifier.focusRequester(continueWatchingRef)
-                    .focusProperties{
+                    .focusProperties {
                         down = nextUpRef
                     }
             )
@@ -72,7 +69,7 @@ fun TvHomeScreen(
                 items = nextUp,
                 onEpisodeSelected = onEpisodeSelected,
                 modifier = Modifier.focusRequester(nextUpRef)
-                    .focusProperties{
+                    .focusProperties {
                         up = continueWatchingRef
                         libraryRefs.values.firstOrNull()?.let { down = it }
                     }
@@ -96,7 +93,8 @@ fun TvHomeScreen(
                 modifier = if (ref != null) Modifier.focusRequester(ref) else Modifier
                     .focusProperties {
                         up = nextUpRef
-                        libraryRefs.values.dropWhile { it != ref }.drop(1).firstOrNull()?.let { down = it }
+                        libraryRefs.values.dropWhile { it != ref }.drop(1).firstOrNull()
+                            ?.let { down = it }
                     }
             )
             Spacer(modifier = Modifier.height(8.dp))

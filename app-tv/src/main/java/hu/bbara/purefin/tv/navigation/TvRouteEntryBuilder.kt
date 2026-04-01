@@ -7,7 +7,7 @@ import hu.bbara.purefin.app.content.series.SeriesScreen
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.login.ui.LoginScreen
-import hu.bbara.purefin.tv.home.TvAppScreen
+import hu.bbara.purefin.tv.TvAppScreen
 import hu.bbara.purefin.tv.library.ui.TvLibraryScreen
 import hu.bbara.purefin.tv.player.TvPlayerScreen
 

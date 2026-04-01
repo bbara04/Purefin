@@ -1,4 +1,4 @@
-package hu.bbara.purefin.tv.home
+package hu.bbara.purefin.tv
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,7 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import hu.bbara.purefin.feature.shared.home.AppViewModel
 import hu.bbara.purefin.feature.shared.library.LibraryViewModel
-import hu.bbara.purefin.tv.home.ui.TvHomeScreen
+import hu.bbara.purefin.tv.home.TvHomeScreen
 import hu.bbara.purefin.tv.home.ui.TvHomeTabDestination
 import hu.bbara.purefin.tv.home.ui.TvHomeTabItem
 import hu.bbara.purefin.tv.home.ui.TvHomeTopBar
