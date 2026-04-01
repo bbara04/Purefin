@@ -23,8 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import org.jellyfin.sdk.model.UUID
+import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 internal fun NextUpCard(
@@ -55,7 +57,7 @@ internal fun NextUpCard(
                     .background(scheme.surface)
             ) {
                 PurefinAsyncImage(
-                    model = item.episode.heroImageUrl,
+                    model = JellyfinImageHelper.finishImageUrl(item.episode.imageUrlPrefix, ImageType.PRIMARY),
                     contentDescription = item.primaryText,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

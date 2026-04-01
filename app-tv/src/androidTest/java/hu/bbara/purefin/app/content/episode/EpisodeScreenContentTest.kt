@@ -101,7 +101,7 @@ class EpisodeScreenContentTest {
             progress = progress,
             watched = false,
             format = "4K",
-            heroImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+            imageUrlPrefix = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
             cast = listOf(
                 CastMember("Adam Scott", "Mark Scout", null)
             )

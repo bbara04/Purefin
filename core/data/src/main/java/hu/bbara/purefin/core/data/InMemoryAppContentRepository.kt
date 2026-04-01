@@ -476,11 +476,10 @@ class InMemoryAppContentRepository @Inject constructor(
 
     private fun BaseItemDto.toEpisode(serverUrl: String): Episode {
         val releaseDate = formatReleaseDate(premiereDate, productionYear)
-        val heroImageUrl = id?.let { itemId ->
-            JellyfinImageHelper.toImageUrl(
+        val imageUrlPrefix = id?.let { itemId ->
+            JellyfinImageHelper.toPrefixImageUrl(
                 url = serverUrl,
-                itemId = itemId,
-                type = ImageType.PRIMARY
+                itemId = itemId
             )
         } ?: ""
         return Episode(
@@ -496,7 +495,7 @@ class InMemoryAppContentRepository @Inject constructor(
             watched = userData!!.played,
             format = container?.uppercase() ?: "VIDEO",
             synopsis = overview ?: "No synopsis available.",
-            heroImageUrl = heroImageUrl,
+            imageUrlPrefix = imageUrlPrefix,
             cast = emptyList()
         )
     }

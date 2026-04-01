@@ -246,7 +246,7 @@ class OfflineRoomMediaLocalDataSource(
         progress = progress,
         watched = watched,
         format = format,
-        heroImageUrl = heroImageUrl
+        imageUrlPrefix = imageUrlPrefix
     )
 
     private fun MovieEntity.toDomain() = Movie(
@@ -302,7 +302,7 @@ class OfflineRoomMediaLocalDataSource(
         progress = progress,
         watched = watched,
         format = format,
-        heroImageUrl = heroImageUrl,
+        imageUrlPrefix = imageUrlPrefix,
         cast = emptyList()
     )
 }

@@ -65,6 +65,7 @@ import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
@@ -75,6 +76,7 @@ import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
 import hu.bbara.purefin.player.PlayerActivity
+import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 internal fun SeriesTopBar(
@@ -347,7 +349,7 @@ private fun EpisodeCard(
                 .border(1.dp, scheme.outlineVariant, RoundedCornerShape(12.dp))
         ) {
             PurefinAsyncImage(
-                model = episode.heroImageUrl,
+                model = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop

@@ -117,7 +117,7 @@ class SeriesScreenContentTest {
                             progress = 18.0,
                             watched = false,
                             format = "4K",
-                            heroImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+                            imageUrlPrefix = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
                             cast = emptyList()
                         ),
                         Episode(
@@ -133,7 +133,7 @@ class SeriesScreenContentTest {
                             progress = null,
                             watched = false,
                             format = "4K",
-                            heroImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+                            imageUrlPrefix = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
                             cast = emptyList()
                         )
                     )

@@ -19,12 +19,14 @@ import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
 import hu.bbara.purefin.common.ui.components.MediaDetailPlaybackSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
+import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 fun EpisodeScreen(
@@ -91,7 +93,7 @@ internal fun EpisodeScreenContent(
     }
 
     TvMediaDetailScaffold(
-        heroImageUrl = episode.heroImageUrl,
+        heroImageUrl = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
         resetScrollKey = episode.id,
         modifier = modifier,
         topBar = {

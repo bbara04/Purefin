@@ -57,7 +57,10 @@ internal fun ContinueWatchingCard(
             prefixImageUrl = item.movie?.imageUrlPrefix,
             imageType = ImageType.PRIMARY
         )
-        BaseItemKind.EPISODE -> item.episode?.heroImageUrl
+        BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = item.episode?.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
         else -> null
     }
 

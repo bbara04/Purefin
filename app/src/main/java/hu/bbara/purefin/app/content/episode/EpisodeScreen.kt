@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.core.data.navigation.Route
@@ -45,6 +46,7 @@ import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
 import hu.bbara.purefin.ui.theme.AppTheme
+import org.jellyfin.sdk.model.api.ImageType
 import java.util.UUID
 
 @Composable
@@ -162,7 +164,7 @@ private fun EpisodeHeroSection(
             .height(sectionHeight)
     ) {
         MediaHero(
-            imageUrl = episode.heroImageUrl,
+            imageUrl = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
             backgroundColor = scheme.background,
             modifier = Modifier.fillMaxSize()
         )
@@ -258,7 +260,7 @@ private fun previewEpisode(): Episode {
         progress = 63.0,
         watched = false,
         format = "4K",
-        heroImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+        imageUrlPrefix = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
         cast = listOf(
             CastMember("Adam Scott", "Mark Scout", null),
             CastMember("Britt Lower", "Helly R.", null),

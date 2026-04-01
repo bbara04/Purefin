@@ -272,7 +272,7 @@ private fun previewSeries(): Series {
             progress = 100.0,
             watched = true,
             format = "4K",
-            heroImageUrl = "https://images.unsplash.com/photo-1497032205916-ac775f0649ae",
+            imageUrlPrefix = "https://images.unsplash.com/photo-1497032205916-ac775f0649ae",
             cast = emptyList()
         ),
         Episode(
@@ -288,7 +288,7 @@ private fun previewSeries(): Series {
             progress = 34.0,
             watched = false,
             format = "4K",
-            heroImageUrl = "https://images.unsplash.com/photo-1520034475321-cbe63696469a",
+            imageUrlPrefix = "https://images.unsplash.com/photo-1520034475321-cbe63696469a",
             cast = emptyList()
         )
     )
@@ -306,7 +306,7 @@ private fun previewSeries(): Series {
             progress = null,
             watched = false,
             format = "4K",
-            heroImageUrl = "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429",
+            imageUrlPrefix = "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429",
             cast = emptyList()
         )
     )

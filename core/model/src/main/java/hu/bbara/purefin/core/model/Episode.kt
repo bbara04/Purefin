@@ -15,6 +15,6 @@ data class Episode(
     val progress: Double?,
     val watched: Boolean,
     val format: String,
-    val heroImageUrl: String,
+    val imageUrlPrefix: String,
     val cast: List<CastMember>
 )

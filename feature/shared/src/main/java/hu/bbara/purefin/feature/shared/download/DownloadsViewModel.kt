@@ -82,7 +82,7 @@ class DownloadsViewModel @Inject constructor(
                         contentId = contentId,
                         title = it.title,
                         subtitle = seriesMap[it.seriesId]?.name ?: "",
-                        imageUrl = it.heroImageUrl,
+                        imageUrl = JellyfinImageHelper.finishImageUrl(it.imageUrlPrefix, ImageType.PRIMARY),
                         progress = progress
                     )
                 }

@@ -369,10 +369,9 @@ class MediaDownloadManager @Inject constructor(
             watched = userData?.played ?: false,
             format = container?.uppercase() ?: "VIDEO",
             synopsis = overview ?: "No synopsis available.",
-            heroImageUrl = JellyfinImageHelper.toImageUrl(
+            imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(
                 url = serverUrl,
-                itemId = id,
-                type = ImageType.PRIMARY
+                itemId = id
             ),
             cast = emptyList()
         )

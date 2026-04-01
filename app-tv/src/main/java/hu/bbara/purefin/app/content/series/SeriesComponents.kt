@@ -60,11 +60,13 @@ import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
+import org.jellyfin.sdk.model.api.ImageType
 
 internal const val SeriesPlayButtonTag = "series-play-button"
 internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"
@@ -310,7 +312,7 @@ private fun EpisodeCard(
                 )
         ) {
             PurefinAsyncImage(
-                model = episode.heroImageUrl,
+                model = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop

@@ -93,7 +93,10 @@ fun TvContinueWatchingCard(
             prefixImageUrl = item.movie?.imageUrlPrefix,
             imageType = ImageType.PRIMARY
         )
-        BaseItemKind.EPISODE -> item.episode?.heroImageUrl
+        BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = item.episode?.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
         else -> null
     }
 
@@ -216,7 +219,7 @@ fun TvNextUpCard(
     var isFocused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
-    val imageUrl = item.episode.heroImageUrl
+    val imageUrl = JellyfinImageHelper.finishImageUrl(item.episode.imageUrlPrefix, ImageType.PRIMARY)
 
     val cardWidth = 280.dp
 

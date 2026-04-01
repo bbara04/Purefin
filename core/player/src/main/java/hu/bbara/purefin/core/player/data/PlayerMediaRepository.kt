@@ -140,7 +140,7 @@ class PlayerMediaRepository @Inject constructor(
         val subtitle = episode?.let { episodeSubtitle(null, it.index) }
         val artworkUrl = when {
             movie != null -> JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY)
-            episode != null -> episode.heroImageUrl
+            episode != null -> JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY)
             else -> JellyfinImageHelper.toImageUrl(serverUrl, mediaId, ImageType.PRIMARY)
         }
         val resumePositionMs = resumePositionFor(movie, episode)
