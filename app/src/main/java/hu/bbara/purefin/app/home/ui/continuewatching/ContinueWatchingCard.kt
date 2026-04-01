@@ -59,7 +59,7 @@ internal fun ContinueWatchingCard(
     Surface(
         shape = RoundedCornerShape(26.dp),
         color = scheme.surfaceContainer,
-        modifier = modifier.width(320.dp)
+        modifier = modifier.width(280.dp)
     ) {
         Column(
             modifier = Modifier

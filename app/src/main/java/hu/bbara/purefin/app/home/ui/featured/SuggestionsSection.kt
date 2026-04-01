@@ -44,7 +44,7 @@ fun SuggestionsSection(
     ) {
         HorizontalPager(
             state = pagerState,
-            pageSize = PageSize.Fixed(360.dp),
+            pageSize = PageSize.Fixed(320.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
             pageSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()
