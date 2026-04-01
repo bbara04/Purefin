@@ -8,7 +8,7 @@ data class Series(
     val name: String,
     val synopsis: String,
     val year: String,
-    val heroImageUrl: String,
+    val imageUrlPrefix: String,
     val unwatchedEpisodeCount: Int,
     val seasonCount: Int,
     val seasons: List<Season>,

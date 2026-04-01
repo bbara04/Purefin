@@ -92,7 +92,7 @@ class SeriesScreenContentTest {
             name = "Severance",
             synopsis = "Mark leads a team of office workers whose memories have been surgically divided.",
             year = "2022",
-            heroImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+            imageUrlPrefix = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
             unwatchedEpisodeCount = 3,
             seasonCount = 1,
             seasons = listOf(
@@ -154,7 +154,7 @@ class SeriesScreenContentTest {
             name = "Foundation",
             synopsis = "A band of exiles works to preserve knowledge through the fall of an empire.",
             year = "2021",
-            heroImageUrl = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+            imageUrlPrefix = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
             unwatchedEpisodeCount = 0,
             seasonCount = 1,
             seasons = listOf(

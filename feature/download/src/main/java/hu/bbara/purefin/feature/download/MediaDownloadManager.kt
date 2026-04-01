@@ -385,10 +385,9 @@ class MediaDownloadManager @Inject constructor(
             name = name ?: "Unknown",
             synopsis = overview ?: "No synopsis available",
             year = productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
-            heroImageUrl = JellyfinImageHelper.toImageUrl(
+            imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(
                 url = serverUrl,
-                itemId = id,
-                type = ImageType.PRIMARY
+                itemId = id
             ),
             unwatchedEpisodeCount = userData?.unplayedItemCount ?: 0,
             seasonCount = childCount ?: 0,

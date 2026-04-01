@@ -451,10 +451,9 @@ class InMemoryAppContentRepository @Inject constructor(
             synopsis = this.overview ?: "No synopsis available",
             year = this.productionYear?.toString()
                 ?: this.premiereDate?.year?.toString().orEmpty(),
-            heroImageUrl = JellyfinImageHelper.toImageUrl(
+            imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(
                 url = serverUrl,
-                itemId = this.id,
-                type = ImageType.PRIMARY
+                itemId = this.id
             ),
             unwatchedEpisodeCount = this.userData!!.unplayedItemCount!!,
             seasonCount = this.childCount!!,

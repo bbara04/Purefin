@@ -1,7 +1,6 @@
 package hu.bbara.purefin.core.data.room.entity
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
@@ -16,7 +15,7 @@ data class SeriesEntity(
     val name: String,
     val synopsis: String,
     val year: String,
-    val heroImageUrl: String,
+    val imageUrlPrefix: String,
     val unwatchedEpisodeCount: Int,
     val seasonCount: Int
 )

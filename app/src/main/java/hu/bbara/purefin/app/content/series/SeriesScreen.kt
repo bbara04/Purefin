@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaSynopsis
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
@@ -41,6 +42,7 @@ import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
 import hu.bbara.purefin.ui.theme.AppTheme
+import org.jellyfin.sdk.model.api.ImageType
 import java.util.UUID
 
 @Composable
@@ -198,7 +200,7 @@ private fun SeriesHeroSection(
             .height(sectionHeight)
     ) {
         MediaHero(
-            imageUrl = series.heroImageUrl,
+            imageUrl = JellyfinImageHelper.finishImageUrl(series.imageUrlPrefix, ImageType.PRIMARY),
             backgroundColor = scheme.background,
             modifier = Modifier.fillMaxSize()
         )
@@ -315,7 +317,7 @@ private fun previewSeries(): Series {
         name = "Constellation",
         synopsis = "When an experiment in orbit goes wrong, the survivors return home to a world that no longer fits their memories.",
         year = "2024",
-        heroImageUrl = "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa",
+        imageUrlPrefix = "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa",
         unwatchedEpisodeCount = 2,
         seasonCount = 2,
         seasons = listOf(

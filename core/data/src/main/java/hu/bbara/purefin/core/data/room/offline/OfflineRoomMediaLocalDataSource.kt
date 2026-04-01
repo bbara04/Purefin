@@ -219,7 +219,7 @@ class OfflineRoomMediaLocalDataSource(
         name = name,
         synopsis = synopsis,
         year = year,
-        heroImageUrl = heroImageUrl,
+        imageUrlPrefix = imageUrlPrefix,
         unwatchedEpisodeCount = unwatchedEpisodeCount,
         seasonCount = seasonCount
     )
@@ -272,7 +272,7 @@ class OfflineRoomMediaLocalDataSource(
         name = name,
         synopsis = synopsis,
         year = year,
-        heroImageUrl = heroImageUrl,
+        imageUrlPrefix = imageUrlPrefix,
         unwatchedEpisodeCount = unwatchedEpisodeCount,
         seasonCount = seasonCount,
         seasons = seasons,

@@ -58,7 +58,10 @@ data class SuggestedSeries (
     override val id: UUID = series.id,
     override val title: String = series.name,
     override val description: String = series.synopsis,
-    override val imageUrl: String = series.heroImageUrl
+    override val imageUrl: String = JellyfinImageHelper.finishImageUrl(
+        prefixImageUrl = series.imageUrlPrefix,
+        imageType = ImageType.PRIMARY
+    )
 ) : SuggestedItem
 
 data class SuggestedMovie (
@@ -146,7 +149,7 @@ data class PosterItem(
     val imageUrl: String = when (type) {
         BaseItemKind.MOVIE -> movie!!.imageUrlPrefix
         BaseItemKind.EPISODE -> episode!!.heroImageUrl
-        BaseItemKind.SERIES -> series!!.heroImageUrl
+        BaseItemKind.SERIES -> series!!.imageUrlPrefix
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
     fun watched() = when (type) {
