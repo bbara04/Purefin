@@ -22,7 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import hu.bbara.purefin.feature.shared.home.AppViewModel
 import hu.bbara.purefin.feature.shared.library.LibraryViewModel
-import hu.bbara.purefin.tv.home.ui.TvHomeContent
+import hu.bbara.purefin.tv.home.ui.TvHomeScreen
 import hu.bbara.purefin.tv.home.ui.TvHomeTabDestination
 import hu.bbara.purefin.tv.home.ui.TvHomeTabItem
 import hu.bbara.purefin.tv.home.ui.TvHomeTopBar
@@ -120,7 +120,7 @@ fun TvAppScreen(
             TvHomeTabDestination.SEARCH,
             TvHomeTabDestination.HOME,
             null -> {
-                TvHomeContent(
+                TvHomeScreen(
                     libraries = libraries,
                     libraryContent = latestLibraryContent,
                     continueWatching = continueWatching,

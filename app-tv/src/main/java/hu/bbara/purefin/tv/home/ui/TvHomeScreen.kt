@@ -25,7 +25,7 @@ import org.jellyfin.sdk.model.UUID
 
 @SuppressLint("RememberInComposition")
 @Composable
-fun TvHomeContent(
+fun TvHomeScreen(
     libraries: List<LibraryItem>,
     libraryContent: Map<UUID, List<PosterItem>>,
     continueWatching: List<ContinueWatchingItem>,
