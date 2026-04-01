@@ -20,9 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -42,9 +39,6 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 fun PosterCard(
     item: PosterItem,
     modifier: Modifier = Modifier,
-    focusRequester: FocusRequester? = null,
-    upFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
@@ -67,19 +61,6 @@ fun PosterCard(
         }
     }
 
-    val imageFocusModifier = Modifier
-        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-        .then(
-            if (upFocusRequester != null || downFocusRequester != null) {
-                Modifier.focusProperties {
-                    upFocusRequester?.let { up = it }
-                    downFocusRequester?.let { down = it }
-                }
-            } else {
-                Modifier
-            }
-        )
-
     Column(
         modifier = modifier
             .width(posterWidth)
@@ -93,7 +74,7 @@ fun PosterCard(
             PurefinAsyncImage(
                 model = item.imageUrl,
                 contentDescription = null,
-                modifier = imageFocusModifier
+                modifier = Modifier
                     .aspectRatio(2f / 3f)
                     .clip(RoundedCornerShape(14.dp))
                     .border(

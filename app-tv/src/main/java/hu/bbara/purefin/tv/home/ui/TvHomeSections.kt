@@ -28,16 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,10 +49,6 @@ import kotlin.math.nextUp
 @Composable
 fun TvContinueWatchingSection(
     items: List<ContinueWatchingItem>,
-    sectionFocusRequester: FocusRequester,
-    firstItemFocusRequester: FocusRequester? = null,
-    upFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null,
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
@@ -70,20 +60,15 @@ fun TvContinueWatchingSection(
     )
     LazyRow(
         modifier = modifier
-            .fillMaxWidth()
-            .focusRequester(sectionFocusRequester)
-            .focusRestorer(firstItemFocusRequester ?: FocusRequester.Default),
+            .fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         itemsIndexed(items = items) { index, item ->
             TvContinueWatchingCard(
                 item = item,
-                focusRequester = if (index == 0) firstItemFocusRequester else null,
                 isFirstItem = index == 0,
                 isLastItem = index == items.lastIndex,
-                upFocusRequester = upFocusRequester,
-                downFocusRequester = downFocusRequester,
                 onMovieSelected = onMovieSelected,
                 onEpisodeSelected = onEpisodeSelected
             )
@@ -95,18 +80,13 @@ fun TvContinueWatchingSection(
 fun TvContinueWatchingCard(
     item: ContinueWatchingItem,
     modifier: Modifier = Modifier,
-    focusRequester: FocusRequester? = null,
     isFirstItem: Boolean = false,
     isLastItem: Boolean = false,
-    upFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null,
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    val context = LocalContext.current
-    val density = LocalDensity.current
     var isFocused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
@@ -129,32 +109,6 @@ fun TvContinueWatchingCard(
             else -> {}
         }
     }
-
-    val imageFocusModifier = Modifier
-        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-        .then(
-            if (upFocusRequester != null || downFocusRequester != null) {
-                Modifier.focusProperties {
-                    upFocusRequester?.let { up = it }
-                    downFocusRequester?.let { down = it }
-                    if (isFirstItem) {
-                        left = FocusRequester.Cancel
-                    }
-                    if (isLastItem) {
-                        right = FocusRequester.Cancel
-                    }
-                }
-            } else {
-                Modifier.focusProperties {
-                    if (isFirstItem) {
-                        left = FocusRequester.Cancel
-                    }
-                    if (isLastItem) {
-                        right = FocusRequester.Cancel
-                    }
-                }
-            }
-        )
 
     Column(
         modifier = modifier
@@ -181,7 +135,7 @@ fun TvContinueWatchingCard(
             PurefinAsyncImage(
                 model = imageUrl,
                 contentDescription = null,
-                modifier = imageFocusModifier
+                modifier = Modifier
                     .fillMaxSize()
                     .onFocusChanged { isFocused = it.isFocused }
                     .clickable {
@@ -220,10 +174,6 @@ fun TvContinueWatchingCard(
 @Composable
 fun TvNextUpSection(
     items: List<NextUpItem>,
-    sectionFocusRequester: FocusRequester,
-    firstItemFocusRequester: FocusRequester? = null,
-    upFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -234,9 +184,7 @@ fun TvNextUpSection(
     )
     LazyRow(
         modifier = modifier
-            .fillMaxWidth()
-            .focusRequester(sectionFocusRequester)
-            .focusRestorer(firstItemFocusRequester ?: FocusRequester.Default),
+            .fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -246,11 +194,8 @@ fun TvNextUpSection(
         ) { index, item ->
             TvNextUpCard(
                 item = item,
-                focusRequester = if (index == 0) firstItemFocusRequester else null,
                 isFirstItem = index == 0,
                 isLastItem = index == items.lastIndex,
-                upFocusRequester = upFocusRequester,
-                downFocusRequester = downFocusRequester,
                 onEpisodeSelected = onEpisodeSelected
             )
         }
@@ -261,11 +206,8 @@ fun TvNextUpSection(
 fun TvNextUpCard(
     item: NextUpItem,
     modifier: Modifier = Modifier,
-    focusRequester: FocusRequester? = null,
     isFirstItem: Boolean = false,
     isLastItem: Boolean = false,
-    upFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -281,32 +223,6 @@ fun TvNextUpCard(
         val episode = item.episode
         onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
     }
-
-    val imageFocusModifier = Modifier
-        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-        .then(
-            if (upFocusRequester != null || downFocusRequester != null) {
-                Modifier.focusProperties {
-                    upFocusRequester?.let { up = it }
-                    downFocusRequester?.let { down = it }
-                    if (isFirstItem) {
-                        left = FocusRequester.Cancel
-                    }
-                    if (isLastItem) {
-                        right = FocusRequester.Cancel
-                    }
-                }
-            } else {
-                Modifier.focusProperties {
-                    if (isFirstItem) {
-                        left = FocusRequester.Cancel
-                    }
-                    if (isLastItem) {
-                        right = FocusRequester.Cancel
-                    }
-                }
-            }
-        )
 
     Column(
         modifier = modifier
@@ -333,7 +249,7 @@ fun TvNextUpCard(
             PurefinAsyncImage(
                 model = imageUrl,
                 contentDescription = null,
-                modifier = imageFocusModifier
+                modifier = Modifier
                     .fillMaxSize()
                     .onFocusChanged { isFocused = it.isFocused }
                     .clickable {
@@ -367,10 +283,6 @@ fun TvLibraryPosterSection(
     title: String,
     items: List<PosterItem>,
     action: String?,
-    sectionFocusRequester: FocusRequester,
-    firstItemFocusRequester: FocusRequester? = null,
-    upFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null,
     modifier: Modifier = Modifier,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
@@ -382,9 +294,7 @@ fun TvLibraryPosterSection(
     )
     LazyRow(
         modifier = modifier
-            .fillMaxWidth()
-            .focusRequester(sectionFocusRequester)
-            .focusRestorer(firstItemFocusRequester ?: FocusRequester.Default),
+            .fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -394,9 +304,6 @@ fun TvLibraryPosterSection(
         ) { index, item ->
             PosterCard(
                 item = item,
-                focusRequester = if (index == 0) firstItemFocusRequester else null,
-                upFocusRequester = upFocusRequester,
-                downFocusRequester = downFocusRequester,
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected
