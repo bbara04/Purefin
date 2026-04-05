@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.UnwatchedEpisodeIndicator
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
+import hu.bbara.purefin.feature.shared.home.FocusableItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -39,6 +40,8 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 fun PosterCard(
     item: PosterItem,
     modifier: Modifier = Modifier,
+    imageModifier: Modifier = Modifier,
+    onFocusedItem: (FocusableItem) -> Unit = {},
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
@@ -74,7 +77,7 @@ fun PosterCard(
             PurefinAsyncImage(
                 model = item.imageUrl,
                 contentDescription = null,
-                modifier = Modifier
+                modifier = imageModifier
                     .aspectRatio(2f / 3f)
                     .clip(RoundedCornerShape(14.dp))
                     .border(
@@ -83,7 +86,12 @@ fun PosterCard(
                         shape = RoundedCornerShape(14.dp)
                     )
                     .background(scheme.surfaceVariant)
-                    .onFocusChanged { isFocused = it.isFocused }
+                    .onFocusChanged {
+                        isFocused = it.isFocused
+                        if (it.isFocused) {
+                            onFocusedItem(item)
+                        }
+                    }
                     .clickable(onClick = { openItem(item) }),
                 contentScale = ContentScale.Crop
             )

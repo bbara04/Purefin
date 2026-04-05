@@ -13,20 +13,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import hu.bbara.purefin.app.home.ui.HomeContent
 import hu.bbara.purefin.app.home.ui.HomeTopBar
-import hu.bbara.purefin.app.home.ui.homePreviewContinueWatching
-import hu.bbara.purefin.app.home.ui.homePreviewLibraries
-import hu.bbara.purefin.app.home.ui.homePreviewLibraryContent
-import hu.bbara.purefin.app.home.ui.homePreviewNextUp
 import hu.bbara.purefin.app.home.ui.search.HomeSearchOverlay
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import hu.bbara.purefin.feature.shared.home.SuggestedItem
-import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,30 +107,5 @@ fun HomeScreen(
                     .padding(innerPadding)
             )
         }
-    }
-}
-
-@Preview(name = "Home Screen", showBackground = true, widthDp = 412, heightDp = 915)
-@Composable
-private fun HomeScreenPreview() {
-    AppTheme(darkTheme = true) {
-        HomeScreen(
-            libraries = homePreviewLibraries(),
-            libraryContent = homePreviewLibraryContent(),
-            suggestions = emptyList(),
-            continueWatching = homePreviewContinueWatching(),
-            nextUp = homePreviewNextUp(),
-            isRefreshing = false,
-            onRefresh = {},
-            onMovieSelected = {},
-            onSeriesSelected = {},
-            onEpisodeSelected = { _, _, _ -> },
-            onLibrarySelected = {},
-            onProfileClick = {},
-            onSettingsClick = {},
-            onLogoutClick = {},
-            selectedTab = 0,
-            onTabSelected = {}
-        )
     }
 }

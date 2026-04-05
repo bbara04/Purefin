@@ -35,12 +35,14 @@ fun TvAppScreen(
     libraryViewModel: LibraryViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    var selectedTabIndex by remember { mutableIntStateOf(1) }
+    val serverUrl by viewModel.serverUrl.collectAsState()
     val libraries by viewModel.libraries.collectAsState()
     val continueWatching by viewModel.continueWatching.collectAsState()
     val nextUp by viewModel.nextUp.collectAsState()
     val latestLibraryContent by viewModel.latestLibraryContent.collectAsState()
     val selectedLibraryItems by libraryViewModel.contents.collectAsState()
+
+    var selectedTabIndex by remember { mutableIntStateOf(1) }
 
     val tabs = remember(libraries) {
         buildList {
@@ -125,6 +127,7 @@ fun TvAppScreen(
                     libraryContent = latestLibraryContent,
                     continueWatching = continueWatching,
                     nextUp = nextUp,
+                    serverUrl = serverUrl,
                     onMovieSelected = viewModel::onMovieSelected,
                     onSeriesSelected = viewModel::onSeriesSelected,
                     onEpisodeSelected = viewModel::onEpisodeSelected,

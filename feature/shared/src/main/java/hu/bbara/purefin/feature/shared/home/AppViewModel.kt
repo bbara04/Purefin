@@ -39,6 +39,13 @@ class AppViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    val serverUrl: StateFlow<String> = userSessionRepository.serverUrl
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            ""
+        )
+
     val libraries = appContentRepository.libraries.map { libraries ->
         libraries.map {
             LibraryItem(

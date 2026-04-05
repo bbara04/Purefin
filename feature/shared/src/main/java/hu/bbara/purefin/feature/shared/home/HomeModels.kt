@@ -88,24 +88,49 @@ data class SuggestedMovie (
         )
 ) : SuggestedItem
 
+sealed interface FocusableItem {
+    val imageUrl: String
+    val primaryText: String
+    val secondaryText: String
+    val description: String
+    val id: UUID
+    val type: BaseItemKind
+}
+
 data class ContinueWatchingItem(
-    val type: BaseItemKind,
+    override val type: BaseItemKind,
     val movie: Movie? = null,
-    val episode: Episode? = null
-) {
-    val id: UUID = when (type) {
+    val episode: Episode? = null,
+) : FocusableItem {
+    override val id: UUID = when (type) {
         BaseItemKind.MOVIE -> movie!!.id
         BaseItemKind.EPISODE -> episode!!.id
         else -> throw UnsupportedOperationException("Unsupported item type: $type")
     }
-    val primaryText: String = when (type) {
+    override val primaryText: String = when (type) {
         BaseItemKind.MOVIE -> movie!!.title
         BaseItemKind.EPISODE -> episode!!.title
         else -> throw UnsupportedOperationException("Unsupported item type: $type")
     }
-    val secondaryText: String = when (type) {
+    override val secondaryText: String = when (type) {
         BaseItemKind.MOVIE -> movie!!.year
         BaseItemKind.EPISODE -> episode!!.releaseDate
+        else -> throw UnsupportedOperationException("Unsupported item type: $type")
+    }
+    override val imageUrl: String = when (type) {
+        BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = movie!!.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
+        BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = episode!!.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
+        else -> throw IllegalArgumentException("Invalid type: $type")
+    }
+    override val description: String = when (type) {
+        BaseItemKind.MOVIE -> movie!!.synopsis
+        BaseItemKind.EPISODE -> episode!!.synopsis
         else -> throw UnsupportedOperationException("Unsupported item type: $type")
     }
     val progress: Double = when (type) {
@@ -117,10 +142,19 @@ data class ContinueWatchingItem(
 
 data class NextUpItem(
     val episode: Episode
-) {
-    val id: UUID = episode.id
-    val primaryText: String = episode.title
-    val secondaryText: String = episode.releaseDate
+) : FocusableItem {
+    override val id: UUID = episode.id
+    override val type: BaseItemKind
+        get() = BaseItemKind.EPISODE
+    override val imageUrl: String
+        get() = JellyfinImageHelper.finishImageUrl(
+            prefixImageUrl = episode.imageUrlPrefix,
+            imageType = ImageType.PRIMARY
+        )
+    override val primaryText: String = episode.title
+    override val secondaryText: String = episode.releaseDate
+    override val description: String
+        get() = episode.synopsis
 }
 
 data class LibraryItem(
@@ -132,12 +166,12 @@ data class LibraryItem(
 )
 
 data class PosterItem(
-    val type: BaseItemKind,
+    override val type: BaseItemKind,
     val movie: Movie? = null,
     val series: Series? = null,
     val episode: Episode? = null
-) {
-    val id: UUID = when (type) {
+) : FocusableItem {
+    override val id: UUID = when (type) {
         BaseItemKind.MOVIE -> movie!!.id
         BaseItemKind.EPISODE -> episode!!.id
         BaseItemKind.SERIES -> series!!.id
@@ -149,7 +183,7 @@ data class PosterItem(
         BaseItemKind.SERIES -> series!!.name
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
-    val imageUrl: String = when (type) {
+    override val imageUrl: String = when (type) {
         BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
             prefixImageUrl = movie!!.imageUrlPrefix,
             imageType = ImageType.PRIMARY
@@ -164,6 +198,28 @@ data class PosterItem(
         )
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
+    override val primaryText: String
+        get() = when (type) {
+            BaseItemKind.MOVIE -> movie!!.title
+            BaseItemKind.EPISODE -> episode!!.title
+            BaseItemKind.SERIES -> series!!.name
+            else -> throw IllegalArgumentException("Invalid type: $type")
+        }
+    override val secondaryText: String
+        get() = when (type) {
+            BaseItemKind.MOVIE -> movie!!.year
+            BaseItemKind.EPISODE -> episode!!.releaseDate
+            BaseItemKind.SERIES -> series!!.year
+            else -> throw IllegalArgumentException("Invalid type: $type")
+        }
+    override val description: String
+        get() = when (type) {
+            BaseItemKind.MOVIE -> movie!!.synopsis
+            BaseItemKind.EPISODE -> episode!!.synopsis
+            BaseItemKind.SERIES -> series!!.synopsis
+            else -> throw IllegalArgumentException("Invalid type: $type")
+        }
+
     fun watched() = when (type) {
         BaseItemKind.MOVIE -> movie!!.watched
         BaseItemKind.EPISODE -> episode!!.watched

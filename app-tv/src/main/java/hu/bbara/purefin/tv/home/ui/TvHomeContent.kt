@@ -6,21 +6,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.shared.home.FocusableItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
+
+internal const val TvHomeInitialFocusTag = "tv-home-initial-focus-item"
 
 @Composable
 fun TvHomeContent(
@@ -28,24 +36,48 @@ fun TvHomeContent(
     libraryContent: Map<UUID, List<PosterItem>>,
     continueWatching: List<ContinueWatchingItem>,
     nextUp: List<NextUpItem>,
+    onMediaFocused: (FocusableItem) -> Unit,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val visibleLibraries = remember(libraries, libraryContent) {
         libraries.filter { libraryContent[it.id]?.isEmpty() != true }
     }
-
     val ( nextUpRef, continueWatchingRef ) = remember { FocusRequester.createRefs() }
-    val libraryRefs = remember(libraryContent) {
-        libraryContent.keys.associateWith { FocusRequester() }
+    val libraryRefs = remember(visibleLibraries) {
+        visibleLibraries.associate { it.id to FocusRequester() }
+    }
+    val initialFocusRequester = remember { FocusRequester() }
+    val firstVisibleLibraryId = visibleLibraries.firstOrNull()?.id
+    val firstAvailableItemKey = remember(
+        continueWatching,
+        nextUp,
+        firstVisibleLibraryId,
+        libraryContent
+    ) {
+        when {
+            continueWatching.isNotEmpty() -> continueWatching.first().id
+            nextUp.isNotEmpty() -> nextUp.first().id
+            firstVisibleLibraryId != null -> libraryContent[firstVisibleLibraryId]?.firstOrNull()?.id
+            else -> null
+        }
+    }
+    var initialFocusApplied by remember { mutableStateOf(false) }
+
+    LaunchedEffect(firstAvailableItemKey, initialFocusApplied) {
+        if (!initialFocusApplied && firstAvailableItemKey != null) {
+            withFrameNanos { }
+            initialFocusRequester.requestFocus()
+            initialFocusApplied = true
+        }
     }
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color.Transparent)
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
@@ -53,8 +85,11 @@ fun TvHomeContent(
         item {
             TvContinueWatchingSection(
                 items = continueWatching,
+                onFocusedItem = onMediaFocused,
                 onMovieSelected = onMovieSelected,
                 onEpisodeSelected = onEpisodeSelected,
+                firstItemFocusRequester = initialFocusRequester.takeIf { continueWatching.isNotEmpty() },
+                firstItemTestTag = TvHomeInitialFocusTag.takeIf { continueWatching.isNotEmpty() },
                 modifier = Modifier.focusRequester(continueWatchingRef)
                     .focusProperties {
                         down = nextUpRef
@@ -67,7 +102,12 @@ fun TvHomeContent(
         item {
             TvNextUpSection(
                 items = nextUp,
+                onFocusedItem = onMediaFocused,
                 onEpisodeSelected = onEpisodeSelected,
+                firstItemFocusRequester = initialFocusRequester
+                    .takeIf { continueWatching.isEmpty() && nextUp.isNotEmpty() },
+                firstItemTestTag = TvHomeInitialFocusTag
+                    .takeIf { continueWatching.isEmpty() && nextUp.isNotEmpty() },
                 modifier = Modifier.focusRequester(nextUpRef)
                     .focusProperties {
                         up = continueWatchingRef
@@ -87,10 +127,21 @@ fun TvHomeContent(
                 title = item.name,
                 items = libraryContent[item.id] ?: emptyList(),
                 action = "See All",
+                onFocusedItem = onMediaFocused,
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected,
-                modifier = if (ref != null) Modifier.focusRequester(ref) else Modifier
+                firstItemFocusRequester = initialFocusRequester.takeIf {
+                    continueWatching.isEmpty() &&
+                        nextUp.isEmpty() &&
+                        item.id == firstVisibleLibraryId
+                },
+                firstItemTestTag = TvHomeInitialFocusTag.takeIf {
+                    continueWatching.isEmpty() &&
+                        nextUp.isEmpty() &&
+                        item.id == firstVisibleLibraryId
+                },
+                modifier = (if (ref != null) Modifier.focusRequester(ref) else Modifier)
                     .focusProperties {
                         up = nextUpRef
                         libraryRefs.values.dropWhile { it != ref }.drop(1).firstOrNull()

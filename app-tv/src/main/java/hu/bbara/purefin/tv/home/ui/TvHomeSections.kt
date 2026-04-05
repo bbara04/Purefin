@@ -28,10 +28,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -41,6 +44,7 @@ import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.shared.home.FocusableItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
@@ -51,8 +55,11 @@ import kotlin.math.nextUp
 @Composable
 fun TvContinueWatchingSection(
     items: List<ContinueWatchingItem>,
+    onFocusedItem: (FocusableItem) -> Unit = {},
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    firstItemFocusRequester: FocusRequester? = null,
+    firstItemTestTag: String? = null,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
@@ -66,9 +73,25 @@ fun TvContinueWatchingSection(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        itemsIndexed(items = items) { index, item ->
+        itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
             TvContinueWatchingCard(
                 item = item,
+                imageModifier = Modifier
+                    .then(
+                        if (index == 0 && firstItemFocusRequester != null) {
+                            Modifier.focusRequester(firstItemFocusRequester)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .then(
+                        if (index == 0 && firstItemTestTag != null) {
+                            Modifier.testTag(firstItemTestTag)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                onFocusedItem = onFocusedItem,
                 onMovieSelected = onMovieSelected,
                 onEpisodeSelected = onEpisodeSelected
             )
@@ -80,6 +103,8 @@ fun TvContinueWatchingSection(
 fun TvContinueWatchingCard(
     item: ContinueWatchingItem,
     modifier: Modifier = Modifier,
+    imageModifier: Modifier = Modifier,
+    onFocusedItem: (FocusableItem) -> Unit = {},
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
@@ -139,9 +164,14 @@ fun TvContinueWatchingCard(
             PurefinAsyncImage(
                 model = imageUrl,
                 contentDescription = null,
-                modifier = Modifier
+                modifier = imageModifier
                     .fillMaxSize()
-                    .onFocusChanged { isFocused = it.isFocused }
+                    .onFocusChanged {
+                        isFocused = it.isFocused
+                        if (it.isFocused) {
+                            onFocusedItem(item)
+                        }
+                    }
                     .clickable {
                         openItem(item)
                     },
@@ -178,7 +208,10 @@ fun TvContinueWatchingCard(
 @Composable
 fun TvNextUpSection(
     items: List<NextUpItem>,
+    onFocusedItem: (FocusableItem) -> Unit = {},
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    firstItemFocusRequester: FocusRequester? = null,
+    firstItemTestTag: String? = null,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
@@ -192,14 +225,25 @@ fun TvNextUpSection(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        itemsIndexed(
-            items = items,
-            key = { _, item -> item.id }
-        ) { index, item ->
+        itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
             TvNextUpCard(
                 item = item,
-                isFirstItem = index == 0,
-                isLastItem = index == items.lastIndex,
+                imageModifier = Modifier
+                    .then(
+                        if (index == 0 && firstItemFocusRequester != null) {
+                            Modifier.focusRequester(firstItemFocusRequester)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .then(
+                        if (index == 0 && firstItemTestTag != null) {
+                            Modifier.testTag(firstItemTestTag)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                onFocusedItem = onFocusedItem,
                 onEpisodeSelected = onEpisodeSelected
             )
         }
@@ -210,8 +254,8 @@ fun TvNextUpSection(
 fun TvNextUpCard(
     item: NextUpItem,
     modifier: Modifier = Modifier,
-    isFirstItem: Boolean = false,
-    isLastItem: Boolean = false,
+    imageModifier: Modifier = Modifier,
+    onFocusedItem: (FocusableItem) -> Unit = {},
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -219,7 +263,7 @@ fun TvNextUpCard(
     var isFocused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
-    val imageUrl = JellyfinImageHelper.finishImageUrl(item.episode.imageUrlPrefix, ImageType.PRIMARY)
+    val imageUrl = item.imageUrl
 
     val cardWidth = 280.dp
 
@@ -253,9 +297,14 @@ fun TvNextUpCard(
             PurefinAsyncImage(
                 model = imageUrl,
                 contentDescription = null,
-                modifier = Modifier
+                modifier = imageModifier
                     .fillMaxSize()
-                    .onFocusChanged { isFocused = it.isFocused }
+                    .onFocusChanged {
+                        isFocused = it.isFocused
+                        if (it.isFocused) {
+                            onFocusedItem(item)
+                        }
+                    }
                     .clickable {
                         openItem(item)
                     },
@@ -287,6 +336,9 @@ fun TvLibraryPosterSection(
     title: String,
     items: List<PosterItem>,
     action: String?,
+    onFocusedItem: (FocusableItem) -> Unit = {},
+    firstItemFocusRequester: FocusRequester? = null,
+    firstItemTestTag: String? = null,
     modifier: Modifier = Modifier,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
@@ -302,12 +354,25 @@ fun TvLibraryPosterSection(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        itemsIndexed(
-            items = items,
-            key = { _, item -> item.id }
-        ) { index, item ->
+        itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
             PosterCard(
                 item = item,
+                imageModifier = Modifier
+                    .then(
+                        if (index == 0 && firstItemFocusRequester != null) {
+                            Modifier.focusRequester(firstItemFocusRequester)
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .then(
+                        if (index == 0 && firstItemTestTag != null) {
+                            Modifier.testTag(firstItemTestTag)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                onFocusedItem = onFocusedItem,
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected
