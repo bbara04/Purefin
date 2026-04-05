@@ -21,26 +21,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.core.model.Movie
 
 internal const val MoviePlayButtonTag = "movie-play-button"
-
-@Composable
-internal fun MovieTopBar(
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier,
-    backFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null
-) {
-    MediaDetailsTopBar(
-        onBack = onBack,
-        modifier = modifier,
-        backFocusRequester = backFocusRequester,
-        downFocusRequester = downFocusRequester
-    )
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

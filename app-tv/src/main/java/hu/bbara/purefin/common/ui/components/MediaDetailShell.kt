@@ -2,7 +2,6 @@ package hu.bbara.purefin.common.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
@@ -31,7 +30,6 @@ internal fun TvMediaDetailScaffold(
     resetScrollKey: Any,
     modifier: Modifier = Modifier,
     heroHeightFraction: Float = 0.48f,
-    topBar: @Composable BoxScope.() -> Unit,
     heroContent: @Composable ColumnScope.() -> Unit,
     bodyContent: LazyListScope.(Modifier) -> Unit = { _ -> }
 ) {
@@ -71,7 +69,6 @@ internal fun TvMediaDetailScaffold(
             }
             bodyContent(contentPadding)
         }
-        topBar()
     }
 }
 

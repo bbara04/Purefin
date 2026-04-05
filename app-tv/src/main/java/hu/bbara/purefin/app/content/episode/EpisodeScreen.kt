@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
@@ -58,12 +57,6 @@ fun EpisodeScreen(
     EpisodeScreenContent(
         episode = selectedEpisode,
         seriesTitle = seriesTitle.value,
-        topBarShortcut = remember(previousRoute, viewModel) {
-            episodeTopBarShortcut(
-                previousRoute = previousRoute,
-                onSeriesClick = viewModel::onSeriesClick
-            )
-        },
         onBack = viewModel::onBack,
         onPlay = remember(selectedEpisode.id, navigationManager) {
             {
@@ -80,7 +73,6 @@ fun EpisodeScreen(
 internal fun EpisodeScreenContent(
     episode: Episode,
     seriesTitle: String?,
-    topBarShortcut: EpisodeTopBarShortcut?,
     onBack: () -> Unit,
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
@@ -96,15 +88,6 @@ internal fun EpisodeScreenContent(
         heroImageUrl = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
         resetScrollKey = episode.id,
         modifier = modifier,
-        topBar = {
-            EpisodeTopBar(
-                onBack = onBack,
-                shortcut = topBarShortcut,
-                backFocusRequester = backFocusRequester,
-                downFocusRequester = playFocusRequester,
-                modifier = Modifier.align(Alignment.TopStart)
-            )
-        },
         heroContent = {
             EpisodeHeroSection(
                 episode = episode,

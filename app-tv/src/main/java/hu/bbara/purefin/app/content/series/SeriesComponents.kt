@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaCastRow
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
@@ -70,21 +69,6 @@ import org.jellyfin.sdk.model.api.ImageType
 
 internal const val SeriesPlayButtonTag = "series-play-button"
 internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"
-
-@Composable
-internal fun SeriesTopBar(
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier,
-    backFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null
-) {
-    MediaDetailsTopBar(
-        onBack = onBack,
-        modifier = modifier,
-        backFocusRequester = backFocusRequester,
-        downFocusRequester = downFocusRequester
-    )
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

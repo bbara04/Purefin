@@ -21,49 +21,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.components.MediaDetailsTopBar
-import hu.bbara.purefin.common.ui.components.MediaDetailsTopBarShortcut
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
-import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
 
 internal const val EpisodePlayButtonTag = "episode-play-button"
-
-internal sealed interface EpisodeTopBarShortcut {
-    val label: String
-    val onClick: () -> Unit
-
-    data class Series(override val onClick: () -> Unit) : EpisodeTopBarShortcut {
-        override val label: String = "Series"
-    }
-}
-
-internal fun episodeTopBarShortcut(
-    previousRoute: Route?,
-    onSeriesClick: () -> Unit
-): EpisodeTopBarShortcut? {
-    return when (previousRoute) {
-        Route.Home -> EpisodeTopBarShortcut.Series(onClick = onSeriesClick)
-        else -> null
-    }
-}
-
-@Composable
-internal fun EpisodeTopBar(
-    onBack: () -> Unit,
-    shortcut: EpisodeTopBarShortcut? = null,
-    modifier: Modifier = Modifier,
-    backFocusRequester: FocusRequester? = null,
-    downFocusRequester: FocusRequester? = null
-) {
-    MediaDetailsTopBar(
-        onBack = onBack,
-        shortcut = shortcut?.let { MediaDetailsTopBarShortcut(label = it.label, onClick = it.onClick) },
-        modifier = modifier,
-        backFocusRequester = backFocusRequester,
-        downFocusRequester = downFocusRequester
-    )
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
