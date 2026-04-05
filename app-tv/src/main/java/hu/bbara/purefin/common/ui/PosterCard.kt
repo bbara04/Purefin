@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
@@ -41,6 +42,10 @@ fun PosterCard(
     item: PosterItem,
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier,
+    posterWidth: Dp = 144.dp,
+    showSecondaryText: Boolean = false,
+    indicatorSize: Int = 28,
+    indicatorPadding: Dp = 8.dp,
     onFocusedItem: (FocusableItem) -> Unit = {},
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
@@ -49,8 +54,6 @@ fun PosterCard(
     val scheme = MaterialTheme.colorScheme
     var isFocused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
-
-    val posterWidth = 144.dp
 
     fun openItem(posterItem: PosterItem) {
         when (posterItem.type) {
@@ -73,7 +76,7 @@ fun PosterCard(
                 transformOrigin = TransformOrigin(0.5f, 0f)
             }
     ) {
-        Box() {
+        Box {
             PurefinAsyncImage(
                 model = item.imageUrl,
                 contentDescription = null,
@@ -99,9 +102,9 @@ fun PosterCard(
                 BaseItemKind.MOVIE -> {
                     val m = item.movie!!
                     WatchStateIndicator(
-                        size = 28,
+                        size = indicatorSize,
                         modifier = Modifier.align(Alignment.TopEnd)
-                            .padding(8.dp),
+                            .padding(indicatorPadding),
                         watched = m.watched,
                         started = (m.progress ?: 0.0) > 0
                     )
@@ -109,30 +112,45 @@ fun PosterCard(
                 BaseItemKind.EPISODE -> {
                     val ep = item.episode!!
                     WatchStateIndicator(
-                        size = 28,
+                        size = indicatorSize,
                         modifier = Modifier.align(Alignment.TopEnd)
-                            .padding(8.dp),
+                            .padding(indicatorPadding),
                         watched = ep.watched,
                         started = (ep.progress ?: 0.0) > 0
                     )
                 }
                 BaseItemKind.SERIES -> UnwatchedEpisodeIndicator(
-                    size = 28,
+                    size = indicatorSize,
                     modifier = Modifier.align(Alignment.TopEnd)
-                        .padding(8.dp),
+                        .padding(indicatorPadding),
                     unwatchedCount = item.series!!.unwatchedEpisodeCount
                 )
                 else -> {}
             }
         }
-        Text(
-            text = item.title,
-            color = scheme.onBackground,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 8.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Column(
+            modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 8.dp)
+        ) {
+            Text(
+                text = item.title,
+                color = scheme.onBackground,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            item.secondaryText
+                .takeIf { showSecondaryText }
+                ?.takeIf { it.isNotBlank() }
+                ?.let { text ->
+                    Text(
+                        text = text,
+                        color = scheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+        }
     }
 }

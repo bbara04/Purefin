@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,7 +60,7 @@ internal fun TvMediaDetailScaffold(
                         heightFraction = heroHeightFraction,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    MediaDetailHeroGradientOverlay()
+                    MediaHeroScrimOverlay()
                     Column(
                         modifier = contentPadding
                             .padding(top = 104.dp, bottom = 36.dp)
@@ -130,37 +129,4 @@ internal fun MediaDetailPlaybackSection(
             subtitles = subtitles
         )
     }
-}
-
-@Composable
-private fun MediaDetailHeroGradientOverlay() {
-    val background = MaterialTheme.colorScheme.background
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.horizontalGradient(
-                    colors = listOf(
-                        background,
-                        background.copy(alpha = 0.95f),
-                        background.copy(alpha = 0.7f),
-                        background.copy(alpha = 0.15f)
-                    )
-                )
-            )
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        background.copy(alpha = 0.05f),
-                        background.copy(alpha = 0.2f),
-                        background
-                    )
-                )
-            )
-    )
 }

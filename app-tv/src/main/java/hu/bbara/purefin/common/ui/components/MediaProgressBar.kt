@@ -2,6 +2,7 @@ package hu.bbara.purefin.common.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -27,15 +29,18 @@ fun MediaProgressBar(
     progress: Float,
     foregroundColor: Color = MaterialTheme.colorScheme.onSurface,
     backgroundColor: Color = MaterialTheme.colorScheme.primary,
+    contentPadding: PaddingValues = PaddingValues(start = 8.dp, end = 8.dp, bottom = 8.dp),
+    barHeight: Dp = 4.dp,
+    cornerRadius: Dp = 24.dp,
     modifier: Modifier
 ) {
-    if (progress == 0f) return
+    if (progress <= 0f) return
     Box(
         modifier = modifier
-            .padding(bottom = 8.dp, start = 8.dp, end = 8.dp)
-            .clip(RoundedCornerShape(24.dp))
+            .padding(contentPadding)
+            .clip(RoundedCornerShape(cornerRadius))
             .fillMaxWidth()
-            .height(4.dp)
+            .height(barHeight)
             .background(backgroundColor.copy(alpha = 0.2f))
     ) {
         Box(

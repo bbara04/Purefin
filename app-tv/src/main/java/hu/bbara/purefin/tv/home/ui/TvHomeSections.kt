@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -50,7 +51,13 @@ import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
-import kotlin.math.nextUp
+
+private val TvHomeSectionsThumbShape = RoundedCornerShape(20.dp)
+private val TvHomeSectionsPillShape = RoundedCornerShape(18.dp)
+private val TvHomeSectionsHorizontalPadding = 32.dp
+private val TvHomeSectionsRowSpacing = 18.dp
+private val TvHomeLandscapeCardWidth = 248.dp
+private val TvHomePosterCardWidth = 136.dp
 
 @Composable
 fun TvContinueWatchingSection(
@@ -68,14 +75,30 @@ fun TvContinueWatchingSection(
         action = null
     )
     LazyRow(
-        modifier = modifier
-            .fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = TvHomeSectionsHorizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(TvHomeSectionsRowSpacing)
     ) {
         itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
-            TvContinueWatchingCard(
-                item = item,
+            val progressFraction = (item.progress / 100.0).toFloat().coerceIn(0f, 1f)
+            TvHomeLandscapeCard(
+                title = item.primaryText,
+                supporting = item.secondaryText,
+                imageUrl = when (item.type) {
+                    BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+                        prefixImageUrl = item.movie?.imageUrlPrefix,
+                        imageType = ImageType.PRIMARY
+                    )
+
+                    BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+                        prefixImageUrl = item.episode?.imageUrlPrefix,
+                        imageType = ImageType.PRIMARY
+                    )
+
+                    else -> null
+                },
+                badgeText = if (progressFraction > 0f) "Resume" else null,
+                progress = progressFraction,
                 imageModifier = Modifier
                     .then(
                         if (index == 0 && firstItemFocusRequester != null) {
@@ -91,115 +114,18 @@ fun TvContinueWatchingSection(
                             Modifier
                         }
                     ),
-                onFocusedItem = onFocusedItem,
-                onMovieSelected = onMovieSelected,
-                onEpisodeSelected = onEpisodeSelected
-            )
-        }
-    }
-}
-
-@Composable
-fun TvContinueWatchingCard(
-    item: ContinueWatchingItem,
-    modifier: Modifier = Modifier,
-    imageModifier: Modifier = Modifier,
-    onFocusedItem: (FocusableItem) -> Unit = {},
-    onMovieSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    var isFocused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
-
-    val imageUrl = when (item.type) {
-        BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
-            prefixImageUrl = item.movie?.imageUrlPrefix,
-            imageType = ImageType.PRIMARY
-        )
-        BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
-            prefixImageUrl = item.episode?.imageUrlPrefix,
-            imageType = ImageType.PRIMARY
-        )
-        else -> null
-    }
-
-    val cardWidth = 280.dp
-
-    fun openItem(item: ContinueWatchingItem) {
-        when (item.type) {
-            BaseItemKind.MOVIE -> onMovieSelected(item.movie!!.id)
-            BaseItemKind.EPISODE -> {
-                val episode = item.episode!!
-                onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
-            }
-
-            else -> {}
-        }
-    }
-
-    Column(
-        modifier = modifier
-            .width(cardWidth)
-            .wrapContentHeight()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                transformOrigin = TransformOrigin(0.5f, 0f)
-            }
-    ) {
-        Box(
-            modifier = Modifier
-                .width(cardWidth)
-                .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(16.dp))
-                .border(
-                    width = if (isFocused) 2.dp else 1.dp,
-                    color = if (isFocused) scheme.primary else scheme.outlineVariant.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .background(scheme.surfaceVariant)
-        ) {
-            PurefinAsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                modifier = imageModifier
-                    .fillMaxSize()
-                    .onFocusChanged {
-                        isFocused = it.isFocused
-                        if (it.isFocused) {
-                            onFocusedItem(item)
+                onFocusedItem = { onFocusedItem(item) },
+                onClick = {
+                    when (item.type) {
+                        BaseItemKind.MOVIE -> onMovieSelected(item.movie!!.id)
+                        BaseItemKind.EPISODE -> {
+                            val episode = item.episode!!
+                            onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
                         }
+
+                        else -> Unit
                     }
-                    .clickable {
-                        openItem(item)
-                    },
-                contentScale = ContentScale.Crop,
-            )
-            MediaProgressBar(
-                progress = item.progress.toFloat().nextUp().div(100),
-                foregroundColor = scheme.onSurface,
-                backgroundColor = scheme.primary,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-            )
-        }
-        Column(modifier = Modifier.padding(top = 12.dp)) {
-            Text(
-                text = item.primaryText,
-                color = scheme.onBackground,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = item.secondaryText,
-                color = scheme.onSurfaceVariant,
-                fontSize = 13.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                }
             )
         }
     }
@@ -220,14 +146,16 @@ fun TvNextUpSection(
         action = null
     )
     LazyRow(
-        modifier = modifier
-            .fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = TvHomeSectionsHorizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(TvHomeSectionsRowSpacing)
     ) {
         itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
-            TvNextUpCard(
-                item = item,
+            TvHomeLandscapeCard(
+                title = item.primaryText,
+                supporting = item.secondaryText,
+                imageUrl = item.imageUrl,
+                badgeText = "Next Up",
                 imageModifier = Modifier
                     .then(
                         if (index == 0 && firstItemFocusRequester != null) {
@@ -243,89 +171,11 @@ fun TvNextUpSection(
                             Modifier
                         }
                     ),
-                onFocusedItem = onFocusedItem,
-                onEpisodeSelected = onEpisodeSelected
-            )
-        }
-    }
-}
-
-@Composable
-fun TvNextUpCard(
-    item: NextUpItem,
-    modifier: Modifier = Modifier,
-    imageModifier: Modifier = Modifier,
-    onFocusedItem: (FocusableItem) -> Unit = {},
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    var isFocused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
-
-    val imageUrl = item.imageUrl
-
-    val cardWidth = 280.dp
-
-    fun openItem(item: NextUpItem) {
-        val episode = item.episode
-        onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
-    }
-
-    Column(
-        modifier = modifier
-            .width(cardWidth)
-            .wrapContentHeight()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                transformOrigin = TransformOrigin(0.5f, 0f)
-            }
-    ) {
-        Box(
-            modifier = Modifier
-                .width(cardWidth)
-                .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(16.dp))
-                .border(
-                    width = if (isFocused) 2.dp else 1.dp,
-                    color = if (isFocused) scheme.primary else scheme.outlineVariant.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .background(scheme.surfaceVariant)
-        ) {
-            PurefinAsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                modifier = imageModifier
-                    .fillMaxSize()
-                    .onFocusChanged {
-                        isFocused = it.isFocused
-                        if (it.isFocused) {
-                            onFocusedItem(item)
-                        }
-                    }
-                    .clickable {
-                        openItem(item)
-                    },
-                contentScale = ContentScale.Crop,
-            )
-        }
-        Column(modifier = Modifier.padding(top = 12.dp)) {
-            Text(
-                text = item.primaryText,
-                color = scheme.onBackground,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = item.secondaryText,
-                color = scheme.onSurfaceVariant,
-                fontSize = 13.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                onFocusedItem = { onFocusedItem(item) },
+                onClick = {
+                    val episode = item.episode
+                    onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
+                }
             )
         }
     }
@@ -349,14 +199,17 @@ fun TvLibraryPosterSection(
         action = action
     )
     LazyRow(
-        modifier = modifier
-            .fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = TvHomeSectionsHorizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(TvHomeSectionsRowSpacing)
     ) {
         itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
             PosterCard(
                 item = item,
+                posterWidth = TvHomePosterCardWidth,
+                showSecondaryText = true,
+                indicatorSize = 24,
+                indicatorPadding = 6.dp,
                 imageModifier = Modifier
                     .then(
                         if (index == 0 && firstItemFocusRequester != null) {
@@ -389,27 +242,150 @@ fun TvSectionHeader(
     onActionClick: () -> Unit = {}
 ) {
     val scheme = MaterialTheme.colorScheme
-
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = TvHomeSectionsHorizontalPadding, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = title,
             color = scheme.onBackground,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold
         )
         if (action != null) {
+            Box(
+                modifier = Modifier
+                    .clip(TvHomeSectionsPillShape)
+                    .background(scheme.surfaceContainerHigh.copy(alpha = 0.82f))
+                    .border(1.dp, scheme.outlineVariant.copy(alpha = 0.6f), TvHomeSectionsPillShape)
+                    .clickable { onActionClick() }
+                    .padding(horizontal = 12.dp, vertical = 7.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = action,
+                    color = scheme.onSurfaceVariant,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TvHomeLandscapeCard(
+    title: String,
+    supporting: String,
+    imageUrl: String?,
+    modifier: Modifier = Modifier,
+    imageModifier: Modifier = Modifier,
+    badgeText: String? = null,
+    progress: Float? = null,
+    onFocusedItem: () -> Unit = {},
+    onClick: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+    var isFocused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(targetValue = if (isFocused) 1.055f else 1f, label = "tv-home-landscape-scale")
+    val cardWidth = TvHomeLandscapeCardWidth
+
+    Column(
+        modifier = modifier
+            .width(cardWidth)
+            .wrapContentHeight()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(0.5f, 0f)
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .width(cardWidth)
+                .aspectRatio(16f / 9f)
+                .clip(TvHomeSectionsThumbShape)
+                .border(
+                    width = if (isFocused) 2.dp else 1.dp,
+                    color = if (isFocused) scheme.primary else scheme.outlineVariant.copy(alpha = 0.6f),
+                    shape = TvHomeSectionsThumbShape
+                )
+                .background(scheme.surfaceContainer)
+        ) {
+            PurefinAsyncImage(
+                model = imageUrl,
+                contentDescription = null,
+                modifier = imageModifier
+                    .fillMaxSize()
+                    .onFocusChanged {
+                        isFocused = it.isFocused
+                        if (it.isFocused) {
+                            onFocusedItem()
+                        }
+                    }
+                    .clickable(onClick = onClick),
+                contentScale = ContentScale.Crop,
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                scheme.background.copy(alpha = 0.04f),
+                                scheme.background.copy(alpha = 0.12f),
+                                scheme.background.copy(alpha = 0.56f)
+                            )
+                        )
+                    )
+            )
+            badgeText?.let { badge ->
+                TvHomeMetaChip(
+                    text = badge,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp),
+                    highlighted = isFocused
+                )
+            }
+            if (progress != null && progress > 0f) {
+                MediaProgressBar(
+                    progress = progress,
+                    foregroundColor = scheme.primary,
+                    backgroundColor = scheme.surfaceVariant,
+                    contentPadding = PaddingValues(0.dp),
+                    barHeight = 6.dp,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                )
+            }
+        }
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(top = 12.dp, start = 4.dp, end = 4.dp)
+        ) {
             Text(
-                text = action,
-                color = scheme.primary,
-                fontSize = 14.sp,
+                text = title,
+                color = scheme.onBackground,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable { onActionClick() })
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (supporting.isNotBlank()) {
+                Text(
+                    text = supporting,
+                    color = scheme.onSurfaceVariant,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

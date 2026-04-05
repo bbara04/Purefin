@@ -1,21 +1,27 @@
 package hu.bbara.purefin.tv.home
 
-import android.annotation.SuppressLint
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.FocusableItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.tv.home.ui.TvFocusedItemHero
 import hu.bbara.purefin.tv.home.ui.TvHomeContent
+import hu.bbara.purefin.tv.home.ui.rememberTvHomeHeroState
 import org.jellyfin.sdk.model.UUID
 
-@SuppressLint("RememberInComposition")
+private const val TvHomeHeroHeightFraction = 0.32f
+private val TvHomeMinHeroHeight = 160.dp
+private val TvHomeMaxHeroHeight = 200.dp
+
 @Composable
 fun TvHomeScreen(
     libraries: List<LibraryItem>,
@@ -28,20 +34,46 @@ fun TvHomeScreen(
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var focusableItem by remember { mutableStateOf<FocusableItem?>(null) }
-
-    TvHomeContent(
+    val scheme = MaterialTheme.colorScheme
+    val heroState = rememberTvHomeHeroState(
         libraries = libraries,
         libraryContent = libraryContent,
         continueWatching = continueWatching,
-        nextUp = nextUp,
-        onMediaFocused = { item: FocusableItem ->
-            focusableItem = item
-        },
-        onMovieSelected = onMovieSelected,
-        onSeriesSelected = onSeriesSelected,
-        onEpisodeSelected = onEpisodeSelected,
-        modifier = modifier
+        nextUp = nextUp
     )
 
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .background(scheme.background)
+    ) {
+        val heroHeight = heroState.focusedHero?.let {
+            (maxHeight * TvHomeHeroHeightFraction)
+                .coerceIn(TvHomeMinHeroHeight, TvHomeMaxHeroHeight)
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            heroState.focusedHero?.let { hero ->
+                TvFocusedItemHero(
+                    item = hero,
+                    height = heroHeight ?: TvHomeMinHeroHeight
+                )
+            }
+            TvHomeContent(
+                libraries = libraries,
+                libraryContent = libraryContent,
+                continueWatching = continueWatching,
+                nextUp = nextUp,
+                onMediaFocused = heroState.onMediaFocused,
+                onMovieSelected = onMovieSelected,
+                onSeriesSelected = onSeriesSelected,
+                onEpisodeSelected = onEpisodeSelected,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            )
+        }
+    }
 }

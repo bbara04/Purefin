@@ -1,11 +1,13 @@
 package hu.bbara.purefin.tv.home.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,7 +21,6 @@ import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.FocusableItem
@@ -40,30 +41,24 @@ fun TvHomeContent(
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(bottom = 32.dp),
     modifier: Modifier = Modifier,
 ) {
-    val visibleLibraries = remember(libraries, libraryContent) {
-        libraries.filter { libraryContent[it.id]?.isEmpty() != true }
-    }
-    val ( nextUpRef, continueWatchingRef ) = remember { FocusRequester.createRefs() }
+    val scheme = MaterialTheme.colorScheme
+    val itemRegistry = rememberTvHomeItemRegistry(
+        libraries = libraries,
+        libraryContent = libraryContent,
+        continueWatching = continueWatching,
+        nextUp = nextUp
+    )
+    val visibleLibraries = itemRegistry.visibleLibraries
+    val (nextUpRef, continueWatchingRef) = remember { FocusRequester.createRefs() }
     val libraryRefs = remember(visibleLibraries) {
         visibleLibraries.associate { it.id to FocusRequester() }
     }
     val initialFocusRequester = remember { FocusRequester() }
     val firstVisibleLibraryId = visibleLibraries.firstOrNull()?.id
-    val firstAvailableItemKey = remember(
-        continueWatching,
-        nextUp,
-        firstVisibleLibraryId,
-        libraryContent
-    ) {
-        when {
-            continueWatching.isNotEmpty() -> continueWatching.first().id
-            nextUp.isNotEmpty() -> nextUp.first().id
-            firstVisibleLibraryId != null -> libraryContent[firstVisibleLibraryId]?.firstOrNull()?.id
-            else -> null
-        }
-    }
+    val firstAvailableItemKey = itemRegistry.firstAvailableItemId
     var initialFocusApplied by remember { mutableStateOf(false) }
 
     LaunchedEffect(firstAvailableItemKey, initialFocusApplied) {
@@ -77,7 +72,8 @@ fun TvHomeContent(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Transparent)
+            .background(scheme.background),
+        contentPadding = contentPadding
     ) {
         item {
             Spacer(modifier = Modifier.height(8.dp))
@@ -97,7 +93,7 @@ fun TvHomeContent(
             )
         }
         item {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
         }
         item {
             TvNextUpSection(
@@ -116,7 +112,7 @@ fun TvHomeContent(
             )
         }
         item {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
         }
         items(
             items = visibleLibraries,
@@ -148,7 +144,7 @@ fun TvHomeContent(
                             ?.let { down = it }
                     }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
