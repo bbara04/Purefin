@@ -1,6 +1,10 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package hu.bbara.purefin.common.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -17,6 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +40,23 @@ private val MediaDetailHeaderTopPadding = 104.dp
 private val MediaDetailHeaderBottomPadding = 36.dp
 private const val MediaDetailBodyImageWidthFraction = 0.66f
 
+internal val TvMediaDetailBringIntoViewSpec: BringIntoViewSpec =
+    object : BringIntoViewSpec {
+        override fun calculateScrollDistance(
+            offset: Float,
+            size: Float,
+            containerSize: Float,
+        ): Float {
+            val trailingEdge = offset + size
+
+            return when {
+                offset < 0f -> offset
+                trailingEdge > containerSize -> trailingEdge - containerSize
+                else -> 0f
+            }
+        }
+    }
+
 @Composable
 internal fun TvMediaDetailScaffold(
     resetScrollKey: Any,
@@ -49,13 +71,15 @@ internal fun TvMediaDetailScaffold(
         listState.scrollToItem(0)
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = modifier
-            .fillMaxSize()
-            .background(scheme.background)
-    ) {
-        bodyContent(contentPadding)
+    CompositionLocalProvider(LocalBringIntoViewSpec provides TvMediaDetailBringIntoViewSpec) {
+        LazyColumn(
+            state = listState,
+            modifier = modifier
+                .fillMaxSize()
+                .background(scheme.background)
+        ) {
+            bodyContent(contentPadding)
+        }
     }
 }
 
