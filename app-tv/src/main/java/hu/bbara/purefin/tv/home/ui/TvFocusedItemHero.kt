@@ -31,7 +31,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.common.ui.components.MediaHeroScrimOverlay
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 
@@ -40,7 +39,6 @@ internal const val TvHomeHeroStatusTag = "tv-home-hero-status"
 internal const val TvHomeHeroProgressLabelTag = "tv-home-hero-progress-label"
 
 private const val TvHomeHeroAnimationMillis = 180
-private val TvHomeHeroShape = RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp)
 
 @Composable
 internal fun TvFocusedItemHero(
@@ -53,7 +51,6 @@ internal fun TvFocusedItemHero(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .clip(TvHomeHeroShape)
             .background(scheme.background)
     ) {
         Crossfade(
@@ -68,17 +65,16 @@ internal fun TvFocusedItemHero(
                 contentScale = ContentScale.Crop
             )
         }
-        MediaHeroScrimOverlay()
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.horizontalGradient(
-                        colors = listOf(
-                            scheme.background,
-                            scheme.background.copy(alpha = 0.94f),
-                            scheme.background.copy(alpha = 0.72f),
-                            scheme.background.copy(alpha = 0.18f)
+                        colorStops = arrayOf(
+                            0.0f to scheme.background,
+                            0.28f to scheme.background.copy(alpha = 0.88f),
+                            0.62f to scheme.background.copy(alpha = 0.42f),
+                            1.0f to scheme.background.copy(alpha = 0.06f)
                         )
                     )
                 )
@@ -88,10 +84,10 @@ internal fun TvFocusedItemHero(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(
-                            scheme.background.copy(alpha = 0f),
-                            scheme.background.copy(alpha = 0.22f),
-                            scheme.background.copy(alpha = 0.92f)
+                        colorStops = arrayOf(
+                            0.0f to scheme.background.copy(alpha = 0f),
+                            0.56f to scheme.background.copy(alpha = 0.1f),
+                            1.0f to scheme.background
                         )
                     )
                 )
