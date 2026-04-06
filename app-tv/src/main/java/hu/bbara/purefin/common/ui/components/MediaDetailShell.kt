@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
@@ -31,14 +32,12 @@ import org.jellyfin.sdk.model.api.ImageType
 internal val MediaDetailHorizontalPadding = 48.dp
 private val MediaDetailHeaderTopPadding = 104.dp
 private val MediaDetailHeaderBottomPadding = 36.dp
+private const val MediaDetailBodyImageWidthFraction = 0.56f
 
 @Composable
 internal fun TvMediaDetailScaffold(
-    backgroundImageUrl: String,
     resetScrollKey: Any,
     modifier: Modifier = Modifier,
-    headerHeightFraction: Float = 0.48f,
-    heroContent: @Composable ColumnScope.() -> Unit,
     bodyContent: LazyListScope.(Modifier) -> Unit = { _ -> }
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -55,36 +54,33 @@ internal fun TvMediaDetailScaffold(
             .fillMaxSize()
             .background(scheme.background)
     ) {
-        item {
-            TvMediaDetailHeader(
-                backgroundImageUrl = backgroundImageUrl,
-                headerHeightFraction = headerHeightFraction,
-                heroContent = heroContent
-            )
-        }
         bodyContent(contentPadding)
     }
 }
 
 @Composable
-private fun TvMediaDetailHeader(
+internal fun TvMediaDetailBodyBox(
     backgroundImageUrl: String,
-    headerHeightFraction: Float,
-    heroContent: @Composable ColumnScope.() -> Unit
+    modifier: Modifier = Modifier,
+    heightFraction: Float = 0.48f,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val headerHeight = screenHeight * headerHeightFraction
+    val bodyHeight = screenHeight * heightFraction
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = headerHeight)
+            .heightIn(min = bodyHeight)
     ) {
         PurefinAsyncImage(
             model = backgroundImageUrl,
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxWidth(MediaDetailBodyImageWidthFraction)
+                .align(Alignment.TopEnd),
             contentScale = ContentScale.Crop
         )
         Box(
@@ -118,13 +114,11 @@ private fun TvMediaDetailHeader(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    start = MediaDetailHorizontalPadding,
                     top = MediaDetailHeaderTopPadding,
-                    end = MediaDetailHorizontalPadding,
                     bottom = MediaDetailHeaderBottomPadding
                 )
         ) {
-            heroContent()
+            content()
         }
     }
 }

@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
+import hu.bbara.purefin.common.ui.components.TvMediaDetailBodyBox
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
 import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
 import hu.bbara.purefin.core.data.navigation.SeriesDto
@@ -70,21 +71,25 @@ internal fun SeriesScreenContent(
     }
 
     TvMediaDetailScaffold(
-        backgroundImageUrl = tvMediaDetailBackgroundImageUrl(series.imageUrlPrefix),
         resetScrollKey = series.id,
-        modifier = modifier,
-        heroContent = {
-            SeriesHeroSection(
-                series = series,
-                nextUpEpisode = nextUpEpisode,
-                onPlayEpisode = { onPlayEpisode(it.id) },
-                playFocusRequester = playFocusRequester,
-                firstContentFocusRequester = firstContentFocusRequester,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
+        modifier = modifier
     ) {
+        item {
+            TvMediaDetailBodyBox(
+                backgroundImageUrl = tvMediaDetailBackgroundImageUrl(series.imageUrlPrefix),
+                modifier = it
+            ) {
+                SeriesHeroSection(
+                    series = series,
+                    nextUpEpisode = nextUpEpisode,
+                    onPlayEpisode = { onPlayEpisode(it.id) },
+                    playFocusRequester = playFocusRequester,
+                    firstContentFocusRequester = firstContentFocusRequester,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
         item {
             Column(modifier = it.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(16.dp))

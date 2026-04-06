@@ -17,6 +17,7 @@ import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
 import hu.bbara.purefin.common.ui.components.MediaDetailPlaybackSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
+import hu.bbara.purefin.common.ui.components.TvMediaDetailBodyBox
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
 import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
 import hu.bbara.purefin.core.data.navigation.MovieDto
@@ -57,19 +58,23 @@ internal fun MovieScreenContent(
     }
 
     TvMediaDetailScaffold(
-        backgroundImageUrl = tvMediaDetailBackgroundImageUrl(movie.imageUrlPrefix),
         resetScrollKey = movie.id,
-        modifier = modifier,
-        heroContent = {
-            MovieHeroSection(
-                movie = movie,
-                onPlay = onPlay,
-                playFocusRequester = playFocusRequester,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
+        modifier = modifier
     ) {
+        item {
+            TvMediaDetailBodyBox(
+                backgroundImageUrl = tvMediaDetailBackgroundImageUrl(movie.imageUrlPrefix),
+                modifier = it
+            ) {
+                MovieHeroSection(
+                    movie = movie,
+                    onPlay = onPlay,
+                    playFocusRequester = playFocusRequester,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
         item {
             Column(modifier = it.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(16.dp))
