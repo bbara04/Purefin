@@ -97,7 +97,6 @@ fun TvContinueWatchingSection(
 
                     else -> null
                 },
-                badgeText = if (progressFraction > 0f) "Resume" else null,
                 progress = progressFraction,
                 imageModifier = Modifier
                     .then(
@@ -155,7 +154,6 @@ fun TvNextUpSection(
                 title = item.primaryText,
                 supporting = item.secondaryText,
                 imageUrl = item.imageUrl,
-                badgeText = "Next Up",
                 imageModifier = Modifier
                     .then(
                         if (index == 0 && firstItemFocusRequester != null) {
@@ -283,7 +281,6 @@ private fun TvHomeLandscapeCard(
     imageUrl: String?,
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier,
-    badgeText: String? = null,
     progress: Float? = null,
     onFocusedItem: () -> Unit = {},
     onClick: () -> Unit,
@@ -342,15 +339,6 @@ private fun TvHomeLandscapeCard(
                         )
                     )
             )
-            badgeText?.let { badge ->
-                TvHomeMetaChip(
-                    text = badge,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(8.dp),
-                    highlighted = isFocused
-                )
-            }
             if (progress != null && progress > 0f) {
                 MediaProgressBar(
                     progress = progress,
