@@ -122,7 +122,6 @@ fun TvHomeContent(
             TvLibraryPosterSection(
                 title = item.name,
                 items = libraryContent[item.id] ?: emptyList(),
-                action = "See All",
                 onFocusedItem = onMediaFocused,
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,

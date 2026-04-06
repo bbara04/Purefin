@@ -53,7 +53,6 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
 
 private val TvHomeSectionsThumbShape = RoundedCornerShape(20.dp)
-private val TvHomeSectionsPillShape = RoundedCornerShape(18.dp)
 private val TvHomeSectionsHorizontalPadding = 32.dp
 private val TvHomeSectionsRowSpacing = 18.dp
 private val TvHomeLandscapeCardWidth = 248.dp
@@ -72,7 +71,6 @@ fun TvContinueWatchingSection(
     if (items.isEmpty()) return
     TvSectionHeader(
         title = "Continue Watching",
-        action = null
     )
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -142,7 +140,6 @@ fun TvNextUpSection(
     if (items.isEmpty()) return
     TvSectionHeader(
         title = "Next Up",
-        action = null
     )
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -183,7 +180,6 @@ fun TvNextUpSection(
 fun TvLibraryPosterSection(
     title: String,
     items: List<PosterItem>,
-    action: String?,
     onFocusedItem: (FocusableItem) -> Unit = {},
     firstItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
@@ -194,7 +190,6 @@ fun TvLibraryPosterSection(
 ) {
     TvSectionHeader(
         title = title,
-        action = action
     )
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -235,9 +230,7 @@ fun TvLibraryPosterSection(
 @Composable
 fun TvSectionHeader(
     title: String,
-    action: String?,
     modifier: Modifier = Modifier,
-    onActionClick: () -> Unit = {}
 ) {
     val scheme = MaterialTheme.colorScheme
     Row(
@@ -253,24 +246,6 @@ fun TvSectionHeader(
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold
         )
-        if (action != null) {
-            Box(
-                modifier = Modifier
-                    .clip(TvHomeSectionsPillShape)
-                    .background(scheme.surfaceContainerHigh.copy(alpha = 0.82f))
-                    .border(1.dp, scheme.outlineVariant.copy(alpha = 0.6f), TvHomeSectionsPillShape)
-                    .clickable { onActionClick() }
-                    .padding(horizontal = 12.dp, vertical = 7.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = action,
-                    color = scheme.onSurfaceVariant,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
     }
 }
 
