@@ -77,15 +77,16 @@ internal fun EpisodeScreenContent(
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val backFocusRequester = remember { FocusRequester() }
     val playFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(episode.id) {
-        backFocusRequester.requestFocus()
+        playFocusRequester.requestFocus()
     }
 
     TvMediaDetailScaffold(
-        heroImageUrl = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
+        artworkImageUrl = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
+        artworkWidth = 280.dp,
+        artworkAspectRatio = 16f / 9f,
         resetScrollKey = episode.id,
         modifier = modifier,
         heroContent = {

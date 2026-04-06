@@ -70,16 +70,21 @@ internal fun SeriesScreenContent(
             season.episodes.firstOrNull { !it.watched }
         } ?: series.seasons.firstOrNull()?.episodes?.firstOrNull()
     }
-    val backFocusRequester = remember { FocusRequester() }
     val playFocusRequester = remember { FocusRequester() }
     val firstContentFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(series.id) {
-        backFocusRequester.requestFocus()
+    LaunchedEffect(series.id, nextUpEpisode?.id) {
+        if (nextUpEpisode != null) {
+            playFocusRequester.requestFocus()
+        } else {
+            firstContentFocusRequester.requestFocus()
+        }
     }
 
     TvMediaDetailScaffold(
-        heroImageUrl = JellyfinImageHelper.finishImageUrl(series.imageUrlPrefix, ImageType.PRIMARY),
+        artworkImageUrl = JellyfinImageHelper.finishImageUrl(series.imageUrlPrefix, ImageType.PRIMARY),
+        artworkWidth = 200.dp,
+        artworkAspectRatio = 2f / 3f,
         resetScrollKey = series.id,
         modifier = modifier,
         heroContent = {

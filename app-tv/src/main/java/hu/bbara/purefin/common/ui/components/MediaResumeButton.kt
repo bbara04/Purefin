@@ -1,9 +1,11 @@
 package hu.bbara.purefin.common.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -43,18 +45,30 @@ fun MediaResumeButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
+    val scheme = MaterialTheme.colorScheme
+    val primaryColor = scheme.primary
+    val onPrimaryColor = scheme.onPrimary
+    val focusShape = RoundedCornerShape(50)
     var isFocused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(targetValue = if (isFocused) 1.05f else 1.0f, label = "scale")
+    val scale by animateFloatAsState(targetValue = if (isFocused) 1.08f else 1.0f, label = "scale")
+    val focusBorderColor by animateColorAsState(
+        targetValue = if (isFocused) scheme.onBackground else Color.Transparent,
+        label = "focus-border"
+    )
+    val focusHaloColor by animateColorAsState(
+        targetValue = if (isFocused) scheme.primary.copy(alpha = 0.22f) else Color.Transparent,
+        label = "focus-halo"
+    )
 
     BoxWithConstraints(
         modifier = modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .height(52.dp)
-            .border(2.5.dp, if (isFocused) onPrimaryColor else Color.Transparent, RoundedCornerShape(50))
-            .clip(RoundedCornerShape(50))
-            .onFocusChanged { isFocused = it.isFocused }
+            .background(focusHaloColor, focusShape)
+            .border(3.dp, focusBorderColor, focusShape)
+            .clip(focusShape)
+            .onFocusChanged { isFocused = it.isFocused || it.hasFocus }
+            .focusable()
             .clickable(onClick = onClick)
     ) {
         // Bottom layer: inverted colors (visible for the remaining %)
@@ -86,6 +100,14 @@ fun MediaResumeButton(
             contentAlignment = Alignment.Center
         ) {
             ButtonContent(text = text, color = onPrimaryColor)
+        }
+
+        if (isFocused) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(2.dp, scheme.primary.copy(alpha = 0.95f), focusShape)
+            )
         }
     }
 }

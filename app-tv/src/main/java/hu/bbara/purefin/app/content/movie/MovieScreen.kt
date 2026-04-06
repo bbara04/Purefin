@@ -53,15 +53,16 @@ internal fun MovieScreenContent(
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val backFocusRequester = remember { FocusRequester() }
     val playFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(movie.id) {
-        backFocusRequester.requestFocus()
+        playFocusRequester.requestFocus()
     }
 
     TvMediaDetailScaffold(
-        heroImageUrl = JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY),
+        artworkImageUrl = JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY),
+        artworkWidth = 200.dp,
+        artworkAspectRatio = 2f / 3f,
         resetScrollKey = movie.id,
         modifier = modifier,
         heroContent = {
