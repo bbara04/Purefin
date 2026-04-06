@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,7 +33,7 @@ import org.jellyfin.sdk.model.api.ImageType
 internal val MediaDetailHorizontalPadding = 48.dp
 private val MediaDetailHeaderTopPadding = 104.dp
 private val MediaDetailHeaderBottomPadding = 36.dp
-private const val MediaDetailBodyImageWidthFraction = 0.56f
+private const val MediaDetailBodyImageWidthFraction = 0.66f
 
 @Composable
 internal fun TvMediaDetailScaffold(
@@ -74,18 +75,20 @@ internal fun TvMediaDetailBodyBox(
             .fillMaxWidth()
             .heightIn(min = bodyHeight)
     ) {
-        PurefinAsyncImage(
-            model = backgroundImageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .fillMaxWidth(MediaDetailBodyImageWidthFraction)
-                .align(Alignment.TopEnd),
-            contentScale = ContentScale.Crop
-        )
+        Box(modifier = Modifier.matchParentSize()) {
+            PurefinAsyncImage(
+                model = backgroundImageUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(MediaDetailBodyImageWidthFraction)
+                    .align(Alignment.TopEnd),
+                contentScale = ContentScale.Crop
+            )
+        }
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .matchParentSize()
                 .background(
                     Brush.horizontalGradient(
                         colorStops = arrayOf(
@@ -99,7 +102,7 @@ internal fun TvMediaDetailBodyBox(
         )
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .matchParentSize()
                 .background(
                     Brush.verticalGradient(
                         colorStops = arrayOf(
