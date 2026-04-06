@@ -16,6 +16,7 @@ import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.client.PlaybackReportContext
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.core.player.model.PlayerError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -34,9 +35,34 @@ class PlayerMediaRepository @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val downloadManager: DownloadManager
 ) {
+    companion object {
+        private const val TAG = "PlayerMediaRepo"
+    }
 
-    suspend fun getMediaItem(mediaId: UUID, forceTranscode: Boolean = false): Pair<MediaItem, Long?>? = withContext(Dispatchers.IO) {
-        buildOnlineMediaItem(mediaId, forceTranscode) ?: buildOfflineMediaItem(mediaId)
+    suspend fun getMediaItem(mediaId: UUID, forceTranscode: Boolean = false): PlayerMediaLoadResult = withContext(Dispatchers.IO) {
+        when (val onlineResult = buildOnlineMediaItem(mediaId, forceTranscode)) {
+            is PlayerMediaLoadResult.Success -> onlineResult
+            is PlayerMediaLoadResult.Failure -> {
+                when (val offlineResult = buildOfflineMediaItem(mediaId)) {
+                    is OfflineLoadResult.Success -> {
+                        Log.w(
+                            TAG,
+                            "Using offline fallback for $mediaId after online load failure (forceTranscode=$forceTranscode): ${onlineResult.error.detailText ?: onlineResult.error.summary}"
+                        )
+                        offlineResult.result
+                    }
+
+                    is OfflineLoadResult.Unavailable -> {
+                        val finalError = onlineResult.error.withAdditionalTechnicalDetail(offlineResult.detail)
+                        Log.w(
+                            TAG,
+                            "Unable to resolve media $mediaId (forceTranscode=$forceTranscode): ${finalError.detailText ?: finalError.summary}"
+                        )
+                        PlayerMediaLoadResult.Failure(finalError)
+                    }
+                }
+            }
+        }
     }
 
     private fun calculateResumePosition(
@@ -88,17 +114,25 @@ class PlayerMediaRepository @Inject constructor(
                 )
             }
         }.getOrElse { error ->
-            Log.w("PlayerMediaRepo", "Unable to load next-up items for $episodeId", error)
+            Log.w(TAG, "Unable to load next-up items for $episodeId", error)
             emptyList()
         }
     }
 
-    private suspend fun buildOnlineMediaItem(mediaId: UUID, forceTranscode: Boolean): Pair<MediaItem, Long?>? {
-        return runCatching {
+    private suspend fun buildOnlineMediaItem(mediaId: UUID, forceTranscode: Boolean): PlayerMediaLoadResult {
+        return try {
             val playbackDecision = jellyfinApiClient.getPlaybackDecision(
                 mediaId = mediaId,
                 forceTranscode = forceTranscode
-            ) ?: return null
+            ) ?: run {
+                val detail = if (forceTranscode) {
+                    "Jellyfin did not return a transcoded playback source."
+                } else {
+                    "Jellyfin did not return a playable media source."
+                }
+                Log.w(TAG, "No playback decision for $mediaId (forceTranscode=$forceTranscode)")
+                return PlayerMediaLoadResult.Failure(PlayerError.loadFailure(technicalDetail = detail))
+            }
             val selectedMediaSource = playbackDecision.mediaSource
             val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
@@ -117,42 +151,50 @@ class PlayerMediaRepository @Inject constructor(
                 tag = playbackDecision.reportContext
             )
 
-            mediaItem to resumePositionMs
-        }.getOrElse { error ->
-            Log.w("PlayerMediaRepo", "Falling back to offline playback for $mediaId", error)
-            null
+            PlayerMediaLoadResult.Success(mediaItem, resumePositionMs)
+        } catch (error: Exception) {
+            Log.w(TAG, "Online load failed for $mediaId (forceTranscode=$forceTranscode)", error)
+            PlayerMediaLoadResult.Failure(PlayerError.fromThrowable(error))
         }
     }
 
     @OptIn(UnstableApi::class)
-    private suspend fun buildOfflineMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? {
-        val download = downloadManager.downloadIndex.getDownload(mediaId.toString())
-            ?.takeIf { it.state == Download.STATE_COMPLETED }
-            ?: return null
+    private suspend fun buildOfflineMediaItem(mediaId: UUID): OfflineLoadResult {
+        return try {
+            val download = downloadManager.downloadIndex.getDownload(mediaId.toString())
+                ?.takeIf { it.state == Download.STATE_COMPLETED }
+                ?: return OfflineLoadResult.Unavailable("Offline fallback unavailable: no completed download.")
 
-        val serverUrl = userSessionRepository.serverUrl.first()
-        val movie = mediaRepository.movies.value[mediaId]
-        val episode = mediaRepository.episodes.value[mediaId]
+            val serverUrl = userSessionRepository.serverUrl.first()
+            val movie = mediaRepository.movies.value[mediaId]
+            val episode = mediaRepository.episodes.value[mediaId]
 
-        val title = movie?.title ?: episode?.title ?: String(download.request.data, Charsets.UTF_8).ifBlank {
-            "Offline media"
+            val title = movie?.title ?: episode?.title ?: String(download.request.data, Charsets.UTF_8).ifBlank {
+                "Offline media"
+            }
+            val subtitle = episode?.let { episodeSubtitle(null, it.index) }
+            val artworkUrl = when {
+                movie != null -> JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY)
+                episode != null -> JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY)
+                else -> JellyfinImageHelper.toImageUrl(serverUrl, mediaId, ImageType.PRIMARY)
+            }
+            val resumePositionMs = resumePositionFor(movie, episode)
+
+            val mediaItem = createMediaItem(
+                mediaId = mediaId.toString(),
+                playbackUrl = download.request.uri.toString(),
+                title = title,
+                subtitle = subtitle,
+                artworkUrl = artworkUrl,
+            )
+            OfflineLoadResult.Success(PlayerMediaLoadResult.Success(mediaItem, resumePositionMs))
+        } catch (error: Exception) {
+            Log.w(TAG, "Offline fallback failed for $mediaId", error)
+            val technicalDetail = PlayerError.fromThrowable(error).detailText ?: error.javaClass.simpleName
+            OfflineLoadResult.Unavailable(
+                "Offline fallback failed: $technicalDetail"
+            )
         }
-        val subtitle = episode?.let { episodeSubtitle(null, it.index) }
-        val artworkUrl = when {
-            movie != null -> JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY)
-            episode != null -> JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY)
-            else -> JellyfinImageHelper.toImageUrl(serverUrl, mediaId, ImageType.PRIMARY)
-        }
-        val resumePositionMs = resumePositionFor(movie, episode)
-
-        val mediaItem = createMediaItem(
-            mediaId = mediaId.toString(),
-            playbackUrl = download.request.uri.toString(),
-            title = title,
-            subtitle = subtitle,
-            artworkUrl = artworkUrl,
-        )
-        return mediaItem to resumePositionMs
     }
 
     private fun resumePositionFor(movie: hu.bbara.purefin.core.model.Movie?, episode: hu.bbara.purefin.core.model.Episode?): Long? {
@@ -211,7 +253,7 @@ class PlayerMediaRepository @Inject constructor(
                     "$baseUrl/Videos/$mediaId/$mediaSourceId/Subtitles/${stream.index}/0/Stream.$format"
                 }
 
-                Log.d("PlayerMediaRepo", "External subtitle: ${stream.displayTitle} ($codec) -> $url")
+                Log.d(TAG, "External subtitle: ${stream.displayTitle} ($codec) -> $url")
 
                 MediaItem.SubtitleConfiguration.Builder(url.toUri())
                     .setMimeType(mimeType)
@@ -235,7 +277,7 @@ class PlayerMediaRepository @Inject constructor(
         "sub", "microdvd" -> MimeTypes.APPLICATION_SUBRIP // sub often converted to srt by Jellyfin
         "pgs", "pgssub" -> MimeTypes.APPLICATION_PGS
         else -> {
-            Log.w("PlayerMediaRepo", "Unknown subtitle codec: $codec")
+            Log.w(TAG, "Unknown subtitle codec: $codec")
             null
         }
     }
@@ -261,5 +303,10 @@ class PlayerMediaRepository @Inject constructor(
             .setTag(tag)
             .setSubtitleConfigurations(subtitleConfigurations)
             .build()
+    }
+
+    private sealed interface OfflineLoadResult {
+        data class Success(val result: PlayerMediaLoadResult.Success) : OfflineLoadResult
+        data class Unavailable(val detail: String) : OfflineLoadResult
     }
 }

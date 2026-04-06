@@ -623,11 +623,20 @@ private fun TvPlayerStateCard(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = uiState.error ?: "Playback error",
+                    text = uiState.error?.summary ?: "Playback error",
                     color = scheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium
                 )
+                uiState.error?.detailText?.let { detail ->
+                    Text(
+                        text = detail,
+                        color = scheme.onBackground.copy(alpha = 0.82f),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(onClick = onRetry) { Text("Retry") }
                     Button(

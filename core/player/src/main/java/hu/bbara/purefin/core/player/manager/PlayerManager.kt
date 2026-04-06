@@ -10,6 +10,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.client.PlaybackReportContext
+import hu.bbara.purefin.core.player.model.PlayerError
 import hu.bbara.purefin.core.player.model.QueueItemUi
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
@@ -74,8 +75,7 @@ class PlayerManager @Inject constructor(
                 state.copy(
                     isBuffering = buffering,
                     isEnded = ended,
-                    error = if (playbackState == Player.STATE_IDLE) state.error else null,
-                    errorCode = if (playbackState == Player.STATE_IDLE) state.errorCode else null
+                    error = if (playbackState == Player.STATE_IDLE) state.error else null
                 )
             }
             if (ended) player.pause()
@@ -84,8 +84,7 @@ class PlayerManager @Inject constructor(
         override fun onPlayerError(error: PlaybackException) {
             _playbackState.update {
                 it.copy(
-                    error = error.errorCodeName ?: error.localizedMessage ?: "Playback error",
-                    errorCode = error.errorCode
+                    error = PlayerError.fromPlaybackException(error)
                 )
             }
         }
@@ -135,7 +134,7 @@ class PlayerManager @Inject constructor(
         _progress.value = PlaybackProgressSnapshot()
         refreshMetadata(mediaItem)
         refreshQueue()
-        _playbackState.update { it.copy(isEnded = false, error = null, errorCode = null) }
+        _playbackState.update { it.copy(isEnded = false, error = null) }
     }
 
     fun replaceCurrentMediaItem(mediaItem: MediaItem, mediaContext: MediaContext? = null, startPositionMs: Long? = null) {
@@ -155,7 +154,7 @@ class PlayerManager @Inject constructor(
         player.playWhenReady = true
         refreshMetadata(mediaItem)
         refreshQueue()
-        _playbackState.update { it.copy(isEnded = false, error = null, errorCode = null) }
+        _playbackState.update { it.copy(isEnded = false, error = null) }
     }
 
     fun addToQueue(mediaItem: MediaItem) {
@@ -259,7 +258,7 @@ class PlayerManager @Inject constructor(
     }
 
     fun clearError() {
-        _playbackState.update { it.copy(error = null, errorCode = null) }
+        _playbackState.update { it.copy(error = null) }
     }
 
     fun snapshotProgress(): PlaybackProgressSnapshot {
@@ -386,8 +385,7 @@ data class PlaybackStateSnapshot(
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
     val isEnded: Boolean = false,
-    val error: String? = null,
-    val errorCode: Int? = null
+    val error: PlayerError? = null
 )
 
 data class PlaybackProgressSnapshot(

@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.player.model.PlayerUiState
@@ -46,10 +47,19 @@ fun PlayerLoadingErrorEndCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = uiState.error ?: "Playback error",
+                    text = uiState.error?.summary ?: "Playback error",
                     color = scheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
+                uiState.error?.detailText?.let { detail ->
+                    Text(
+                        text = detail,
+                        color = scheme.onBackground.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(onClick = onRetry) {
                         Text("Retry")

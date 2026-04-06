@@ -1,20 +1,20 @@
 package hu.bbara.purefin.core.player.viewmodel
 
-import androidx.media3.common.PlaybackException
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.MediaRepository
-import hu.bbara.purefin.core.data.client.PlaybackReportContext
+import hu.bbara.purefin.core.player.data.PlayerMediaLoadResult
 import hu.bbara.purefin.core.player.data.PlayerMediaRepository
 import hu.bbara.purefin.core.player.manager.MediaContext
 import hu.bbara.purefin.core.player.manager.PlaybackStateSnapshot
 import hu.bbara.purefin.core.player.manager.PlayerManager
 import hu.bbara.purefin.core.player.manager.ProgressManager
+import hu.bbara.purefin.core.player.model.PlayerError
+import hu.bbara.purefin.core.player.model.PlayerErrorSource
 import hu.bbara.purefin.core.player.model.PlayerUiState
 import hu.bbara.purefin.core.player.model.TrackOption
-import org.jellyfin.sdk.model.api.PlayMethod
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,9 +46,10 @@ class PlayerViewModel @Inject constructor(
 
     private var autoHideJob: Job? = null
     private var lastNextUpMediaId: String? = null
-    private var dataErrorMessage: String? = null
+    private var loadError: PlayerError? = null
     private var activeMediaId: String? = null
     private var transcodingRetryMediaId: String? = null
+    private var lastLoadRequest: PendingLoadRequest? = null
 
     init {
         progressManager.bind(
@@ -72,7 +73,7 @@ class PlayerViewModel @Inject constructor(
                         isPlaying = state.isPlaying,
                         isBuffering = state.isBuffering,
                         isEnded = state.isEnded,
-                        error = state.error ?: dataErrorMessage
+                        error = state.error ?: loadError
                     )
                 }
                 if (state.isEnded) {
@@ -156,35 +157,48 @@ class PlayerViewModel @Inject constructor(
         startPositionMsOverride: Long?,
         replaceCurrent: Boolean
     ) {
+        lastLoadRequest = PendingLoadRequest(
+            id = id,
+            forceTranscode = forceTranscode,
+            startPositionMsOverride = startPositionMsOverride,
+            replaceCurrent = replaceCurrent
+        )
         val uuid = id.toUuidOrNull()
         if (uuid == null) {
-            dataErrorMessage = "Invalid media id"
-            _uiState.update { it.copy(error = dataErrorMessage) }
+            loadError = PlayerError.invalidMediaId(id)
+            _uiState.update { it.copy(isBuffering = false, error = loadError) }
             return
         }
+        loadError = null
+        _uiState.update { it.copy(isBuffering = true, error = null) }
         viewModelScope.launch {
             val result = playerMediaRepository.getMediaItem(uuid, forceTranscode = forceTranscode)
-            if (result != null) {
-                val (mediaItem, resumePositionMs) = result
+            when (result) {
+                is PlayerMediaLoadResult.Success -> {
+                    val mediaItem = result.mediaItem
+                    val resumePositionMs = result.resumePositionMs
 
-                // Determine preference key: movies use their own ID, episodes use series ID
-                val preferenceKey = mediaRepository.episodes.value[uuid]?.seriesId?.toString() ?: id
-                val mediaContext = MediaContext(mediaId = id, preferenceKey = preferenceKey)
-                val startPositionMs = startPositionMsOverride ?: resumePositionMs
+                    // Determine preference key: movies use their own ID, episodes use series ID
+                    val preferenceKey = mediaRepository.episodes.value[uuid]?.seriesId?.toString() ?: id
+                    val mediaContext = MediaContext(mediaId = id, preferenceKey = preferenceKey)
+                    val startPositionMs = startPositionMsOverride ?: resumePositionMs
 
-                if (replaceCurrent) {
-                    playerManager.replaceCurrentMediaItem(mediaItem, mediaContext, startPositionMs)
-                } else {
-                    playerManager.play(mediaItem, mediaContext, startPositionMs)
+                    if (replaceCurrent) {
+                        playerManager.replaceCurrentMediaItem(mediaItem, mediaContext, startPositionMs)
+                    } else {
+                        playerManager.play(mediaItem, mediaContext, startPositionMs)
+                    }
+
+                    if (loadError != null) {
+                        loadError = null
+                        _uiState.update { it.copy(error = null) }
+                    }
                 }
 
-                if (dataErrorMessage != null) {
-                    dataErrorMessage = null
-                    _uiState.update { it.copy(error = null) }
+                is PlayerMediaLoadResult.Failure -> {
+                    loadError = result.error
+                    _uiState.update { it.copy(isBuffering = false, error = loadError) }
                 }
-            } else {
-                dataErrorMessage = "Unable to load media"
-                _uiState.update { it.copy(error = dataErrorMessage) }
             }
         }
     }
@@ -192,11 +206,10 @@ class PlayerViewModel @Inject constructor(
     private fun maybeRetryWithTranscoding(state: PlaybackStateSnapshot): Boolean {
         val currentMediaId = playerManager.metadata.value.mediaId ?: return false
         val playbackReportContext = playerManager.metadata.value.playbackReportContext ?: return false
-        val errorCode = state.errorCode ?: return false
+        val error = state.error ?: return false
 
         if (currentMediaId == transcodingRetryMediaId) return false
-        if (!playbackReportContext.canRetryWithTranscoding) return false
-        if (!isRetryablePlaybackError(errorCode, state.error, playbackReportContext)) return false
+        if (!PlaybackRetryPolicy.shouldRetryWithTranscoding(error, playbackReportContext)) return false
 
         transcodingRetryMediaId = currentMediaId
         loadMediaById(
@@ -206,29 +219,6 @@ class PlayerViewModel @Inject constructor(
             replaceCurrent = true
         )
         return true
-    }
-
-    private fun isRetryablePlaybackError(
-        errorCode: Int,
-        errorMessage: String?,
-        playbackReportContext: PlaybackReportContext
-    ): Boolean {
-        if (playbackReportContext.playMethod == PlayMethod.TRANSCODE) {
-            return false
-        }
-
-        if (errorCode in setOf(
-                PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
-                PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED,
-                PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
-                PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED
-            )
-        ) {
-            return true
-        }
-
-        val message = errorMessage?.lowercase().orEmpty()
-        return "decoder" in message || "codec" in message || "unsupported" in message
     }
 
     private fun loadNextUp(currentMediaId: String) {
@@ -304,6 +294,11 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun retry() {
+        val error = uiState.value.error
+        if (error?.source == PlayerErrorSource.LOAD) {
+            retryLoad()
+            return
+        }
         playerManager.retry()
     }
 
@@ -313,7 +308,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun clearError() {
-        dataErrorMessage = null
+        loadError = null
         playerManager.clearError()
         _uiState.update { it.copy(error = null) }
     }
@@ -326,5 +321,22 @@ class PlayerViewModel @Inject constructor(
         playerManager.release()
     }
 
+    private fun retryLoad() {
+        val request = lastLoadRequest ?: return
+        loadMediaById(
+            id = request.id,
+            forceTranscode = request.forceTranscode,
+            startPositionMsOverride = request.startPositionMsOverride,
+            replaceCurrent = request.replaceCurrent
+        )
+    }
+
     private fun String.toUuidOrNull(): UUID? = runCatching { UUID.fromString(this) }.getOrNull()
+
+    private data class PendingLoadRequest(
+        val id: String,
+        val forceTranscode: Boolean,
+        val startPositionMsOverride: Long?,
+        val replaceCurrent: Boolean
+    )
 }
