@@ -16,12 +16,8 @@ import kotlin.math.roundToInt
 internal data class TvFocusedHeroModel(
     val id: UUID,
     val backdropImageUrl: String,
-    val eyebrowText: String,
     val title: String,
     val metadata: List<String>,
-    val watchedText: String?,
-    val progressFraction: Float?,
-    val progressLabel: String?,
 ) {
     val metadataText: String?
         get() = metadata.takeIf { it.isNotEmpty() }?.joinToString(" • ")
@@ -30,16 +26,16 @@ internal data class TvFocusedHeroModel(
 internal fun FocusableItem.toTvFocusedHeroModel(): TvFocusedHeroModel {
     return when (this) {
         is ContinueWatchingItem -> when (type) {
-            BaseItemKind.MOVIE -> movie!!.toTvFocusedHeroModel(sourceLabel = "Continue watching")
-            BaseItemKind.EPISODE -> episode!!.toTvFocusedHeroModel(sourceLabel = "Continue watching")
+            BaseItemKind.MOVIE -> movie!!.toTvFocusedHeroModel()
+            BaseItemKind.EPISODE -> episode!!.toTvFocusedHeroModel()
             else -> unsupportedType(type)
         }
 
-        is NextUpItem -> episode.toTvFocusedHeroModel(sourceLabel = "Next up")
+        is NextUpItem -> episode.toTvFocusedHeroModel()
         is PosterItem -> when (type) {
-            BaseItemKind.MOVIE -> movie!!.toTvFocusedHeroModel(sourceLabel = "Movie")
-            BaseItemKind.EPISODE -> episode!!.toTvFocusedHeroModel(sourceLabel = "Episode")
-            BaseItemKind.SERIES -> series!!.toTvFocusedHeroModel(sourceLabel = "Series")
+            BaseItemKind.MOVIE -> movie!!.toTvFocusedHeroModel()
+            BaseItemKind.EPISODE -> episode!!.toTvFocusedHeroModel()
+            BaseItemKind.SERIES -> series!!.toTvFocusedHeroModel()
             else -> unsupportedType(type)
         }
     }
@@ -50,32 +46,25 @@ internal fun backdropImageUrl(imageUrlPrefix: String?, fallbackImageUrl: String)
     return backdropImageUrl.ifBlank { fallbackImageUrl }
 }
 
-private fun Movie.toTvFocusedHeroModel(sourceLabel: String): TvFocusedHeroModel {
-    val progressFraction = progressFraction(progress)
+private fun Movie.toTvFocusedHeroModel(): TvFocusedHeroModel {
     return TvFocusedHeroModel(
         id = id,
         backdropImageUrl = backdropImageUrl(
             imageUrlPrefix = imageUrlPrefix,
             fallbackImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.PRIMARY)
         ),
-        eyebrowText = sourceLabel,
         title = title,
         metadata = listOf(year, rating, runtime, format).compactMetadata(),
-        watchedText = "Watched".takeIf { watched },
-        progressFraction = progressFraction.takeIf { !watched && it != null },
-        progressLabel = progressLabel(progressFraction).takeIf { !watched && progressFraction != null },
     )
 }
 
-private fun Episode.toTvFocusedHeroModel(sourceLabel: String): TvFocusedHeroModel {
-    val progressFraction = progressFraction(progress)
+private fun Episode.toTvFocusedHeroModel(): TvFocusedHeroModel {
     return TvFocusedHeroModel(
         id = id,
         backdropImageUrl = backdropImageUrl(
             imageUrlPrefix = imageUrlPrefix,
             fallbackImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.PRIMARY)
         ),
-        eyebrowText = sourceLabel,
         title = title,
         metadata = listOf(
             "Episode $index",
@@ -84,13 +73,10 @@ private fun Episode.toTvFocusedHeroModel(sourceLabel: String): TvFocusedHeroMode
             rating,
             format
         ).compactMetadata(),
-        watchedText = "Watched".takeIf { watched },
-        progressFraction = progressFraction.takeIf { !watched && it != null },
-        progressLabel = progressLabel(progressFraction).takeIf { !watched && progressFraction != null },
     )
 }
 
-private fun Series.toTvFocusedHeroModel(sourceLabel: String): TvFocusedHeroModel {
+private fun Series.toTvFocusedHeroModel(): TvFocusedHeroModel {
     val unwatchedText = if (unwatchedEpisodeCount > 0) {
         "$unwatchedEpisodeCount unwatched"
     } else {
@@ -103,12 +89,8 @@ private fun Series.toTvFocusedHeroModel(sourceLabel: String): TvFocusedHeroModel
             imageUrlPrefix = imageUrlPrefix,
             fallbackImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.PRIMARY)
         ),
-        eyebrowText = sourceLabel,
         title = name,
         metadata = listOf(year, seasonLabel(seasonCount), unwatchedText).compactMetadata(),
-        watchedText = null,
-        progressFraction = null,
-        progressLabel = null,
     )
 }
 
