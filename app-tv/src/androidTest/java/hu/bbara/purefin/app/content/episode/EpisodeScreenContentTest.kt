@@ -7,11 +7,16 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.input.key.Key
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.ui.theme.AppTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
@@ -64,6 +69,32 @@ class EpisodeScreenContentTest {
         composeRule.onAllNodesWithText("Playback").assertCountEquals(1)
         composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsDisplayed()
         composeRule.onAllNodesWithText("Series").assertCountEquals(0)
+    }
+
+    @Test
+    fun episodeScreenContent_startsPlaybackOnFirstCenterPress() {
+        var playCount = 0
+
+        composeRule.setContent {
+            AppTheme {
+                EpisodeScreenContent(
+                    episode = sampleEpisode(progress = 63.0),
+                    seriesTitle = "Severance",
+                    onPlay = { playCount++ }
+                )
+            }
+        }
+
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsFocused()
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionCenter)
+        }
+
+        composeRule.waitForIdle()
+
+        assertEquals(1, playCount)
     }
 
     private fun sampleEpisode(progress: Double?): Episode {

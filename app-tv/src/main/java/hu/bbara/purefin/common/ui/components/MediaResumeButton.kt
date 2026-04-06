@@ -68,8 +68,8 @@ fun MediaResumeButton(
             .border(3.dp, focusBorderColor, focusShape)
             .clip(focusShape)
             .onFocusChanged { isFocused = it.isFocused || it.hasFocus }
-            .focusable()
             .clickable(onClick = onClick)
+            .focusable()
     ) {
         // Bottom layer: inverted colors (visible for the remaining %)
         Box(

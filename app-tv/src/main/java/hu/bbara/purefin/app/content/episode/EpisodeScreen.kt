@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
@@ -75,6 +76,7 @@ internal fun EpisodeScreenContent(
     val playFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(episode.id) {
+        withFrameNanos { }
         playFocusRequester.requestFocus()
     }
 

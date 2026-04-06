@@ -7,11 +7,16 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.input.key.Key
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.ui.theme.AppTheme
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
@@ -41,6 +46,31 @@ class MovieScreenContentTest {
         composeRule.onNodeWithTag(MoviePlayButtonTag)
             .assertIsDisplayed()
             .assertIsFocused()
+    }
+
+    @Test
+    fun movieScreenContent_startsPlaybackOnFirstCenterPress() {
+        var playCount = 0
+
+        composeRule.setContent {
+            AppTheme {
+                MovieScreenContent(
+                    movie = sampleMovie(progress = 42.0),
+                    onPlay = { playCount++ }
+                )
+            }
+        }
+
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(MoviePlayButtonTag).assertIsFocused()
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionCenter)
+        }
+
+        composeRule.waitForIdle()
+
+        assertEquals(1, playCount)
     }
 
     private fun sampleMovie(progress: Double?): Movie {
