@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
@@ -17,13 +19,12 @@ import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
+import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
 import hu.bbara.purefin.core.data.navigation.SeriesDto
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
 import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 fun SeriesScreen(
@@ -41,7 +42,6 @@ fun SeriesScreen(
     if (seriesData != null && seriesData.seasons.isNotEmpty()) {
         SeriesScreenContent(
             series = seriesData,
-            onBack = viewModel::onBack,
             onPlayEpisode = viewModel::onPlayEpisode,
             modifier = modifier
         )
@@ -53,23 +53,11 @@ fun SeriesScreen(
 @Composable
 internal fun SeriesScreenContent(
     series: Series,
-    onBack: () -> Unit,
     onPlayEpisode: (UUID) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    fun getDefaultSeason(): Season {
-        for (season in series.seasons) {
-            val firstUnwatchedEpisode = season.episodes.firstOrNull { it.watched.not() }
-            if (firstUnwatchedEpisode != null) return season
-        }
-        return series.seasons.first()
-    }
-    val selectedSeason = remember(series.id) { mutableStateOf(getDefaultSeason()) }
-    val nextUpEpisode = remember(series.id) {
-        series.seasons.firstNotNullOfOrNull { season ->
-            season.episodes.firstOrNull { !it.watched }
-        } ?: series.seasons.firstOrNull()?.episodes?.firstOrNull()
-    }
+    var selectedSeason by remember(series.id) { mutableStateOf(series.defaultSeason()) }
+    val nextUpEpisode = remember(series.id) { series.nextUpEpisode() }
     val playFocusRequester = remember { FocusRequester() }
     val firstContentFocusRequester = remember { FocusRequester() }
 
@@ -82,9 +70,7 @@ internal fun SeriesScreenContent(
     }
 
     TvMediaDetailScaffold(
-        artworkImageUrl = JellyfinImageHelper.finishImageUrl(series.imageUrlPrefix, ImageType.PRIMARY),
-        artworkWidth = 200.dp,
-        artworkAspectRatio = 2f / 3f,
+        backgroundImageUrl = tvMediaDetailBackgroundImageUrl(series.imageUrlPrefix),
         resetScrollKey = series.id,
         modifier = modifier,
         heroContent = {
@@ -112,17 +98,17 @@ internal fun SeriesScreenContent(
         item {
             SeasonTabs(
                 seasons = series.seasons,
-                selectedSeason = selectedSeason.value,
+                selectedSeason = selectedSeason,
                 firstItemFocusRequester = firstContentFocusRequester,
                 firstItemTestTag = SeriesFirstSeasonTabTag,
-                onSelect = { selectedSeason.value = it },
+                onSelect = { selectedSeason = it },
                 modifier = it
             )
         }
         item {
             Spacer(modifier = Modifier.height(20.dp))
             EpisodeCarousel(
-                episodes = selectedSeason.value.episodes,
+                episodes = selectedSeason.episodes,
                 modifier = it
             )
         }
@@ -139,3 +125,16 @@ internal fun SeriesScreenContent(
         }
     }
 }
+
+private fun Series.defaultSeason(): Season {
+    for (season in seasons) {
+        if (season.episodes.any { !it.watched }) {
+            return season
+        }
+    }
+    return seasons.first()
+}
+
+private fun Series.nextUpEpisode() = seasons.firstNotNullOfOrNull { season ->
+    season.episodes.firstOrNull { !it.watched }
+} ?: seasons.firstOrNull()?.episodes?.firstOrNull()

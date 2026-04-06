@@ -6,13 +6,9 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.performKeyInput
-import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.input.key.Key
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.ui.theme.AppTheme
@@ -27,12 +23,11 @@ class MovieScreenContentTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun movieScreenContent_focusesBack_thenMovesToPlayButton() {
+    fun movieScreenContent_focusesPlayButton() {
         composeRule.setContent {
             AppTheme {
                 MovieScreenContent(
                     movie = sampleMovie(progress = 42.0),
-                    onBack = {},
                     onPlay = {}
                 )
             }
@@ -43,14 +38,9 @@ class MovieScreenContentTest {
         composeRule.onNodeWithText("Blade Runner 2049").assertIsDisplayed()
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
         composeRule.onAllNodesWithText("Playback").assertCountEquals(1)
-        composeRule.onNodeWithTag(MoviePlayButtonTag).assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Back")
+        composeRule.onNodeWithTag(MoviePlayButtonTag)
             .assertIsDisplayed()
             .assertIsFocused()
-            .performKeyInput {
-                pressKey(Key.DirectionDown)
-            }
-        composeRule.onNodeWithTag(MoviePlayButtonTag).assertIsFocused()
     }
 
     private fun sampleMovie(progress: Double?): Movie {

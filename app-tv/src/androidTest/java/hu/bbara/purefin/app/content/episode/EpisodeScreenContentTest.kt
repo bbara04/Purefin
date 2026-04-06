@@ -6,13 +6,9 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.performKeyInput
-import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.input.key.Key
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.ui.theme.AppTheme
@@ -27,13 +23,12 @@ class EpisodeScreenContentTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun episodeScreenContent_showsSeriesContext_andMovesFromBackToPlayButton() {
+    fun episodeScreenContent_showsSeriesContext_andFocusesPlayButton() {
         composeRule.setContent {
             AppTheme {
                 EpisodeScreenContent(
                     episode = sampleEpisode(progress = 63.0),
                     seriesTitle = "Severance",
-                    onBack = {},
                     onPlay = {}
                 )
             }
@@ -48,12 +43,6 @@ class EpisodeScreenContentTest {
         composeRule.onAllNodesWithText("Playback").assertCountEquals(1)
         composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsDisplayed()
         composeRule.onNodeWithText("Series").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("Back")
-            .assertIsDisplayed()
-            .assertIsFocused()
-            .performKeyInput {
-                pressKey(Key.DirectionDown)
-            }
         composeRule.onNodeWithTag(EpisodePlayButtonTag).assertIsFocused()
     }
 
@@ -64,7 +53,6 @@ class EpisodeScreenContentTest {
                 EpisodeScreenContent(
                     episode = sampleEpisode(progress = null),
                     seriesTitle = "Severance",
-                    onBack = {},
                     onPlay = {}
                 )
             }

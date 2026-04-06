@@ -18,11 +18,10 @@ import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
 import hu.bbara.purefin.common.ui.components.MediaDetailPlaybackSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
+import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
 import hu.bbara.purefin.core.data.navigation.MovieDto
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
-import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 fun MovieScreen(
@@ -37,7 +36,6 @@ fun MovieScreen(
     if (movieItem.value != null) {
         MovieScreenContent(
             movie = movieItem.value!!,
-            onBack = viewModel::onBack,
             onPlay = viewModel::onPlay,
             modifier = modifier
         )
@@ -49,7 +47,6 @@ fun MovieScreen(
 @Composable
 internal fun MovieScreenContent(
     movie: Movie,
-    onBack: () -> Unit,
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -60,9 +57,7 @@ internal fun MovieScreenContent(
     }
 
     TvMediaDetailScaffold(
-        artworkImageUrl = JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.PRIMARY),
-        artworkWidth = 200.dp,
-        artworkAspectRatio = 2f / 3f,
+        backgroundImageUrl = tvMediaDetailBackgroundImageUrl(movie.imageUrlPrefix),
         resetScrollKey = movie.id,
         modifier = modifier,
         heroContent = {

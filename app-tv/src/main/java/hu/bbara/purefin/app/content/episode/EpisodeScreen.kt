@@ -18,14 +18,12 @@ import hu.bbara.purefin.common.ui.components.MediaDetailOverviewSection
 import hu.bbara.purefin.common.ui.components.MediaDetailPlaybackSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.core.data.navigation.EpisodeDto
-import hu.bbara.purefin.core.data.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
+import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
+import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
-import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 fun EpisodeScreen(
@@ -34,8 +32,6 @@ fun EpisodeScreen(
     modifier: Modifier = Modifier
 ) {
     val navigationManager = LocalNavigationManager.current
-    val backStack = LocalNavigationBackStack.current
-    val previousRoute = remember(backStack) { backStack.getOrNull(backStack.lastIndex - 1) }
 
     LaunchedEffect(episode) {
         viewModel.selectEpisode(
@@ -57,7 +53,6 @@ fun EpisodeScreen(
     EpisodeScreenContent(
         episode = selectedEpisode,
         seriesTitle = seriesTitle.value,
-        onBack = viewModel::onBack,
         onPlay = remember(selectedEpisode.id, navigationManager) {
             {
                 navigationManager.navigate(
@@ -73,7 +68,6 @@ fun EpisodeScreen(
 internal fun EpisodeScreenContent(
     episode: Episode,
     seriesTitle: String?,
-    onBack: () -> Unit,
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -84,9 +78,7 @@ internal fun EpisodeScreenContent(
     }
 
     TvMediaDetailScaffold(
-        artworkImageUrl = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
-        artworkWidth = 280.dp,
-        artworkAspectRatio = 16f / 9f,
+        backgroundImageUrl = tvMediaDetailBackgroundImageUrl(episode.imageUrlPrefix),
         resetScrollKey = episode.id,
         modifier = modifier,
         heroContent = {
