@@ -9,20 +9,24 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
+import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import hu.bbara.purefin.tv.home.TvHomeScreen
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
@@ -140,6 +144,157 @@ class TvHomeContentTest {
             .assertIsFocused()
     }
 
+    @Test
+    fun tvHomeScreen_movesFocusedSectionToTopOfContent() {
+        composeRule.setContent {
+            AppTheme {
+                Box(
+                    modifier = Modifier.size(width = 960.dp, height = 540.dp)
+                ) {
+                    TvHomeScreen(
+                        libraries = sampleLibraries(),
+                        libraryContent = sampleLibraryContent(),
+                        continueWatching = sampleContinueWatching(),
+                        nextUp = sampleNextUp(),
+                        serverUrl = "",
+                        onMovieSelected = {},
+                        onSeriesSelected = {},
+                        onEpisodeSelected = { _, _, _ -> }
+                    )
+                }
+            }
+        }
+
+        composeRule.waitForIdle()
+
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionDown)
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TvHomeHeroTitleTag).assertTextEquals("The Train Job")
+        assertSectionRowAlignedToViewportTop(TvHomeNextUpRowTag)
+
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionDown)
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TvHomeHeroTitleTag).assertTextEquals("Arrival")
+        assertSectionRowAlignedToViewportTop(tvHomeLibraryRowTag(sampleLibraryId()))
+    }
+
+    @Test
+    fun tvHomeScreen_skipsMissingSectionAndAlignsLibraryToTop() {
+        composeRule.setContent {
+            AppTheme {
+                Box(
+                    modifier = Modifier.size(width = 960.dp, height = 540.dp)
+                ) {
+                    TvHomeScreen(
+                        libraries = sampleLibraries(),
+                        libraryContent = sampleLibraryContent(),
+                        continueWatching = sampleContinueWatching(),
+                        nextUp = emptyList(),
+                        serverUrl = "",
+                        onMovieSelected = {},
+                        onSeriesSelected = {},
+                        onEpisodeSelected = { _, _, _ -> }
+                    )
+                }
+            }
+        }
+
+        composeRule.waitForIdle()
+
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionDown)
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TvHomeHeroTitleTag).assertTextEquals("Arrival")
+        assertSectionRowAlignedToViewportTop(tvHomeLibraryRowTag(sampleLibraryId()))
+    }
+
+    @Test
+    fun tvHomeScreen_movesPreviousSectionToTopWhenNavigatingUp() {
+        composeRule.setContent {
+            AppTheme {
+                Box(
+                    modifier = Modifier.size(width = 960.dp, height = 540.dp)
+                ) {
+                    TvHomeScreen(
+                        libraries = sampleLibraries(),
+                        libraryContent = sampleLibraryContent(),
+                        continueWatching = sampleContinueWatching(),
+                        nextUp = sampleNextUp(),
+                        serverUrl = "",
+                        onMovieSelected = {},
+                        onSeriesSelected = {},
+                        onEpisodeSelected = { _, _, _ -> }
+                    )
+                }
+            }
+        }
+
+        composeRule.waitForIdle()
+
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionDown)
+            pressKey(Key.DirectionDown)
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionUp)
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TvHomeHeroTitleTag).assertTextEquals("The Train Job")
+        assertSectionRowAlignedToViewportTop(TvHomeNextUpRowTag)
+    }
+
+    @Test
+    fun tvHomeScreen_horizontalMoveDoesNotChangeAlignedSectionPosition() {
+        composeRule.setContent {
+            AppTheme {
+                Box(
+                    modifier = Modifier.size(width = 960.dp, height = 540.dp)
+                ) {
+                    TvHomeScreen(
+                        libraries = sampleLibraries(),
+                        libraryContent = sampleLibraryContent(),
+                        continueWatching = sampleContinueWatching(),
+                        nextUp = sampleNextUpRow(),
+                        serverUrl = "",
+                        onMovieSelected = {},
+                        onSeriesSelected = {},
+                        onEpisodeSelected = { _, _, _ -> }
+                    )
+                }
+            }
+        }
+
+        composeRule.waitForIdle()
+
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionDown)
+        }
+        composeRule.waitForIdle()
+
+        assertSectionRowAlignedToViewportTop(TvHomeNextUpRowTag)
+        val alignedTopBefore = rowTop(TvHomeNextUpRowTag)
+
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionRight)
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TvHomeHeroTitleTag).assertTextEquals("Safe")
+        val alignedTopAfter = rowTop(TvHomeNextUpRowTag)
+        assertEquals(alignedTopBefore, alignedTopAfter, 2f)
+    }
+
     private fun sampleContinueWatching(): List<ContinueWatchingItem> {
         return listOf(
             ContinueWatchingItem(
@@ -174,10 +329,39 @@ class TvHomeContentTest {
         )
     }
 
+    private fun sampleNextUp(): List<NextUpItem> {
+        return listOf(
+            NextUpItem(
+                episode = sampleEpisode(
+                    id = "66666666-6666-6666-6666-666666666666",
+                    title = "The Train Job"
+                )
+            )
+        )
+    }
+
+    private fun sampleNextUpRow(): List<NextUpItem> {
+        return listOf(
+            NextUpItem(
+                episode = sampleEpisode(
+                    id = "66666666-6666-6666-6666-666666666666",
+                    title = "The Train Job"
+                )
+            ),
+            NextUpItem(
+                episode = sampleEpisode(
+                    id = "77777777-7777-7777-7777-777777777777",
+                    title = "Safe",
+                    releaseDate = "2024-02-09"
+                )
+            )
+        )
+    }
+
     private fun sampleLibraries(): List<LibraryItem> {
         return listOf(
             LibraryItem(
-                id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
+                id = sampleLibraryId(),
                 name = "Movies",
                 type = CollectionType.MOVIES,
                 posterUrl = "",
@@ -187,7 +371,7 @@ class TvHomeContentTest {
     }
 
     private fun sampleLibraryContent(): Map<UUID, List<PosterItem>> {
-        val libraryId = UUID.fromString("33333333-3333-3333-3333-333333333333")
+        val libraryId = sampleLibraryId()
 
         return mapOf(
             libraryId to listOf(
@@ -201,6 +385,32 @@ class TvHomeContentTest {
                     )
                 )
             )
+        )
+    }
+
+    private fun sampleEpisode(
+        id: String,
+        title: String,
+        releaseDate: String = "2002-09-20",
+        progress: Double? = 18.0,
+        seriesId: UUID = UUID.fromString("88888888-8888-8888-8888-888888888888"),
+        seasonId: UUID = UUID.fromString("99999999-9999-9999-9999-999999999999")
+    ): Episode {
+        return Episode(
+            id = UUID.fromString(id),
+            seriesId = seriesId,
+            seasonId = seasonId,
+            index = 1,
+            title = title,
+            synopsis = "A crew member takes the shuttle for a spin and makes a mess.",
+            releaseDate = releaseDate,
+            rating = "16+",
+            runtime = "44m",
+            progress = progress,
+            watched = false,
+            format = "HD",
+            imageUrlPrefix = "https://images.unsplash.com/photo-1511497584788-876760111969",
+            cast = emptyList()
         )
     }
 
@@ -226,5 +436,30 @@ class TvHomeContentTest {
             subtitles = "ENG",
             cast = emptyList()
         )
+    }
+
+    private fun sampleLibraryId(): UUID {
+        return UUID.fromString("33333333-3333-3333-3333-333333333333")
+    }
+
+    private fun assertSectionRowAlignedToViewportTop(sectionRowTag: String) {
+        val expectedRowTop = viewportTop() + with(composeRule.density) {
+            TvHomeFocusedItemTopOffset.toPx()
+        }
+        assertEquals(expectedRowTop, rowTop(sectionRowTag), 2f)
+    }
+
+    private fun viewportTop(): Float {
+        return composeRule.onNodeWithTag(TvHomeContentViewportTag, useUnmergedTree = true)
+            .fetchSemanticsNode()
+            .boundsInRoot
+            .top
+    }
+
+    private fun rowTop(sectionRowTag: String): Float {
+        return composeRule.onNodeWithTag(sectionRowTag, useUnmergedTree = true)
+            .fetchSemanticsNode()
+            .boundsInRoot
+            .top
     }
 }

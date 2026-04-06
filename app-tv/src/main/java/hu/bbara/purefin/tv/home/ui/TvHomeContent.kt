@@ -1,14 +1,18 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package hu.bbara.purefin.tv.home.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,10 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.FocusableItem
@@ -30,6 +32,7 @@ import hu.bbara.purefin.feature.shared.home.PosterItem
 import org.jellyfin.sdk.model.UUID
 
 internal const val TvHomeInitialFocusTag = "tv-home-initial-focus-item"
+internal const val TvHomeContentViewportTag = "tv-home-content-viewport"
 
 @Composable
 fun TvHomeContent(
@@ -52,14 +55,18 @@ fun TvHomeContent(
         nextUp = nextUp
     )
     val visibleLibraries = itemRegistry.visibleLibraries
-    val (nextUpRef, continueWatchingRef) = remember { FocusRequester.createRefs() }
-    val libraryRefs = remember(visibleLibraries) {
-        visibleLibraries.associate { it.id to FocusRequester() }
-    }
-    val initialFocusRequester = remember { FocusRequester() }
+    val hasContinueWatching = continueWatching.isNotEmpty()
+    val hasNextUp = nextUp.isNotEmpty()
+    val hasLibraries = visibleLibraries.isNotEmpty()
+    val hasVisibleContent = hasContinueWatching || hasNextUp || hasLibraries
     val firstVisibleLibraryId = visibleLibraries.firstOrNull()?.id
+    val initialFocusRequester = remember { FocusRequester() }
     val firstAvailableItemKey = itemRegistry.firstAvailableItemId
     var initialFocusApplied by remember { mutableStateOf(false) }
+    val topOffsetPx = with(LocalDensity.current) { TvHomeFocusedItemTopOffset.toPx() }
+    val columnBringIntoViewSpec = remember(topOffsetPx) {
+        tvHomeColumnBringIntoViewSpec(topOffsetPx = topOffsetPx)
+    }
 
     LaunchedEffect(firstAvailableItemKey, initialFocusApplied) {
         if (!initialFocusApplied && firstAvailableItemKey != null) {
@@ -69,81 +76,90 @@ fun TvHomeContent(
         }
     }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(scheme.background),
-        contentPadding = contentPadding
-    ) {
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        item {
-            TvContinueWatchingSection(
-                items = continueWatching,
-                onFocusedItem = onMediaFocused,
-                onMovieSelected = onMovieSelected,
-                onEpisodeSelected = onEpisodeSelected,
-                firstItemFocusRequester = initialFocusRequester.takeIf { continueWatching.isNotEmpty() },
-                firstItemTestTag = TvHomeInitialFocusTag.takeIf { continueWatching.isNotEmpty() },
-                modifier = Modifier.focusRequester(continueWatchingRef)
-                    .focusProperties {
-                        down = nextUpRef
-                    }
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-        item {
-            TvNextUpSection(
-                items = nextUp,
-                onFocusedItem = onMediaFocused,
-                onEpisodeSelected = onEpisodeSelected,
-                firstItemFocusRequester = initialFocusRequester
-                    .takeIf { continueWatching.isEmpty() && nextUp.isNotEmpty() },
-                firstItemTestTag = TvHomeInitialFocusTag
-                    .takeIf { continueWatching.isEmpty() && nextUp.isNotEmpty() },
-                modifier = Modifier.focusRequester(nextUpRef)
-                    .focusProperties {
-                        up = continueWatchingRef
-                        libraryRefs.values.firstOrNull()?.let { down = it }
-                    }
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-        items(
-            items = visibleLibraries,
-            key = { it.id }
-        ) { item ->
-            val ref = libraryRefs[item.id]
-            TvLibraryPosterSection(
-                title = item.name,
-                items = libraryContent[item.id] ?: emptyList(),
-                onFocusedItem = onMediaFocused,
-                onMovieSelected = onMovieSelected,
-                onSeriesSelected = onSeriesSelected,
-                onEpisodeSelected = onEpisodeSelected,
-                firstItemFocusRequester = initialFocusRequester.takeIf {
-                    continueWatching.isEmpty() &&
-                        nextUp.isEmpty() &&
-                        item.id == firstVisibleLibraryId
-                },
-                firstItemTestTag = TvHomeInitialFocusTag.takeIf {
-                    continueWatching.isEmpty() &&
-                        nextUp.isEmpty() &&
-                        item.id == firstVisibleLibraryId
-                },
-                modifier = (if (ref != null) Modifier.focusRequester(ref) else Modifier)
-                    .focusProperties {
-                        up = nextUpRef
-                        libraryRefs.values.dropWhile { it != ref }.drop(1).firstOrNull()
-                            ?.let { down = it }
-                    }
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+    CompositionLocalProvider(LocalBringIntoViewSpec provides columnBringIntoViewSpec) {
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize()
+                .background(scheme.background)
+                .testTag(TvHomeContentViewportTag),
+            contentPadding = contentPadding
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            if (hasContinueWatching) {
+                item {
+                    TvContinueWatchingSection(
+                        items = continueWatching,
+                        onFocusedItem = onMediaFocused,
+                        onMovieSelected = onMovieSelected,
+                        onEpisodeSelected = onEpisodeSelected,
+                        firstItemFocusRequester = initialFocusRequester,
+                        firstItemTestTag = TvHomeInitialFocusTag,
+                        rowTestTag = TvHomeContinueWatchingRowTag
+                    )
+                }
+            }
+
+            if (hasContinueWatching && (hasNextUp || hasLibraries)) {
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+
+            if (hasNextUp) {
+                item {
+                    TvNextUpSection(
+                        items = nextUp,
+                        onFocusedItem = onMediaFocused,
+                        onEpisodeSelected = onEpisodeSelected,
+                        firstItemFocusRequester = initialFocusRequester.takeIf { !hasContinueWatching },
+                        firstItemTestTag = TvHomeInitialFocusTag.takeIf { !hasContinueWatching },
+                        rowTestTag = TvHomeNextUpRowTag
+                    )
+                }
+            }
+
+            if (hasLibraries && (hasContinueWatching || hasNextUp)) {
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+
+            itemsIndexed(
+                items = visibleLibraries,
+                key = { _, library -> library.id }
+            ) { index, library ->
+                TvLibraryPosterSection(
+                    title = library.name,
+                    items = libraryContent[library.id].orEmpty(),
+                    onFocusedItem = onMediaFocused,
+                    firstItemFocusRequester = initialFocusRequester.takeIf {
+                        !hasContinueWatching &&
+                            !hasNextUp &&
+                            library.id == firstVisibleLibraryId
+                    },
+                    firstItemTestTag = TvHomeInitialFocusTag.takeIf {
+                        !hasContinueWatching &&
+                            !hasNextUp &&
+                            library.id == firstVisibleLibraryId
+                    },
+                    rowTestTag = tvHomeLibraryRowTag(library.id),
+                    onMovieSelected = onMovieSelected,
+                    onSeriesSelected = onSeriesSelected,
+                    onEpisodeSelected = onEpisodeSelected
+                )
+
+                if (index < visibleLibraries.lastIndex) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+
+            if (hasVisibleContent) {
+                item {
+                    Spacer(modifier = Modifier.height(TvHomeBringIntoViewTrailingSpace))
+                }
+            }
         }
     }
 }

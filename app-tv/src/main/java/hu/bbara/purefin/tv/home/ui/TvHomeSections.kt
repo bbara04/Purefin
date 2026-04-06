@@ -1,9 +1,11 @@
 package hu.bbara.purefin.tv.home.ui
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,12 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +61,12 @@ private val TvHomeSectionsHorizontalPadding = 32.dp
 private val TvHomeSectionsRowSpacing = 18.dp
 private val TvHomeLandscapeCardWidth = 248.dp
 private val TvHomePosterCardWidth = 136.dp
+internal const val TvHomeSectionRowTagPrefix = "tv-home-section-row-"
+internal const val TvHomeContinueWatchingRowTag = "${TvHomeSectionRowTagPrefix}continue-watching"
+internal const val TvHomeNextUpRowTag = "${TvHomeSectionRowTagPrefix}next-up"
+
+internal fun tvHomeLibraryRowTag(libraryId: UUID): String =
+    "${TvHomeSectionRowTagPrefix}library-$libraryId"
 
 @Composable
 fun TvContinueWatchingSection(
@@ -66,16 +76,16 @@ fun TvContinueWatchingSection(
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     firstItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
+    rowTestTag: String? = null,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
     TvSectionHeader(
         title = "Continue Watching",
     )
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = TvHomeSectionsHorizontalPadding),
-        horizontalArrangement = Arrangement.spacedBy(TvHomeSectionsRowSpacing)
+    TvHomeSectionRow(
+        modifier = modifier,
+        rowTestTag = rowTestTag
     ) {
         itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
             val progressFraction = (item.progress / 100.0).toFloat().coerceIn(0f, 1f)
@@ -135,16 +145,16 @@ fun TvNextUpSection(
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     firstItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
+    rowTestTag: String? = null,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
     TvSectionHeader(
         title = "Next Up",
     )
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = TvHomeSectionsHorizontalPadding),
-        horizontalArrangement = Arrangement.spacedBy(TvHomeSectionsRowSpacing)
+    TvHomeSectionRow(
+        modifier = modifier,
+        rowTestTag = rowTestTag
     ) {
         itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
             TvHomeLandscapeCard(
@@ -183,6 +193,7 @@ fun TvLibraryPosterSection(
     onFocusedItem: (FocusableItem) -> Unit = {},
     firstItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
+    rowTestTag: String? = null,
     modifier: Modifier = Modifier,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
@@ -191,10 +202,9 @@ fun TvLibraryPosterSection(
     TvSectionHeader(
         title = title,
     )
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = TvHomeSectionsHorizontalPadding),
-        horizontalArrangement = Arrangement.spacedBy(TvHomeSectionsRowSpacing)
+    TvHomeSectionRow(
+        modifier = modifier,
+        rowTestTag = rowTestTag
     ) {
         itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
             PosterCard(
@@ -224,6 +234,31 @@ fun TvLibraryPosterSection(
                 onEpisodeSelected = onEpisodeSelected
             )
         }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun TvHomeSectionRow(
+    modifier: Modifier = Modifier,
+    rowTestTag: String? = null,
+    content: LazyListScope.() -> Unit,
+) {
+    CompositionLocalProvider(LocalBringIntoViewSpec provides TvHomeRowBringIntoViewSpec) {
+        LazyRow(
+            modifier = modifier
+                .fillMaxWidth()
+                .then(
+                    if (rowTestTag != null) {
+                        Modifier.testTag(rowTestTag)
+                    } else {
+                        Modifier
+                    }
+                ),
+            contentPadding = PaddingValues(horizontal = TvHomeSectionsHorizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(TvHomeSectionsRowSpacing),
+            content = content
+        )
     }
 }
 
