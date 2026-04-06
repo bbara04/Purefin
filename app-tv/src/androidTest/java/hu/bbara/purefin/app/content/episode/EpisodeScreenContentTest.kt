@@ -13,7 +13,6 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.input.key.Key
-import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.ui.theme.AppTheme
@@ -34,7 +33,6 @@ class EpisodeScreenContentTest {
                 EpisodeScreenContent(
                     episode = sampleEpisode(progress = 63.0),
                     seriesTitle = "Severance",
-                    topBarShortcut = episodeTopBarShortcut(Route.Home, onSeriesClick = {}),
                     onBack = {},
                     onPlay = {}
                 )
@@ -60,16 +58,12 @@ class EpisodeScreenContentTest {
     }
 
     @Test
-    fun episodeScreenContent_hidesShortcut_whenNoShortcutIsProvided() {
+    fun episodeScreenContent_hidesSeriesShortcut_whenShortcutUiIsUnavailable() {
         composeRule.setContent {
             AppTheme {
                 EpisodeScreenContent(
                     episode = sampleEpisode(progress = null),
                     seriesTitle = "Severance",
-                    topBarShortcut = episodeTopBarShortcut(
-                        previousRoute = Route.PlayerRoute(mediaId = "episode-4"),
-                        onSeriesClick = {}
-                    ),
                     onBack = {},
                     onPlay = {}
                 )
