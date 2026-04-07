@@ -51,11 +51,12 @@ object VideoPlayerModule {
         )
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                25_000,
-                55_000,
-                5_000,
-                5_000
+                15_000, // minBufferMs
+                50_000, // maxBufferMs
+                2_500,  // bufferForPlaybackMs
+                5_000   // bufferForPlaybackAfterRebufferMs
             )
+            .setPrioritizeTimeOverSizeThresholds(true)
             .build()
 
         // Configure RenderersFactory to use all available decoders and enable passthrough
