@@ -155,15 +155,16 @@ fun TvPlayerScreen(
                     when (event.key) {
                         Key.DirectionLeft -> {
                             viewModel.seekBy(-10_000)
-                            viewModel.showControls()
                             true
                         }
                         Key.DirectionRight -> {
                             viewModel.seekBy(10_000)
+                            true
+                        }
+                        Key.DirectionUp, Key.DirectionDown -> {
                             viewModel.showControls()
                             true
                         }
-                        Key.DirectionUp, Key.DirectionDown,
                         Key.DirectionCenter, Key.Enter -> {
                             viewModel.togglePlayPause()
                             viewModel.showControls()
