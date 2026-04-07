@@ -29,7 +29,8 @@ import java.util.UUID
 import javax.inject.Inject
 
 @ViewModelScoped
-class PlayerMediaRepository @Inject constructor(
+class PlayerMediaRepository @OptIn(UnstableApi::class)
+@Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val userSessionRepository: UserSessionRepository,
     private val mediaRepository: MediaRepository,
