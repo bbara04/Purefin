@@ -1,7 +1,10 @@
 package hu.bbara.purefin.core.data.client
 
 import android.content.Context
+import android.media.AudioAttributes as PlatformAudioAttributes
+import android.media.AudioFormat
 import android.media.AudioManager
+import android.media.AudioTrack
 import android.media.MediaCodecList
 import android.util.Log
 import org.jellyfin.sdk.model.api.DeviceProfile
@@ -20,7 +23,9 @@ import org.jellyfin.sdk.model.api.TranscodingProfile
 object AndroidDeviceProfile {
 
     private const val TAG = "AndroidDeviceProfile"
-    private const val DEFAULT_MAX_AUDIO_CHANNELS = 8
+    private const val DEFAULT_MAX_AUDIO_CHANNELS = 2
+    private const val PROBE_SAMPLE_RATE = 48_000
+    private const val PROBE_ENCODING = AudioFormat.ENCODING_PCM_16BIT
 
     @Volatile
     private var cachedSnapshot: CapabilitySnapshot? = null
@@ -214,7 +219,7 @@ object AndroidDeviceProfile {
         val audioManager = context.getSystemService(AudioManager::class.java) ?: return DEFAULT_MAX_AUDIO_CHANNELS
         return runCatching {
             val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            val maxDeviceChannels = devices
+            val reportedMaxChannels = devices
                 .flatMap { device ->
                     buildList {
                         addAll(device.channelCounts.toList())
@@ -223,13 +228,65 @@ object AndroidDeviceProfile {
                     }
                 }
                 .maxOrNull()
-
-            maxDeviceChannels
                 ?.takeIf { it > 0 }
                 ?: DEFAULT_MAX_AUDIO_CHANNELS
+
+            val verifiedMaxChannels = verifyOutputChannelSupport(reportedMaxChannels)
+            Log.d(TAG, "Reported max audio channels: $reportedMaxChannels, verified: $verifiedMaxChannels")
+            verifiedMaxChannels
         }.getOrElse {
             DEFAULT_MAX_AUDIO_CHANNELS
         }
+    }
+
+    private fun verifyOutputChannelSupport(reportedMaxChannels: Int): Int {
+        val candidates = buildList {
+            if (reportedMaxChannels >= 8) add(8)
+            if (reportedMaxChannels >= 6) add(6)
+            add(2)
+        }.distinct()
+
+        return candidates.firstOrNull(::canCreateAudioTrackForChannelCount) ?: DEFAULT_MAX_AUDIO_CHANNELS
+    }
+
+    private fun canCreateAudioTrackForChannelCount(channelCount: Int): Boolean {
+        val channelMask = when (channelCount) {
+            8 -> AudioFormat.CHANNEL_OUT_7POINT1_SURROUND
+            6 -> AudioFormat.CHANNEL_OUT_5POINT1
+            2 -> AudioFormat.CHANNEL_OUT_STEREO
+            else -> return false
+        }
+
+        val minBufferSize = AudioTrack.getMinBufferSize(PROBE_SAMPLE_RATE, channelMask, PROBE_ENCODING)
+        if (minBufferSize <= 0) {
+            return false
+        }
+
+        return runCatching {
+            val audioTrack = AudioTrack.Builder()
+                .setAudioAttributes(
+                    PlatformAudioAttributes.Builder()
+                        .setUsage(PlatformAudioAttributes.USAGE_MEDIA)
+                        .setContentType(PlatformAudioAttributes.CONTENT_TYPE_MOVIE)
+                        .build()
+                )
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setSampleRate(PROBE_SAMPLE_RATE)
+                        .setEncoding(PROBE_ENCODING)
+                        .setChannelMask(channelMask)
+                        .build()
+                )
+                .setTransferMode(AudioTrack.MODE_STREAM)
+                .setBufferSizeInBytes(minBufferSize * 2)
+                .build()
+
+            try {
+                audioTrack.state == AudioTrack.STATE_INITIALIZED
+            } finally {
+                audioTrack.release()
+            }
+        }.getOrElse { false }
     }
 
     private fun channelMaskToCount(mask: Int): Int {

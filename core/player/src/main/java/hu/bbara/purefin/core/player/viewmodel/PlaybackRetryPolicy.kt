@@ -10,6 +10,10 @@ internal object PlaybackRetryPolicy {
     private val retryableErrorCodes = setOf(
         PlaybackException.ERROR_CODE_DECODER_INIT_FAILED,
         PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED,
+        PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED,
+        PlaybackException.ERROR_CODE_AUDIO_TRACK_OFFLOAD_INIT_FAILED,
+        PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED,
+        PlaybackException.ERROR_CODE_AUDIO_TRACK_OFFLOAD_WRITE_FAILED,
         PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
         PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED
     )
@@ -45,6 +49,10 @@ internal object PlaybackRetryPolicy {
             }
         }.lowercase()
 
-        return "decoder" in detail || "codec" in detail || "unsupported" in detail
+        return "decoder" in detail ||
+            "codec" in detail ||
+            "unsupported" in detail ||
+            "audiotrack" in detail ||
+            "audio sink" in detail
     }
 }

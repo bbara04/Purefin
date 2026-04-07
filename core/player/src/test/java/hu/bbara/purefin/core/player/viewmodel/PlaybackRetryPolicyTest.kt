@@ -63,6 +63,22 @@ class PlaybackRetryPolicyTest {
         assertTrue(PlaybackRetryPolicy.shouldRetryWithTranscoding(error, playbackReportContext))
     }
 
+    @Test
+    fun `audio track init failures are retried when transcoding is available`() {
+        val error = PlayerError(
+            summary = "Playback error",
+            technicalDetail = "AudioTrack init failed",
+            source = PlayerErrorSource.PLAYBACK,
+            errorCode = PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED,
+            errorCodeName = "ERROR_CODE_AUDIO_TRACK_INIT_FAILED",
+            retryable = true
+        )
+
+        val playbackReportContext = playbackReportContext(playMethod = PlayMethod.DIRECT_PLAY)
+
+        assertTrue(PlaybackRetryPolicy.shouldRetryWithTranscoding(error, playbackReportContext))
+    }
+
     private fun playbackReportContext(playMethod: PlayMethod): PlaybackReportContext {
         return PlaybackReportContext(
             playMethod = playMethod,
