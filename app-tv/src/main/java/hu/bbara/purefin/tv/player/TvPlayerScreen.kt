@@ -165,6 +165,7 @@ fun TvPlayerScreen(
                         }
                         Key.DirectionUp, Key.DirectionDown,
                         Key.DirectionCenter, Key.Enter -> {
+                            viewModel.togglePlayPause()
                             viewModel.showControls()
                             true
                         }
