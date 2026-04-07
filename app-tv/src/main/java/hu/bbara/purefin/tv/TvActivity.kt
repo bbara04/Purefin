@@ -109,7 +109,7 @@ class TvActivity : ComponentActivity() {
                 }
                 .memoryCache {
                     MemoryCache.Builder()
-                        .maxSizePercent(context, 0.20)
+                        .maxSizePercent(context, 0.08)
                         .build()
                 }
                 .diskCache {
