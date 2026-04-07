@@ -50,6 +50,14 @@ class JellyfinApiClient @Inject constructor(
     companion object {
         private const val TAG = "JellyfinApiClient"
         private const val MAX_STREAMING_BITRATE = 100_000_000
+
+        internal fun streamingHlsOptionsFor(
+            urlStrategy: PlaybackSourcePlanner.UrlStrategy
+        ): HlsStabilityOptions? = when (urlStrategy) {
+            PlaybackSourcePlanner.UrlStrategy.DIRECT_PLAY -> null
+            PlaybackSourcePlanner.UrlStrategy.DIRECT_STREAM,
+            PlaybackSourcePlanner.UrlStrategy.TRANSCODE -> HlsPlaybackStability.conservativeHlsOptions
+        }
     }
 
     private val jellyfin = createJellyfin {
@@ -405,6 +413,11 @@ class JellyfinApiClient @Inject constructor(
         }
 
         val capabilitySnapshot = AndroidDeviceProfile.getSnapshot(applicationContext)
+        Log.d(
+            TAG,
+            "Playback request for $mediaId (forceTranscode=$forceTranscode) maxAudioChannels=${capabilitySnapshot.maxAudioChannels}, " +
+                "hlsOptions=${HlsPlaybackStability.conservativeHlsOptions}"
+        )
         val response = api.mediaInfoApi.getPostedPlaybackInfo(
             mediaId,
             PlaybackInfoDto(
@@ -467,6 +480,14 @@ class JellyfinApiClient @Inject constructor(
         playSessionId: String?,
         maxAudioChannels: Int
     ): String {
+        val hlsOptions = streamingHlsOptionsFor(PlaybackSourcePlanner.UrlStrategy.DIRECT_STREAM)
+            ?: error("Direct stream requests must use HLS stability options.")
+
+        Log.d(
+            TAG,
+            "Stream URL request for $mediaId strategy=DIRECT_STREAM container=${mediaSource.transcodingContainer ?: mediaSource.container}, " +
+                "hlsOptions=$hlsOptions"
+        )
         return api.videosApi.getVideoStreamUrl(
             itemId = mediaId,
             static = false,
@@ -474,9 +495,13 @@ class JellyfinApiClient @Inject constructor(
             playSessionId = playSessionId,
             liveStreamId = mediaSource.liveStreamId,
             container = mediaSource.transcodingContainer ?: mediaSource.container,
+            segmentLength = hlsOptions.segmentLengthSeconds,
+            minSegments = hlsOptions.minSegments,
             enableAutoStreamCopy = true,
             allowVideoStreamCopy = true,
             allowAudioStreamCopy = true,
+            breakOnNonKeyFrames = hlsOptions.breakOnNonKeyFrames,
+            copyTimestamps = hlsOptions.copyTimestamps,
             maxAudioChannels = maxAudioChannels
         )
     }
@@ -487,7 +512,15 @@ class JellyfinApiClient @Inject constructor(
         playSessionId: String?,
         maxAudioChannels: Int
     ): String? {
+        val hlsOptions = streamingHlsOptionsFor(PlaybackSourcePlanner.UrlStrategy.TRANSCODE)
+            ?: error("Transcode requests must use HLS stability options.")
+
         mediaSource.transcodingUrl?.takeIf { it.isNotBlank() }?.let { transcodingUrl ->
+            Log.d(
+                TAG,
+                "Using server transcodingUrl for $mediaId strategy=TRANSCODE container=${mediaSource.transcodingContainer ?: mediaSource.container}, " +
+                    "hlsOptions=$hlsOptions"
+            )
             if (transcodingUrl.startsWith("http", ignoreCase = true)) {
                 return transcodingUrl
             }
@@ -495,6 +528,11 @@ class JellyfinApiClient @Inject constructor(
             return "$baseUrl$transcodingUrl"
         }
 
+        Log.d(
+            TAG,
+            "Stream URL request for $mediaId strategy=TRANSCODE container=${mediaSource.transcodingContainer ?: mediaSource.container ?: "mp4"}, " +
+                "hlsOptions=$hlsOptions"
+        )
         return api.videosApi.getVideoStreamUrl(
             itemId = mediaId,
             static = false,
@@ -502,9 +540,13 @@ class JellyfinApiClient @Inject constructor(
             playSessionId = playSessionId,
             liveStreamId = mediaSource.liveStreamId,
             container = mediaSource.transcodingContainer ?: mediaSource.container ?: "mp4",
+            segmentLength = hlsOptions.segmentLengthSeconds,
+            minSegments = hlsOptions.minSegments,
             enableAutoStreamCopy = false,
             allowVideoStreamCopy = false,
             allowAudioStreamCopy = false,
+            breakOnNonKeyFrames = hlsOptions.breakOnNonKeyFrames,
+            copyTimestamps = hlsOptions.copyTimestamps,
             maxAudioChannels = maxAudioChannels
         )
     }

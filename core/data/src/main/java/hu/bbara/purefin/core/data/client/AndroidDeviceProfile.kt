@@ -68,6 +68,8 @@ object AndroidDeviceProfile {
         videoCodecs: List<String>,
         maxAudioChannels: Int
     ): DeviceProfile {
+        val hlsOptions = HlsPlaybackStability.conservativeHlsOptions
+
         return DeviceProfile(
             name = "Android Media3",
             maxStaticBitrate = 100_000_000,
@@ -94,8 +96,10 @@ object AndroidDeviceProfile {
                     protocol = MediaStreamProtocol.HLS,
                     context = EncodingContext.STREAMING,
                     maxAudioChannels = maxAudioChannels.toString(),
-                    minSegments = 2,
-                    breakOnNonKeyFrames = true,
+                    minSegments = hlsOptions.minSegments,
+                    segmentLength = hlsOptions.segmentLengthSeconds,
+                    breakOnNonKeyFrames = hlsOptions.breakOnNonKeyFrames,
+                    copyTimestamps = hlsOptions.copyTimestamps,
                     conditions = emptyList()
                 )
             ),

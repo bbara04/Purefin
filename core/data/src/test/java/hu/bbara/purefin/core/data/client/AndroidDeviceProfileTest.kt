@@ -4,6 +4,7 @@ import org.jellyfin.sdk.model.api.DlnaProfileType
 import org.jellyfin.sdk.model.api.EncodingContext
 import org.jellyfin.sdk.model.api.MediaStreamProtocol
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -25,7 +26,9 @@ class AndroidDeviceProfileTest {
         assertEquals(MediaStreamProtocol.HLS, transcodingProfile.protocol)
         assertEquals(EncodingContext.STREAMING, transcodingProfile.context)
         assertEquals("6", transcodingProfile.maxAudioChannels)
-        assertEquals(2, transcodingProfile.minSegments)
-        assertTrue(transcodingProfile.breakOnNonKeyFrames)
+        assertEquals(3, transcodingProfile.minSegments)
+        assertEquals(6, transcodingProfile.segmentLength)
+        assertFalse(transcodingProfile.breakOnNonKeyFrames)
+        assertTrue(transcodingProfile.copyTimestamps)
     }
 }
