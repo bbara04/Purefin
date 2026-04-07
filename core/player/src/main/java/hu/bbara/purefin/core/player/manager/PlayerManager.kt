@@ -45,6 +45,7 @@ class PlayerManager @Inject constructor(
 ) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val pendingSeekTracker = PendingSeekTracker()
 
     private var currentMediaContext: MediaContext? = null
 
@@ -97,6 +98,7 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            pendingSeekTracker.clear()
             refreshMetadata(mediaItem)
             refreshQueue()
         }
@@ -124,6 +126,7 @@ class PlayerManager @Inject constructor(
 
     fun play(mediaItem: MediaItem, mediaContext: MediaContext? = null, startPositionMs: Long? = null) {
         currentMediaContext = mediaContext
+        pendingSeekTracker.clear()
         if (startPositionMs != null) {
             player.setMediaItem(mediaItem, startPositionMs)
         } else {
@@ -139,6 +142,7 @@ class PlayerManager @Inject constructor(
 
     fun replaceCurrentMediaItem(mediaItem: MediaItem, mediaContext: MediaContext? = null, startPositionMs: Long? = null) {
         currentMediaContext = mediaContext
+        pendingSeekTracker.clear()
         val currentIndex = player.currentMediaItemIndex.takeIf { it != C.INDEX_UNSET } ?: run {
             play(mediaItem, mediaContext, startPositionMs)
             return
@@ -167,16 +171,17 @@ class PlayerManager @Inject constructor(
     }
 
     fun seekTo(positionMs: Long) {
-        player.seekTo(positionMs)
+        requestSeek(positionMs)
     }
 
     fun seekBy(deltaMs: Long) {
-        val target = (player.currentPosition + deltaMs).coerceAtLeast(0L)
-        seekTo(target)
+        val basePositionMs = pendingSeekTracker.currentPosition(player.currentPosition)
+        requestSeek(basePositionMs + deltaMs, basePositionMs)
     }
 
     fun seekToLiveEdge() {
         if (player.isCurrentMediaItemLive) {
+            pendingSeekTracker.clear()
             player.seekToDefaultPosition()
             player.play()
         }
@@ -184,12 +189,14 @@ class PlayerManager @Inject constructor(
 
     fun next() {
         if (player.hasNextMediaItem()) {
+            pendingSeekTracker.clear()
             player.seekToNextMediaItem()
         }
     }
 
     fun previous() {
         if (player.hasPreviousMediaItem()) {
+            pendingSeekTracker.clear()
             player.seekToPreviousMediaItem()
         }
     }
@@ -251,6 +258,7 @@ class PlayerManager @Inject constructor(
         val items = _queue.value
         val targetIndex = items.indexOfFirst { it.id == id }
         if (targetIndex >= 0) {
+            pendingSeekTracker.clear()
             player.seekToDefaultPosition(targetIndex)
             player.playWhenReady = true
             refreshQueue()
@@ -265,10 +273,29 @@ class PlayerManager @Inject constructor(
         val duration = player.duration.takeIf { it > 0 } ?: _progress.value.durationMs
         return PlaybackProgressSnapshot(
             durationMs = duration,
-            positionMs = player.currentPosition,
+            positionMs = pendingSeekTracker.currentPosition(player.currentPosition),
             bufferedMs = player.bufferedPosition,
             isLive = player.isCurrentMediaItemLive
         )
+    }
+
+    private fun requestSeek(positionMs: Long, basePositionMs: Long = pendingSeekTracker.currentPosition(player.currentPosition)) {
+        val targetPositionMs = clampSeekPosition(positionMs)
+        pendingSeekTracker.recordSeek(basePositionMs = basePositionMs, targetPositionMs = targetPositionMs)
+        _progress.update {
+            it.copy(
+                durationMs = player.duration.takeIf { value -> value > 0L } ?: it.durationMs,
+                positionMs = targetPositionMs,
+                bufferedMs = player.bufferedPosition,
+                isLive = player.isCurrentMediaItemLive
+            )
+        }
+        player.seekTo(targetPositionMs)
+    }
+
+    private fun clampSeekPosition(positionMs: Long): Long {
+        val durationMs = player.duration.takeIf { it > 0L } ?: _progress.value.durationMs.takeIf { it > 0L }
+        return durationMs?.let { positionMs.coerceIn(0L, it) } ?: positionMs.coerceAtLeast(0L)
     }
 
     private suspend fun applyTrackPreferences() {
