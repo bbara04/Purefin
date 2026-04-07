@@ -281,76 +281,32 @@ class JellyfinApiClient @Inject constructor(
     suspend fun getPlaybackDecision(mediaId: UUID, forceTranscode: Boolean = false): PlaybackDecision? = withContext(Dispatchers.IO) {
         val playbackInfo = requestPlaybackInfo(mediaId, forceTranscode) ?: return@withContext null
         val capabilitySnapshot = AndroidDeviceProfile.getSnapshot(applicationContext)
-        val selectedMediaSource = selectMediaSource(playbackInfo.mediaSources, forceTranscode) ?: return@withContext null
+        val playbackPlan = PlaybackSourcePlanner.plan(playbackInfo.mediaSources, forceTranscode) ?: return@withContext null
+        val selectedMediaSource = playbackPlan.mediaSource
 
-        val url = when {
-            forceTranscode && selectedMediaSource.supportsTranscoding -> {
-                resolveTranscodeUrl(
-                    mediaId = mediaId,
-                    mediaSource = selectedMediaSource,
-                    playSessionId = playbackInfo.playSessionId,
-                    maxAudioChannels = capabilitySnapshot.maxAudioChannels
-                )
-            }
-
-            !forceTranscode && selectedMediaSource.supportsDirectPlay -> {
-                api.videosApi.getVideoStreamUrl(
-                    itemId = mediaId,
-                    static = true,
-                    mediaSourceId = selectedMediaSource.id,
-                    playSessionId = playbackInfo.playSessionId,
-                    liveStreamId = selectedMediaSource.liveStreamId
-                )
-            }
-
-            !forceTranscode && selectedMediaSource.supportsDirectStream -> {
-                api.videosApi.getVideoStreamUrl(
-                    itemId = mediaId,
-                    static = false,
-                    mediaSourceId = selectedMediaSource.id,
-                    playSessionId = playbackInfo.playSessionId,
-                    liveStreamId = selectedMediaSource.liveStreamId,
-                    container = selectedMediaSource.transcodingContainer ?: selectedMediaSource.container,
-                    enableAutoStreamCopy = true,
-                    allowVideoStreamCopy = true,
-                    allowAudioStreamCopy = true,
-                    maxAudioChannels = capabilitySnapshot.maxAudioChannels
-                )
-            }
-
-            selectedMediaSource.supportsTranscoding -> {
-                resolveTranscodeUrl(
-                    mediaId = mediaId,
-                    mediaSource = selectedMediaSource,
-                    playSessionId = playbackInfo.playSessionId,
-                    maxAudioChannels = capabilitySnapshot.maxAudioChannels
-                )
-            }
-
-            else -> null
-        } ?: return@withContext null
-
-        val playMethod = when {
-            forceTranscode -> PlayMethod.TRANSCODE
-            selectedMediaSource.supportsDirectPlay -> PlayMethod.DIRECT_PLAY
-            selectedMediaSource.supportsDirectStream -> PlayMethod.DIRECT_STREAM
-            selectedMediaSource.supportsTranscoding -> PlayMethod.TRANSCODE
-            else -> return@withContext null
-        }
+        val url = resolvePlaybackUrl(
+            mediaId = mediaId,
+            mediaSource = selectedMediaSource,
+            urlStrategy = playbackPlan.urlStrategy,
+            playSessionId = playbackInfo.playSessionId,
+            maxAudioChannels = capabilitySnapshot.maxAudioChannels
+        ) ?: return@withContext null
 
         val reportContext = PlaybackReportContext(
-            playMethod = playMethod,
+            playMethod = playbackPlan.playMethod,
             mediaSourceId = selectedMediaSource.id,
             audioStreamIndex = selectedMediaSource.defaultAudioStreamIndex,
             subtitleStreamIndex = selectedMediaSource.defaultSubtitleStreamIndex,
             liveStreamId = selectedMediaSource.liveStreamId,
             playSessionId = playbackInfo.playSessionId,
-            canRetryWithTranscoding = !forceTranscode &&
-                playMethod != PlayMethod.TRANSCODE &&
-                selectedMediaSource.supportsTranscoding
+            canRetryWithTranscoding = playbackPlan.canRetryWithTranscoding
         )
 
-        Log.d(TAG, "Playback decision for $mediaId: $playMethod using ${selectedMediaSource.id}")
+        Log.d(
+            TAG,
+            "Playback decision for $mediaId: ${playbackPlan.playMethod} using ${selectedMediaSource.id}" +
+                if (playbackPlan.usedFallback) " (conservative fallback)" else ""
+        )
         PlaybackDecision(
             url = url,
             mediaSource = selectedMediaSource,
@@ -365,37 +321,20 @@ class JellyfinApiClient @Inject constructor(
 
         val capabilitySnapshot = AndroidDeviceProfile.getSnapshot(applicationContext)
 
-        val url = when {
-            mediaSource.supportsDirectPlay -> api.videosApi.getVideoStreamUrl(
-                itemId = mediaId,
-                static = true,
-                mediaSourceId = mediaSource.id,
-                liveStreamId = mediaSource.liveStreamId
-            )
+        val playbackPlan = PlaybackSourcePlanner.plan(mediaSource) ?: return@withContext null
+        val url = resolvePlaybackUrl(
+            mediaId = mediaId,
+            mediaSource = playbackPlan.mediaSource,
+            urlStrategy = playbackPlan.urlStrategy,
+            playSessionId = null,
+            maxAudioChannels = capabilitySnapshot.maxAudioChannels
+        )
 
-            mediaSource.supportsDirectStream -> api.videosApi.getVideoStreamUrl(
-                itemId = mediaId,
-                static = false,
-                mediaSourceId = mediaSource.id,
-                liveStreamId = mediaSource.liveStreamId,
-                container = mediaSource.transcodingContainer ?: mediaSource.container,
-                enableAutoStreamCopy = true,
-                allowVideoStreamCopy = true,
-                allowAudioStreamCopy = true,
-                maxAudioChannels = capabilitySnapshot.maxAudioChannels
-            )
-
-            mediaSource.supportsTranscoding -> resolveTranscodeUrl(
-                mediaId = mediaId,
-                mediaSource = mediaSource,
-                playSessionId = null,
-                maxAudioChannels = capabilitySnapshot.maxAudioChannels
-            )
-
-            else -> null
-        }
-
-        Log.d(TAG, "Resolved standalone playback URL for $mediaId -> $url")
+        Log.d(
+            TAG,
+            "Resolved standalone playback URL for $mediaId -> $url via ${playbackPlan.playMethod}" +
+                if (playbackPlan.usedFallback) " (conservative fallback)" else ""
+        )
         url
     }
 
@@ -482,18 +421,64 @@ class JellyfinApiClient @Inject constructor(
             )
         )
 
-        Log.d(TAG, "PlaybackInfo for $mediaId -> sources=${response.content.mediaSources.size}, session=${response.content.playSessionId}")
+        logPlaybackInfo(
+            mediaId = mediaId,
+            playbackInfo = response.content,
+            forceTranscode = forceTranscode
+        )
         return response.content
     }
 
-    private fun selectMediaSource(mediaSources: List<MediaSourceInfo>, forceTranscode: Boolean): MediaSourceInfo? {
-        return when {
-            forceTranscode -> mediaSources.firstOrNull { it.supportsTranscoding }
-            else -> mediaSources.firstOrNull { it.supportsDirectPlay }
-                ?: mediaSources.firstOrNull { it.supportsDirectStream }
-                ?: mediaSources.firstOrNull { it.supportsTranscoding }
-                ?: mediaSources.firstOrNull()
+    private suspend fun resolvePlaybackUrl(
+        mediaId: UUID,
+        mediaSource: MediaSourceInfo,
+        urlStrategy: PlaybackSourcePlanner.UrlStrategy,
+        playSessionId: String?,
+        maxAudioChannels: Int
+    ): String? {
+        return when (urlStrategy) {
+            PlaybackSourcePlanner.UrlStrategy.DIRECT_PLAY -> api.videosApi.getVideoStreamUrl(
+                itemId = mediaId,
+                static = true,
+                mediaSourceId = mediaSource.id,
+                playSessionId = playSessionId,
+                liveStreamId = mediaSource.liveStreamId
+            )
+
+            PlaybackSourcePlanner.UrlStrategy.DIRECT_STREAM -> resolveDirectStreamUrl(
+                mediaId = mediaId,
+                mediaSource = mediaSource,
+                playSessionId = playSessionId,
+                maxAudioChannels = maxAudioChannels
+            )
+
+            PlaybackSourcePlanner.UrlStrategy.TRANSCODE -> resolveTranscodeUrl(
+                mediaId = mediaId,
+                mediaSource = mediaSource,
+                playSessionId = playSessionId,
+                maxAudioChannels = maxAudioChannels
+            )
         }
+    }
+
+    private suspend fun resolveDirectStreamUrl(
+        mediaId: UUID,
+        mediaSource: MediaSourceInfo,
+        playSessionId: String?,
+        maxAudioChannels: Int
+    ): String {
+        return api.videosApi.getVideoStreamUrl(
+            itemId = mediaId,
+            static = false,
+            mediaSourceId = mediaSource.id,
+            playSessionId = playSessionId,
+            liveStreamId = mediaSource.liveStreamId,
+            container = mediaSource.transcodingContainer ?: mediaSource.container,
+            enableAutoStreamCopy = true,
+            allowVideoStreamCopy = true,
+            allowAudioStreamCopy = true,
+            maxAudioChannels = maxAudioChannels
+        )
     }
 
     private suspend fun resolveTranscodeUrl(
@@ -522,5 +507,29 @@ class JellyfinApiClient @Inject constructor(
             allowAudioStreamCopy = false,
             maxAudioChannels = maxAudioChannels
         )
+    }
+
+    private fun logPlaybackInfo(
+        mediaId: UUID,
+        playbackInfo: PlaybackInfoResponse,
+        forceTranscode: Boolean
+    ) {
+        Log.d(
+            TAG,
+            "PlaybackInfo for $mediaId (forceTranscode=$forceTranscode) -> " +
+                "sources=${playbackInfo.mediaSources.size}, session=${playbackInfo.playSessionId}, error=${playbackInfo.errorCode}"
+        )
+
+        playbackInfo.mediaSources.forEachIndexed { index, mediaSource ->
+            Log.d(
+                TAG,
+                "PlaybackInfo[$index] id=${mediaSource.id}, container=${mediaSource.container}, " +
+                    "transcodingContainer=${mediaSource.transcodingContainer}, protocol=${mediaSource.protocol}, " +
+                    "supportsDirectPlay=${mediaSource.supportsDirectPlay}, " +
+                    "supportsDirectStream=${mediaSource.supportsDirectStream}, " +
+                    "supportsTranscoding=${mediaSource.supportsTranscoding}, " +
+                    "hasTranscodingUrl=${!mediaSource.transcodingUrl.isNullOrBlank()}"
+            )
+        }
     }
 }

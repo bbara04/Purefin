@@ -7,8 +7,11 @@ import android.util.Log
 import org.jellyfin.sdk.model.api.DeviceProfile
 import org.jellyfin.sdk.model.api.DirectPlayProfile
 import org.jellyfin.sdk.model.api.DlnaProfileType
+import org.jellyfin.sdk.model.api.EncodingContext
+import org.jellyfin.sdk.model.api.MediaStreamProtocol
 import org.jellyfin.sdk.model.api.SubtitleDeliveryMethod
 import org.jellyfin.sdk.model.api.SubtitleProfile
+import org.jellyfin.sdk.model.api.TranscodingProfile
 
 /**
  * Creates a DeviceProfile for Android devices with proper codec support detection.
@@ -45,7 +48,7 @@ object AndroidDeviceProfile {
             Log.d(TAG, "Max audio channels: $maxAudioChannels")
 
             val snapshot = CapabilitySnapshot(
-                deviceProfile = buildDeviceProfile(audioCodecs, videoCodecs),
+                deviceProfile = createDeviceProfile(audioCodecs, videoCodecs, maxAudioChannels),
                 maxAudioChannels = maxAudioChannels
             )
             cachedSnapshot = snapshot
@@ -55,9 +58,10 @@ object AndroidDeviceProfile {
 
     fun create(context: Context): DeviceProfile = getSnapshot(context).deviceProfile
 
-    private fun buildDeviceProfile(
+    internal fun createDeviceProfile(
         audioCodecs: List<String>,
-        videoCodecs: List<String>
+        videoCodecs: List<String>,
+        maxAudioChannels: Int
     ): DeviceProfile {
         return DeviceProfile(
             name = "Android Media3",
@@ -74,8 +78,22 @@ object AndroidDeviceProfile {
                 )
             ),
 
-            // Empty transcoding profiles - Jellyfin will use its defaults
-            transcodingProfiles = emptyList(),
+            // Explicit video transcoding support keeps Jellyfin 10.10/10.11 from
+            // returning sources that exist but are not marked usable for playback.
+            transcodingProfiles = listOf(
+                TranscodingProfile(
+                    container = "ts",
+                    type = DlnaProfileType.VIDEO,
+                    videoCodec = "h264",
+                    audioCodec = "aac",
+                    protocol = MediaStreamProtocol.HLS,
+                    context = EncodingContext.STREAMING,
+                    maxAudioChannels = maxAudioChannels.toString(),
+                    minSegments = 2,
+                    breakOnNonKeyFrames = true,
+                    conditions = emptyList()
+                )
+            ),
 
             codecProfiles = emptyList(),
 
