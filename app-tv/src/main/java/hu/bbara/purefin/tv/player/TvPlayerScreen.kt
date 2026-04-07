@@ -201,7 +201,6 @@ fun TvPlayerScreen(
                 modifier = Modifier.fillMaxSize(),
                 uiState = uiState,
                 focusRequester = controlsFocusRequester,
-                onBack = onBack,
                 onPlayPause = { viewModel.togglePlayPause() },
                 onSeek = { viewModel.seekTo(it) },
                 onSeekRelative = { viewModel.seekBy(it) },
@@ -267,7 +266,6 @@ private enum class TrackPanelType { AUDIO, SUBTITLES, QUALITY }
 private fun TvPlayerControlsOverlay(
     uiState: PlayerUiState,
     focusRequester: FocusRequester,
-    onBack: () -> Unit,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
@@ -296,7 +294,6 @@ private fun TvPlayerControlsOverlay(
         TvPlayerTopBar(
             title = uiState.title ?: "Playing",
             subtitle = uiState.subtitle,
-            onBack = onBack,
             onOpenQueue = onOpenQueue,
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -327,7 +324,6 @@ private fun TvPlayerControlsOverlay(
 private fun TvPlayerTopBar(
     title: String,
     subtitle: String?,
-    onBack: () -> Unit,
     onOpenQueue: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -341,11 +337,6 @@ private fun TvPlayerTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            TvIconButton(
-                icon = Icons.Outlined.ArrowBack,
-                contentDescription = "Back",
-                onClick = onBack
-            )
             Column {
                 Text(
                     text = title,
