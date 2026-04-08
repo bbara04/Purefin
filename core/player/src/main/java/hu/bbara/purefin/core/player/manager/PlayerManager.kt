@@ -9,8 +9,6 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.scopes.ViewModelScoped
-import hu.bbara.purefin.core.data.client.PlaybackReportContext
-import hu.bbara.purefin.core.player.model.PlayerError
 import hu.bbara.purefin.core.player.model.QueueItemUi
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
@@ -45,7 +43,6 @@ class PlayerManager @Inject constructor(
 ) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private val pendingSeekTracker = PendingSeekTracker()
 
     private var currentMediaContext: MediaContext? = null
 
@@ -83,11 +80,7 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            _playbackState.update {
-                it.copy(
-                    error = PlayerError.fromPlaybackException(error)
-                )
-            }
+            _playbackState.update { it.copy(error = error.errorCodeName ?: error.localizedMessage ?: "Playback error") }
         }
 
         override fun onTracksChanged(tracks: Tracks) {
@@ -98,21 +91,8 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            pendingSeekTracker.clear()
             refreshMetadata(mediaItem)
             refreshQueue()
-        }
-
-        override fun onPositionDiscontinuity(
-            oldPosition: Player.PositionInfo,
-            newPosition: Player.PositionInfo,
-            reason: Int
-        ) {
-            if (reason == Player.DISCONTINUITY_REASON_SEEK &&
-                newPosition.positionMs < oldPosition.positionMs
-            ) {
-                refreshSubtitleRendererOnBackwardSeek()
-            }
         }
     }
 
@@ -124,36 +104,9 @@ class PlayerManager @Inject constructor(
         startProgressLoop()
     }
 
-    fun play(mediaItem: MediaItem, mediaContext: MediaContext? = null, startPositionMs: Long? = null) {
+    fun play(mediaItem: MediaItem, mediaContext: MediaContext? = null) {
         currentMediaContext = mediaContext
-        pendingSeekTracker.clear()
-        if (startPositionMs != null) {
-            player.setMediaItem(mediaItem, startPositionMs)
-        } else {
-            player.setMediaItem(mediaItem)
-        }
-        player.prepare()
-        player.playWhenReady = true
-        _progress.value = PlaybackProgressSnapshot()
-        refreshMetadata(mediaItem)
-        refreshQueue()
-        _playbackState.update { it.copy(isEnded = false, error = null) }
-    }
-
-    fun replaceCurrentMediaItem(mediaItem: MediaItem, mediaContext: MediaContext? = null, startPositionMs: Long? = null) {
-        currentMediaContext = mediaContext
-        pendingSeekTracker.clear()
-        val currentIndex = player.currentMediaItemIndex.takeIf { it != C.INDEX_UNSET } ?: run {
-            play(mediaItem, mediaContext, startPositionMs)
-            return
-        }
-
-        player.replaceMediaItem(currentIndex, mediaItem)
-        if (startPositionMs != null) {
-            player.seekTo(currentIndex, startPositionMs)
-        } else {
-            player.seekToDefaultPosition(currentIndex)
-        }
+        player.setMediaItem(mediaItem)
         player.prepare()
         player.playWhenReady = true
         refreshMetadata(mediaItem)
@@ -171,17 +124,16 @@ class PlayerManager @Inject constructor(
     }
 
     fun seekTo(positionMs: Long) {
-        requestSeek(positionMs)
+        player.seekTo(positionMs)
     }
 
     fun seekBy(deltaMs: Long) {
-        val basePositionMs = pendingSeekTracker.currentPosition(player.currentPosition)
-        requestSeek(basePositionMs + deltaMs, basePositionMs)
+        val target = (player.currentPosition + deltaMs).coerceAtLeast(0L)
+        seekTo(target)
     }
 
     fun seekToLiveEdge() {
         if (player.isCurrentMediaItemLive) {
-            pendingSeekTracker.clear()
             player.seekToDefaultPosition()
             player.play()
         }
@@ -189,14 +141,12 @@ class PlayerManager @Inject constructor(
 
     fun next() {
         if (player.hasNextMediaItem()) {
-            pendingSeekTracker.clear()
             player.seekToNextMediaItem()
         }
     }
 
     fun previous() {
         if (player.hasPreviousMediaItem()) {
-            pendingSeekTracker.clear()
             player.seekToPreviousMediaItem()
         }
     }
@@ -258,7 +208,6 @@ class PlayerManager @Inject constructor(
         val items = _queue.value
         val targetIndex = items.indexOfFirst { it.id == id }
         if (targetIndex >= 0) {
-            pendingSeekTracker.clear()
             player.seekToDefaultPosition(targetIndex)
             player.playWhenReady = true
             refreshQueue()
@@ -267,35 +216,6 @@ class PlayerManager @Inject constructor(
 
     fun clearError() {
         _playbackState.update { it.copy(error = null) }
-    }
-
-    fun snapshotProgress(): PlaybackProgressSnapshot {
-        val duration = player.duration.takeIf { it > 0 } ?: _progress.value.durationMs
-        return PlaybackProgressSnapshot(
-            durationMs = duration,
-            positionMs = pendingSeekTracker.currentPosition(player.currentPosition),
-            bufferedMs = player.bufferedPosition,
-            isLive = player.isCurrentMediaItemLive
-        )
-    }
-
-    private fun requestSeek(positionMs: Long, basePositionMs: Long = pendingSeekTracker.currentPosition(player.currentPosition)) {
-        val targetPositionMs = clampSeekPosition(positionMs)
-        pendingSeekTracker.recordSeek(basePositionMs = basePositionMs, targetPositionMs = targetPositionMs)
-        _progress.update {
-            it.copy(
-                durationMs = player.duration.takeIf { value -> value > 0L } ?: it.durationMs,
-                positionMs = targetPositionMs,
-                bufferedMs = player.bufferedPosition,
-                isLive = player.isCurrentMediaItemLive
-            )
-        }
-        player.seekTo(targetPositionMs)
-    }
-
-    private fun clampSeekPosition(positionMs: Long): Long {
-        val durationMs = player.duration.takeIf { it > 0L } ?: _progress.value.durationMs.takeIf { it > 0L }
-        return durationMs?.let { positionMs.coerceIn(0L, it) } ?: positionMs.coerceAtLeast(0L)
     }
 
     private suspend fun applyTrackPreferences() {
@@ -350,17 +270,6 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    private fun refreshSubtitleRendererOnBackwardSeek() {
-        val currentParams = player.trackSelectionParameters
-        if (C.TRACK_TYPE_TEXT in currentParams.disabledTrackTypes) return
-        scope.launch {
-            player.trackSelectionParameters = currentParams.buildUpon()
-                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
-                .build()
-            player.trackSelectionParameters = currentParams
-        }
-    }
-
     fun release() {
         scope.cancel()
         player.removeListener(listener)
@@ -370,7 +279,15 @@ class PlayerManager @Inject constructor(
     private fun startProgressLoop() {
         scope.launch {
             while (isActive) {
-                _progress.value = snapshotProgress()
+                val duration = player.duration.takeIf { it > 0 } ?: _progress.value.durationMs
+                val position = player.currentPosition
+                val buffered = player.bufferedPosition
+                _progress.value = PlaybackProgressSnapshot(
+                    durationMs = duration,
+                    positionMs = position,
+                    bufferedMs = buffered,
+                    isLive = player.isCurrentMediaItemLive
+                )
                 delay(500)
             }
         }
@@ -394,12 +311,10 @@ class PlayerManager @Inject constructor(
     }
 
     private fun refreshMetadata(mediaItem: MediaItem?) {
-        val playbackReportContext = mediaItem?.localConfiguration?.tag as? PlaybackReportContext
         _metadata.value = MetadataState(
             mediaId = mediaItem?.mediaId,
             title = mediaItem?.mediaMetadata?.title?.toString(),
             subtitle = mediaItem?.mediaMetadata?.subtitle?.toString(),
-            playbackReportContext = playbackReportContext
         )
     }
 
@@ -412,7 +327,7 @@ data class PlaybackStateSnapshot(
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
     val isEnded: Boolean = false,
-    val error: PlayerError? = null
+    val error: String? = null
 )
 
 data class PlaybackProgressSnapshot(
@@ -426,7 +341,6 @@ data class MetadataState(
     val mediaId: String? = null,
     val title: String? = null,
     val subtitle: String? = null,
-    val playbackReportContext: PlaybackReportContext? = null
 )
 
 data class MediaContext(

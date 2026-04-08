@@ -18,7 +18,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
-import hu.bbara.purefin.core.data.client.AndroidDeviceProfile
 
 @Module
 @InstallIn(ViewModelComponent::class)
@@ -28,7 +27,6 @@ object VideoPlayerModule {
     @Provides
     @ViewModelScoped
     fun provideVideoPlayer(application: Application, cacheDataSourceFactory: CacheDataSource.Factory): Player {
-        val capabilitySnapshot = AndroidDeviceProfile.getSnapshot(application)
         val trackSelector = DefaultTrackSelector(application)
         val audioAttributes =
             AudioAttributes.Builder()
@@ -39,24 +37,15 @@ object VideoPlayerModule {
         trackSelector.setParameters(
             trackSelector
                 .buildUponParameters()
-                .setMaxAudioChannelCount(capabilitySnapshot.maxAudioChannels)
-                .setExceedAudioConstraintsIfNecessary(false)
                 .setTunnelingEnabled(false)
-//                .setPreferredAudioLanguage(
-//                    appPreferences.getValue(appPreferences.preferredAudioLanguage)
-//                )
-//                .setPreferredTextLanguage(
-//                    appPreferences.getValue(appPreferences.preferredSubtitleLanguage)
-//                )
         )
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                15_000, // minBufferMs
-                50_000, // maxBufferMs
-                2_500,  // bufferForPlaybackMs
-                5_000   // bufferForPlaybackAfterRebufferMs
+                10_000,
+                30_000,
+                5_000,
+                5_000
             )
-            .setPrioritizeTimeOverSizeThresholds(true)
             .build()
 
         // Configure RenderersFactory to use all available decoders and enable passthrough

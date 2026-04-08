@@ -77,12 +77,12 @@ fun TvPlayerScreen(
     }
 
     BackHandler(enabled = controlsVisible) {
-        viewModel.hideControls()
+        viewModel.toggleControlsVisibility()
     }
 
     LaunchedEffect(uiState.isPlaying) {
-        if (uiState.isPlaying) {
-            viewModel.hideControls()
+        if (uiState.isPlaying && controlsVisible) {
+            viewModel.toggleControlsVisibility()
         }
     }
 

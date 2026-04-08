@@ -29,7 +29,6 @@ import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.MediaType
 import org.jellyfin.sdk.model.api.PlayMethod
 import org.jellyfin.sdk.model.api.PlaybackInfoDto
-import org.jellyfin.sdk.model.api.PlaybackInfoResponse
 import org.jellyfin.sdk.model.api.PlaybackOrder
 import org.jellyfin.sdk.model.api.PlaybackProgressInfo
 import org.jellyfin.sdk.model.api.PlaybackStartInfo
@@ -47,19 +46,6 @@ class JellyfinApiClient @Inject constructor(
     @ApplicationContext private val applicationContext: Context,
     private val userSessionRepository: UserSessionRepository,
 ) {
-    companion object {
-        private const val TAG = "JellyfinApiClient"
-        private const val MAX_STREAMING_BITRATE = 100_000_000
-
-        internal fun streamingHlsOptionsFor(
-            urlStrategy: PlaybackSourcePlanner.UrlStrategy
-        ): HlsStabilityOptions? = when (urlStrategy) {
-            PlaybackSourcePlanner.UrlStrategy.DIRECT_PLAY -> null
-            PlaybackSourcePlanner.UrlStrategy.DIRECT_STREAM,
-            PlaybackSourcePlanner.UrlStrategy.TRANSCODE -> HlsPlaybackStability.conservativeHlsOptions
-        }
-    }
-
     private val jellyfin = createJellyfin {
         context = applicationContext
         clientInfo = ClientInfo(name = "Purefin", version = "0.0.1")
@@ -283,43 +269,18 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
-        requestPlaybackInfo(mediaId)?.mediaSources ?: emptyList()
-    }
-
-    suspend fun getPlaybackDecision(mediaId: UUID, forceTranscode: Boolean = false): PlaybackDecision? = withContext(Dispatchers.IO) {
-        val playbackInfo = requestPlaybackInfo(mediaId, forceTranscode) ?: return@withContext null
-        val capabilitySnapshot = AndroidDeviceProfile.getSnapshot(applicationContext)
-        val playbackPlan = PlaybackSourcePlanner.plan(playbackInfo.mediaSources, forceTranscode) ?: return@withContext null
-        val selectedMediaSource = playbackPlan.mediaSource
-
-        val url = resolvePlaybackUrl(
-            mediaId = mediaId,
-            mediaSource = selectedMediaSource,
-            urlStrategy = playbackPlan.urlStrategy,
-            playSessionId = playbackInfo.playSessionId,
-            maxAudioChannels = capabilitySnapshot.maxAudioChannels
-        ) ?: return@withContext null
-
-        val reportContext = PlaybackReportContext(
-            playMethod = playbackPlan.playMethod,
-            mediaSourceId = selectedMediaSource.id,
-            audioStreamIndex = selectedMediaSource.defaultAudioStreamIndex,
-            subtitleStreamIndex = selectedMediaSource.defaultSubtitleStreamIndex,
-            liveStreamId = selectedMediaSource.liveStreamId,
-            playSessionId = playbackInfo.playSessionId,
-            canRetryWithTranscoding = playbackPlan.canRetryWithTranscoding
-        )
-
-        Log.d(
-            TAG,
-            "Playback decision for $mediaId: ${playbackPlan.playMethod} using ${selectedMediaSource.id}" +
-                if (playbackPlan.usedFallback) " (conservative fallback)" else ""
-        )
-        PlaybackDecision(
-            url = url,
-            mediaSource = selectedMediaSource,
-            reportContext = reportContext
-        )
+        val result = api.mediaInfoApi
+            .getPostedPlaybackInfo(
+                mediaId,
+                PlaybackInfoDto(
+                    userId = getUserId(),
+                    // TODO add supportedContainers
+                    deviceProfile = null,
+                    maxStreamingBitrate = 100_000_000,
+                ),
+            )
+        Log.d("getMediaSources", result.toString())
+        result.content.mediaSources
     }
 
     suspend fun getMediaPlaybackUrl(mediaId: UUID, mediaSource: MediaSourceInfo): String? = withContext(Dispatchers.IO) {
@@ -327,26 +288,28 @@ class JellyfinApiClient @Inject constructor(
             return@withContext null
         }
 
-        val capabilitySnapshot = AndroidDeviceProfile.getSnapshot(applicationContext)
+        // Check if transcoding is required based on the MediaSourceInfo from getMediaSources
+        val shouldTranscode = mediaSource.supportsTranscoding == true &&
+                              (mediaSource.supportsDirectPlay == false || mediaSource.transcodingUrl != null)
 
-        val playbackPlan = PlaybackSourcePlanner.plan(mediaSource) ?: return@withContext null
-        val url = resolvePlaybackUrl(
-            mediaId = mediaId,
-            mediaSource = playbackPlan.mediaSource,
-            urlStrategy = playbackPlan.urlStrategy,
-            playSessionId = null,
-            maxAudioChannels = capabilitySnapshot.maxAudioChannels
-        )
+        val url = if (shouldTranscode && !mediaSource.transcodingUrl.isNullOrBlank()) {
+            // Use transcoding URL
+            val baseUrl = userSessionRepository.serverUrl.first().trim().trimEnd('/')
+            "$baseUrl${mediaSource.transcodingUrl}"
+        } else {
+            // Use direct play URL
+            api.videosApi.getVideoStreamUrl(
+                itemId = mediaId,
+                static = true,
+                mediaSourceId = mediaSource.id,
+            )
+        }
 
-        Log.d(
-            TAG,
-            "Resolved standalone playback URL for $mediaId -> $url via ${playbackPlan.playMethod}" +
-                if (playbackPlan.usedFallback) " (conservative fallback)" else ""
-        )
+        Log.d("getMediaPlaybackUrl", "Direct play: ${!shouldTranscode}, URL: $url")
         url
     }
 
-    suspend fun reportPlaybackStart(itemId: UUID, positionTicks: Long = 0L, reportContext: PlaybackReportContext) = withContext(Dispatchers.IO) {
+    suspend fun reportPlaybackStart(itemId: UUID, positionTicks: Long = 0L) = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackStart(
             PlaybackStartInfo(
@@ -355,24 +318,15 @@ class JellyfinApiClient @Inject constructor(
                 canSeek = true,
                 isPaused = false,
                 isMuted = false,
-                mediaSourceId = reportContext.mediaSourceId,
-                audioStreamIndex = reportContext.audioStreamIndex,
-                subtitleStreamIndex = reportContext.subtitleStreamIndex,
-                liveStreamId = reportContext.liveStreamId,
-                playSessionId = reportContext.playSessionId,
-                playMethod = reportContext.playMethod,
+                // TODO Send correct play method
+                playMethod = PlayMethod.DIRECT_PLAY,
                 repeatMode = RepeatMode.REPEAT_NONE,
                 playbackOrder = PlaybackOrder.DEFAULT
             )
         )
     }
 
-    suspend fun reportPlaybackProgress(
-        itemId: UUID,
-        positionTicks: Long,
-        isPaused: Boolean,
-        reportContext: PlaybackReportContext
-    ) = withContext(Dispatchers.IO) {
+    suspend fun reportPlaybackProgress(itemId: UUID, positionTicks: Long, isPaused: Boolean) = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackProgress(
             PlaybackProgressInfo(
@@ -381,197 +335,21 @@ class JellyfinApiClient @Inject constructor(
                 canSeek = true,
                 isPaused = isPaused,
                 isMuted = false,
-                mediaSourceId = reportContext.mediaSourceId,
-                audioStreamIndex = reportContext.audioStreamIndex,
-                subtitleStreamIndex = reportContext.subtitleStreamIndex,
-                liveStreamId = reportContext.liveStreamId,
-                playSessionId = reportContext.playSessionId,
-                playMethod = reportContext.playMethod,
+                playMethod = PlayMethod.DIRECT_PLAY,
                 repeatMode = RepeatMode.REPEAT_NONE,
                 playbackOrder = PlaybackOrder.DEFAULT
             )
         )
     }
 
-    suspend fun reportPlaybackStopped(itemId: UUID, positionTicks: Long, reportContext: PlaybackReportContext) = withContext(Dispatchers.IO) {
+    suspend fun reportPlaybackStopped(itemId: UUID, positionTicks: Long) = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackStopped(
             PlaybackStopInfo(
                 itemId = itemId,
                 positionTicks = positionTicks,
-                mediaSourceId = reportContext.mediaSourceId,
-                liveStreamId = reportContext.liveStreamId,
-                playSessionId = reportContext.playSessionId,
                 failed = false
             )
         )
-    }
-
-    private suspend fun requestPlaybackInfo(mediaId: UUID, forceTranscode: Boolean = false): PlaybackInfoResponse? {
-        if (!ensureConfigured()) {
-            return null
-        }
-
-        val capabilitySnapshot = AndroidDeviceProfile.getSnapshot(applicationContext)
-        Log.d(
-            TAG,
-            "Playback request for $mediaId (forceTranscode=$forceTranscode) maxAudioChannels=${capabilitySnapshot.maxAudioChannels}, " +
-                "hlsOptions=${HlsPlaybackStability.conservativeHlsOptions}"
-        )
-        val response = api.mediaInfoApi.getPostedPlaybackInfo(
-            mediaId,
-            PlaybackInfoDto(
-                userId = getUserId(),
-                deviceProfile = capabilitySnapshot.deviceProfile,
-                maxStreamingBitrate = MAX_STREAMING_BITRATE,
-                maxAudioChannels = capabilitySnapshot.maxAudioChannels,
-                enableDirectPlay = !forceTranscode,
-                enableDirectStream = !forceTranscode,
-                enableTranscoding = true,
-                allowVideoStreamCopy = !forceTranscode,
-                allowAudioStreamCopy = !forceTranscode,
-                alwaysBurnInSubtitleWhenTranscoding = false
-            )
-        )
-
-        logPlaybackInfo(
-            mediaId = mediaId,
-            playbackInfo = response.content,
-            forceTranscode = forceTranscode
-        )
-        return response.content
-    }
-
-    private suspend fun resolvePlaybackUrl(
-        mediaId: UUID,
-        mediaSource: MediaSourceInfo,
-        urlStrategy: PlaybackSourcePlanner.UrlStrategy,
-        playSessionId: String?,
-        maxAudioChannels: Int
-    ): String? {
-        return when (urlStrategy) {
-            PlaybackSourcePlanner.UrlStrategy.DIRECT_PLAY -> api.videosApi.getVideoStreamUrl(
-                itemId = mediaId,
-                static = true,
-                mediaSourceId = mediaSource.id,
-                playSessionId = playSessionId,
-                liveStreamId = mediaSource.liveStreamId
-            )
-
-            PlaybackSourcePlanner.UrlStrategy.DIRECT_STREAM -> resolveDirectStreamUrl(
-                mediaId = mediaId,
-                mediaSource = mediaSource,
-                playSessionId = playSessionId,
-                maxAudioChannels = maxAudioChannels
-            )
-
-            PlaybackSourcePlanner.UrlStrategy.TRANSCODE -> resolveTranscodeUrl(
-                mediaId = mediaId,
-                mediaSource = mediaSource,
-                playSessionId = playSessionId,
-                maxAudioChannels = maxAudioChannels
-            )
-        }
-    }
-
-    private suspend fun resolveDirectStreamUrl(
-        mediaId: UUID,
-        mediaSource: MediaSourceInfo,
-        playSessionId: String?,
-        maxAudioChannels: Int
-    ): String {
-        val hlsOptions = streamingHlsOptionsFor(PlaybackSourcePlanner.UrlStrategy.DIRECT_STREAM)
-            ?: error("Direct stream requests must use HLS stability options.")
-
-        Log.d(
-            TAG,
-            "Stream URL request for $mediaId strategy=DIRECT_STREAM container=${mediaSource.transcodingContainer ?: mediaSource.container}, " +
-                "hlsOptions=$hlsOptions"
-        )
-        return api.videosApi.getVideoStreamUrl(
-            itemId = mediaId,
-            static = false,
-            mediaSourceId = mediaSource.id,
-            playSessionId = playSessionId,
-            liveStreamId = mediaSource.liveStreamId,
-            container = mediaSource.transcodingContainer ?: mediaSource.container,
-            segmentLength = hlsOptions.segmentLengthSeconds,
-            minSegments = hlsOptions.minSegments,
-            enableAutoStreamCopy = true,
-            allowVideoStreamCopy = true,
-            allowAudioStreamCopy = true,
-            breakOnNonKeyFrames = hlsOptions.breakOnNonKeyFrames,
-            copyTimestamps = hlsOptions.copyTimestamps,
-            maxAudioChannels = maxAudioChannels
-        )
-    }
-
-    private suspend fun resolveTranscodeUrl(
-        mediaId: UUID,
-        mediaSource: MediaSourceInfo,
-        playSessionId: String?,
-        maxAudioChannels: Int
-    ): String? {
-        val hlsOptions = streamingHlsOptionsFor(PlaybackSourcePlanner.UrlStrategy.TRANSCODE)
-            ?: error("Transcode requests must use HLS stability options.")
-
-        mediaSource.transcodingUrl?.takeIf { it.isNotBlank() }?.let { transcodingUrl ->
-            Log.d(
-                TAG,
-                "Using server transcodingUrl for $mediaId strategy=TRANSCODE container=${mediaSource.transcodingContainer ?: mediaSource.container}, " +
-                    "hlsOptions=$hlsOptions"
-            )
-            if (transcodingUrl.startsWith("http", ignoreCase = true)) {
-                return transcodingUrl
-            }
-            val baseUrl = userSessionRepository.serverUrl.first().trim().trimEnd('/')
-            return "$baseUrl$transcodingUrl"
-        }
-
-        Log.d(
-            TAG,
-            "Stream URL request for $mediaId strategy=TRANSCODE container=${mediaSource.transcodingContainer ?: mediaSource.container ?: "mp4"}, " +
-                "hlsOptions=$hlsOptions"
-        )
-        return api.videosApi.getVideoStreamUrl(
-            itemId = mediaId,
-            static = false,
-            mediaSourceId = mediaSource.id,
-            playSessionId = playSessionId,
-            liveStreamId = mediaSource.liveStreamId,
-            container = mediaSource.transcodingContainer ?: mediaSource.container ?: "mp4",
-            segmentLength = hlsOptions.segmentLengthSeconds,
-            minSegments = hlsOptions.minSegments,
-            enableAutoStreamCopy = false,
-            allowVideoStreamCopy = false,
-            allowAudioStreamCopy = false,
-            breakOnNonKeyFrames = hlsOptions.breakOnNonKeyFrames,
-            copyTimestamps = hlsOptions.copyTimestamps,
-            maxAudioChannels = maxAudioChannels
-        )
-    }
-
-    private fun logPlaybackInfo(
-        mediaId: UUID,
-        playbackInfo: PlaybackInfoResponse,
-        forceTranscode: Boolean
-    ) {
-        Log.d(
-            TAG,
-            "PlaybackInfo for $mediaId (forceTranscode=$forceTranscode) -> " +
-                "sources=${playbackInfo.mediaSources.size}, session=${playbackInfo.playSessionId}, error=${playbackInfo.errorCode}"
-        )
-
-        playbackInfo.mediaSources.forEachIndexed { index, mediaSource ->
-            Log.d(
-                TAG,
-                "PlaybackInfo[$index] id=${mediaSource.id}, container=${mediaSource.container}, " +
-                    "transcodingContainer=${mediaSource.transcodingContainer}, protocol=${mediaSource.protocol}, " +
-                    "supportsDirectPlay=${mediaSource.supportsDirectPlay}, " +
-                    "supportsDirectStream=${mediaSource.supportsDirectStream}, " +
-                    "supportsTranscoding=${mediaSource.supportsTranscoding}, " +
-                    "hasTranscodingUrl=${!mediaSource.transcodingUrl.isNullOrBlank()}"
-            )
-        }
     }
 }

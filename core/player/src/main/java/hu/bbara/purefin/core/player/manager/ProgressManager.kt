@@ -3,7 +3,6 @@ package hu.bbara.purefin.core.player.manager
 import android.util.Log
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
-import hu.bbara.purefin.core.data.client.PlaybackReportContext
 import hu.bbara.purefin.core.data.domain.usecase.UpdateWatchProgressUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,15 +25,9 @@ class ProgressManager @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var progressJob: Job? = null
     private var activeItemId: UUID? = null
-    private var activePlaybackReportContext: PlaybackReportContext? = null
     private var lastPositionMs: Long = 0L
     private var lastDurationMs: Long = 0L
     private var isPaused: Boolean = false
-
-    fun syncProgress(snapshot: PlaybackProgressSnapshot) {
-        lastPositionMs = snapshot.positionMs
-        lastDurationMs = snapshot.durationMs
-    }
 
     fun bind(
         playbackState: StateFlow<PlaybackStateSnapshot>,
@@ -49,7 +42,6 @@ class ProgressManager @Inject constructor(
                 lastDurationMs = prog.durationMs
                 isPaused = !state.isPlaying
                 val mediaId = meta.mediaId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                activePlaybackReportContext = meta.playbackReportContext
 
                 // Media changed or ended - stop session
                 if (activeItemId != null && (mediaId != activeItemId || state.isEnded)) {
@@ -58,20 +50,19 @@ class ProgressManager @Inject constructor(
 
                 // Start session when we have a media item and none is active
                 if (activeItemId == null && mediaId != null && !state.isEnded) {
-                    startSession(mediaId, prog.positionMs, meta.playbackReportContext)
+                    startSession(mediaId, prog.positionMs)
                 }
             }
         }
     }
 
-    private fun startSession(itemId: UUID, positionMs: Long, reportContext: PlaybackReportContext?) {
+    private fun startSession(itemId: UUID, positionMs: Long) {
         activeItemId = itemId
-        activePlaybackReportContext = reportContext
-        report(itemId, positionMs, reportContext = reportContext, isStart = true)
+        report(itemId, positionMs, isStart = true)
         progressJob = scope.launch {
             while (isActive) {
                 delay(5000)
-                report(itemId, lastPositionMs, reportContext = activePlaybackReportContext, isPaused = isPaused)
+                report(itemId, lastPositionMs, isPaused = isPaused)
             }
         }
     }
@@ -79,7 +70,7 @@ class ProgressManager @Inject constructor(
     private fun stopSession() {
         progressJob?.cancel()
         activeItemId?.let { itemId ->
-            report(itemId, lastPositionMs, reportContext = activePlaybackReportContext, isStop = true)
+            report(itemId, lastPositionMs, isStop = true)
             scope.launch(Dispatchers.IO) {
                 try {
                     updateWatchProgressUseCase(itemId, lastPositionMs, lastDurationMs)
@@ -89,13 +80,11 @@ class ProgressManager @Inject constructor(
             }
         }
         activeItemId = null
-        activePlaybackReportContext = null
     }
 
     private fun report(
         itemId: UUID,
         positionMs: Long,
-        reportContext: PlaybackReportContext?,
         isPaused: Boolean = false,
         isStart: Boolean = false,
         isStop: Boolean = false
@@ -103,13 +92,10 @@ class ProgressManager @Inject constructor(
         val ticks = positionMs * 10_000
         scope.launch(Dispatchers.IO) {
             try {
-                if (reportContext == null) {
-                    return@launch
-                }
                 when {
-                    isStart -> jellyfinApiClient.reportPlaybackStart(itemId, ticks, reportContext)
-                    isStop -> jellyfinApiClient.reportPlaybackStopped(itemId, ticks, reportContext)
-                    else -> jellyfinApiClient.reportPlaybackProgress(itemId, ticks, isPaused, reportContext)
+                    isStart -> jellyfinApiClient.reportPlaybackStart(itemId, ticks)
+                    isStop -> jellyfinApiClient.reportPlaybackStopped(itemId, ticks)
+                    else -> jellyfinApiClient.reportPlaybackProgress(itemId, ticks, isPaused)
                 }
                 Log.d("ProgressManager", "${if (isStart) "Start" else if (isStop) "Stop" else "Progress"}: $itemId at ${positionMs}ms, paused=$isPaused")
             } catch (e: Exception) {
@@ -126,9 +112,7 @@ class ProgressManager @Inject constructor(
             val durMs = lastDurationMs
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    activePlaybackReportContext?.let { reportContext ->
-                        jellyfinApiClient.reportPlaybackStopped(itemId, ticks, reportContext)
-                    }
+                    jellyfinApiClient.reportPlaybackStopped(itemId, ticks)
                     updateWatchProgressUseCase(itemId, posMs, durMs)
                     Log.d("ProgressManager", "Stop: $itemId at ${posMs}ms")
                 } catch (e: Exception) {
