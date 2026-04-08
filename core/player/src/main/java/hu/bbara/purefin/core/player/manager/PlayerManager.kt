@@ -9,6 +9,7 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.scopes.ViewModelScoped
+import hu.bbara.purefin.core.data.client.PlaybackReportContext
 import hu.bbara.purefin.core.player.model.QueueItemUi
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
@@ -311,10 +312,12 @@ class PlayerManager @Inject constructor(
     }
 
     private fun refreshMetadata(mediaItem: MediaItem?) {
+        val playbackReportContext = mediaItem?.localConfiguration?.tag as? PlaybackReportContext
         _metadata.value = MetadataState(
             mediaId = mediaItem?.mediaId,
             title = mediaItem?.mediaMetadata?.title?.toString(),
             subtitle = mediaItem?.mediaMetadata?.subtitle?.toString(),
+            playbackReportContext = playbackReportContext,
         )
     }
 
@@ -341,6 +344,7 @@ data class MetadataState(
     val mediaId: String? = null,
     val title: String? = null,
     val subtitle: String? = null,
+    val playbackReportContext: PlaybackReportContext? = null,
 )
 
 data class MediaContext(

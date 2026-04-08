@@ -36,6 +36,7 @@ kotlin {
 dependencies {
     implementation(project(":core:model"))
     implementation(libs.jellyfin.core)
+    implementation(libs.media3.common)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)

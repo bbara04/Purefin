@@ -18,8 +18,10 @@ import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.api.client.extensions.userViewsApi
 import org.jellyfin.sdk.api.client.extensions.videosApi
+import org.jellyfin.sdk.api.operations.SystemApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.model.ClientInfo
+import org.jellyfin.sdk.model.ServerVersion
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemDtoQueryResult
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -27,7 +29,6 @@ import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.MediaType
-import org.jellyfin.sdk.model.api.PlayMethod
 import org.jellyfin.sdk.model.api.PlaybackInfoDto
 import org.jellyfin.sdk.model.api.PlaybackOrder
 import org.jellyfin.sdk.model.api.PlaybackProgressInfo
@@ -38,6 +39,7 @@ import org.jellyfin.sdk.model.api.request.GetItemsRequest
 import org.jellyfin.sdk.model.api.request.GetNextUpRequest
 import org.jellyfin.sdk.model.api.request.GetResumeItemsRequest
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,6 +47,7 @@ import javax.inject.Singleton
 class JellyfinApiClient @Inject constructor(
     @ApplicationContext private val applicationContext: Context,
     private val userSessionRepository: UserSessionRepository,
+    private val playbackProfilePolicy: PlaybackProfilePolicy,
 ) {
     private val jellyfin = createJellyfin {
         context = applicationContext
@@ -52,7 +55,8 @@ class JellyfinApiClient @Inject constructor(
     }
 
     private val api = jellyfin.createApi()
-    
+    private val serverVersionCache = ConcurrentHashMap<String, ServerVersion>()
+
     private suspend fun getUserId(): UUID? = userSessionRepository.userId.first()
 
     private suspend fun ensureConfigured(): Boolean {
@@ -269,12 +273,14 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
+        if (!ensureConfigured()) {
+            return@withContext emptyList()
+        }
         val result = api.mediaInfoApi
             .getPostedPlaybackInfo(
                 mediaId,
                 PlaybackInfoDto(
                     userId = getUserId(),
-                    // TODO add supportedContainers
                     deviceProfile = null,
                     maxStreamingBitrate = 100_000_000,
                 ),
@@ -283,21 +289,72 @@ class JellyfinApiClient @Inject constructor(
         result.content.mediaSources
     }
 
+    suspend fun getPlaybackDecision(mediaId: UUID): PlaybackDecision? = withContext(Dispatchers.IO) {
+        if (!ensureConfigured()) {
+            return@withContext null
+        }
+
+        val serverUrl = userSessionRepository.serverUrl.first().trim()
+        val serverVersion = getServerVersion(serverUrl)
+        val deviceProfile = playbackProfilePolicy.create(serverVersion)
+
+        val response = api.mediaInfoApi.getPostedPlaybackInfo(
+            mediaId,
+            PlaybackInfoDto(
+                userId = getUserId(),
+                deviceProfile = deviceProfile,
+                enableDirectPlay = true,
+                enableDirectStream = true,
+                enableTranscoding = true,
+                allowVideoStreamCopy = true,
+                allowAudioStreamCopy = true,
+                autoOpenLiveStream = false,
+            ),
+        )
+
+        val playbackInfo = response.content
+        if (playbackInfo.errorCode != null) {
+            Log.w(TAG, "Playback info failed for $mediaId with ${playbackInfo.errorCode}")
+            return@withContext null
+        }
+
+        val decision = PlaybackDecisionResolver.resolve(
+            mediaSources = playbackInfo.mediaSources,
+            playSessionId = playbackInfo.playSessionId,
+            serverUrl = serverUrl,
+            directPlayUrl = { mediaSource ->
+                api.videosApi.getVideoStreamUrl(
+                    itemId = mediaId,
+                    container = mediaSource.container,
+                    mediaSourceId = mediaSource.id,
+                    static = true,
+                    tag = mediaSource.eTag,
+                    playSessionId = playbackInfo.playSessionId,
+                    liveStreamId = mediaSource.liveStreamId,
+                )
+            },
+        )
+
+        if (decision == null) {
+            Log.w(TAG, "No compatible playback path for $mediaId")
+        } else {
+            Log.d(TAG, "Playback decision for $mediaId resolved as ${decision.reportContext.playMethod}")
+        }
+        decision
+    }
+
     suspend fun getMediaPlaybackUrl(mediaId: UUID, mediaSource: MediaSourceInfo): String? = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
             return@withContext null
         }
 
-        // Check if transcoding is required based on the MediaSourceInfo from getMediaSources
         val shouldTranscode = mediaSource.supportsTranscoding == true &&
-                              (mediaSource.supportsDirectPlay == false || mediaSource.transcodingUrl != null)
+            (mediaSource.supportsDirectPlay == false || mediaSource.transcodingUrl != null)
 
         val url = if (shouldTranscode && !mediaSource.transcodingUrl.isNullOrBlank()) {
-            // Use transcoding URL
             val baseUrl = userSessionRepository.serverUrl.first().trim().trimEnd('/')
             "$baseUrl${mediaSource.transcodingUrl}"
         } else {
-            // Use direct play URL
             api.videosApi.getVideoStreamUrl(
                 itemId = mediaId,
                 static = true,
@@ -309,7 +366,11 @@ class JellyfinApiClient @Inject constructor(
         url
     }
 
-    suspend fun reportPlaybackStart(itemId: UUID, positionTicks: Long = 0L) = withContext(Dispatchers.IO) {
+    suspend fun reportPlaybackStart(
+        itemId: UUID,
+        positionTicks: Long = 0L,
+        reportContext: PlaybackReportContext,
+    ) = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackStart(
             PlaybackStartInfo(
@@ -318,15 +379,24 @@ class JellyfinApiClient @Inject constructor(
                 canSeek = true,
                 isPaused = false,
                 isMuted = false,
-                // TODO Send correct play method
-                playMethod = PlayMethod.DIRECT_PLAY,
+                mediaSourceId = reportContext.mediaSourceId,
+                audioStreamIndex = reportContext.audioStreamIndex,
+                subtitleStreamIndex = reportContext.subtitleStreamIndex,
+                liveStreamId = reportContext.liveStreamId,
+                playSessionId = reportContext.playSessionId,
+                playMethod = reportContext.playMethod,
                 repeatMode = RepeatMode.REPEAT_NONE,
-                playbackOrder = PlaybackOrder.DEFAULT
+                playbackOrder = PlaybackOrder.DEFAULT,
             )
         )
     }
 
-    suspend fun reportPlaybackProgress(itemId: UUID, positionTicks: Long, isPaused: Boolean) = withContext(Dispatchers.IO) {
+    suspend fun reportPlaybackProgress(
+        itemId: UUID,
+        positionTicks: Long,
+        isPaused: Boolean,
+        reportContext: PlaybackReportContext,
+    ) = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackProgress(
             PlaybackProgressInfo(
@@ -335,21 +405,52 @@ class JellyfinApiClient @Inject constructor(
                 canSeek = true,
                 isPaused = isPaused,
                 isMuted = false,
-                playMethod = PlayMethod.DIRECT_PLAY,
+                mediaSourceId = reportContext.mediaSourceId,
+                audioStreamIndex = reportContext.audioStreamIndex,
+                subtitleStreamIndex = reportContext.subtitleStreamIndex,
+                liveStreamId = reportContext.liveStreamId,
+                playSessionId = reportContext.playSessionId,
+                playMethod = reportContext.playMethod,
                 repeatMode = RepeatMode.REPEAT_NONE,
-                playbackOrder = PlaybackOrder.DEFAULT
+                playbackOrder = PlaybackOrder.DEFAULT,
             )
         )
     }
 
-    suspend fun reportPlaybackStopped(itemId: UUID, positionTicks: Long) = withContext(Dispatchers.IO) {
+    suspend fun reportPlaybackStopped(
+        itemId: UUID,
+        positionTicks: Long,
+        reportContext: PlaybackReportContext,
+    ) = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) return@withContext
         api.playStateApi.reportPlaybackStopped(
             PlaybackStopInfo(
                 itemId = itemId,
                 positionTicks = positionTicks,
-                failed = false
+                mediaSourceId = reportContext.mediaSourceId,
+                liveStreamId = reportContext.liveStreamId,
+                playSessionId = reportContext.playSessionId,
+                failed = false,
             )
         )
+    }
+
+    private suspend fun getServerVersion(serverUrl: String): ServerVersion {
+        serverVersionCache[serverUrl]?.let { return it }
+
+        val parsedVersion = runCatching {
+            val versionString = SystemApi(api).getPublicSystemInfo().content.version
+            versionString?.let(ServerVersion::fromString)
+        }.onFailure { error ->
+            Log.w(TAG, "Unable to fetch server version for $serverUrl", error)
+        }.getOrNull()
+
+        val resolvedVersion = parsedVersion ?: PlaybackProfileDefaults.fallbackServerVersion
+        serverVersionCache[serverUrl] = resolvedVersion
+        return resolvedVersion
+    }
+
+    private companion object {
+        private const val TAG = "JellyfinApiClient"
     }
 }
