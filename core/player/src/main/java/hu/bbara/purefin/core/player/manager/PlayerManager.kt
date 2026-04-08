@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.abs
 
 /**
  * Encapsulates the Media3 [Player] wiring and exposes reactive updates for the UI layer.
@@ -42,10 +43,14 @@ class PlayerManager @Inject constructor(
     private val trackPreferencesRepository: TrackPreferencesRepository,
     private val trackMatcher: TrackMatcher
 ) {
+    companion object {
+        private const val SEEK_SETTLE_TOLERANCE_MS = 750L
+    }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var currentMediaContext: MediaContext? = null
+    private var pendingSeekPositionMs: Long? = null
 
     private val _playbackState = MutableStateFlow(PlaybackStateSnapshot())
     val playbackState: StateFlow<PlaybackStateSnapshot> = _playbackState.asStateFlow()
@@ -92,8 +97,17 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            clearPendingSeek()
             refreshMetadata(mediaItem)
             refreshQueue()
+        }
+
+        override fun onPositionDiscontinuity(
+            oldPosition: Player.PositionInfo,
+            newPosition: Player.PositionInfo,
+            reason: Int
+        ) {
+            syncPendingSeek(newPosition.positionMs)
         }
     }
 
@@ -107,6 +121,7 @@ class PlayerManager @Inject constructor(
 
     fun play(mediaItem: MediaItem, mediaContext: MediaContext? = null) {
         currentMediaContext = mediaContext
+        clearPendingSeek()
         player.setMediaItem(mediaItem)
         player.prepare()
         player.playWhenReady = true
@@ -125,15 +140,26 @@ class PlayerManager @Inject constructor(
     }
 
     fun seekTo(positionMs: Long) {
-        player.seekTo(positionMs)
+        val target = clampSeekPosition(positionMs)
+        pendingSeekPositionMs = target
+        _progress.update { progress ->
+            progress.copy(
+                durationMs = resolveDurationMs(),
+                positionMs = target,
+                isLive = player.isCurrentMediaItemLive
+            )
+        }
+        player.seekTo(target)
     }
 
     fun seekBy(deltaMs: Long) {
-        val target = (player.currentPosition + deltaMs).coerceAtLeast(0L)
+        val basePosition = pendingSeekPositionMs ?: player.currentPosition
+        val target = clampSeekPosition(basePosition + deltaMs)
         seekTo(target)
     }
 
     fun seekToLiveEdge() {
+        clearPendingSeek()
         if (player.isCurrentMediaItemLive) {
             player.seekToDefaultPosition()
             player.play()
@@ -141,12 +167,14 @@ class PlayerManager @Inject constructor(
     }
 
     fun next() {
+        clearPendingSeek()
         if (player.hasNextMediaItem()) {
             player.seekToNextMediaItem()
         }
     }
 
     fun previous() {
+        clearPendingSeek()
         if (player.hasPreviousMediaItem()) {
             player.seekToPreviousMediaItem()
         }
@@ -201,6 +229,7 @@ class PlayerManager @Inject constructor(
     }
 
     fun retry() {
+        clearPendingSeek()
         player.prepare()
         player.playWhenReady = true
     }
@@ -209,6 +238,7 @@ class PlayerManager @Inject constructor(
         val items = _queue.value
         val targetIndex = items.indexOfFirst { it.id == id }
         if (targetIndex >= 0) {
+            clearPendingSeek()
             player.seekToDefaultPosition(targetIndex)
             player.playWhenReady = true
             refreshQueue()
@@ -281,7 +311,9 @@ class PlayerManager @Inject constructor(
         scope.launch {
             while (isActive) {
                 val duration = player.duration.takeIf { it > 0 } ?: _progress.value.durationMs
-                val position = player.currentPosition
+                val actualPosition = player.currentPosition
+                syncPendingSeek(actualPosition)
+                val position = pendingSeekPositionMs ?: actualPosition
                 val buffered = player.bufferedPosition
                 _progress.value = PlaybackProgressSnapshot(
                     durationMs = duration,
@@ -323,6 +355,30 @@ class PlayerManager @Inject constructor(
 
     private fun refreshTracks(tracks: Tracks) {
         _tracks.value = trackMapper.map(tracks)
+    }
+
+    private fun clampSeekPosition(positionMs: Long): Long {
+        val duration = resolveDurationMs()
+        return if (duration > 0) {
+            positionMs.coerceIn(0L, duration)
+        } else {
+            positionMs.coerceAtLeast(0L)
+        }
+    }
+
+    private fun resolveDurationMs(): Long {
+        return player.duration.takeIf { it > 0 } ?: _progress.value.durationMs
+    }
+
+    private fun clearPendingSeek() {
+        pendingSeekPositionMs = null
+    }
+
+    private fun syncPendingSeek(positionMs: Long) {
+        val pendingPosition = pendingSeekPositionMs ?: return
+        if (abs(positionMs - pendingPosition) <= SEEK_SETTLE_TOLERANCE_MS) {
+            clearPendingSeek()
+        }
     }
 }
 
