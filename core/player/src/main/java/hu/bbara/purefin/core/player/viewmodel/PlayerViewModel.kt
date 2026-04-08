@@ -29,6 +29,9 @@ class PlayerViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val progressManager: ProgressManager
 ) : ViewModel() {
+    companion object {
+        private const val DEFAULT_CONTROLS_AUTO_HIDE_MS = 3_500L
+    }
 
     val player get() = playerManager.player
 
@@ -176,9 +179,9 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun togglePlayPause() {
+    fun togglePlayPause(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
         playerManager.togglePlayPause()
-        showControls()
+        showControls(autoHideDelayMs)
     }
 
     fun seekTo(positionMs: Long) {
@@ -193,33 +196,33 @@ class PlayerViewModel @Inject constructor(
         playerManager.seekToLiveEdge()
     }
 
-    fun showControls() {
+    fun showControls(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
         _controlsVisible.value = true
-        scheduleAutoHide()
+        scheduleAutoHide(autoHideDelayMs)
     }
 
     fun toggleControlsVisibility() {
         _controlsVisible.value = !_controlsVisible.value
-        if (_controlsVisible.value) scheduleAutoHide()
+        if (_controlsVisible.value) scheduleAutoHide(DEFAULT_CONTROLS_AUTO_HIDE_MS)
     }
 
-    private fun scheduleAutoHide() {
+    private fun scheduleAutoHide(autoHideDelayMs: Long) {
         autoHideJob?.cancel()
         if (!player.isPlaying) return
         autoHideJob = viewModelScope.launch {
-            delay(3500)
+            delay(autoHideDelayMs)
             _controlsVisible.value = false
         }
     }
 
-    fun next() {
+    fun next(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
         playerManager.next()
-        showControls()
+        showControls(autoHideDelayMs)
     }
 
-    fun previous() {
+    fun previous(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
         playerManager.previous()
-        showControls()
+        showControls(autoHideDelayMs)
     }
 
     fun selectTrack(option: TrackOption) {
@@ -235,9 +238,9 @@ class PlayerViewModel @Inject constructor(
         playerManager.retry()
     }
 
-    fun playQueueItem(id: String) {
+    fun playQueueItem(id: String, autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
         playerManager.playQueueItem(id)
-        showControls()
+        showControls(autoHideDelayMs)
     }
 
     fun clearError() {

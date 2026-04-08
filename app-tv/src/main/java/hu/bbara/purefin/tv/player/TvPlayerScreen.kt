@@ -45,6 +45,8 @@ import hu.bbara.purefin.tv.player.components.TvPlayerQueuePanel
 import hu.bbara.purefin.tv.player.components.TvTrackPanelType
 import hu.bbara.purefin.tv.player.components.TvTrackSelectionPanel
 
+private const val TV_CONTROLS_AUTO_HIDE_MS = 5_000L
+
 @OptIn(UnstableApi::class)
 @Composable
 fun TvPlayerScreen(
@@ -82,12 +84,36 @@ fun TvPlayerScreen(
 
     LaunchedEffect(uiState.isPlaying) {
         if (uiState.isPlaying && controlsVisible) {
-            viewModel.toggleControlsVisibility()
+            viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
         }
     }
 
     val hiddenControlFocusRequester = remember { FocusRequester() }
     val controlsFocusRequester = remember { FocusRequester() }
+    val showTvControls: () -> Unit = {
+        viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
+    }
+    val togglePlayPauseAndShowControls: () -> Unit = {
+        viewModel.togglePlayPause(TV_CONTROLS_AUTO_HIDE_MS)
+    }
+    val seekAndShowControls: (Long) -> Unit = { positionMs ->
+        viewModel.seekTo(positionMs)
+        showTvControls()
+    }
+    val seekByAndShowControls: (Long) -> Unit = { deltaMs ->
+        viewModel.seekBy(deltaMs)
+        showTvControls()
+    }
+    val seekToLiveEdgeAndShowControls: () -> Unit = {
+        viewModel.seekToLiveEdge()
+        showTvControls()
+    }
+    val nextAndShowControls: () -> Unit = {
+        viewModel.next(TV_CONTROLS_AUTO_HIDE_MS)
+    }
+    val previousAndShowControls: () -> Unit = {
+        viewModel.previous(TV_CONTROLS_AUTO_HIDE_MS)
+    }
 
     LaunchedEffect(controlsVisible) {
         if (controlsVisible) {
@@ -106,23 +132,22 @@ fun TvPlayerScreen(
                 if (!controlsVisible && event.type == KeyEventType.KeyDown) {
                     when (event.key) {
                         Key.DirectionLeft -> {
-                            viewModel.seekBy(-10_000)
+                            seekByAndShowControls(-10_000)
                             true
                         }
 
                         Key.DirectionRight -> {
-                            viewModel.seekBy(10_000)
+                            seekByAndShowControls(10_000)
                             true
                         }
 
                         Key.DirectionUp, Key.DirectionDown -> {
-                            viewModel.showControls()
+                            showTvControls()
                             true
                         }
 
                         Key.DirectionCenter, Key.Enter -> {
-                            viewModel.togglePlayPause()
-                            viewModel.showControls()
+                            togglePlayPauseAndShowControls()
                             true
                         }
 
@@ -157,12 +182,12 @@ fun TvPlayerScreen(
                 modifier = Modifier.fillMaxSize(),
                 uiState = uiState,
                 focusRequester = controlsFocusRequester,
-                onPlayPause = { viewModel.togglePlayPause() },
-                onSeek = { viewModel.seekTo(it) },
-                onSeekRelative = { viewModel.seekBy(it) },
-                onSeekLiveEdge = { viewModel.seekToLiveEdge() },
-                onNext = { viewModel.next() },
-                onPrevious = { viewModel.previous() },
+                onPlayPause = togglePlayPauseAndShowControls,
+                onSeek = seekAndShowControls,
+                onSeekRelative = seekByAndShowControls,
+                onSeekLiveEdge = seekToLiveEdgeAndShowControls,
+                onNext = nextAndShowControls,
+                onPrevious = previousAndShowControls,
                 onOpenAudioPanel = { trackPanelType = TvTrackPanelType.AUDIO },
                 onOpenSubtitlesPanel = { trackPanelType = TvTrackPanelType.SUBTITLES },
                 onOpenQualityPanel = { trackPanelType = TvTrackPanelType.QUALITY },
@@ -174,10 +199,10 @@ fun TvPlayerScreen(
             modifier = Modifier.align(Alignment.Center),
             uiState = uiState,
             onRetry = { viewModel.retry() },
-            onNext = { viewModel.next() },
+            onNext = nextAndShowControls,
             onReplay = {
                 viewModel.seekTo(0L)
-                viewModel.togglePlayPause()
+                togglePlayPauseAndShowControls()
             },
             onDismissError = { viewModel.clearError() }
         )
@@ -209,7 +234,7 @@ fun TvPlayerScreen(
             TvPlayerQueuePanel(
                 uiState = uiState,
                 onSelect = { id ->
-                    viewModel.playQueueItem(id)
+                    viewModel.playQueueItem(id, TV_CONTROLS_AUTO_HIDE_MS)
                     showQueuePanel = false
                 },
                 onClose = { showQueuePanel = false },
