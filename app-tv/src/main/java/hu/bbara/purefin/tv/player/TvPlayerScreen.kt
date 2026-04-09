@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import hu.bbara.purefin.core.player.viewmodel.ControlsAutoHideBlocker
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.tv.player.components.TvPlayerControlsOverlay
 import hu.bbara.purefin.tv.player.components.TvPlayerLoadingErrorEndCard
@@ -61,8 +62,13 @@ fun TvPlayerScreen(
     val controlsVisible by viewModel.controlsVisible.collectAsState()
     var isPlaylistExpanded by remember { mutableStateOf(false) }
     var trackPanelType by remember { mutableStateOf<TvTrackPanelType?>(null) }
+    var pendingTrackButtonFocus by remember { mutableStateOf<TvTrackPanelType?>(null) }
+    val controlsAutoHideBlocked = isPlaylistExpanded || trackPanelType != null
 
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.setControlsAutoHideDelay(TV_CONTROLS_AUTO_HIDE_MS)
+    }
     LaunchedEffect(uiState.isPlaying) {
         val activity = context as? Activity
         if (uiState.isPlaying) {
@@ -74,17 +80,27 @@ fun TvPlayerScreen(
     DisposableEffect(Unit) {
         onDispose {
             (context as? Activity)?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            viewModel.setControlsAutoHideBlocked(ControlsAutoHideBlocker.PLAYLIST, false)
+            viewModel.setControlsAutoHideBlocked(ControlsAutoHideBlocker.TRACK_PANEL, false)
         }
     }
 
-    LaunchedEffect(uiState.isPlaying, controlsVisible, isPlaylistExpanded) {
-        if (uiState.isPlaying && controlsVisible && !isPlaylistExpanded) {
-            viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
-        }
+    LaunchedEffect(isPlaylistExpanded) {
+        viewModel.setControlsAutoHideBlocked(ControlsAutoHideBlocker.PLAYLIST, isPlaylistExpanded)
+    }
+
+    LaunchedEffect(trackPanelType) {
+        viewModel.setControlsAutoHideBlocked(
+            ControlsAutoHideBlocker.TRACK_PANEL,
+            trackPanelType != null
+        )
     }
 
     val hiddenControlFocusRequester = remember { FocusRequester() }
     val controlsFocusRequester = remember { FocusRequester() }
+    val qualityButtonFocusRequester = remember { FocusRequester() }
+    val audioButtonFocusRequester = remember { FocusRequester() }
+    val subtitlesButtonFocusRequester = remember { FocusRequester() }
     val expandPlaylist: () -> Unit = {
         if (!isPlaylistExpanded) {
             isPlaylistExpanded = true
@@ -120,8 +136,16 @@ fun TvPlayerScreen(
     val previousAndShowControls: () -> Unit = {
         viewModel.previous(TV_CONTROLS_AUTO_HIDE_MS)
     }
+    val closeTrackPanel: () -> Unit = {
+        trackPanelType?.let { panelType ->
+            pendingTrackButtonFocus = panelType
+            trackPanelType = null
+            viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
+        }
+    }
 
-    LaunchedEffect(controlsVisible) {
+    LaunchedEffect(controlsVisible, controlsAutoHideBlocked) {
+        if (controlsAutoHideBlocked) return@LaunchedEffect
         if (controlsVisible) {
             controlsFocusRequester.requestFocus()
         } else {
@@ -129,9 +153,20 @@ fun TvPlayerScreen(
         }
     }
 
+    LaunchedEffect(trackPanelType, pendingTrackButtonFocus) {
+        val pendingFocus = pendingTrackButtonFocus ?: return@LaunchedEffect
+        if (trackPanelType != null) return@LaunchedEffect
+        when (pendingFocus) {
+            TvTrackPanelType.AUDIO -> audioButtonFocusRequester.requestFocus()
+            TvTrackPanelType.SUBTITLES -> subtitlesButtonFocusRequester.requestFocus()
+            TvTrackPanelType.QUALITY -> qualityButtonFocusRequester.requestFocus()
+        }
+        pendingTrackButtonFocus = null
+    }
+
     BackHandler(enabled = true) {
         when {
-            trackPanelType != null -> trackPanelType = null
+            trackPanelType != null -> closeTrackPanel()
             isPlaylistExpanded -> collapsePlaylistToControls()
             controlsVisible -> viewModel.toggleControlsVisibility()
             else -> onBack()
@@ -189,7 +224,7 @@ fun TvPlayerScreen(
         )
 
         AnimatedVisibility(
-            visible = controlsVisible || isPlaylistExpanded || uiState.isEnded || uiState.error != null,
+            visible = controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -198,6 +233,9 @@ fun TvPlayerScreen(
                 uiState = uiState,
                 focusRequester = controlsFocusRequester,
                 isPlaylistExpanded = isPlaylistExpanded,
+                qualityButtonFocusRequester = qualityButtonFocusRequester,
+                audioButtonFocusRequester = audioButtonFocusRequester,
+                subtitlesButtonFocusRequester = subtitlesButtonFocusRequester,
                 onPlayPause = togglePlayPauseAndShowControls,
                 onSeek = seekAndShowControls,
                 onSeekRelative = seekByAndShowControls,
@@ -212,7 +250,10 @@ fun TvPlayerScreen(
                 onSelectQueueItem = { id ->
                     viewModel.playQueueItem(id, TV_CONTROLS_AUTO_HIDE_MS)
                     collapsePlaylistToControls()
-                }
+                },
+                qualityButtonEnabled = uiState.qualityTracks.isNotEmpty(),
+                audioButtonEnabled = uiState.audioTracks.isNotEmpty(),
+                subtitlesButtonEnabled = uiState.textTracks.isNotEmpty()
             )
         }
 
@@ -239,9 +280,9 @@ fun TvPlayerScreen(
                     uiState = uiState,
                     onSelect = { track ->
                         viewModel.selectTrack(track)
-                        trackPanelType = null
+                        closeTrackPanel()
                     },
-                    onClose = { trackPanelType = null },
+                    onClose = closeTrackPanel,
                     modifier = Modifier.fillMaxSize()
                 )
             }

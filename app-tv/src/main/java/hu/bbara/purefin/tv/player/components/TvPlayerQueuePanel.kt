@@ -19,6 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +68,13 @@ internal fun TvPlayerQueuePanel(
         0 -> "No items in queue"
         1 -> "1 item in queue"
         else -> "${uiState.queue.size} items in queue"
+    }
+
+    LaunchedEffect(uiState.queue, entryIndex) {
+        if (uiState.queue.isNotEmpty()) {
+            withFrameNanos { }
+            firstItemFocusRequester.requestFocus()
+        }
     }
 
     Surface(

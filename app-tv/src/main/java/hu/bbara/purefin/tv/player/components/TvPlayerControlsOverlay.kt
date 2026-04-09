@@ -58,6 +58,9 @@ internal fun TvPlayerControlsOverlay(
     uiState: PlayerUiState,
     focusRequester: FocusRequester,
     isPlaylistExpanded: Boolean,
+    qualityButtonFocusRequester: FocusRequester,
+    audioButtonFocusRequester: FocusRequester,
+    subtitlesButtonFocusRequester: FocusRequester,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
@@ -70,6 +73,9 @@ internal fun TvPlayerControlsOverlay(
     onExpandPlaylist: () -> Unit,
     onCollapsePlaylist: () -> Unit,
     onSelectQueueItem: (String) -> Unit,
+    qualityButtonEnabled: Boolean,
+    audioButtonEnabled: Boolean,
+    subtitlesButtonEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -97,6 +103,9 @@ internal fun TvPlayerControlsOverlay(
             uiState = uiState,
             focusRequester = focusRequester,
             isPlaylistExpanded = isPlaylistExpanded,
+            qualityButtonFocusRequester = qualityButtonFocusRequester,
+            audioButtonFocusRequester = audioButtonFocusRequester,
+            subtitlesButtonFocusRequester = subtitlesButtonFocusRequester,
             onPlayPause = onPlayPause,
             onSeek = onSeek,
             onSeekRelative = onSeekRelative,
@@ -109,6 +118,9 @@ internal fun TvPlayerControlsOverlay(
             onExpandPlaylist = onExpandPlaylist,
             onCollapsePlaylist = onCollapsePlaylist,
             onSelectQueueItem = onSelectQueueItem,
+            qualityButtonEnabled = qualityButtonEnabled,
+            audioButtonEnabled = audioButtonEnabled,
+            subtitlesButtonEnabled = subtitlesButtonEnabled,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
@@ -153,6 +165,9 @@ private fun TvPlayerBottomSection(
     uiState: PlayerUiState,
     focusRequester: FocusRequester,
     isPlaylistExpanded: Boolean,
+    qualityButtonFocusRequester: FocusRequester,
+    audioButtonFocusRequester: FocusRequester,
+    subtitlesButtonFocusRequester: FocusRequester,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
@@ -165,6 +180,9 @@ private fun TvPlayerBottomSection(
     onExpandPlaylist: () -> Unit,
     onCollapsePlaylist: () -> Unit,
     onSelectQueueItem: (String) -> Unit,
+    qualityButtonEnabled: Boolean,
+    audioButtonEnabled: Boolean,
+    subtitlesButtonEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -299,15 +317,24 @@ private fun TvPlayerBottomSection(
             ) {
                 TvQualitySelectionButton(
                     onClick = onOpenQualityPanel,
+                    enabled = qualityButtonEnabled,
                     modifier = expandPlaylistModifier
+                        .focusRequester(qualityButtonFocusRequester)
+                        .testTag(TvPlayerQualityButtonTag)
                 )
                 TvAudioSelectionButton(
                     onClick = onOpenAudioPanel,
+                    enabled = audioButtonEnabled,
                     modifier = expandPlaylistModifier
+                        .focusRequester(audioButtonFocusRequester)
+                        .testTag(TvPlayerAudioButtonTag)
                 )
                 TvSubtitlesSelectionButton(
                     onClick = onOpenSubtitlesPanel,
+                    enabled = subtitlesButtonEnabled,
                     modifier = expandPlaylistModifier
+                        .focusRequester(subtitlesButtonFocusRequester)
+                        .testTag(TvPlayerSubtitlesButtonTag)
                 )
             }
         }

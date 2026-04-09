@@ -19,11 +19,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -32,6 +36,7 @@ internal fun TvIconButton(
     contentDescription: String,
     onClick: () -> Unit,
     size: Int = 52,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -51,6 +56,7 @@ internal fun TvIconButton(
                 scaleX = scale
                 scaleY = scale
             }
+            .alpha(if (enabled) 1f else 0.4f)
             .widthIn(min = size.dp)
             .height(size.dp)
             .border(
@@ -63,8 +69,14 @@ internal fun TvIconButton(
                 if (isFocused) scheme.primary.copy(alpha = 0.5f)
                 else scheme.background.copy(alpha = 0.65f)
             )
+            .focusProperties { canFocus = enabled }
+            .semantics {
+                if (!enabled) {
+                    disabled()
+                }
+            }
             .onFocusChanged { isFocused = it.isFocused }
-            .clickable { onClick() },
+            .clickable(enabled = enabled) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(

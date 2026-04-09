@@ -43,6 +43,7 @@ class PlayerViewModel @Inject constructor(
     private val _controlsVisible = MutableStateFlow(true)
     val controlsVisible: StateFlow<Boolean> = _controlsVisible.asStateFlow()
 
+    private val controlsAutoHidePolicy = ControlsAutoHidePolicy(DEFAULT_CONTROLS_AUTO_HIDE_MS)
     private var autoHideJob: Job? = null
     private var lastNextUpMediaId: String? = null
     private var dataErrorMessage: String? = null
@@ -68,6 +69,9 @@ class PlayerViewModel @Inject constructor(
                         error = state.error ?: dataErrorMessage
                     )
                 }
+                applyControlsAutoHideCommand(
+                    controlsAutoHidePolicy.onPlaybackChanged(state.isPlaying)
+                )
                 if (state.isEnded) {
                     showControls()
                 }
@@ -196,26 +200,42 @@ class PlayerViewModel @Inject constructor(
         playerManager.seekToLiveEdge()
     }
 
+    fun setControlsAutoHideDelay(autoHideDelayMs: Long) {
+        applyControlsAutoHideCommand(
+            controlsAutoHidePolicy.setAutoHideDelay(autoHideDelayMs)
+        )
+    }
+
+    fun setControlsAutoHideBlocked(
+        blocker: ControlsAutoHideBlocker,
+        blocked: Boolean
+    ) {
+        applyControlsAutoHideCommand(
+            controlsAutoHidePolicy.setBlocked(blocker, blocked)
+        )
+    }
+
     fun showControls(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
-        _controlsVisible.value = true
-        scheduleAutoHide(autoHideDelayMs)
+        applyControlsAutoHideCommand(
+            controlsAutoHidePolicy.showControls(autoHideDelayMs)
+        )
     }
 
     fun toggleControlsVisibility() {
-        _controlsVisible.value = !_controlsVisible.value
-        if (_controlsVisible.value) {
-            scheduleAutoHide(DEFAULT_CONTROLS_AUTO_HIDE_MS)
-        } else {
-            autoHideJob?.cancel()
-        }
+        applyControlsAutoHideCommand(
+            controlsAutoHidePolicy.toggleControlsVisibility()
+        )
     }
 
-    private fun scheduleAutoHide(autoHideDelayMs: Long) {
+    private fun applyControlsAutoHideCommand(command: ControlsAutoHideCommand) {
+        _controlsVisible.value = controlsAutoHidePolicy.controlsVisible
         autoHideJob?.cancel()
-        if (!player.isPlaying) return
+        autoHideJob = null
+        if (command !is ControlsAutoHideCommand.Schedule) return
         autoHideJob = viewModelScope.launch {
-            delay(autoHideDelayMs)
-            _controlsVisible.value = false
+            delay(command.delayMs)
+            controlsAutoHidePolicy.hideControls()
+            _controlsVisible.value = controlsAutoHidePolicy.controlsVisible
         }
     }
 

@@ -40,4 +40,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.jellyfin.core)
     implementation(libs.okhttp)
+    testImplementation(libs.junit)
 }
