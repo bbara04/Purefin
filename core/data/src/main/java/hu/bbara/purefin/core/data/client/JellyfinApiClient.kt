@@ -252,7 +252,7 @@ class JellyfinApiClient @Inject constructor(
         result.content.items
     }
 
-    suspend fun getNextEpisodes(episodeId: UUID, count: Int = 10): List<BaseItemDto> = withContext(Dispatchers.IO) {
+    suspend fun getNextEpisodes(episodeId: UUID, count: Int): List<BaseItemDto> = withContext(Dispatchers.IO) {
         if (!ensureConfigured()) {
             return@withContext emptyList()
         }

@@ -45,7 +45,7 @@ class PlayerMediaRepository @Inject constructor(
         Pair(mediaItem, resumePositionMs)
     }
 
-    suspend fun getNextUpMediaItems(episodeId: UUID, existingIds: Set<String>, count: Int = 5): List<MediaItem> = withContext(Dispatchers.IO) {
+    suspend fun getNextUpMediaItems(episodeId: UUID, existingIds: Set<String>, count: Int = 9): List<MediaItem> = withContext(Dispatchers.IO) {
         runCatching {
             val serverUrl = userSessionRepository.serverUrl.first()
             val episodes = jellyfinApiClient.getNextEpisodes(episodeId = episodeId, count = count)
