@@ -20,12 +20,13 @@ import hu.bbara.purefin.common.ui.components.MediaDetailPlaybackSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailBodyBox
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
-import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
+import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
+import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
 fun TvEpisodeScreen(
@@ -86,7 +87,7 @@ internal fun TvEpisodeScreenContent(
     ) {
         item {
             TvMediaDetailBodyBox(
-                backgroundImageUrl = tvMediaDetailBackgroundImageUrl(episode.imageUrlPrefix),
+                backgroundImageUrl = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
                 modifier = it
             ) {
                 TvEpisodeHeroSection(
