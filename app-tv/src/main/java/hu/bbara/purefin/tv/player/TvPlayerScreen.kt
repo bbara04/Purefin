@@ -123,6 +123,14 @@ fun TvPlayerScreen(
         }
     }
 
+    BackHandler(enabled = true) {
+        if (controlsVisible) {
+            viewModel.toggleControlsVisibility()
+            return@BackHandler
+        }
+        onBack()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
