@@ -1,5 +1,10 @@
 package hu.bbara.purefin.tv.player.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.Forward30
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -22,19 +26,38 @@ import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.player.model.PlayerUiState
+
+internal const val TvPlayerPlaylistStateTag = "tv_player_playlist_state"
+internal const val TvPlayerPlayPauseButtonTag = "tv_player_play_pause_button"
+internal const val TvPlayerSeekBarTag = "tv_player_seek_bar"
 
 @Composable
 internal fun TvPlayerControlsOverlay(
     uiState: PlayerUiState,
     focusRequester: FocusRequester,
+    isPlaylistExpanded: Boolean,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
@@ -44,7 +67,9 @@ internal fun TvPlayerControlsOverlay(
     onOpenAudioPanel: () -> Unit,
     onOpenSubtitlesPanel: () -> Unit,
     onOpenQualityPanel: () -> Unit,
-    onOpenQueue: () -> Unit,
+    onExpandPlaylist: () -> Unit,
+    onCollapsePlaylist: () -> Unit,
+    onSelectQueueItem: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -63,7 +88,6 @@ internal fun TvPlayerControlsOverlay(
         TvPlayerTopBar(
             title = uiState.title ?: "Playing",
             subtitle = uiState.subtitle,
-            onOpenQueue = onOpenQueue,
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
@@ -72,6 +96,7 @@ internal fun TvPlayerControlsOverlay(
         TvPlayerBottomSection(
             uiState = uiState,
             focusRequester = focusRequester,
+            isPlaylistExpanded = isPlaylistExpanded,
             onPlayPause = onPlayPause,
             onSeek = onSeek,
             onSeekRelative = onSeekRelative,
@@ -81,6 +106,9 @@ internal fun TvPlayerControlsOverlay(
             onOpenAudioPanel = onOpenAudioPanel,
             onOpenSubtitlesPanel = onOpenSubtitlesPanel,
             onOpenQualityPanel = onOpenQualityPanel,
+            onExpandPlaylist = onExpandPlaylist,
+            onCollapsePlaylist = onCollapsePlaylist,
+            onSelectQueueItem = onSelectQueueItem,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
@@ -93,7 +121,6 @@ internal fun TvPlayerControlsOverlay(
 private fun TvPlayerTopBar(
     title: String,
     subtitle: String?,
-    onOpenQueue: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -118,11 +145,6 @@ private fun TvPlayerTopBar(
                 )
             }
         }
-        TvIconButton(
-            icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
-            contentDescription = "Queue",
-            onClick = onOpenQueue
-        )
     }
 }
 
@@ -130,6 +152,7 @@ private fun TvPlayerTopBar(
 private fun TvPlayerBottomSection(
     uiState: PlayerUiState,
     focusRequester: FocusRequester,
+    isPlaylistExpanded: Boolean,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
@@ -139,11 +162,35 @@ private fun TvPlayerBottomSection(
     onOpenAudioPanel: () -> Unit,
     onOpenSubtitlesPanel: () -> Unit,
     onOpenQualityPanel: () -> Unit,
+    onExpandPlaylist: () -> Unit,
+    onCollapsePlaylist: () -> Unit,
+    onSelectQueueItem: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
+    val playPauseFocusRequester = remember { FocusRequester() }
+    val playlistFocusRequester = remember { FocusRequester() }
+    var wasPlaylistExpanded by remember { mutableStateOf(isPlaylistExpanded) }
 
-    Column(modifier = modifier) {
+    LaunchedEffect(isPlaylistExpanded) {
+        if (isPlaylistExpanded && uiState.queue.isNotEmpty()) {
+            playlistFocusRequester.requestFocus()
+        } else if (wasPlaylistExpanded) {
+            playPauseFocusRequester.requestFocus()
+        }
+        wasPlaylistExpanded = isPlaylistExpanded
+    }
+
+    val playlistExpandState = if (isPlaylistExpanded) "expanded" else "collapsed"
+    val expandPlaylistModifier = Modifier.onPreviewKeyEvent { event ->
+        handleExpandPlaylistKey(event, onExpandPlaylist)
+    }
+
+    Column(
+        modifier = modifier
+            .testTag(TvPlayerPlaylistStateTag)
+            .semantics { stateDescription = playlistExpandState }
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -189,7 +236,12 @@ private fun TvPlayerBottomSection(
             onSeek = onSeek,
             onSeekRelative = onSeekRelative,
             togglePlayState = onPlayPause,
-            focusRequester = focusRequester
+            onMoveDown = {
+                playPauseFocusRequester.requestFocus()
+                true
+            },
+            focusRequester = focusRequester,
+            modifier = Modifier.testTag(TvPlayerSeekBarTag)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
@@ -206,31 +258,38 @@ private fun TvPlayerBottomSection(
                     icon = Icons.Outlined.SkipPrevious,
                     contentDescription = "Previous",
                     onClick = onPrevious,
-                    size = 64
+                    size = 64,
+                    modifier = expandPlaylistModifier
                 )
                 TvIconButton(
                     icon = Icons.Outlined.Replay10,
                     contentDescription = "Seek backward 10 seconds",
                     onClick = { onSeekRelative(-10_000) },
-                    size = 64
+                    size = 64,
+                    modifier = expandPlaylistModifier
                 )
                 TvIconButton(
                     icon = if (uiState.isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
                     contentDescription = if (uiState.isPlaying) "Pause" else "Play",
                     onClick = onPlayPause,
-                    size = 72
+                    size = 72,
+                    modifier = expandPlaylistModifier
+                        .focusRequester(playPauseFocusRequester)
+                        .testTag(TvPlayerPlayPauseButtonTag)
                 )
                 TvIconButton(
                     icon = Icons.Outlined.Forward30,
                     contentDescription = "Seek forward 30 seconds",
                     onClick = { onSeekRelative(30_000) },
-                    size = 64
+                    size = 64,
+                    modifier = expandPlaylistModifier
                 )
                 TvIconButton(
                     icon = Icons.Outlined.SkipNext,
                     contentDescription = "Next",
                     onClick = onNext,
-                    size = 64
+                    size = 64,
+                    modifier = expandPlaylistModifier
                 )
             }
             Row(
@@ -238,13 +297,48 @@ private fun TvPlayerBottomSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TvQualitySelectionButton(onClick = onOpenQualityPanel)
-                TvAudioSelectionButton(onClick = onOpenAudioPanel)
-                TvSubtitlesSelectionButton(onClick = onOpenSubtitlesPanel)
+                TvQualitySelectionButton(
+                    onClick = onOpenQualityPanel,
+                    modifier = expandPlaylistModifier
+                )
+                TvAudioSelectionButton(
+                    onClick = onOpenAudioPanel,
+                    modifier = expandPlaylistModifier
+                )
+                TvSubtitlesSelectionButton(
+                    onClick = onOpenSubtitlesPanel,
+                    modifier = expandPlaylistModifier
+                )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        AnimatedVisibility(
+            visible = isPlaylistExpanded,
+            enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+        ) {
+            TvPlayerQueuePanel(
+                uiState = uiState,
+                firstItemFocusRequester = playlistFocusRequester,
+                onSelect = onSelectQueueItem,
+                onReturnToControls = onCollapsePlaylist,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 18.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(if (isPlaylistExpanded) 12.dp else 8.dp))
     }
+}
+
+private fun handleExpandPlaylistKey(
+    event: androidx.compose.ui.input.key.KeyEvent,
+    onExpand: () -> Unit
+): Boolean {
+    if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown) {
+        onExpand()
+        return true
+    }
+    return false
 }
 
 private fun formatTime(positionMs: Long): String {

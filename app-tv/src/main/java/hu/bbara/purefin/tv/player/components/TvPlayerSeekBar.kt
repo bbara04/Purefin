@@ -39,6 +39,7 @@ internal fun TvPlayerSeekBar(
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
     togglePlayState: () -> Unit,
+    onMoveDown: (() -> Boolean)? = null,
     focusRequester: FocusRequester = remember { FocusRequester() },
     modifier: Modifier = Modifier
 ) {
@@ -61,6 +62,8 @@ internal fun TvPlayerSeekBar(
             .onPreviewKeyEvent { event ->
                 if (event.type == KeyEventType.KeyDown) {
                     when (event.key) {
+                        Key.DirectionDown -> onMoveDown?.invoke() ?: false
+
                         Key.DirectionLeft -> {
                             onSeekRelative(-10_000)
                             true

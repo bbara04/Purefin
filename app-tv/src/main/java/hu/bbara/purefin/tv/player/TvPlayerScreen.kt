@@ -41,7 +41,6 @@ import androidx.media3.ui.PlayerView
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.tv.player.components.TvPlayerControlsOverlay
 import hu.bbara.purefin.tv.player.components.TvPlayerLoadingErrorEndCard
-import hu.bbara.purefin.tv.player.components.TvPlayerQueuePanel
 import hu.bbara.purefin.tv.player.components.TvTrackPanelType
 import hu.bbara.purefin.tv.player.components.TvTrackSelectionPanel
 
@@ -60,7 +59,7 @@ fun TvPlayerScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val controlsVisible by viewModel.controlsVisible.collectAsState()
-    var showQueuePanel by remember { mutableStateOf(false) }
+    var isPlaylistExpanded by remember { mutableStateOf(false) }
     var trackPanelType by remember { mutableStateOf<TvTrackPanelType?>(null) }
 
     val context = LocalContext.current
@@ -78,18 +77,25 @@ fun TvPlayerScreen(
         }
     }
 
-    BackHandler(enabled = controlsVisible) {
-        viewModel.toggleControlsVisibility()
-    }
-
-    LaunchedEffect(uiState.isPlaying) {
-        if (uiState.isPlaying && controlsVisible) {
+    LaunchedEffect(uiState.isPlaying, controlsVisible, isPlaylistExpanded) {
+        if (uiState.isPlaying && controlsVisible && !isPlaylistExpanded) {
             viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
         }
     }
 
     val hiddenControlFocusRequester = remember { FocusRequester() }
     val controlsFocusRequester = remember { FocusRequester() }
+    val expandPlaylist: () -> Unit = {
+        if (!isPlaylistExpanded) {
+            isPlaylistExpanded = true
+        }
+    }
+    val collapsePlaylistToControls: () -> Unit = {
+        if (isPlaylistExpanded) {
+            isPlaylistExpanded = false
+            viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
+        }
+    }
     val showTvControls: () -> Unit = {
         viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
     }
@@ -124,11 +130,12 @@ fun TvPlayerScreen(
     }
 
     BackHandler(enabled = true) {
-        if (controlsVisible) {
-            viewModel.toggleControlsVisibility()
-            return@BackHandler
+        when {
+            trackPanelType != null -> trackPanelType = null
+            isPlaylistExpanded -> collapsePlaylistToControls()
+            controlsVisible -> viewModel.toggleControlsVisibility()
+            else -> onBack()
         }
-        onBack()
     }
 
     Box(
@@ -182,7 +189,7 @@ fun TvPlayerScreen(
         )
 
         AnimatedVisibility(
-            visible = controlsVisible || uiState.isEnded || uiState.error != null,
+            visible = controlsVisible || isPlaylistExpanded || uiState.isEnded || uiState.error != null,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -190,6 +197,7 @@ fun TvPlayerScreen(
                 modifier = Modifier.fillMaxSize(),
                 uiState = uiState,
                 focusRequester = controlsFocusRequester,
+                isPlaylistExpanded = isPlaylistExpanded,
                 onPlayPause = togglePlayPauseAndShowControls,
                 onSeek = seekAndShowControls,
                 onSeekRelative = seekByAndShowControls,
@@ -199,7 +207,12 @@ fun TvPlayerScreen(
                 onOpenAudioPanel = { trackPanelType = TvTrackPanelType.AUDIO },
                 onOpenSubtitlesPanel = { trackPanelType = TvTrackPanelType.SUBTITLES },
                 onOpenQualityPanel = { trackPanelType = TvTrackPanelType.QUALITY },
-                onOpenQueue = { showQueuePanel = true }
+                onExpandPlaylist = expandPlaylist,
+                onCollapsePlaylist = collapsePlaylistToControls,
+                onSelectQueueItem = { id ->
+                    viewModel.playQueueItem(id, TV_CONTROLS_AUTO_HIDE_MS)
+                    collapsePlaylistToControls()
+                }
             )
         }
 
@@ -234,20 +247,5 @@ fun TvPlayerScreen(
             }
         }
 
-        AnimatedVisibility(
-            visible = showQueuePanel,
-            enter = slideInHorizontally { it },
-            exit = slideOutHorizontally { it }
-        ) {
-            TvPlayerQueuePanel(
-                uiState = uiState,
-                onSelect = { id ->
-                    viewModel.playQueueItem(id, TV_CONTROLS_AUTO_HIDE_MS)
-                    showQueuePanel = false
-                },
-                onClose = { showQueuePanel = false },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
     }
 }

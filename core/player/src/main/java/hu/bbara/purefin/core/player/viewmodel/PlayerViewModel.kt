@@ -203,7 +203,11 @@ class PlayerViewModel @Inject constructor(
 
     fun toggleControlsVisibility() {
         _controlsVisible.value = !_controlsVisible.value
-        if (_controlsVisible.value) scheduleAutoHide(DEFAULT_CONTROLS_AUTO_HIDE_MS)
+        if (_controlsVisible.value) {
+            scheduleAutoHide(DEFAULT_CONTROLS_AUTO_HIDE_MS)
+        } else {
+            autoHideJob?.cancel()
+        }
     }
 
     private fun scheduleAutoHide(autoHideDelayMs: Long) {
