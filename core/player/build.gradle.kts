@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
     implementation(libs.medi3.exoplayer)
+    implementation(libs.medi3.exoplayer.hls)
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.datastore)
     implementation(libs.kotlinx.serialization.json)
