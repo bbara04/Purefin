@@ -28,7 +28,7 @@ internal const val EpisodePlayButtonTag = "episode-play-button"
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun EpisodeHeroSection(
+internal fun TvEpisodeHeroSection(
     episode: Episode,
     seriesTitle: String?,
     onPlay: () -> Unit,

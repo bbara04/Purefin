@@ -28,7 +28,7 @@ internal const val MoviePlayButtonTag = "movie-play-button"
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun MovieHeroSection(
+internal fun TvMovieHeroSection(
     movie: Movie,
     onPlay: () -> Unit,
     playFocusRequester: FocusRequester,

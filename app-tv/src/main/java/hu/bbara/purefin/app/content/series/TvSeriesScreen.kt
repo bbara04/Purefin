@@ -29,7 +29,7 @@ import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
 import org.jellyfin.sdk.model.UUID
 
 @Composable
-fun SeriesScreen(
+fun TvSeriesScreen(
     series: SeriesDto,
     modifier: Modifier = Modifier,
     viewModel: SeriesViewModel = hiltViewModel()
@@ -42,7 +42,7 @@ fun SeriesScreen(
 
     val seriesData = series.value
     if (seriesData != null && seriesData.seasons.isNotEmpty()) {
-        SeriesScreenContent(
+        TvSeriesScreenContent(
             series = seriesData,
             onPlayEpisode = viewModel::onPlayEpisode,
             modifier = modifier
@@ -53,7 +53,7 @@ fun SeriesScreen(
 }
 
 @Composable
-internal fun SeriesScreenContent(
+internal fun TvSeriesScreenContent(
     series: Series,
     onPlayEpisode: (UUID) -> Unit,
     modifier: Modifier = Modifier,
@@ -81,7 +81,7 @@ internal fun SeriesScreenContent(
                 backgroundImageUrl = tvMediaDetailBackgroundImageUrl(series.imageUrlPrefix),
                 modifier = it
             ) {
-                SeriesHeroSection(
+                TvSeriesHeroSection(
                     series = series,
                     nextUpEpisode = nextUpEpisode,
                     onPlayEpisode = { onPlayEpisode(it.id) },
@@ -103,7 +103,7 @@ internal fun SeriesScreenContent(
             }
         }
         item {
-            SeasonTabs(
+            TvSeasonTabs(
                 seasons = series.seasons,
                 selectedSeason = selectedSeason,
                 firstItemFocusRequester = firstContentFocusRequester,
@@ -114,7 +114,7 @@ internal fun SeriesScreenContent(
         }
         item {
             Spacer(modifier = Modifier.height(20.dp))
-            EpisodeCarousel(
+            TvEpisodeCarousel(
                 episodes = selectedSeason.episodes,
                 modifier = it
             )

@@ -20,15 +20,15 @@ import hu.bbara.purefin.common.ui.components.MediaDetailPlaybackSection
 import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailBodyBox
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
-import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
-import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
+import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
+import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
 
 @Composable
-fun EpisodeScreen(
+fun TvEpisodeScreen(
     episode: EpisodeDto,
     viewModel: EpisodeScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
@@ -52,7 +52,7 @@ fun EpisodeScreen(
         return
     }
 
-    EpisodeScreenContent(
+    TvEpisodeScreenContent(
         episode = selectedEpisode,
         seriesTitle = seriesTitle.value,
         onPlay = remember(selectedEpisode.id, navigationManager) {
@@ -67,7 +67,7 @@ fun EpisodeScreen(
 }
 
 @Composable
-internal fun EpisodeScreenContent(
+internal fun TvEpisodeScreenContent(
     episode: Episode,
     seriesTitle: String?,
     onPlay: () -> Unit,
@@ -89,7 +89,7 @@ internal fun EpisodeScreenContent(
                 backgroundImageUrl = tvMediaDetailBackgroundImageUrl(episode.imageUrlPrefix),
                 modifier = it
             ) {
-                EpisodeHeroSection(
+                TvEpisodeHeroSection(
                     episode = episode,
                     seriesTitle = seriesTitle,
                     onPlay = onPlay,

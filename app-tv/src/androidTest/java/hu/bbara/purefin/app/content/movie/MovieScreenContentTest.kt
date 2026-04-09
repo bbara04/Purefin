@@ -31,7 +31,7 @@ class MovieScreenContentTest {
     fun movieScreenContent_focusesPlayButton() {
         composeRule.setContent {
             AppTheme {
-                MovieScreenContent(
+                TvMovieScreenContent(
                     movie = sampleMovie(progress = 42.0),
                     onPlay = {}
                 )
@@ -54,7 +54,7 @@ class MovieScreenContentTest {
 
         composeRule.setContent {
             AppTheme {
-                MovieScreenContent(
+                TvMovieScreenContent(
                     movie = sampleMovie(progress = 42.0),
                     onPlay = { playCount++ }
                 )

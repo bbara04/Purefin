@@ -1,9 +1,9 @@
 package hu.bbara.purefin.tv.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
-import hu.bbara.purefin.app.content.episode.EpisodeScreen
-import hu.bbara.purefin.app.content.movie.MovieScreen
-import hu.bbara.purefin.app.content.series.SeriesScreen
+import hu.bbara.purefin.app.content.episode.TvEpisodeScreen
+import hu.bbara.purefin.app.content.movie.TvMovieScreen
+import hu.bbara.purefin.app.content.series.TvSeriesScreen
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.login.ui.LoginScreen
@@ -25,19 +25,19 @@ fun EntryProviderScope<Route>.tvLoginSection() {
 
 fun EntryProviderScope<Route>.tvMovieSection() {
     entry<Route.MovieRoute> { route ->
-        MovieScreen(movie = route.item)
+        TvMovieScreen(movie = route.item)
     }
 }
 
 fun EntryProviderScope<Route>.tvSeriesSection() {
     entry<Route.SeriesRoute> { route ->
-        SeriesScreen(series = route.item)
+        TvSeriesScreen(series = route.item)
     }
 }
 
 fun EntryProviderScope<Route>.tvEpisodeSection() {
     entry<Route.EpisodeRoute> { route ->
-        EpisodeScreen(episode = route.item)
+        TvEpisodeScreen(episode = route.item)
     }
 }
 

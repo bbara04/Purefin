@@ -31,7 +31,7 @@ class EpisodeScreenContentTest {
     fun episodeScreenContent_showsSeriesContext_andFocusesPlayButton() {
         composeRule.setContent {
             AppTheme {
-                EpisodeScreenContent(
+                TvEpisodeScreenContent(
                     episode = sampleEpisode(progress = 63.0),
                     seriesTitle = "Severance",
                     onPlay = {}
@@ -55,7 +55,7 @@ class EpisodeScreenContentTest {
     fun episodeScreenContent_hidesSeriesShortcut_whenShortcutUiIsUnavailable() {
         composeRule.setContent {
             AppTheme {
-                EpisodeScreenContent(
+                TvEpisodeScreenContent(
                     episode = sampleEpisode(progress = null),
                     seriesTitle = "Severance",
                     onPlay = {}
@@ -77,7 +77,7 @@ class EpisodeScreenContentTest {
 
         composeRule.setContent {
             AppTheme {
-                EpisodeScreenContent(
+                TvEpisodeScreenContent(
                     episode = sampleEpisode(progress = 63.0),
                     seriesTitle = "Severance",
                     onPlay = { playCount++ }

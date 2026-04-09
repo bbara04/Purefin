@@ -26,7 +26,7 @@ import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
 
 @Composable
-fun MovieScreen(
+fun TvMovieScreen(
     movie: MovieDto, viewModel: MovieScreenViewModel = hiltViewModel(), modifier: Modifier = Modifier
 ) {
     LaunchedEffect(movie.id) {
@@ -36,7 +36,7 @@ fun MovieScreen(
     val movieItem = viewModel.movie.collectAsState()
 
     if (movieItem.value != null) {
-        MovieScreenContent(
+        TvMovieScreenContent(
             movie = movieItem.value!!,
             onPlay = viewModel::onPlay,
             modifier = modifier
@@ -47,7 +47,7 @@ fun MovieScreen(
 }
 
 @Composable
-internal fun MovieScreenContent(
+internal fun TvMovieScreenContent(
     movie: Movie,
     onPlay: () -> Unit,
     modifier: Modifier = Modifier,
@@ -68,7 +68,7 @@ internal fun MovieScreenContent(
                 backgroundImageUrl = tvMediaDetailBackgroundImageUrl(movie.imageUrlPrefix),
                 modifier = it
             ) {
-                MovieHeroSection(
+                TvMovieHeroSection(
                     movie = movie,
                     onPlay = onPlay,
                     playFocusRequester = playFocusRequester,

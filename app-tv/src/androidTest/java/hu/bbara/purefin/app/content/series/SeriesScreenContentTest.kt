@@ -31,7 +31,7 @@ class SeriesScreenContentTest {
     fun seriesScreenContent_focusesPrimaryAction_whenNextUpExists() {
         composeRule.setContent {
             AppTheme {
-                SeriesScreenContent(
+                TvSeriesScreenContent(
                     series = sampleSeriesWithEpisodes(),
                     onPlayEpisode = {}
                 )
@@ -54,7 +54,7 @@ class SeriesScreenContentTest {
     fun seriesScreenContent_focusesFirstSeason_whenNoPlayableEpisodeExists() {
         composeRule.setContent {
             AppTheme {
-                SeriesScreenContent(
+                TvSeriesScreenContent(
                     series = sampleSeriesWithoutEpisodes(),
                     onPlayEpisode = {}
                 )
@@ -76,7 +76,7 @@ class SeriesScreenContentTest {
 
         composeRule.setContent {
             AppTheme {
-                SeriesScreenContent(
+                TvSeriesScreenContent(
                     series = sampleSeriesWithEpisodes(),
                     onPlayEpisode = { playCount++ }
                 )

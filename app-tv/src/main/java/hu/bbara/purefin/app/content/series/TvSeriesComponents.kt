@@ -72,7 +72,7 @@ internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun SeriesMetaChips(series: Series) {
+internal fun TvSeriesMetaChips(series: Series) {
     val scheme = MaterialTheme.colorScheme
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -84,7 +84,7 @@ internal fun SeriesMetaChips(series: Series) {
 }
 
 @Composable
-internal fun SeasonTabs(
+internal fun TvSeasonTabs(
     seasons: List<Season>,
     selectedSeason: Season?,
     modifier: Modifier = Modifier,
@@ -99,7 +99,7 @@ internal fun SeasonTabs(
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         seasons.forEachIndexed { index, season ->
-            SeasonTab(
+            TvSeasonTab(
                 name = season.name,
                 isSelected = season == selectedSeason,
                 onSelect = { onSelect(season) },
@@ -124,7 +124,7 @@ internal fun SeasonTabs(
 }
 
 @Composable
-private fun SeasonTab(
+private fun TvSeasonTab(
     name: String,
     isSelected: Boolean,
     onSelect: () -> Unit,
@@ -160,7 +160,7 @@ private fun SeasonTab(
 }
 
 @Composable
-internal fun EpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modifier) {
+internal fun TvEpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modifier) {
     val listState = rememberLazyListState()
 
     LaunchedEffect(episodes) {
@@ -178,13 +178,13 @@ internal fun EpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modif
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(episodes) { episode ->
-            EpisodeCard(episode = episode)
+            TvEpisodeCard(episode = episode)
         }
     }
 }
 
 @Composable
-internal fun SeriesHeroSection(
+internal fun TvSeriesHeroSection(
     series: Series,
     nextUpEpisode: Episode?,
     onPlayEpisode: (Episode) -> Unit,
@@ -210,7 +210,7 @@ internal fun SeriesHeroSection(
             overflow = TextOverflow.Ellipsis
         )
         Spacer(modifier = Modifier.height(18.dp))
-        SeriesMetaChips(series = series)
+        TvSeriesMetaChips(series = series)
         Spacer(modifier = Modifier.height(24.dp))
         if (nextUpEpisode != null) {
             Text(
@@ -262,7 +262,7 @@ internal fun SeriesHeroSection(
 }
 
 @Composable
-private fun EpisodeCard(
+private fun TvEpisodeCard(
     viewModel: SeriesViewModel = hiltViewModel(),
     episode: Episode
 ) {
