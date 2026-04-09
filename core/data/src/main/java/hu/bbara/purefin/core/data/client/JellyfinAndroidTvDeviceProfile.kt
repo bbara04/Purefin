@@ -17,7 +17,7 @@ internal data class JellyfinAndroidTvProfileConfig(
     val maxBitrate: Int = 100_000_000,
     val isAc3Enabled: Boolean = true,
     val downMixAudio: Boolean = false,
-    val assDirectPlay: Boolean = false,
+    val assDirectPlay: Boolean = true,
     val pgsDirectPlay: Boolean = true,
 )
 
