@@ -71,7 +71,9 @@ internal fun TvPlayerSeekBar(
                             true
                         }
 
-                        Key.Enter -> {
+                        Key.DirectionCenter,
+                        Key.Enter,
+                        Key.NumPadEnter -> {
                             togglePlayState()
                             true
                         }
