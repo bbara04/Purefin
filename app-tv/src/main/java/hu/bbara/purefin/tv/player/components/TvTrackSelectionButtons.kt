@@ -111,7 +111,6 @@ internal fun TvTrackSelectionPanel(
     panelType: TvTrackPanelType,
     uiState: PlayerUiState,
     onSelect: (TrackOption) -> Unit,
-    onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -192,7 +191,6 @@ internal fun TvTrackSelectionPanel(
                             selected = option.id == selectedId,
                             isFirst = index == 0,
                             isLast = index == options.lastIndex,
-                            onClose = onClose,
                             onClick = { onSelect(option) }
                         )
                     }
@@ -209,7 +207,6 @@ private fun TvTrackOptionRow(
     selected: Boolean,
     isFirst: Boolean,
     isLast: Boolean,
-    onClose: () -> Unit,
     onClick: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -237,11 +234,6 @@ private fun TvTrackOptionRow(
                     false
                 } else {
                     when (event.key) {
-                        Key.Back -> {
-                            onClose()
-                            true
-                        }
-
                         Key.DirectionLeft, Key.DirectionRight -> true
                         Key.DirectionUp -> isFirst
                         Key.DirectionDown -> isLast

@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -36,6 +37,7 @@ import hu.bbara.purefin.core.player.model.PlayerUiState
 import hu.bbara.purefin.core.player.model.QueueItemUi
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
+import hu.bbara.purefin.tv.player.handleTvPlayerRootKeyEvent
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.junit.Rule
 import org.junit.Test
@@ -280,6 +282,48 @@ class TvPlayerControlsOverlayTest {
     }
 
     @Test
+    fun backOnVisibleControls_hidesOverlayImmediately() {
+        composeRule.setContent {
+            AppTheme {
+                TrackPanelHost(uiState = samplePlayerState())
+            }
+        }
+
+        composeRule.onNodeWithTag(TvPlayerPlayPauseButtonTag)
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .assertIsFocused()
+            .performKeyInput {
+                pressKey(Key.Back)
+            }
+
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithTag(TvPlayerPlayPauseButtonTag).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(TvPlayerTrackPanelTag).assertCountEquals(0)
+    }
+
+    @Test
+    fun escapeOnVisibleControls_hidesOverlayImmediately() {
+        composeRule.setContent {
+            AppTheme {
+                TrackPanelHost(uiState = samplePlayerState())
+            }
+        }
+
+        composeRule.onNodeWithTag(TvPlayerPlayPauseButtonTag)
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .assertIsFocused()
+            .performKeyInput {
+                pressKey(Key.Escape)
+            }
+
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithTag(TvPlayerPlayPauseButtonTag).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(TvPlayerTrackPanelTag).assertCountEquals(0)
+    }
+
+    @Test
     fun backOnTrackPanel_closesItAndRestoresFocusToOpeningButton() {
         composeRule.setContent {
             AppTheme {
@@ -428,6 +472,7 @@ private fun OverlayHost(
 private fun TrackPanelHost(
     uiState: PlayerUiState
 ) {
+    var controlsVisible by remember { mutableStateOf(true) }
     var trackPanelType by remember { mutableStateOf<TvTrackPanelType?>(null) }
     var pendingTrackButtonFocus by remember { mutableStateOf<TvTrackPanelType?>(null) }
     val controlsFocusRequester = remember { FocusRequester() }
@@ -438,6 +483,7 @@ private fun TrackPanelHost(
         trackPanelType?.let { panelType ->
             pendingTrackButtonFocus = panelType
             trackPanelType = null
+            controlsVisible = true
         }
     }
 
@@ -452,37 +498,64 @@ private fun TrackPanelHost(
         pendingTrackButtonFocus = null
     }
 
-    Box(modifier = Modifier.size(width = 960.dp, height = 540.dp)) {
-        TvPlayerControlsOverlay(
-            uiState = uiState,
-            focusRequester = controlsFocusRequester,
-            isPlaylistExpanded = false,
-            qualityButtonFocusRequester = qualityButtonFocusRequester,
-            audioButtonFocusRequester = audioButtonFocusRequester,
-            subtitlesButtonFocusRequester = subtitlesButtonFocusRequester,
-            onPlayPause = {},
-            onSeek = { _ -> },
-            onSeekRelative = { _ -> },
-            onSeekLiveEdge = {},
-            onNext = {},
-            onPrevious = {},
-            onOpenAudioPanel = { trackPanelType = TvTrackPanelType.AUDIO },
-            onOpenSubtitlesPanel = { trackPanelType = TvTrackPanelType.SUBTITLES },
-            onOpenQualityPanel = { trackPanelType = TvTrackPanelType.QUALITY },
-            onExpandPlaylist = {},
-            onCollapsePlaylist = {},
-            onSelectQueueItem = { _ -> },
-            qualityButtonEnabled = uiState.qualityTracks.isNotEmpty(),
-            audioButtonEnabled = uiState.audioTracks.isNotEmpty(),
-            subtitlesButtonEnabled = uiState.textTracks.isNotEmpty()
-        )
+    Box(
+        modifier = Modifier
+            .size(width = 960.dp, height = 540.dp)
+            .onPreviewKeyEvent { event ->
+                handleTvPlayerRootKeyEvent(
+                    event = event,
+                    controlsVisible = controlsVisible,
+                    isPlaylistExpanded = false,
+                    trackPanelType = trackPanelType,
+                    onCloseTrackPanel = closeTrackPanel,
+                    onCollapsePlaylist = { controlsVisible = true },
+                    onHideControls = { controlsVisible = false },
+                    onSeekRelative = { _ -> controlsVisible = true },
+                    onShowControls = { controlsVisible = true },
+                    onTogglePlayPause = { controlsVisible = true }
+                )
+            }
+    ) {
+        if (controlsVisible || trackPanelType != null) {
+            TvPlayerControlsOverlay(
+                uiState = uiState,
+                focusRequester = controlsFocusRequester,
+                isPlaylistExpanded = false,
+                qualityButtonFocusRequester = qualityButtonFocusRequester,
+                audioButtonFocusRequester = audioButtonFocusRequester,
+                subtitlesButtonFocusRequester = subtitlesButtonFocusRequester,
+                onPlayPause = {},
+                onSeek = { _ -> },
+                onSeekRelative = { _ -> },
+                onSeekLiveEdge = {},
+                onNext = {},
+                onPrevious = {},
+                onOpenAudioPanel = {
+                    controlsVisible = true
+                    trackPanelType = TvTrackPanelType.AUDIO
+                },
+                onOpenSubtitlesPanel = {
+                    controlsVisible = true
+                    trackPanelType = TvTrackPanelType.SUBTITLES
+                },
+                onOpenQualityPanel = {
+                    controlsVisible = true
+                    trackPanelType = TvTrackPanelType.QUALITY
+                },
+                onExpandPlaylist = {},
+                onCollapsePlaylist = {},
+                onSelectQueueItem = { _ -> },
+                qualityButtonEnabled = uiState.qualityTracks.isNotEmpty(),
+                audioButtonEnabled = uiState.audioTracks.isNotEmpty(),
+                subtitlesButtonEnabled = uiState.textTracks.isNotEmpty()
+            )
+        }
 
         trackPanelType?.let { panelType ->
             TvTrackSelectionPanel(
                 panelType = panelType,
                 uiState = uiState,
                 onSelect = { closeTrackPanel() },
-                onClose = closeTrackPanel,
                 modifier = Modifier.fillMaxSize()
             )
         }

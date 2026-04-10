@@ -179,33 +179,18 @@ fun TvPlayerScreen(
             .background(Color.Black)
             .focusRequester(hiddenControlFocusRequester)
             .onPreviewKeyEvent { event ->
-                if (!controlsVisible && event.type == KeyEventType.KeyDown) {
-                    when (event.key) {
-                        Key.DirectionLeft -> {
-                            seekByAndShowControls(-10_000)
-                            true
-                        }
-
-                        Key.DirectionRight -> {
-                            seekByAndShowControls(10_000)
-                            true
-                        }
-
-                        Key.DirectionUp, Key.DirectionDown -> {
-                            showTvControls()
-                            true
-                        }
-
-                        Key.DirectionCenter, Key.Enter -> {
-                            togglePlayPauseAndShowControls()
-                            true
-                        }
-
-                        else -> false
-                    }
-                } else {
-                    false
-                }
+                handleTvPlayerRootKeyEvent(
+                    event = event,
+                    controlsVisible = controlsVisible,
+                    isPlaylistExpanded = isPlaylistExpanded,
+                    trackPanelType = trackPanelType,
+                    onCloseTrackPanel = closeTrackPanel,
+                    onCollapsePlaylist = collapsePlaylistToControls,
+                    onHideControls = { viewModel.toggleControlsVisibility() },
+                    onSeekRelative = seekByAndShowControls,
+                    onShowControls = showTvControls,
+                    onTogglePlayPause = togglePlayPauseAndShowControls
+                )
             }
             .focusable()
     ) {
@@ -282,11 +267,74 @@ fun TvPlayerScreen(
                         viewModel.selectTrack(track)
                         closeTrackPanel()
                     },
-                    onClose = closeTrackPanel,
                     modifier = Modifier.fillMaxSize()
                 )
             }
         }
 
     }
+}
+
+internal fun handleTvPlayerRootKeyEvent(
+    event: androidx.compose.ui.input.key.KeyEvent,
+    controlsVisible: Boolean,
+    isPlaylistExpanded: Boolean,
+    trackPanelType: TvTrackPanelType?,
+    onCloseTrackPanel: () -> Unit,
+    onCollapsePlaylist: () -> Unit,
+    onHideControls: () -> Unit,
+    onSeekRelative: (Long) -> Unit,
+    onShowControls: () -> Unit,
+    onTogglePlayPause: () -> Unit
+): Boolean {
+    if (event.type != KeyEventType.KeyDown) return false
+
+    if (event.key == Key.Back || event.key == Key.Escape) {
+        return when {
+            trackPanelType != null -> {
+                onCloseTrackPanel()
+                true
+            }
+
+            isPlaylistExpanded -> {
+                onCollapsePlaylist()
+                true
+            }
+
+            controlsVisible -> {
+                onHideControls()
+                true
+            }
+
+            else -> false
+        }
+    }
+
+    if (!controlsVisible) {
+        return when (event.key) {
+            Key.DirectionLeft -> {
+                onSeekRelative(-10_000)
+                true
+            }
+
+            Key.DirectionRight -> {
+                onSeekRelative(10_000)
+                true
+            }
+
+            Key.DirectionUp, Key.DirectionDown -> {
+                onShowControls()
+                true
+            }
+
+            Key.DirectionCenter, Key.Enter -> {
+                onTogglePlayPause()
+                true
+            }
+
+            else -> false
+        }
+    }
+
+    return false
 }
