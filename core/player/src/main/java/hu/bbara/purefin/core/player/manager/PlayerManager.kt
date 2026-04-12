@@ -139,6 +139,18 @@ class PlayerManager @Inject constructor(
         if (player.isPlaying) player.pause() else player.play()
     }
 
+    fun pausePlayback() {
+        if (player.isPlaying) {
+            player.pause()
+        }
+    }
+
+    fun resumePlayback() {
+        if (!player.isPlaying) {
+            player.play()
+        }
+    }
+
     fun seekTo(positionMs: Long) {
         val target = clampSeekPosition(positionMs)
         pendingSeekPositionMs = target

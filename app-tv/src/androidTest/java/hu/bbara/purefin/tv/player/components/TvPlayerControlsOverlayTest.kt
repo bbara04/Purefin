@@ -1,6 +1,8 @@
 package hu.bbara.purefin.tv.player.components
 
 import androidx.activity.ComponentActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -10,12 +12,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -37,10 +44,18 @@ import hu.bbara.purefin.core.player.model.PlayerUiState
 import hu.bbara.purefin.core.player.model.QueueItemUi
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
+import hu.bbara.purefin.tv.player.TV_HIDDEN_STOP_FEEDBACK_MS
+import hu.bbara.purefin.tv.player.TvPlayerHiddenStopFeedback
+import hu.bbara.purefin.tv.player.TvPlayerHiddenStopFeedbackTag
 import hu.bbara.purefin.tv.player.handleTvPlayerRootKeyEvent
 import hu.bbara.purefin.ui.theme.AppTheme
+import kotlinx.coroutines.delay
 import org.junit.Rule
 import org.junit.Test
+
+private const val TvPlayerRootTag = "tv_player_root"
+private const val TvPlayerHiddenPauseCountTag = "tv_player_hidden_pause_count"
+private const val TvPlayerHiddenResumeCountTag = "tv_player_hidden_resume_count"
 
 @OptIn(ExperimentalTestApi::class)
 class TvPlayerControlsOverlayTest {
@@ -347,6 +362,137 @@ class TvPlayerControlsOverlayTest {
     }
 
     @Test
+    fun hiddenControls_centerWhilePlaying_pausesWithoutShowingControlsAndShowsStopFeedback() {
+        composeRule.setContent {
+            AppTheme {
+                TrackPanelHost(
+                    uiState = samplePlayerState(),
+                    initialControlsVisible = false
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(TvPlayerRootTag)
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .performKeyInput {
+                pressKey(Key.DirectionCenter)
+            }
+
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithTag(TvPlayerPlayPauseButtonTag).assertCountEquals(0)
+        composeRule.onNodeWithTag(TvPlayerHiddenStopFeedbackTag).assertIsDisplayed()
+        composeRule.onNodeWithTag(TvPlayerHiddenPauseCountTag)
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    "1"
+                )
+            )
+    }
+
+    @Test
+    fun hiddenControls_enterWhilePlaying_pausesWithoutShowingControlsAndShowsStopFeedback() {
+        composeRule.setContent {
+            AppTheme {
+                TrackPanelHost(
+                    uiState = samplePlayerState(),
+                    initialControlsVisible = false
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(TvPlayerRootTag)
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .performKeyInput {
+                pressKey(Key.Enter)
+            }
+
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithTag(TvPlayerPlayPauseButtonTag).assertCountEquals(0)
+        composeRule.onNodeWithTag(TvPlayerHiddenStopFeedbackTag).assertIsDisplayed()
+        composeRule.onNodeWithTag(TvPlayerHiddenPauseCountTag)
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    "1"
+                )
+            )
+    }
+
+    @Test
+    fun hiddenControls_stopFeedbackAutoHidesAfterTimeout() {
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.setContent {
+            AppTheme {
+                TrackPanelHost(
+                    uiState = samplePlayerState(),
+                    initialControlsVisible = false
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(TvPlayerRootTag)
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .performKeyInput {
+                pressKey(Key.DirectionCenter)
+            }
+
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.onNodeWithTag(TvPlayerHiddenStopFeedbackTag).assertIsDisplayed()
+
+        composeRule.mainClock.advanceTimeBy(TV_HIDDEN_STOP_FEEDBACK_MS - 1)
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.onNodeWithTag(TvPlayerHiddenStopFeedbackTag).assertIsDisplayed()
+
+        composeRule.mainClock.advanceTimeBy(1)
+        composeRule.mainClock.advanceTimeBy(300)
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.onAllNodesWithTag(TvPlayerHiddenStopFeedbackTag).assertCountEquals(0)
+
+        composeRule.mainClock.autoAdvance = true
+    }
+
+    @Test
+    fun hiddenControls_centerWhilePaused_resumesWithoutShowingControls() {
+        composeRule.setContent {
+            AppTheme {
+                TrackPanelHost(
+                    uiState = samplePlayerState().copy(isPlaying = false),
+                    initialControlsVisible = false
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(TvPlayerRootTag)
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .performKeyInput {
+                pressKey(Key.DirectionCenter)
+            }
+
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithTag(TvPlayerPlayPauseButtonTag).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(TvPlayerHiddenStopFeedbackTag).assertCountEquals(0)
+        composeRule.onNodeWithTag(TvPlayerHiddenPauseCountTag)
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    "0"
+                )
+            )
+        composeRule.onNodeWithTag(TvPlayerHiddenResumeCountTag)
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    "1"
+                )
+            )
+    }
+
+    @Test
     fun backOnTrackPanel_closesItAndRestoresFocusToOpeningButton() {
         composeRule.setContent {
             AppTheme {
@@ -500,11 +646,17 @@ private fun OverlayHost(
 
 @Composable
 private fun TrackPanelHost(
-    uiState: PlayerUiState
+    uiState: PlayerUiState,
+    initialControlsVisible: Boolean = true
 ) {
-    var controlsVisible by remember { mutableStateOf(true) }
+    var controlsVisible by remember { mutableStateOf(initialControlsVisible) }
     var trackPanelType by remember { mutableStateOf<TvTrackPanelType?>(null) }
     var pendingTrackButtonFocus by remember { mutableStateOf<TvTrackPanelType?>(null) }
+    var stopFeedbackVisible by remember { mutableStateOf(false) }
+    var stopFeedbackRequestId by remember { mutableStateOf(0) }
+    var pauseWithoutControlsCount by remember { mutableStateOf(0) }
+    var resumeWithoutControlsCount by remember { mutableStateOf(0) }
+    val rootFocusRequester = remember { FocusRequester() }
     val controlsFocusRequester = remember { FocusRequester() }
     val qualityButtonFocusRequester = remember { FocusRequester() }
     val audioButtonFocusRequester = remember { FocusRequester() }
@@ -515,6 +667,15 @@ private fun TrackPanelHost(
             trackPanelType = null
             controlsVisible = true
         }
+    }
+    val pausePlaybackWithoutShowingControls: () -> Unit = {
+        pauseWithoutControlsCount += 1
+        stopFeedbackVisible = true
+        stopFeedbackRequestId += 1
+    }
+    val resumePlaybackWithoutShowingControls: () -> Unit = {
+        resumeWithoutControlsCount += 1
+        stopFeedbackVisible = false
     }
 
     LaunchedEffect(trackPanelType, pendingTrackButtonFocus) {
@@ -528,18 +689,38 @@ private fun TrackPanelHost(
         pendingTrackButtonFocus = null
     }
 
+    LaunchedEffect(stopFeedbackRequestId) {
+        if (stopFeedbackRequestId == 0) return@LaunchedEffect
+        delay(TV_HIDDEN_STOP_FEEDBACK_MS)
+        stopFeedbackVisible = false
+    }
+
+    LaunchedEffect(controlsVisible, trackPanelType) {
+        if (controlsVisible || trackPanelType != null) {
+            stopFeedbackVisible = false
+        } else {
+            rootFocusRequester.requestFocus()
+        }
+    }
+
     Box(
         modifier = Modifier
             .size(width = 960.dp, height = 540.dp)
+            .focusRequester(rootFocusRequester)
+            .focusable()
+            .testTag(TvPlayerRootTag)
             .onPreviewKeyEvent { event ->
                 handleTvPlayerRootKeyEvent(
                     event = event,
+                    isPlaying = uiState.isPlaying,
                     controlsVisible = controlsVisible,
                     isPlaylistExpanded = false,
                     trackPanelType = trackPanelType,
                     onCloseTrackPanel = closeTrackPanel,
                     onCollapsePlaylist = { controlsVisible = true },
                     onHideControls = { controlsVisible = false },
+                    onPausePlaybackWithoutShowingControls = pausePlaybackWithoutShowingControls,
+                    onResumePlaybackWithoutShowingControls = resumePlaybackWithoutShowingControls,
                     onSeekRelative = { _ -> controlsVisible = true },
                     onShowControls = { controlsVisible = true },
                     onTogglePlayPause = { controlsVisible = true }
@@ -580,6 +761,25 @@ private fun TrackPanelHost(
                 subtitlesButtonEnabled = uiState.textTracks.isNotEmpty()
             )
         }
+
+        AnimatedVisibility(
+            visible = stopFeedbackVisible,
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            TvPlayerHiddenStopFeedback()
+        }
+
+        Box(
+            modifier = Modifier
+                .testTag(TvPlayerHiddenPauseCountTag)
+                .semantics { stateDescription = pauseWithoutControlsCount.toString() }
+        )
+
+        Box(
+            modifier = Modifier
+                .testTag(TvPlayerHiddenResumeCountTag)
+                .semantics { stateDescription = resumeWithoutControlsCount.toString() }
+        )
 
         trackPanelType?.let { panelType ->
             TvTrackSelectionPanel(

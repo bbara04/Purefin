@@ -188,6 +188,14 @@ class PlayerViewModel @Inject constructor(
         showControls(autoHideDelayMs)
     }
 
+    fun pausePlayback() {
+        playerManager.pausePlayback()
+    }
+
+    fun resumePlayback() {
+        playerManager.resumePlayback()
+    }
+
     fun seekTo(positionMs: Long) {
         playerManager.seekTo(positionMs)
     }
