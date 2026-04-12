@@ -49,6 +49,29 @@ class TvPlayerControlsOverlayTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
+    fun requestingControlsFocus_focusesPlayPauseInsteadOfSeekBar() {
+        composeRule.setContent {
+            AppTheme {
+                OverlayHost(
+                    uiState = samplePlayerState(),
+                    requestFocus = true
+                )
+            }
+        }
+
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TvPlayerPlayPauseButtonTag).assertIsFocused()
+        composeRule.onNodeWithTag(TvPlayerSeekBarTag)
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.Focused,
+                    false
+                )
+            )
+    }
+
+    @Test
     fun downFromSeekBar_movesFocusToControlButtonsBeforePlaylist() {
         composeRule.setContent {
             AppTheme {
@@ -433,13 +456,20 @@ class TvPlayerControlsOverlayTest {
 @Composable
 private fun OverlayHost(
     uiState: PlayerUiState,
-    initiallyExpanded: Boolean = false
+    initiallyExpanded: Boolean = false,
+    requestFocus: Boolean = false
 ) {
     var isPlaylistExpanded by remember { mutableStateOf(initiallyExpanded) }
     val focusRequester = remember { FocusRequester() }
     val qualityButtonFocusRequester = remember { FocusRequester() }
     val audioButtonFocusRequester = remember { FocusRequester() }
     val subtitlesButtonFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(requestFocus) {
+        if (requestFocus) {
+            focusRequester.requestFocus()
+        }
+    }
 
     Box(modifier = Modifier.size(width = 960.dp, height = 540.dp)) {
         TvPlayerControlsOverlay(

@@ -186,7 +186,6 @@ private fun TvPlayerBottomSection(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    val playPauseFocusRequester = remember { FocusRequester() }
     val playlistFocusRequester = remember { FocusRequester() }
     var wasPlaylistExpanded by remember { mutableStateOf(isPlaylistExpanded) }
 
@@ -194,7 +193,7 @@ private fun TvPlayerBottomSection(
         if (isPlaylistExpanded && uiState.queue.isNotEmpty()) {
             playlistFocusRequester.requestFocus()
         } else if (wasPlaylistExpanded) {
-            playPauseFocusRequester.requestFocus()
+            focusRequester.requestFocus()
         }
         wasPlaylistExpanded = isPlaylistExpanded
     }
@@ -255,10 +254,9 @@ private fun TvPlayerBottomSection(
             onSeekRelative = onSeekRelative,
             togglePlayState = onPlayPause,
             onMoveDown = {
-                playPauseFocusRequester.requestFocus()
+                focusRequester.requestFocus()
                 true
             },
-            focusRequester = focusRequester,
             modifier = Modifier.testTag(TvPlayerSeekBarTag)
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -292,7 +290,7 @@ private fun TvPlayerBottomSection(
                     onClick = onPlayPause,
                     size = 72,
                     modifier = expandPlaylistModifier
-                        .focusRequester(playPauseFocusRequester)
+                        .focusRequester(focusRequester)
                         .testTag(TvPlayerPlayPauseButtonTag)
                 )
                 TvIconButton(
