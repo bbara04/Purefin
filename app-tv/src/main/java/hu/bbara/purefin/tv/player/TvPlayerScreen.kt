@@ -150,6 +150,10 @@ fun TvPlayerScreen(
         viewModel.seekBy(deltaMs)
         showTvControls()
     }
+    val seekByWithoutShowingControls: (Long) -> Unit = { deltaMs ->
+        viewModel.seekBy(deltaMs)
+        stopFeedbackVisible = false
+    }
     val seekToLiveEdgeAndShowControls: () -> Unit = {
         viewModel.seekToLiveEdge()
         showTvControls()
@@ -226,7 +230,7 @@ fun TvPlayerScreen(
                     onHideControls = { viewModel.toggleControlsVisibility() },
                     onPausePlaybackWithoutShowingControls = pausePlaybackWithoutShowingControls,
                     onResumePlaybackWithoutShowingControls = resumePlaybackWithoutShowingControls,
-                    onSeekRelative = seekByAndShowControls,
+                    onSeekRelative = seekByWithoutShowingControls,
                     onShowControls = showTvControls,
                     onTogglePlayPause = togglePlayPauseAndShowControls
                 )

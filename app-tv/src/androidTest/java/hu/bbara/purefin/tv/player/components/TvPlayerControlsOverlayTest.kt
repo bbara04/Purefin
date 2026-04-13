@@ -56,6 +56,7 @@ import org.junit.Test
 private const val TvPlayerRootTag = "tv_player_root"
 private const val TvPlayerHiddenPauseCountTag = "tv_player_hidden_pause_count"
 private const val TvPlayerHiddenResumeCountTag = "tv_player_hidden_resume_count"
+private const val TvPlayerHiddenSeekDeltaTag = "tv_player_hidden_seek_delta"
 
 @OptIn(ExperimentalTestApi::class)
 class TvPlayerControlsOverlayTest {
@@ -493,6 +494,66 @@ class TvPlayerControlsOverlayTest {
     }
 
     @Test
+    fun hiddenControls_leftSeeksWithoutShowingControls() {
+        composeRule.setContent {
+            AppTheme {
+                TrackPanelHost(
+                    uiState = samplePlayerState(),
+                    initialControlsVisible = false
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(TvPlayerRootTag)
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .performKeyInput {
+                pressKey(Key.DirectionLeft)
+            }
+
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithTag(TvPlayerPlayPauseButtonTag).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(TvPlayerHiddenStopFeedbackTag).assertCountEquals(0)
+        composeRule.onNodeWithTag(TvPlayerHiddenSeekDeltaTag)
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    "-10000"
+                )
+            )
+    }
+
+    @Test
+    fun hiddenControls_rightSeeksWithoutShowingControls() {
+        composeRule.setContent {
+            AppTheme {
+                TrackPanelHost(
+                    uiState = samplePlayerState(),
+                    initialControlsVisible = false
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag(TvPlayerRootTag)
+            .performSemanticsAction(SemanticsActions.RequestFocus)
+            .performKeyInput {
+                pressKey(Key.DirectionRight)
+            }
+
+        composeRule.waitForIdle()
+
+        composeRule.onAllNodesWithTag(TvPlayerPlayPauseButtonTag).assertCountEquals(0)
+        composeRule.onAllNodesWithTag(TvPlayerHiddenStopFeedbackTag).assertCountEquals(0)
+        composeRule.onNodeWithTag(TvPlayerHiddenSeekDeltaTag)
+            .assert(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    "10000"
+                )
+            )
+    }
+
+    @Test
     fun backOnTrackPanel_closesItAndRestoresFocusToOpeningButton() {
         composeRule.setContent {
             AppTheme {
@@ -656,6 +717,7 @@ private fun TrackPanelHost(
     var stopFeedbackRequestId by remember { mutableStateOf(0) }
     var pauseWithoutControlsCount by remember { mutableStateOf(0) }
     var resumeWithoutControlsCount by remember { mutableStateOf(0) }
+    var lastHiddenSeekDeltaMs by remember { mutableStateOf(0L) }
     val rootFocusRequester = remember { FocusRequester() }
     val controlsFocusRequester = remember { FocusRequester() }
     val qualityButtonFocusRequester = remember { FocusRequester() }
@@ -675,6 +737,10 @@ private fun TrackPanelHost(
     }
     val resumePlaybackWithoutShowingControls: () -> Unit = {
         resumeWithoutControlsCount += 1
+        stopFeedbackVisible = false
+    }
+    val seekWithoutShowingControls: (Long) -> Unit = { deltaMs ->
+        lastHiddenSeekDeltaMs = deltaMs
         stopFeedbackVisible = false
     }
 
@@ -721,7 +787,7 @@ private fun TrackPanelHost(
                     onHideControls = { controlsVisible = false },
                     onPausePlaybackWithoutShowingControls = pausePlaybackWithoutShowingControls,
                     onResumePlaybackWithoutShowingControls = resumePlaybackWithoutShowingControls,
-                    onSeekRelative = { _ -> controlsVisible = true },
+                    onSeekRelative = seekWithoutShowingControls,
                     onShowControls = { controlsVisible = true },
                     onTogglePlayPause = { controlsVisible = true }
                 )
@@ -779,6 +845,12 @@ private fun TrackPanelHost(
             modifier = Modifier
                 .testTag(TvPlayerHiddenResumeCountTag)
                 .semantics { stateDescription = resumeWithoutControlsCount.toString() }
+        )
+
+        Box(
+            modifier = Modifier
+                .testTag(TvPlayerHiddenSeekDeltaTag)
+                .semantics { stateDescription = lastHiddenSeekDeltaMs.toString() }
         )
 
         trackPanelType?.let { panelType ->
