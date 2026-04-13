@@ -35,11 +35,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.MediaMetaChip
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
 import hu.bbara.purefin.common.ui.components.MediaHero
+import hu.bbara.purefin.core.data.download.DownloadState
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.MovieDto
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.api.ImageType

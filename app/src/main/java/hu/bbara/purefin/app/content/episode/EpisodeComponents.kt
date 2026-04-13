@@ -43,8 +43,8 @@ import hu.bbara.purefin.common.ui.components.GhostIconButton
 import hu.bbara.purefin.common.ui.components.MediaActionButton
 import hu.bbara.purefin.common.ui.components.MediaPlaybackSettings
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
+import hu.bbara.purefin.core.data.download.DownloadState
 import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.player.PlayerActivity
 
 internal sealed interface EpisodeTopBarShortcut {

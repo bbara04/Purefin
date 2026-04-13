@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.CacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
@@ -15,10 +17,24 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import okhttp3.OkHttpClient
 import java.io.File
 import java.util.concurrent.Executors
 import javax.inject.Singleton
+
+@OptIn(UnstableApi::class)
+internal object DownloadModuleFactories {
+    fun createDownloadCacheEvictor(): CacheEvictor {
+        return NoOpCacheEvictor()
+    }
+
+    fun newPhonePlaybackDataSourceFactory(
+        upstreamDataSourceFactory: DataSource.Factory
+    ): CacheDataSource.Factory {
+        return CacheDataSource.Factory()
+            .setUpstreamDataSourceFactory(upstreamDataSourceFactory)
+            .setCacheWriteDataSinkFactory(null)
+    }
+}
 
 @OptIn(UnstableApi::class)
 @Module
@@ -31,13 +47,11 @@ object DownloadModule {
     @Singleton
     fun provideDownloadCache(@ApplicationContext context: Context): SimpleCache {
         val downloadDir = File(context.getExternalFilesDir(null), "downloads")
-        return SimpleCache(downloadDir, NoOpCacheEvictor(), StandaloneDatabaseProvider(context))
-    }
-
-    @Provides
-    @Singleton
-    fun provideOkHttpDataSourceFactory(okHttpClient: OkHttpClient): OkHttpDataSource.Factory {
-        return OkHttpDataSource.Factory(okHttpClient)
+        return SimpleCache(
+            downloadDir,
+            DownloadModuleFactories.createDownloadCacheEvictor(),
+            StandaloneDatabaseProvider(context)
+        )
     }
 
     @Provides
@@ -64,12 +78,12 @@ object DownloadModule {
 
     @Provides
     @Singleton
-    fun provideCacheDataSourceFactory(
+    fun providePlaybackDataSourceFactory(
         cache: SimpleCache,
         okHttpDataSourceFactory: OkHttpDataSource.Factory
-    ): CacheDataSource.Factory {
-        return CacheDataSource.Factory()
+    ): DataSource.Factory {
+        return DownloadModuleFactories
+            .newPhonePlaybackDataSourceFactory(okHttpDataSourceFactory)
             .setCache(cache)
-            .setUpstreamDataSourceFactory(okHttpDataSourceFactory)
     }
 }

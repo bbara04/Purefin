@@ -7,10 +7,10 @@ import hu.bbara.purefin.core.data.MediaRepository
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.NavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
+import hu.bbara.purefin.core.data.download.DownloadState
+import hu.bbara.purefin.core.data.download.MediaDownloadController
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Series
-import hu.bbara.purefin.feature.download.DownloadState
-import hu.bbara.purefin.feature.download.MediaDownloadManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +27,7 @@ import javax.inject.Inject
 class SeriesViewModel @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val navigationManager: NavigationManager,
-    private val mediaDownloadManager: MediaDownloadManager,
+    private val mediaDownloadManager: MediaDownloadController,
 ) : ViewModel() {
 
     private val _seriesId = MutableStateFlow<UUID?>(null)

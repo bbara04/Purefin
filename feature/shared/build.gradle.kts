@@ -30,7 +30,6 @@ kotlin {
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:data"))
-    implementation(project(":feature:download"))
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
     implementation(libs.jellyfin.core)

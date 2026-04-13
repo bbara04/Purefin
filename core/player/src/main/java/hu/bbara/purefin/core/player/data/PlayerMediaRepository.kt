@@ -1,12 +1,16 @@
 package hu.bbara.purefin.core.player.data
 
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
+import hu.bbara.purefin.core.data.client.PlaybackDecision
 import hu.bbara.purefin.core.data.client.PlaybackReportContext
+import hu.bbara.purefin.core.data.client.playbackCustomCacheKey
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +39,7 @@ class PlayerMediaRepository @Inject constructor(
 
         val mediaItem = createMediaItem(
             mediaId = mediaId.toString(),
-            playbackUrl = playbackDecision.url,
+            playbackDecision = playbackDecision,
             title = baseItem?.name ?: playbackDecision.mediaSource.name ?: return@withContext null,
             subtitle = seasonEpisodeLabel(baseItem),
             artworkUrl = artworkUrl,
@@ -59,7 +63,7 @@ class PlayerMediaRepository @Inject constructor(
                 val artworkUrl = JellyfinImageHelper.toImageUrl(serverUrl, id, ImageType.PRIMARY)
                 createMediaItem(
                     mediaId = stringId,
-                    playbackUrl = playbackDecision.url,
+                    playbackDecision = playbackDecision,
                     title = episode.name ?: playbackDecision.mediaSource.name ?: return@mapNotNull null,
                     subtitle = seasonEpisodeLabel(episode),
                     artworkUrl = artworkUrl,
@@ -72,9 +76,10 @@ class PlayerMediaRepository @Inject constructor(
         }
     }
 
+    @OptIn(UnstableApi::class)
     private fun createMediaItem(
         mediaId: String,
-        playbackUrl: String,
+        playbackDecision: PlaybackDecision,
         title: String,
         subtitle: String?,
         artworkUrl: String,
@@ -85,12 +90,19 @@ class PlayerMediaRepository @Inject constructor(
             .setSubtitle(subtitle)
             .setArtworkUri(artworkUrl.toUri())
             .build()
-        return MediaItem.Builder()
-            .setUri(playbackUrl.toUri())
+        val builder = MediaItem.Builder()
+            .setUri(playbackDecision.url.toUri())
             .setMediaId(mediaId)
             .setMediaMetadata(metadata)
             .setTag(playbackReportContext)
-            .build()
+
+        playbackCustomCacheKey(
+            mediaId = mediaId,
+            playbackUrl = playbackDecision.url,
+            playMethod = playbackDecision.reportContext.playMethod
+        )?.let(builder::setCustomCacheKey)
+
+        return builder.build()
     }
 
     private fun calculateResumePosition(

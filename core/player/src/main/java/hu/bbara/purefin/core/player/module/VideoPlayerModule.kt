@@ -6,7 +6,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -26,7 +26,10 @@ object VideoPlayerModule {
     @OptIn(UnstableApi::class)
     @Provides
     @ViewModelScoped
-    fun provideVideoPlayer(application: Application, cacheDataSourceFactory: CacheDataSource.Factory): Player {
+    fun provideVideoPlayer(
+        application: Application,
+        playbackDataSourceFactory: DataSource.Factory
+    ): Player {
         val trackSelector = DefaultTrackSelector(application)
         val audioAttributes =
             AudioAttributes.Builder()
@@ -53,7 +56,7 @@ object VideoPlayerModule {
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
             .setEnableDecoderFallback(true)
 
-        val mediaSourceFactory = DefaultMediaSourceFactory(cacheDataSourceFactory)
+        val mediaSourceFactory = DefaultMediaSourceFactory(playbackDataSourceFactory)
 
         return ExoPlayer.Builder(application, renderersFactory)
             .setMediaSourceFactory(mediaSourceFactory)

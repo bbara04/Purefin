@@ -65,6 +65,7 @@ import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.MediaResumeButton
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
+import hu.bbara.purefin.core.data.download.DownloadState
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.EpisodeDto
 import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
@@ -73,7 +74,6 @@ import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
-import hu.bbara.purefin.feature.download.DownloadState
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
 import hu.bbara.purefin.player.PlayerActivity
 import org.jellyfin.sdk.model.api.ImageType

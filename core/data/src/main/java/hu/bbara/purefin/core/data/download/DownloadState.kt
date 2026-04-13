@@ -1,4 +1,4 @@
-package hu.bbara.purefin.feature.download
+package hu.bbara.purefin.core.data.download
 
 sealed class DownloadState {
     data object NotDownloaded : DownloadState()

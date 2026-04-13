@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.OfflineMediaRepository
+import hu.bbara.purefin.core.data.download.MediaDownloadController
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.navigation.MovieDto
 import hu.bbara.purefin.core.data.navigation.NavigationManager
 import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.data.navigation.SeriesDto
-import hu.bbara.purefin.feature.download.MediaDownloadManager
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -24,7 +24,7 @@ import javax.inject.Inject
 class DownloadsViewModel @Inject constructor(
     private val offlineMediaRepository: OfflineMediaRepository,
     private val navigationManager: NavigationManager,
-    private val downloadManager: MediaDownloadManager
+    private val downloadManager: MediaDownloadController
 ) : ViewModel() {
 
     fun onMovieSelected(movieId: UUID) {

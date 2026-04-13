@@ -10,8 +10,11 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.core.data.InMemoryMediaRepository
+import hu.bbara.purefin.core.data.client.playbackCustomCacheKey
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
+import hu.bbara.purefin.core.data.download.DownloadState
+import hu.bbara.purefin.core.data.download.MediaDownloadController
 import hu.bbara.purefin.core.data.room.dao.MovieDao
 import hu.bbara.purefin.core.data.room.dao.SmartDownloadDao
 import hu.bbara.purefin.core.data.room.entity.SmartDownloadEntity
@@ -33,9 +36,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ImageType
-import java.util.UUID
+import org.jellyfin.sdk.model.api.MediaSourceInfo
+import org.jellyfin.sdk.model.api.PlayMethod
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,7 +56,7 @@ class MediaDownloadManager @Inject constructor(
     private val smartDownloadDao: SmartDownloadDao,
     private val userSessionRepository: UserSessionRepository,
     private val inMemoryMediaRepository: InMemoryMediaRepository,
-) {
+) : MediaDownloadController {
 
     private val stateFlows = ConcurrentHashMap<String, MutableStateFlow<DownloadState>>()
 
@@ -87,7 +92,7 @@ class MediaDownloadManager @Inject constructor(
      * Uses the download index directly so it always reflects the true download state,
      * regardless of listener callback timing.
      */
-    fun observeActiveDownloads(): Flow<Map<String, Float>> = flow {
+    override fun observeActiveDownloads(): Flow<Map<String, Float>> = flow {
         while (true) {
             try {
                 val result = buildMap<String, Float> {
@@ -112,7 +117,7 @@ class MediaDownloadManager @Inject constructor(
         }
     }.flowOn(Dispatchers.IO).distinctUntilChanged()
 
-    fun observeDownloadState(contentId: String): StateFlow<DownloadState> {
+    override fun observeDownloadState(contentId: String): StateFlow<DownloadState> {
         val flow = getOrCreateStateFlow(contentId)
         // Initialize from current download index
         val download = downloadManager.downloadIndex.getDownload(contentId)
@@ -124,7 +129,7 @@ class MediaDownloadManager @Inject constructor(
         return downloadManager.downloadIndex.getDownload(contentId)?.state == Download.STATE_COMPLETED
     }
 
-    suspend fun downloadMovie(movieId: UUID) {
+    override suspend fun downloadMovie(movieId: UUID) {
         withContext(Dispatchers.IO) {
             try {
                 val sources = jellyfinApiClient.getMediaSources(movieId)
@@ -132,6 +137,7 @@ class MediaDownloadManager @Inject constructor(
                     Log.e(TAG, "No media sources for $movieId")
                     return@withContext
                 }
+                val shouldTranscode = source.shouldUseTranscodingUrl()
 
                 val url = jellyfinApiClient.getMediaPlaybackUrl(movieId, source) ?: run {
                     Log.e(TAG, "No playback URL for $movieId")
@@ -168,9 +174,12 @@ class MediaDownloadManager @Inject constructor(
                 offlineDataSource.saveMovies(listOf(movie))
 
                 Log.d(TAG, "Starting download for '${movie.title}' from: $url")
-                val request = DownloadRequest.Builder(movieId.toString(), url.toUri())
-                    .setData(movie.title.toByteArray(Charsets.UTF_8))
-                    .build()
+                val request = buildDownloadRequest(
+                    mediaId = movieId,
+                    playbackUrl = url,
+                    title = movie.title,
+                    isDirectPlay = !shouldTranscode
+                )
                 PurefinDownloadService.sendAddDownload(context, request)
                 Log.d(TAG, "Download request sent for $movieId")
             } catch (e: Exception) {
@@ -180,7 +189,7 @@ class MediaDownloadManager @Inject constructor(
         }
     }
 
-    suspend fun cancelDownload(movieId: UUID) {
+    override suspend fun cancelDownload(movieId: UUID) {
         withContext(Dispatchers.IO) {
             PurefinDownloadService.sendRemoveDownload(context, movieId.toString())
             try {
@@ -191,7 +200,7 @@ class MediaDownloadManager @Inject constructor(
         }
     }
 
-    suspend fun downloadEpisode(episodeId: UUID) {
+    override suspend fun downloadEpisode(episodeId: UUID) {
         withContext(Dispatchers.IO) {
             try {
                 val serverUrl = userSessionRepository.serverUrl.first().trim()
@@ -200,6 +209,7 @@ class MediaDownloadManager @Inject constructor(
                     Log.e(TAG, "No media sources for episode $episodeId")
                     return@withContext
                 }
+                val shouldTranscode = source.shouldUseTranscodingUrl()
 
                 val url = jellyfinApiClient.getMediaPlaybackUrl(episodeId, source) ?: run {
                     Log.e(TAG, "No playback URL for episode $episodeId")
@@ -232,9 +242,12 @@ class MediaDownloadManager @Inject constructor(
                 offlineDataSource.saveEpisode(episode)
 
                 Log.d(TAG, "Starting download for episode '${episode.title}' from: $url")
-                val request = DownloadRequest.Builder(episodeId.toString(), url.toUri())
-                    .setData(episode.title.toByteArray(Charsets.UTF_8))
-                    .build()
+                val request = buildDownloadRequest(
+                    mediaId = episodeId,
+                    playbackUrl = url,
+                    title = episode.title,
+                    isDirectPlay = !shouldTranscode
+                )
                 PurefinDownloadService.sendAddDownload(context, request)
                 Log.d(TAG, "Download request sent for episode $episodeId")
             } catch (e: Exception) {
@@ -244,7 +257,7 @@ class MediaDownloadManager @Inject constructor(
         }
     }
 
-    suspend fun downloadEpisodes(episodeIds: List<UUID>) {
+    override suspend fun downloadEpisodes(episodeIds: List<UUID>) {
         coroutineScope {
             for (episodeId in episodeIds) {
                 launch { downloadEpisode(episodeId) }
@@ -252,7 +265,7 @@ class MediaDownloadManager @Inject constructor(
         }
     }
 
-    suspend fun cancelEpisodeDownload(episodeId: UUID) {
+    override suspend fun cancelEpisodeDownload(episodeId: UUID) {
         withContext(Dispatchers.IO) {
             PurefinDownloadService.sendRemoveDownload(context, episodeId.toString())
             try {
@@ -265,7 +278,7 @@ class MediaDownloadManager @Inject constructor(
 
     // ── Smart Download ──────────────────────────────────────────────────
 
-    suspend fun enableSmartDownload(seriesId: UUID) {
+    override suspend fun enableSmartDownload(seriesId: UUID) {
         smartDownloadDao.insert(SmartDownloadEntity(seriesId))
         syncSmartDownloadsForSeries(seriesId)
     }
@@ -276,7 +289,7 @@ class MediaDownloadManager @Inject constructor(
 
     fun isSmartDownloadEnabled(seriesId: UUID): Flow<Boolean> = smartDownloadDao.observe(seriesId)
 
-    suspend fun syncSmartDownloads() {
+    override suspend fun syncSmartDownloads() {
         withContext(Dispatchers.IO) {
             val enabled = smartDownloadDao.getAll()
             for (entry in enabled) {
@@ -337,6 +350,26 @@ class MediaDownloadManager @Inject constructor(
         return stateFlows.getOrPut(contentId) { MutableStateFlow(DownloadState.NotDownloaded) }
     }
 
+    private fun buildDownloadRequest(
+        mediaId: UUID,
+        playbackUrl: String,
+        title: String,
+        isDirectPlay: Boolean
+    ): DownloadRequest {
+        val builder = DownloadRequest.Builder(mediaId.toString(), playbackUrl.toUri())
+            .setData(title.toByteArray(Charsets.UTF_8))
+
+        if (isDirectPlay) {
+            playbackCustomCacheKey(
+                mediaId = mediaId.toString(),
+                playbackUrl = playbackUrl,
+                playMethod = PlayMethod.DIRECT_PLAY
+            )?.let(builder::setCustomCacheKey)
+        }
+
+        return builder.build()
+    }
+
     private fun Download.toDownloadState(): DownloadState = when (state) {
         Download.STATE_COMPLETED -> DownloadState.Downloaded
         Download.STATE_DOWNLOADING -> DownloadState.Downloading(percentDownloaded)
@@ -380,7 +413,7 @@ class MediaDownloadManager @Inject constructor(
     private fun BaseItemDto.toSeries(serverUrl: String): Series {
         return Series(
             id = id,
-            libraryId = parentId ?: UUID.randomUUID(),
+            libraryId = parentId ?: java.util.UUID.randomUUID(),
             name = name ?: "Unknown",
             synopsis = overview ?: "No synopsis available",
             year = productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
@@ -411,4 +444,9 @@ class MediaDownloadManager @Inject constructor(
         private const val TAG = "MediaDownloadManager"
         private const val SMART_DOWNLOAD_COUNT = 5
     }
+}
+
+private fun MediaSourceInfo.shouldUseTranscodingUrl(): Boolean {
+    return supportsTranscoding == true &&
+        (supportsDirectPlay == false || transcodingUrl != null)
 }
