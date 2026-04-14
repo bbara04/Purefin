@@ -3,12 +3,13 @@ package hu.bbara.purefin.feature.shared.content.movie
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.MediaRepository
-import hu.bbara.purefin.core.data.navigation.NavigationManager
-import hu.bbara.purefin.core.data.navigation.Route
+import hu.bbara.purefin.core.data.MediaCatalogReader
 import hu.bbara.purefin.core.data.download.DownloadState
 import hu.bbara.purefin.core.data.download.MediaDownloadController
 import hu.bbara.purefin.core.model.Movie
+import hu.bbara.purefin.feature.shared.navigation.NavigationManager
+import hu.bbara.purefin.feature.shared.navigation.Route
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,21 +17,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class MovieScreenViewModel @Inject constructor(
-    private val mediaRepository: MediaRepository,
+    private val mediaCatalogReader: MediaCatalogReader,
     private val navigationManager: NavigationManager,
-    private val mediaDownloadManager: MediaDownloadController
+    private val mediaDownloadManager: MediaDownloadController,
 ): ViewModel() {
 
     private val _movieId = MutableStateFlow<UUID?>(null)
 
     val movie: StateFlow<Movie?> = combine(
         _movieId,
-        mediaRepository.movies
+        mediaCatalogReader.movies
     ) { movieId, movies ->
         movieId?.let { movies[it] }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

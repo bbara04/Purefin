@@ -8,8 +8,8 @@ import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.FocusableItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
-import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemKind
+import java.util.UUID
+import hu.bbara.purefin.core.model.MediaKind
 import org.jellyfin.sdk.model.api.ImageType
 import kotlin.math.roundToInt
 
@@ -26,16 +26,16 @@ internal data class TvFocusedHeroModel(
 internal fun FocusableItem.toTvFocusedHeroModel(): TvFocusedHeroModel {
     return when (this) {
         is ContinueWatchingItem -> when (type) {
-            BaseItemKind.MOVIE -> movie!!.toTvFocusedHeroModel()
-            BaseItemKind.EPISODE -> episode!!.toTvFocusedHeroModel()
+            MediaKind.MOVIE -> movie!!.toTvFocusedHeroModel()
+            MediaKind.EPISODE -> episode!!.toTvFocusedHeroModel()
             else -> unsupportedType(type)
         }
 
         is NextUpItem -> episode.toTvFocusedHeroModel()
         is PosterItem -> when (type) {
-            BaseItemKind.MOVIE -> movie!!.toTvFocusedHeroModel()
-            BaseItemKind.EPISODE -> episode!!.toTvFocusedHeroModel()
-            BaseItemKind.SERIES -> series!!.toTvFocusedHeroModel()
+            MediaKind.MOVIE -> movie!!.toTvFocusedHeroModel()
+            MediaKind.EPISODE -> episode!!.toTvFocusedHeroModel()
+            MediaKind.SERIES -> series!!.toTvFocusedHeroModel()
             else -> unsupportedType(type)
         }
     }
@@ -117,6 +117,6 @@ private fun seasonLabel(seasonCount: Int): String {
     return if (seasonCount == 1) "1 season" else "$seasonCount seasons"
 }
 
-private fun unsupportedType(type: BaseItemKind): Nothing {
+private fun unsupportedType(type: MediaKind): Nothing {
     throw UnsupportedOperationException("Unsupported item type: $type")
 }

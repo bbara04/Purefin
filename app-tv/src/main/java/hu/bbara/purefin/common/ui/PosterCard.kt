@@ -34,8 +34,8 @@ import hu.bbara.purefin.common.ui.components.UnwatchedEpisodeIndicator
 import hu.bbara.purefin.common.ui.components.WatchStateIndicator
 import hu.bbara.purefin.feature.shared.home.FocusableItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
-import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemKind
+import java.util.UUID
+import hu.bbara.purefin.core.model.MediaKind
 
 @Composable
 fun PosterCard(
@@ -57,9 +57,9 @@ fun PosterCard(
 
     fun openItem(posterItem: PosterItem) {
         when (posterItem.type) {
-            BaseItemKind.MOVIE -> onMovieSelected(posterItem.id)
-            BaseItemKind.SERIES -> onSeriesSelected(posterItem.id)
-            BaseItemKind.EPISODE -> {
+            MediaKind.MOVIE -> onMovieSelected(posterItem.id)
+            MediaKind.SERIES -> onSeriesSelected(posterItem.id)
+            MediaKind.EPISODE -> {
                 val ep = posterItem.episode!!
                 onEpisodeSelected(ep.seriesId, ep.seasonId, ep.id)
             }
@@ -99,7 +99,7 @@ fun PosterCard(
                 contentScale = ContentScale.Crop
             )
             when (item.type) {
-                BaseItemKind.MOVIE -> {
+                MediaKind.MOVIE -> {
                     val m = item.movie!!
                     WatchStateIndicator(
                         size = indicatorSize,
@@ -109,7 +109,7 @@ fun PosterCard(
                         started = (m.progress ?: 0.0) > 0
                     )
                 }
-                BaseItemKind.EPISODE -> {
+                MediaKind.EPISODE -> {
                     val ep = item.episode!!
                     WatchStateIndicator(
                         size = indicatorSize,
@@ -119,7 +119,7 @@ fun PosterCard(
                         started = (ep.progress ?: 0.0) > 0
                     )
                 }
-                BaseItemKind.SERIES -> UnwatchedEpisodeIndicator(
+                MediaKind.SERIES -> UnwatchedEpisodeIndicator(
                     size = indicatorSize,
                     modifier = Modifier.align(Alignment.TopEnd)
                         .padding(indicatorPadding),

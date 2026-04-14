@@ -11,7 +11,7 @@ import hu.bbara.purefin.core.data.download.MediaDownloadController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import org.jellyfin.sdk.model.UUID
+import java.util.UUID
 import javax.inject.Singleton
 
 @Module

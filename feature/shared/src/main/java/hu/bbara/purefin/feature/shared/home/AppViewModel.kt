@@ -3,17 +3,21 @@ package hu.bbara.purefin.feature.shared.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.AppContentRepository
+import hu.bbara.purefin.core.data.HomeRepository
+import hu.bbara.purefin.core.data.MediaCatalogReader
 import hu.bbara.purefin.core.data.domain.usecase.RefreshHomeDataUseCase
-import hu.bbara.purefin.core.data.navigation.EpisodeDto
-import hu.bbara.purefin.core.data.navigation.LibraryDto
-import hu.bbara.purefin.core.data.navigation.MovieDto
-import hu.bbara.purefin.core.data.navigation.NavigationManager
-import hu.bbara.purefin.core.data.navigation.Route
-import hu.bbara.purefin.core.data.navigation.SeriesDto
-import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.data.download.MediaDownloadController
+import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.core.model.LibraryKind
 import hu.bbara.purefin.core.model.Media
+import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.feature.shared.navigation.EpisodeDto
+import hu.bbara.purefin.feature.shared.navigation.LibraryDto
+import hu.bbara.purefin.feature.shared.navigation.MovieDto
+import hu.bbara.purefin.feature.shared.navigation.NavigationManager
+import hu.bbara.purefin.feature.shared.navigation.Route
+import hu.bbara.purefin.feature.shared.navigation.SeriesDto
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,14 +26,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.CollectionType
 import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    private val appContentRepository: AppContentRepository,
+    private val homeRepository: HomeRepository,
+    private val mediaCatalogReader: MediaCatalogReader,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
     private val refreshHomeDataUseCase: RefreshHomeDataUseCase,
@@ -46,7 +48,7 @@ class AppViewModel @Inject constructor(
             ""
         )
 
-    val libraries = appContentRepository.libraries.map { libraries ->
+    val libraries = homeRepository.libraries.map { libraries ->
         libraries.map {
             LibraryItem(
                 id = it.id,
@@ -54,19 +56,18 @@ class AppViewModel @Inject constructor(
                 type = it.type,
                 posterUrl = it.posterUrl,
                 isEmpty = when(it.type) {
-                    CollectionType.MOVIES -> appContentRepository.movies.value.isEmpty()
-                    CollectionType.TVSHOWS -> appContentRepository.series.value.isEmpty()
-                    else -> true
+                    LibraryKind.MOVIES -> mediaCatalogReader.movies.value.isEmpty()
+                    LibraryKind.SERIES -> mediaCatalogReader.series.value.isEmpty()
                 }
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val suggestions = combine(
-        appContentRepository.suggestions,
-        appContentRepository.movies,
-        appContentRepository.series,
-        appContentRepository.episodes
+        homeRepository.suggestions,
+        mediaCatalogReader.movies,
+        mediaCatalogReader.series,
+        mediaCatalogReader.episodes
     ) { list, moviesMap, seriesMap, episodesMap ->
         list.mapNotNull { media ->
             when (media) {
@@ -89,17 +90,17 @@ class AppViewModel @Inject constructor(
     )
 
     val continueWatching = combine(
-        appContentRepository.continueWatching,
-        appContentRepository.movies,
-        appContentRepository.episodes
+        homeRepository.continueWatching,
+        mediaCatalogReader.movies,
+        mediaCatalogReader.episodes
     ) { list, moviesMap, episodesMap ->
         list.mapNotNull { media ->
             when (media) {
                 is Media.MovieMedia -> moviesMap[media.movieId]?.let {
-                    ContinueWatchingItem(type = BaseItemKind.MOVIE, movie = it)
+                    ContinueWatchingItem(type = MediaKind.MOVIE, movie = it)
                 }
                 is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
-                    ContinueWatchingItem(type = BaseItemKind.EPISODE, episode = it)
+                    ContinueWatchingItem(type = MediaKind.EPISODE, episode = it)
                 }
                 else -> null
             }
@@ -111,8 +112,8 @@ class AppViewModel @Inject constructor(
     )
 
     val nextUp = combine(
-        appContentRepository.nextUp,
-        appContentRepository.episodes
+        homeRepository.nextUp,
+        mediaCatalogReader.episodes
     ) { list, episodesMap ->
         list.mapNotNull { media ->
             when (media) {
@@ -129,27 +130,26 @@ class AppViewModel @Inject constructor(
     )
 
     val latestLibraryContent = combine(
-        appContentRepository.latestLibraryContent,
-        appContentRepository.movies,
-        appContentRepository.series,
-        appContentRepository.episodes
+        homeRepository.latestLibraryContent,
+        mediaCatalogReader.movies,
+        mediaCatalogReader.series,
+        mediaCatalogReader.episodes
     ) { libraryMap, moviesMap, seriesMap, episodesMap ->
         libraryMap.mapValues { (_, items) ->
             items.mapNotNull { media ->
                 when (media) {
                     is Media.MovieMedia -> moviesMap[media.movieId]?.let {
-                        PosterItem(type = BaseItemKind.MOVIE, movie = it)
+                        PosterItem(type = MediaKind.MOVIE, movie = it)
                     }
                     is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
-                        PosterItem(type = BaseItemKind.EPISODE, episode = it)
+                        PosterItem(type = MediaKind.EPISODE, episode = it)
                     }
                     is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
-                        PosterItem(type = BaseItemKind.SERIES, series = it)
+                        PosterItem(type = MediaKind.SERIES, series = it)
                     }
                     is Media.SeasonMedia -> seriesMap[media.seriesId]?.let {
-                        PosterItem(type = BaseItemKind.SERIES, series = it)
+                        PosterItem(type = MediaKind.SERIES, series = it)
                     }
-                    else -> null
                 }
             }.distinctBy { it.id }
         }
@@ -242,5 +242,4 @@ class AppViewModel @Inject constructor(
             userSessionRepository.setLoggedIn(false)
         }
     }
-
 }

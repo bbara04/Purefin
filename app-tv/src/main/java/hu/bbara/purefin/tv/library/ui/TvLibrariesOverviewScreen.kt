@@ -45,7 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
 import hu.bbara.purefin.feature.shared.home.LibraryItem
-import org.jellyfin.sdk.model.api.CollectionType
+import hu.bbara.purefin.core.model.LibraryKind
 
 internal const val TvLibrariesOverviewItemTagPrefix = "tv-libraries-overview-item-"
 
@@ -161,9 +161,8 @@ private fun TvLibraryOverviewCard(
             } else {
                 Icon(
                     imageVector = when (item.type) {
-                        CollectionType.MOVIES -> Icons.Outlined.Movie
-                        CollectionType.TVSHOWS -> Icons.Outlined.Tv
-                        else -> Icons.Outlined.Collections
+                        LibraryKind.MOVIES -> Icons.Outlined.Movie
+                        LibraryKind.SERIES -> Icons.Outlined.Tv
                     },
                     contentDescription = null,
                     tint = scheme.onSurfaceVariant,

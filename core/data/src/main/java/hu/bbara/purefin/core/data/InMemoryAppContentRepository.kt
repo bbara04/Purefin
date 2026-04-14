@@ -9,27 +9,11 @@ import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Library
+import hu.bbara.purefin.core.model.LibraryKind
 import hu.bbara.purefin.core.model.Media
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.api.BaseItemDto
-import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.CollectionType
-import org.jellyfin.sdk.model.api.ImageType
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -37,75 +21,114 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
+import org.jellyfin.sdk.model.api.CollectionType
+import org.jellyfin.sdk.model.api.ImageType
 
 @Singleton
 class InMemoryAppContentRepository @Inject constructor(
     val userSessionRepository: UserSessionRepository,
     val jellyfinApiClient: JellyfinApiClient,
     private val homeCacheDataStore: DataStore<HomeCache>,
-    private val mediaRepository: CompositeMediaRepository,
+    private val onlineMediaRepository: InMemoryMediaRepository,
     private val networkMonitor: NetworkMonitor,
-) : AppContentRepository {
+) : HomeRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var loadJob: Job? = null
+    private val ensureReadyMutex = Mutex()
+    private var refreshJob: Job? = null
+    private var cacheHydrated = false
+    private var initialized = false
 
-    private val contentRepositoryReady : MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val ready: StateFlow<Boolean> = combine(contentRepositoryReady, mediaRepository.ready) {
-        contentRepositoryReady, mediaRepositoryReady ->
-        contentRepositoryReady && mediaRepositoryReady
-    }.stateIn(scope, SharingStarted.Eagerly, false)
+    private val librariesState = MutableStateFlow<List<Library>>(emptyList())
+    override val libraries: StateFlow<List<Library>> = librariesState.asStateFlow()
 
-    private val _libraries: MutableStateFlow<List<Library>> = MutableStateFlow(emptyList())
+    private val suggestionsState = MutableStateFlow<List<Media>>(emptyList())
+    override val suggestions: StateFlow<List<Media>> = suggestionsState.asStateFlow()
 
-    override val libraries: StateFlow<List<Library>> = _libraries.asStateFlow()
-    private val _suggestions: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
+    private val continueWatchingState = MutableStateFlow<List<Media>>(emptyList())
+    override val continueWatching: StateFlow<List<Media>> = continueWatchingState.asStateFlow()
 
-    override val suggestions: StateFlow<List<Media>> = _suggestions.asStateFlow()
-    private val _continueWatching: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
+    private val nextUpState = MutableStateFlow<List<Media>>(emptyList())
+    override val nextUp: StateFlow<List<Media>> = nextUpState.asStateFlow()
 
-    override val continueWatching: StateFlow<List<Media>> = _continueWatching.asStateFlow()
-    private val _nextUp: MutableStateFlow<List<Media>> = MutableStateFlow(emptyList())
-
-    override val nextUp: StateFlow<List<Media>> = _nextUp.asStateFlow()
-    private val _latestLibraryContent: MutableStateFlow<Map<UUID, List<Media>>> = MutableStateFlow(emptyMap())
-    override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = _latestLibraryContent.asStateFlow()
-
-    override val movies: StateFlow<Map<UUID, Movie>> = mediaRepository.movies
-    override val series: StateFlow<Map<UUID, Series>> = mediaRepository.series
-    override val episodes: StateFlow<Map<UUID, Episode>> = mediaRepository.episodes
-
-    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
-        return mediaRepository.observeSeriesWithContent(seriesId)
-    }
-
-    override suspend fun updateWatchProgress(
-        mediaId: UUID,
-        positionMs: Long,
-        durationMs: Long
-    ) {
-        mediaRepository.updateWatchProgress(mediaId, positionMs, durationMs)
-    }
+    private val latestLibraryContentState = MutableStateFlow<Map<UUID, List<Media>>>(emptyMap())
+    override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = latestLibraryContentState.asStateFlow()
 
     init {
         scope.launch {
-            loadFromCache()
             ensureReady()
         }
+    }
+
+    override suspend fun ensureReady() {
+        ensureReadyMutex.withLock {
+            hydrateCacheIfNeeded()
+            if (initialized) {
+                return
+            }
+            initialized = true
+        }
+        refreshHomeData()
+    }
+
+    override suspend fun refreshHomeData() {
+        ensureReadyMutex.withLock {
+            hydrateCacheIfNeeded()
+        }
+        if (refreshJob?.isActive == true) {
+            refreshJob?.join()
+            return
+        }
+        val job = scope.launch {
+            runCatching {
+                if (!networkMonitor.isOnline.first()) {
+                    return@runCatching
+                }
+                loadLibraries()
+                loadSuggestions()
+                loadContinueWatching()
+                loadNextUp()
+                loadLatestLibraryContent()
+                persistHomeCache()
+            }.onFailure { error ->
+                Log.w(TAG, "Home refresh failed; keeping cached content", error)
+            }
+        }
+        refreshJob = job
+        job.join()
+    }
+
+    private suspend fun hydrateCacheIfNeeded() {
+        if (cacheHydrated) return
+        loadFromCache()
+        cacheHydrated = true
     }
 
     private suspend fun loadFromCache() {
         val cache = homeCacheDataStore.data.first()
         if (cache.suggestions.isNotEmpty()) {
-            _suggestions.value = cache.suggestions.mapNotNull { it.toMedia() }
+            suggestionsState.value = cache.suggestions.mapNotNull { it.toMedia() }
         }
         if (cache.continueWatching.isNotEmpty()) {
-            _continueWatching.value = cache.continueWatching.mapNotNull { it.toMedia() }
+            continueWatchingState.value = cache.continueWatching.mapNotNull { it.toMedia() }
         }
         if (cache.nextUp.isNotEmpty()) {
-            _nextUp.value = cache.nextUp.mapNotNull { it.toMedia() }
+            nextUpState.value = cache.nextUp.mapNotNull { it.toMedia() }
         }
         if (cache.latestLibraryContent.isNotEmpty()) {
-            _latestLibraryContent.value = cache.latestLibraryContent.mapNotNull { (key, items) ->
+            latestLibraryContentState.value = cache.latestLibraryContent.mapNotNull { (key, items) ->
                 val uuid = runCatching { UUID.fromString(key) }.getOrNull() ?: return@mapNotNull null
                 uuid to items.mapNotNull { it.toMedia() }
             }.toMap()
@@ -114,12 +137,12 @@ class InMemoryAppContentRepository @Inject constructor(
 
     private suspend fun persistHomeCache() {
         val cache = HomeCache(
-            suggestions = _suggestions.value.map { it.toCachedItem() },
-            continueWatching = _continueWatching.value.map { it.toCachedItem() },
-            nextUp = _nextUp.value.map { it.toCachedItem() },
-            latestLibraryContent = _latestLibraryContent.value.map { (uuid, items) ->
+            suggestions = suggestionsState.value.map { it.toCachedItem() },
+            continueWatching = continueWatchingState.value.map { it.toCachedItem() },
+            nextUp = nextUpState.value.map { it.toCachedItem() },
+            latestLibraryContent = latestLibraryContentState.value.map { (uuid, items) ->
                 uuid.toString() to items.map { it.toCachedItem() }
-            }.toMap()
+            }.toMap(),
         )
         homeCacheDataStore.updateData { cache }
     }
@@ -143,52 +166,26 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    override suspend fun ensureReady() {
-        // check for combined ready state
-        if (ready.value) {
-            return
-        }
-        if (loadJob?.isActive == true) {
-            return
-        }
-        if (!contentRepositoryReady.value) {
-            return
-        }
-        contentRepositoryReady.value = true
-        loadJob?.cancel()
-        loadJob = scope.launch {
-            loadSuggestions()
-            loadContinueWatching()
-            loadNextUp()
-            loadLatestLibraryContent()
-            loadLibraries()
-            mediaRepository.setReady()
-            persistHomeCache()
-        }
-    }
-
     suspend fun loadLibraries() {
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
                 Log.w(TAG, "Unable to load libraries", error)
                 return
             }
-        //TODO add support for playlists
-        val filteredLibraries =
-            librariesItem.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS }
-        val emptyLibraries = filteredLibraries.map { it.toLibrary(serverUrl()) }
-        _libraries.value = emptyLibraries
-
-        val filledLibraries = emptyLibraries.map { library ->
-            return@map loadLibrary(library)
+        val filteredLibraries = librariesItem.filter {
+            it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS
         }
-        _libraries.value = filledLibraries
+        val emptyLibraries = filteredLibraries.map { it.toLibrary(serverUrl()) }
+        librariesState.value = emptyLibraries
 
-        val movies = filledLibraries.filter { it.type == CollectionType.MOVIES }.flatMap { it.movies.orEmpty() }
-        mediaRepository.upsertMovies(movies)
+        val filledLibraries = emptyLibraries.map { loadLibrary(it) }
+        librariesState.value = filledLibraries
 
-        val series = filledLibraries.filter { it.type == CollectionType.TVSHOWS }.flatMap { it.series.orEmpty() }
-        mediaRepository.upsertSeries(series)
+        val movies = filledLibraries.filter { it.type == LibraryKind.MOVIES }.flatMap { it.movies.orEmpty() }
+        onlineMediaRepository.upsertMovies(movies)
+
+        val series = filledLibraries.filter { it.type == LibraryKind.SERIES }.flatMap { it.series.orEmpty() }
+        onlineMediaRepository.upsertSeries(series)
     }
 
     suspend fun loadLibrary(library: Library): Library {
@@ -197,43 +194,14 @@ class InMemoryAppContentRepository @Inject constructor(
                 Log.w(TAG, "Unable to load library ${library.id}", error)
                 return library
             }
-        when (library.type) {
-            CollectionType.MOVIES -> {
-                val movies = contentItem.map { it.toMovie(serverUrl(), library.id) }
-                return library.copy(movies = movies)
-            }
-            CollectionType.TVSHOWS -> {
-                val series = contentItem.map { it.toSeries(serverUrl(), library.id) }
-                return library.copy(series = series)
-            }
-            else -> throw UnsupportedOperationException("Unsupported library type: ${library.type}")
+        return when (library.type) {
+            LibraryKind.MOVIES -> library.copy(
+                movies = contentItem.map { it.toMovie(serverUrl(), library.id) },
+            )
+            LibraryKind.SERIES -> library.copy(
+                series = contentItem.map { it.toSeries(serverUrl(), library.id) },
+            )
         }
-    }
-
-    suspend fun loadMovie(movieId: UUID): Movie {
-        val cachedMovie = mediaRepository.movies.value[movieId]
-        val movieItem = runCatching { jellyfinApiClient.getItemInfo(movieId) }
-            .getOrElse { error ->
-                Log.w(TAG, "Unable to load movie $movieId", error)
-                null
-            }
-            ?: return cachedMovie ?: throw RuntimeException("Movie not found")
-        val updatedMovie = movieItem.toMovie(serverUrl(), movieItem.parentId!!)
-        mediaRepository.upsertMovies(listOf(updatedMovie))
-        return updatedMovie
-    }
-
-    suspend fun loadSeries(seriesId: UUID): Series {
-        val cachedSeries = mediaRepository.series.value[seriesId]
-        val seriesItem = runCatching { jellyfinApiClient.getItemInfo(seriesId) }
-            .getOrElse { error ->
-                Log.w(TAG, "Unable to load series $seriesId", error)
-                null
-            }
-            ?: return cachedSeries ?: throw RuntimeException("Series not found")
-        val updatedSeries = seriesItem.toSeries(serverUrl(), seriesItem.parentId!!)
-        mediaRepository.upsertSeries(listOf(updatedSeries))
-        return updatedSeries
     }
 
     suspend fun loadSuggestions() {
@@ -242,26 +210,17 @@ class InMemoryAppContentRepository @Inject constructor(
                 Log.w(TAG, "Unable to load suggestions", error)
                 return
             }
-        val items = suggestionsItems.mapNotNull { item ->
+        suggestionsState.value = suggestionsItems.mapNotNull { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
-                BaseItemKind.EPISODE -> Media.EpisodeMedia(
-                    episodeId = item.id,
-                    seriesId = item.seriesId!!
-                )
+                BaseItemKind.EPISODE -> Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
                 else -> throw UnsupportedOperationException("Unsupported item type: ${item.type}")
             }
         }
-        _suggestions.value = items
 
-        //Load episodes, Movies are already loaded at this point
         suggestionsItems.forEach { item ->
-            when (item.type) {
-                BaseItemKind.EPISODE -> {
-                    val episode = item.toEpisode(serverUrl())
-                    mediaRepository.upsertEpisodes(listOf(episode))
-                }
-                else -> { /* Do nothing */ }
+            if (item.type == BaseItemKind.EPISODE) {
+                onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(serverUrl())))
             }
         }
     }
@@ -272,26 +231,17 @@ class InMemoryAppContentRepository @Inject constructor(
                 Log.w(TAG, "Unable to load continue watching", error)
                 return
             }
-        val items = continueWatchingItems.mapNotNull { item ->
+        continueWatchingState.value = continueWatchingItems.mapNotNull { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
-                BaseItemKind.EPISODE -> Media.EpisodeMedia(
-                    episodeId = item.id,
-                    seriesId = item.seriesId!!
-                )
+                BaseItemKind.EPISODE -> Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
                 else -> throw UnsupportedOperationException("Unsupported item type: ${item.type}")
             }
         }
-        _continueWatching.value = items
 
-        //Load episodes, Movies are already loaded at this point.
         continueWatchingItems.forEach { item ->
-            when (item.type) {
-                BaseItemKind.EPISODE -> {
-                    val episode = item.toEpisode(serverUrl())
-                    mediaRepository.upsertEpisodes(listOf(episode))
-                }
-                else -> { /* Do nothing */ }
+            if (item.type == BaseItemKind.EPISODE) {
+                onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(serverUrl())))
             }
         }
     }
@@ -302,90 +252,56 @@ class InMemoryAppContentRepository @Inject constructor(
                 Log.w(TAG, "Unable to load next up", error)
                 return
             }
-        val items = nextUpItems.map { item ->
-            Media.EpisodeMedia(
-                episodeId = item.id,
-                seriesId = item.seriesId!!
-            )
+        nextUpState.value = nextUpItems.map { item ->
+            Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
         }
-        _nextUp.value = items
 
-        // Load episodes
         nextUpItems.forEach { item ->
-            val episode = item.toEpisode(serverUrl())
-            mediaRepository.upsertEpisodes(listOf(episode))
+            onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(serverUrl())))
         }
     }
 
     suspend fun loadLatestLibraryContent() {
-        // TODO Make libraries accessible in a field or something that is not this ugly.
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
                 Log.w(TAG, "Unable to load latest library content", error)
                 return
             }
-        val filterLibraries =
-            librariesItem.filter { it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS }
-        val latestLibraryContents = filterLibraries.associate { library ->
+        val filteredLibraries = librariesItem.filter {
+            it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS
+        }
+        val latestLibraryContents = filteredLibraries.associate { library ->
             val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
                 .getOrElse { error ->
                     Log.w(TAG, "Unable to load latest items for library ${library.id}", error)
                     emptyList()
                 }
             library.id to when (library.collectionType) {
-                CollectionType.MOVIES -> {
-                    latestFromLibrary.map {
-                        val movie = it.toMovie(serverUrl(), library.id)
-                        Media.MovieMedia(movieId = movie.id)
-                    }
+                CollectionType.MOVIES -> latestFromLibrary.map {
+                    val movie = it.toMovie(serverUrl(), library.id)
+                    Media.MovieMedia(movieId = movie.id)
                 }
-                CollectionType.TVSHOWS -> {
-                    latestFromLibrary.map {
-                        when (it.type) {
-                            BaseItemKind.SERIES -> {
-                                val series = it.toSeries(serverUrl(), library.id)
-                                Media.SeriesMedia(seriesId = series.id)
-                            }
-                            BaseItemKind.SEASON -> {
-                                val season = it.toSeason(serverUrl())
-                                Media.SeasonMedia(seasonId = season.id, seriesId = season.seriesId)
-                            }
-                            BaseItemKind.EPISODE -> {
-                                val episode = it.toEpisode(serverUrl())
-                                Media.EpisodeMedia(episodeId = episode.id, seriesId = episode.seriesId)
-                            } else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
+                CollectionType.TVSHOWS -> latestFromLibrary.map {
+                    when (it.type) {
+                        BaseItemKind.SERIES -> {
+                            val series = it.toSeries(serverUrl(), library.id)
+                            Media.SeriesMedia(seriesId = series.id)
                         }
+                        BaseItemKind.SEASON -> {
+                            val season = it.toSeason()
+                            Media.SeasonMedia(seasonId = season.id, seriesId = season.seriesId)
+                        }
+                        BaseItemKind.EPISODE -> {
+                            val episode = it.toEpisode(serverUrl())
+                            Media.EpisodeMedia(episodeId = episode.id, seriesId = episode.seriesId)
+                        }
+                        else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
                     }
                 }
                 else -> throw UnsupportedOperationException("Unsupported library type: ${library.collectionType}")
             }
         }
-        _latestLibraryContent.value = latestLibraryContents
-
-        //TODO Load seasons and episodes, other types are already loaded at this point.
-    }
-
-    override suspend fun refreshHomeData() {
-        if(loadJob?.isActive == true) {
-            loadJob?.join()
-            return
-        }
-        val job = scope.launch {
-            runCatching {
-                val isOnline = networkMonitor.isOnline.first()
-                if (!isOnline) return@runCatching
-                loadLibraries()
-                loadSuggestions()
-                loadContinueWatching()
-                loadNextUp()
-                loadLatestLibraryContent()
-                persistHomeCache()
-            }.onFailure { error ->
-                Log.w(TAG, "Home refresh failed; keeping cached content", error)
-            }
-        }
-        loadJob = job
-        job.join()
+        latestLibraryContentState.value = latestLibraryContents
     }
 
     private suspend fun serverUrl(): String {
@@ -393,94 +309,75 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     private fun BaseItemDto.toLibrary(serverUrl: String): Library {
-        return when (this.collectionType) {
+        return when (collectionType) {
             CollectionType.MOVIES -> Library(
-                id = this.id,
-                name = this.name!!,
-                posterUrl = JellyfinImageHelper.toImageUrl(
-                    url = serverUrl,
-                    itemId = this.id,
-                    type = ImageType.PRIMARY
-                ),
-                type = CollectionType.MOVIES,
-                movies = emptyList()
+                id = id,
+                name = name!!,
+                posterUrl = JellyfinImageHelper.toImageUrl(url = serverUrl, itemId = id, type = ImageType.PRIMARY),
+                type = LibraryKind.MOVIES,
+                movies = emptyList(),
             )
             CollectionType.TVSHOWS -> Library(
-                id = this.id,
-                name = this.name!!,
-                posterUrl = JellyfinImageHelper.toImageUrl(
-                    url = serverUrl,
-                    itemId = this.id,
-                    type = ImageType.PRIMARY
-                ),
-                type = CollectionType.TVSHOWS,
-                series = emptyList()
+                id = id,
+                name = name!!,
+                posterUrl = JellyfinImageHelper.toImageUrl(url = serverUrl, itemId = id, type = ImageType.PRIMARY),
+                type = LibraryKind.SERIES,
+                series = emptyList(),
             )
-            else -> throw UnsupportedOperationException("Unsupported library type: ${this.collectionType}")
+            else -> throw UnsupportedOperationException("Unsupported library type: $collectionType")
         }
     }
 
     private fun BaseItemDto.toMovie(serverUrl: String, libraryId: UUID): Movie {
         return Movie(
-            id = this.id,
+            id = id,
             libraryId = libraryId,
-            title = this.name ?: "Unknown title",
-            progress = this.userData!!.playedPercentage,
-            watched = this.userData!!.played,
-            year = this.productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
-            rating = this.officialRating
-                ?: "NR",
-            runtime = formatRuntime(this.runTimeTicks),
-            synopsis = this.overview ?: "No synopsis available",
+            title = name ?: "Unknown title",
+            progress = userData!!.playedPercentage,
+            watched = userData!!.played,
+            year = productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
+            rating = officialRating ?: "NR",
+            runtime = formatRuntime(runTimeTicks),
+            synopsis = overview ?: "No synopsis available",
             format = container?.uppercase() ?: "VIDEO",
-            imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(
-                url = serverUrl,
-                itemId = this.id,
-            ),
+            imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(url = serverUrl, itemId = id),
             subtitles = "ENG",
             audioTrack = "ENG",
-            cast = emptyList()
+            cast = emptyList(),
         )
     }
 
     private fun BaseItemDto.toSeries(serverUrl: String, libraryId: UUID): Series {
         return Series(
-            id = this.id,
+            id = id,
             libraryId = libraryId,
-            name = this.name ?: "Unknown",
-            synopsis = this.overview ?: "No synopsis available",
-            year = this.productionYear?.toString()
-                ?: this.premiereDate?.year?.toString().orEmpty(),
-            imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(
-                url = serverUrl,
-                itemId = this.id
-            ),
-            unwatchedEpisodeCount = this.userData!!.unplayedItemCount!!,
-            seasonCount = this.childCount!!,
+            name = name ?: "Unknown",
+            synopsis = overview ?: "No synopsis available",
+            year = productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
+            imageUrlPrefix = JellyfinImageHelper.toPrefixImageUrl(url = serverUrl, itemId = id),
+            unwatchedEpisodeCount = userData!!.unplayedItemCount!!,
+            seasonCount = childCount!!,
             seasons = emptyList(),
-            cast = emptyList()
+            cast = emptyList(),
         )
     }
 
-    private fun BaseItemDto.toSeason(serverUrl: String): Season {
+    private fun BaseItemDto.toSeason(): Season {
         return Season(
-            id = this.id,
-            seriesId = this.seriesId!!,
-            name = this.name ?: "Unknown",
-            index = this.indexNumber ?: 0,
-            unwatchedEpisodeCount = this.userData!!.unplayedItemCount!!,
-            episodeCount = this.childCount!!,
-            episodes = emptyList()
+            id = id,
+            seriesId = seriesId!!,
+            name = name ?: "Unknown",
+            index = indexNumber ?: 0,
+            unwatchedEpisodeCount = userData!!.unplayedItemCount!!,
+            episodeCount = childCount!!,
+            episodes = emptyList(),
         )
     }
 
     private fun BaseItemDto.toEpisode(serverUrl: String): Episode {
         val releaseDate = formatReleaseDate(premiereDate, productionYear)
         val imageUrlPrefix = id?.let { itemId ->
-            JellyfinImageHelper.toPrefixImageUrl(
-                url = serverUrl,
-                itemId = itemId
-            )
+            JellyfinImageHelper.toPrefixImageUrl(url = serverUrl, itemId = itemId)
         } ?: ""
         return Episode(
             id = id,
@@ -496,7 +393,7 @@ class InMemoryAppContentRepository @Inject constructor(
             format = container?.uppercase() ?: "VIDEO",
             synopsis = overview ?: "No synopsis available.",
             imageUrlPrefix = imageUrlPrefix,
-            cast = emptyList()
+            cast = emptyList(),
         )
     }
 
@@ -513,11 +410,7 @@ class InMemoryAppContentRepository @Inject constructor(
         val totalSeconds = ticks / 10_000_000
         val hours = TimeUnit.SECONDS.toHours(totalSeconds)
         val minutes = TimeUnit.SECONDS.toMinutes(totalSeconds) % 60
-        return if (hours > 0) {
-            "${hours}h ${minutes}m"
-        } else {
-            "${minutes}m"
-        }
+        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
     }
 
     companion object {

@@ -3,50 +3,49 @@ package hu.bbara.purefin.feature.shared.library
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.bbara.purefin.core.data.HomeRepository
+import hu.bbara.purefin.core.model.LibraryKind
+import hu.bbara.purefin.core.model.MediaKind
 import hu.bbara.purefin.feature.shared.home.PosterItem
-import hu.bbara.purefin.core.data.AppContentRepository
-import hu.bbara.purefin.core.data.navigation.MovieDto
-import hu.bbara.purefin.core.data.navigation.NavigationManager
-import hu.bbara.purefin.core.data.navigation.Route
-import hu.bbara.purefin.core.data.navigation.SeriesDto
+import hu.bbara.purefin.feature.shared.navigation.MovieDto
+import hu.bbara.purefin.feature.shared.navigation.NavigationManager
+import hu.bbara.purefin.feature.shared.navigation.Route
+import hu.bbara.purefin.feature.shared.navigation.SeriesDto
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.CollectionType
 import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val appContentRepository: AppContentRepository,
-    private val navigationManager: NavigationManager
+    private val homeRepository: HomeRepository,
+    private val navigationManager: NavigationManager,
 ) : ViewModel() {
 
     private val selectedLibrary = MutableStateFlow<UUID?>(null)
 
-    val contents: StateFlow<List<PosterItem>> = combine(selectedLibrary, appContentRepository.libraries) {
+    val contents: StateFlow<List<PosterItem>> = combine(selectedLibrary, homeRepository.libraries) {
         libraryId, libraries ->
         if (libraryId == null) {
             return@combine emptyList()
         }
         val library = libraries.find { it.id == libraryId } ?: return@combine emptyList()
         when (library.type) {
-            CollectionType.TVSHOWS -> library.series!!.map { series ->
-                PosterItem(type = BaseItemKind.SERIES, series = series)
+            LibraryKind.SERIES -> library.series!!.map { series ->
+                PosterItem(type = MediaKind.SERIES, series = series)
             }
-            CollectionType.MOVIES -> library.movies!!.map { movie ->
-                PosterItem(type = BaseItemKind.MOVIE, movie = movie)
+            LibraryKind.MOVIES -> library.movies!!.map { movie ->
+                PosterItem(type = MediaKind.MOVIE, movie = movie)
             }
-            else -> emptyList()
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
-        viewModelScope.launch { appContentRepository.ensureReady() }
+        viewModelScope.launch { homeRepository.ensureReady() }
     }
 
     fun onMovieSelected(movieId: UUID) {
@@ -72,8 +71,6 @@ class LibraryViewModel @Inject constructor(
     }
 
     fun selectLibrary(libraryId: UUID) {
-        viewModelScope.launch {
-            selectedLibrary.value = libraryId
-        }
+        selectedLibrary.value = libraryId
     }
 }

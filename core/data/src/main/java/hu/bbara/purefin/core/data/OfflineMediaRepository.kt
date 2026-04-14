@@ -4,28 +4,21 @@ import hu.bbara.purefin.core.data.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Series
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 
-/**
- * Offline media repository for managing downloaded content.
- * This repository only accesses the local offline database and does not make network calls.
- */
 @Singleton
 class OfflineMediaRepository @Inject constructor(
     private val localDataSource: OfflineRoomMediaLocalDataSource,
-) : MediaRepository {
-    override val ready: StateFlow<Boolean> = MutableStateFlow(false)
-
+) : OfflineCatalogReader, MediaCatalogReader, MediaProgressWriter {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override val movies: StateFlow<Map<UUID, Movie>> = localDataSource.moviesFlow
@@ -37,18 +30,6 @@ class OfflineMediaRepository @Inject constructor(
     override val episodes: StateFlow<Map<UUID, Episode>> = localDataSource.episodesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
 
-    override fun upsertMovies(movies: List<Movie>) {
-        TODO("Not yet implemented")
-    }
-
-    override fun upsertSeries(series: List<Series>) {
-        TODO("Not yet implemented")
-    }
-
-    override fun upsertEpisodes(episodes: List<Episode>) {
-        TODO("Not yet implemented")
-    }
-
     override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
         return localDataSource.observeSeriesWithContent(seriesId)
     }
@@ -57,12 +38,6 @@ class OfflineMediaRepository @Inject constructor(
         if (durationMs <= 0) return
         val progressPercent = (positionMs.toDouble() / durationMs.toDouble()) * 100.0
         val watched = progressPercent >= 90.0
-        // Write to offline database - the reactive Flows propagate changes to UI automatically
         localDataSource.updateWatchProgress(mediaId, progressPercent, watched)
     }
-
-    override fun setReady() {
-        // OfflineMediaRepository works from the database. So it is ready immediately.
-    }
-
 }

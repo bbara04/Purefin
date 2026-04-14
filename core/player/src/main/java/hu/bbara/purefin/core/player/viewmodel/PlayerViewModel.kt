@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.MediaRepository
-import hu.bbara.purefin.core.player.data.PlayerMediaRepository
+import hu.bbara.purefin.core.data.EpisodeSeriesLookup
+import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.player.manager.MediaContext
 import hu.bbara.purefin.core.player.manager.PlayerManager
 import hu.bbara.purefin.core.player.manager.ProgressManager
@@ -25,9 +25,9 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val playerManager: PlayerManager,
-    private val playerMediaRepository: PlayerMediaRepository,
-    private val mediaRepository: MediaRepository,
-    private val progressManager: ProgressManager
+    private val playableMediaRepository: PlayableMediaRepository,
+    private val episodeSeriesLookup: EpisodeSeriesLookup,
+    private val progressManager: ProgressManager,
 ) : ViewModel() {
     companion object {
         private const val DEFAULT_CONTROLS_AUTO_HIDE_MS = 3_500L
@@ -147,12 +147,11 @@ class PlayerViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            val result = playerMediaRepository.getMediaItem(uuid)
+            val result = playableMediaRepository.getMediaItem(uuid)
             if (result != null) {
                 val (mediaItem, resumePositionMs) = result
 
-                // Determine preference key: movies use their own ID, episodes use series ID
-                val preferenceKey = mediaRepository.episodes.value[uuid]?.seriesId?.toString() ?: id
+                val preferenceKey = episodeSeriesLookup.preferenceKeyFor(uuid)
                 val mediaContext = MediaContext(mediaId = id, preferenceKey = preferenceKey)
 
                 playerManager.play(mediaItem, mediaContext)
@@ -175,9 +174,9 @@ class PlayerViewModel @Inject constructor(
         val uuid = currentMediaId.toUuidOrNull() ?: return
         viewModelScope.launch {
             val queuedIds = uiState.value.queue.map { it.id }.toSet()
-            val items = playerMediaRepository.getNextUpMediaItems(
+            val items = playableMediaRepository.getNextUpMediaItems(
                 episodeId = uuid,
-                existingIds = queuedIds
+                existingIds = queuedIds,
             )
             items.forEach { playerManager.addToQueue(it) }
         }

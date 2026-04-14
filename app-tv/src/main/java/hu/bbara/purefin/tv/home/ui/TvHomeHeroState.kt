@@ -10,7 +10,7 @@ import hu.bbara.purefin.feature.shared.home.FocusableItem
 import hu.bbara.purefin.feature.shared.home.LibraryItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
-import org.jellyfin.sdk.model.UUID
+import java.util.UUID
 
 internal data class TvHomeItemRegistry(
     val visibleLibraries: List<LibraryItem>,

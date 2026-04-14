@@ -4,8 +4,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import hu.bbara.purefin.app.content.episode.TvEpisodeScreen
 import hu.bbara.purefin.app.content.movie.TvMovieScreen
 import hu.bbara.purefin.app.content.series.TvSeriesScreen
-import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
-import hu.bbara.purefin.core.data.navigation.Route
+import hu.bbara.purefin.feature.shared.navigation.Route
 import hu.bbara.purefin.login.ui.LoginScreen
 import hu.bbara.purefin.tv.TvAppScreen
 import hu.bbara.purefin.tv.library.ui.TvLibraryScreen

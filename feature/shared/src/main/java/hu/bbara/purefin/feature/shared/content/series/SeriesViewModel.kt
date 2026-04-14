@@ -3,14 +3,15 @@ package hu.bbara.purefin.feature.shared.content.series
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.MediaRepository
-import hu.bbara.purefin.core.data.navigation.EpisodeDto
-import hu.bbara.purefin.core.data.navigation.NavigationManager
-import hu.bbara.purefin.core.data.navigation.Route
+import hu.bbara.purefin.core.data.MediaCatalogReader
 import hu.bbara.purefin.core.data.download.DownloadState
 import hu.bbara.purefin.core.data.download.MediaDownloadController
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.feature.shared.navigation.EpisodeDto
+import hu.bbara.purefin.feature.shared.navigation.NavigationManager
+import hu.bbara.purefin.feature.shared.navigation.Route
+import java.util.UUID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,12 +21,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class SeriesViewModel @Inject constructor(
-    private val mediaRepository: MediaRepository,
+    private val mediaCatalogReader: MediaCatalogReader,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
 ) : ViewModel() {
@@ -35,7 +35,7 @@ class SeriesViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val series: StateFlow<Series?> = _seriesId
         .flatMapLatest { id ->
-            if (id != null) mediaRepository.observeSeriesWithContent(id) else flowOf(null)
+            if (id != null) mediaCatalogReader.observeSeriesWithContent(id) else flowOf(null)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 

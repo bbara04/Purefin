@@ -3,10 +3,10 @@ package hu.bbara.purefin.feature.shared.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.MediaRepository
+import hu.bbara.purefin.core.data.MediaCatalogReader
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.session.UserSessionRepository
-import hu.bbara.purefin.core.model.SearchResult
+import java.util.UUID
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,14 +16,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import org.jellyfin.sdk.model.api.ImageType
-import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 @OptIn(FlowPreview::class)
 class SearchViewModel @Inject constructor(
-    private val mediaRepository: MediaRepository,
-    private val userSessionRepository: UserSessionRepository
+    private val mediaCatalogReader: MediaCatalogReader,
+    private val userSessionRepository: UserSessionRepository,
 ) : ViewModel() {
 
     private val _searchResult = MutableStateFlow<List<SearchResult>>(emptyList())
@@ -34,8 +33,8 @@ class SearchViewModel @Inject constructor(
     init {
         combine(
             query.debounce(300).distinctUntilChanged(),
-            mediaRepository.movies,
-            mediaRepository.series
+            mediaCatalogReader.movies,
+            mediaCatalogReader.series
         ) { currentQuery, movies, series ->
             val filteredMovies = movies.filter {
                 it.value.title.contains(currentQuery, ignoreCase = true)

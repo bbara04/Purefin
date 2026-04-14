@@ -10,9 +10,30 @@ import dagger.hilt.components.SingletonComponent
 abstract class MediaRepositoryModule {
 
     @Binds
-    abstract fun bindAppContentRepository(impl: InMemoryAppContentRepository): AppContentRepository
+    abstract fun bindHomeRepository(impl: InMemoryAppContentRepository): HomeRepository
 
     @Binds
-    abstract fun bindMediaRepository(impl: CompositeMediaRepository): MediaRepository
+    abstract fun bindMediaCatalogReader(impl: CompositeMediaRepository): MediaCatalogReader
+
+    @Binds
+    abstract fun bindMediaProgressWriter(impl: CompositeMediaRepository): MediaProgressWriter
+
+    @Binds
+    abstract fun bindOfflineCatalogReader(impl: OfflineMediaRepository): OfflineCatalogReader
+
+    @Binds
+    abstract fun bindOfflineCatalogStore(impl: RoomOfflineCatalogStore): OfflineCatalogStore
+
+    @Binds
+    abstract fun bindSmartDownloadStore(impl: RoomSmartDownloadStore): SmartDownloadStore
+
+    @Binds
+    abstract fun bindPlayableMediaRepository(impl: DefaultPlayableMediaRepository): PlayableMediaRepository
+
+    @Binds
+    abstract fun bindEpisodeSeriesLookup(impl: DefaultEpisodeSeriesLookup): EpisodeSeriesLookup
+
+    @Binds
+    abstract fun bindPlaybackProgressReporter(impl: JellyfinPlaybackProgressReporter): PlaybackProgressReporter
 
 }

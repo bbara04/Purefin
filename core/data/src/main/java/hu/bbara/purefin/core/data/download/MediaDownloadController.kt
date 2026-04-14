@@ -2,7 +2,7 @@ package hu.bbara.purefin.core.data.download
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import org.jellyfin.sdk.model.UUID
+import java.util.UUID
 
 interface MediaDownloadController {
     fun observeActiveDownloads(): Flow<Map<String, Float>>

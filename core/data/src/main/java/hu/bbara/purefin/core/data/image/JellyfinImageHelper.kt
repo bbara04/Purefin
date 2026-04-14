@@ -1,6 +1,6 @@
 package hu.bbara.purefin.core.data.image
 
-import org.jellyfin.sdk.model.UUID
+import java.util.UUID
 import org.jellyfin.sdk.model.api.ImageType
 
 class JellyfinImageHelper {

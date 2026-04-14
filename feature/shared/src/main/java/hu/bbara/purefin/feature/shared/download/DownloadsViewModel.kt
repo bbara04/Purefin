@@ -3,28 +3,28 @@ package hu.bbara.purefin.feature.shared.download
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.OfflineMediaRepository
+import hu.bbara.purefin.core.data.OfflineCatalogReader
 import hu.bbara.purefin.core.data.download.MediaDownloadController
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.core.data.navigation.MovieDto
-import hu.bbara.purefin.core.data.navigation.NavigationManager
-import hu.bbara.purefin.core.data.navigation.Route
-import hu.bbara.purefin.core.data.navigation.SeriesDto
+import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.feature.shared.navigation.MovieDto
+import hu.bbara.purefin.feature.shared.navigation.NavigationManager
+import hu.bbara.purefin.feature.shared.navigation.Route
+import hu.bbara.purefin.feature.shared.navigation.SeriesDto
 import hu.bbara.purefin.feature.shared.home.PosterItem
+import java.util.UUID
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
 import javax.inject.Inject
 
 @HiltViewModel
 class DownloadsViewModel @Inject constructor(
-    private val offlineMediaRepository: OfflineMediaRepository,
+    private val offlineCatalogReader: OfflineCatalogReader,
     private val navigationManager: NavigationManager,
-    private val downloadManager: MediaDownloadController
+    private val downloadManager: MediaDownloadController,
 ) : ViewModel() {
 
     fun onMovieSelected(movieId: UUID) {
@@ -47,22 +47,22 @@ class DownloadsViewModel @Inject constructor(
 
     /** Items that are fully downloaded and not currently in progress. */
     val downloads = combine(
-        offlineMediaRepository.movies,
-        offlineMediaRepository.series,
+        offlineCatalogReader.movies,
+        offlineCatalogReader.series,
         activeDownloadsMap
     ) { movies, series, inProgress ->
         movies.values
             .filter { it.id.toString() !in inProgress }
-            .map { PosterItem(type = BaseItemKind.MOVIE, movie = it) } +
-        series.values.map { PosterItem(type = BaseItemKind.SERIES, series = it) }
+            .map { PosterItem(type = MediaKind.MOVIE, movie = it) } +
+        series.values.map { PosterItem(type = MediaKind.SERIES, series = it) }
     }
 
     /** Items currently being downloaded with their progress. */
     val activeDownloads = combine(
         activeDownloadsMap,
-        offlineMediaRepository.movies,
-        offlineMediaRepository.episodes,
-        offlineMediaRepository.series
+        offlineCatalogReader.movies,
+        offlineCatalogReader.episodes,
+        offlineCatalogReader.series
     ) { inProgress, movies, episodes, seriesMap ->
         inProgress.mapNotNull { (contentId, progress) ->
             val id = try { UUID.fromString(contentId) } catch (e: Exception) { return@mapNotNull null }
@@ -97,7 +97,7 @@ class DownloadsViewModel @Inject constructor(
             } catch (e: Exception) {
                 return@launch
             }
-            if (offlineMediaRepository.episodes.value.containsKey(id)) {
+            if (offlineCatalogReader.episodes.value.containsKey(id)) {
                 downloadManager.cancelEpisodeDownload(id)
             } else {
                 downloadManager.cancelDownload(id)

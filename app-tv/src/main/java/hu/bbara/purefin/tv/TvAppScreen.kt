@@ -21,7 +21,7 @@ import hu.bbara.purefin.tv.home.ui.TvDrawerDestination
 import hu.bbara.purefin.tv.home.ui.TvDrawerDestinationItem
 import hu.bbara.purefin.tv.home.ui.TvNavigationDrawer
 import hu.bbara.purefin.tv.library.ui.TvLibrariesOverviewScreen
-import org.jellyfin.sdk.model.api.CollectionType
+import hu.bbara.purefin.core.model.LibraryKind
 
 @Composable
 fun TvAppScreen(
@@ -48,8 +48,8 @@ fun TvAppScreen(
                 destination = TvDrawerDestination.LIBRARIES,
                 label = "Libraries",
                 icon = when {
-                    libraries.any { it.type == CollectionType.MOVIES } -> Icons.Outlined.Movie
-                    libraries.any { it.type == CollectionType.TVSHOWS } -> Icons.Outlined.Tv
+                    libraries.any { it.type == LibraryKind.MOVIES } -> Icons.Outlined.Movie
+                    libraries.any { it.type == LibraryKind.SERIES } -> Icons.Outlined.Tv
                     else -> Icons.Outlined.Collections
                 },
                 selected = selectedDestination == TvDrawerDestination.LIBRARIES

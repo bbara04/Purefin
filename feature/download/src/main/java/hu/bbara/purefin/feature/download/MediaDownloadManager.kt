@@ -9,16 +9,13 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
-import hu.bbara.purefin.core.data.InMemoryMediaRepository
+import hu.bbara.purefin.core.data.OfflineCatalogStore
+import hu.bbara.purefin.core.data.SmartDownloadStore
 import hu.bbara.purefin.core.data.client.playbackCustomCacheKey
 import hu.bbara.purefin.core.data.client.JellyfinApiClient
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.data.download.DownloadState
 import hu.bbara.purefin.core.data.download.MediaDownloadController
-import hu.bbara.purefin.core.data.room.dao.MovieDao
-import hu.bbara.purefin.core.data.room.dao.SmartDownloadDao
-import hu.bbara.purefin.core.data.room.entity.SmartDownloadEntity
-import hu.bbara.purefin.core.data.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
@@ -36,7 +33,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jellyfin.sdk.model.UUID
+import java.util.UUID
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.MediaSourceInfo
@@ -51,11 +48,9 @@ class MediaDownloadManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val downloadManager: DownloadManager,
     private val jellyfinApiClient: JellyfinApiClient,
-    private val offlineDataSource: OfflineRoomMediaLocalDataSource,
-    private val movieDao: MovieDao,
-    private val smartDownloadDao: SmartDownloadDao,
+    private val offlineCatalogStore: OfflineCatalogStore,
+    private val smartDownloadStore: SmartDownloadStore,
     private val userSessionRepository: UserSessionRepository,
-    private val inMemoryMediaRepository: InMemoryMediaRepository,
 ) : MediaDownloadController {
 
     private val stateFlows = ConcurrentHashMap<String, MutableStateFlow<DownloadState>>()
@@ -171,7 +166,7 @@ class MediaDownloadManager @Inject constructor(
                     cast = emptyList()
                 )
 
-                offlineDataSource.saveMovies(listOf(movie))
+                offlineCatalogStore.saveMovies(listOf(movie))
 
                 Log.d(TAG, "Starting download for '${movie.title}' from: $url")
                 val request = buildDownloadRequest(
@@ -193,7 +188,7 @@ class MediaDownloadManager @Inject constructor(
         withContext(Dispatchers.IO) {
             PurefinDownloadService.sendRemoveDownload(context, movieId.toString())
             try {
-                movieDao.deleteById(movieId)
+                offlineCatalogStore.deleteMovie(movieId)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to remove movie from offline DB", e)
             }
@@ -231,15 +226,15 @@ class MediaDownloadManager @Inject constructor(
                     return@withContext
                 }
 
-                if (offlineDataSource.getSeriesBasic(series.id) == null) {
-                    offlineDataSource.saveSeries(listOf(series))
+                if (offlineCatalogStore.getSeriesBasic(series.id) == null) {
+                    offlineCatalogStore.saveSeries(listOf(series))
                 }
 
-                if (offlineDataSource.getSeason(series.id, season.id) == null) {
-                    offlineDataSource.saveSeason(season)
+                if (offlineCatalogStore.getSeason(season.id) == null) {
+                    offlineCatalogStore.saveSeason(season)
                 }
 
-                offlineDataSource.saveEpisode(episode)
+                offlineCatalogStore.saveEpisode(episode)
 
                 Log.d(TAG, "Starting download for episode '${episode.title}' from: $url")
                 val request = buildDownloadRequest(
@@ -269,7 +264,7 @@ class MediaDownloadManager @Inject constructor(
         withContext(Dispatchers.IO) {
             PurefinDownloadService.sendRemoveDownload(context, episodeId.toString())
             try {
-                offlineDataSource.deleteEpisodeAndCleanup(episodeId)
+                offlineCatalogStore.deleteEpisodeAndCleanup(episodeId)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to remove episode from offline DB", e)
             }
@@ -279,24 +274,24 @@ class MediaDownloadManager @Inject constructor(
     // ── Smart Download ──────────────────────────────────────────────────
 
     override suspend fun enableSmartDownload(seriesId: UUID) {
-        smartDownloadDao.insert(SmartDownloadEntity(seriesId))
+        smartDownloadStore.enable(seriesId)
         syncSmartDownloadsForSeries(seriesId)
     }
 
     suspend fun disableSmartDownload(seriesId: UUID) {
-        smartDownloadDao.delete(seriesId)
+        smartDownloadStore.disable(seriesId)
     }
 
-    fun isSmartDownloadEnabled(seriesId: UUID): Flow<Boolean> = smartDownloadDao.observe(seriesId)
+    fun isSmartDownloadEnabled(seriesId: UUID): Flow<Boolean> = smartDownloadStore.observe(seriesId)
 
     override suspend fun syncSmartDownloads() {
         withContext(Dispatchers.IO) {
-            val enabled = smartDownloadDao.getAll()
-            for (entry in enabled) {
+            val enabledSeriesIds = smartDownloadStore.getEnabledSeriesIds()
+            for (seriesId in enabledSeriesIds) {
                 try {
-                    syncSmartDownloadsForSeries(entry.seriesId)
+                    syncSmartDownloadsForSeries(seriesId)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Smart download sync failed for series ${entry.seriesId}", e)
+                    Log.e(TAG, "Smart download sync failed for series $seriesId", e)
                 }
             }
         }
@@ -307,7 +302,7 @@ class MediaDownloadManager @Inject constructor(
             val serverUrl = userSessionRepository.serverUrl.first().trim()
 
             // 1. Get currently downloaded episodes for this series
-            val downloadedEpisodes = offlineDataSource.getEpisodesBySeries(seriesId)
+            val downloadedEpisodes = offlineCatalogStore.getEpisodesBySeries(seriesId)
 
             // 2. Check watched status from server and delete watched downloads
             val unwatchedDownloaded = mutableListOf<UUID>()

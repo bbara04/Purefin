@@ -52,8 +52,8 @@ import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.shared.home.FocusableItem
 import hu.bbara.purefin.feature.shared.home.NextUpItem
 import hu.bbara.purefin.feature.shared.home.PosterItem
-import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemKind
+import java.util.UUID
+import hu.bbara.purefin.core.model.MediaKind
 import org.jellyfin.sdk.model.api.ImageType
 
 private val TvHomeSectionsThumbShape = RoundedCornerShape(20.dp)
@@ -93,12 +93,12 @@ fun TvContinueWatchingSection(
                 title = item.primaryText,
                 supporting = item.secondaryText,
                 imageUrl = when (item.type) {
-                    BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+                    MediaKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
                         prefixImageUrl = item.movie?.imageUrlPrefix,
                         imageType = ImageType.PRIMARY
                     )
 
-                    BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+                    MediaKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
                         prefixImageUrl = item.episode?.imageUrlPrefix,
                         imageType = ImageType.PRIMARY
                     )
@@ -124,8 +124,8 @@ fun TvContinueWatchingSection(
                 onFocusedItem = { onFocusedItem(item) },
                 onClick = {
                     when (item.type) {
-                        BaseItemKind.MOVIE -> onMovieSelected(item.movie!!.id)
-                        BaseItemKind.EPISODE -> {
+                        MediaKind.MOVIE -> onMovieSelected(item.movie!!.id)
+                        MediaKind.EPISODE -> {
                             val episode = item.episode!!
                             onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
                         }

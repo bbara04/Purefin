@@ -33,12 +33,12 @@ dependencies {
     implementation(project(":core:data"))
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.medi3.exoplayer)
     implementation(libs.medi3.exoplayer.hls)
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.datastore)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.jellyfin.core)
     implementation(libs.okhttp)
     testImplementation(libs.junit)
 }

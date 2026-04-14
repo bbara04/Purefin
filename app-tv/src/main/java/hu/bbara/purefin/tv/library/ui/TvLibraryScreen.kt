@@ -24,10 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.common.ui.PosterCard
 import hu.bbara.purefin.common.ui.components.PurefinIconButton
-import hu.bbara.purefin.core.data.navigation.LibraryDto
+import hu.bbara.purefin.feature.shared.navigation.LibraryDto
 import hu.bbara.purefin.feature.shared.home.PosterItem
 import hu.bbara.purefin.feature.shared.library.LibraryViewModel
-import org.jellyfin.sdk.model.UUID
+import java.util.UUID
 
 @Composable
 fun TvLibraryScreen(

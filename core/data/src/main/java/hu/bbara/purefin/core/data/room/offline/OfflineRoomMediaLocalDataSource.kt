@@ -155,6 +155,14 @@ class OfflineRoomMediaLocalDataSource(
         return seasonEntity.toDomain(episodes)
     }
 
+    suspend fun getSeason(seasonId: UUID): Season? {
+        val seasonEntity = seasonDao.getById(seasonId) ?: return null
+        val episodes = episodeDao.getBySeasonId(seasonId).map { episodeEntity ->
+            episodeEntity.toDomain()
+        }
+        return seasonEntity.toDomain(episodes)
+    }
+
     suspend fun getSeasons(seriesId: UUID): List<Season> {
         return seasonDao.getBySeriesId(seriesId).map { seasonEntity ->
             val episodes = episodeDao.getBySeasonId(seasonEntity.id).map { episodeEntity ->
@@ -195,6 +203,10 @@ class OfflineRoomMediaLocalDataSource(
         return episodeDao.getBySeriesId(seriesId).map { episodeEntity ->
             episodeEntity.toDomain()
         }
+    }
+
+    suspend fun deleteMovie(movieId: UUID) {
+        movieDao.deleteById(movieId)
     }
 
     private fun Movie.toEntity() = MovieEntity(

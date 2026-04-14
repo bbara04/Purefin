@@ -16,7 +16,7 @@ import hu.bbara.purefin.feature.shared.home.PosterItem
 import hu.bbara.purefin.tv.home.ui.TvFocusedItemHero
 import hu.bbara.purefin.tv.home.ui.TvHomeContent
 import hu.bbara.purefin.tv.home.ui.rememberTvHomeHeroState
-import org.jellyfin.sdk.model.UUID
+import java.util.UUID
 
 private const val TvHomeHeroHeightFraction = 0.32f
 private val TvHomeMinHeroHeight = 160.dp

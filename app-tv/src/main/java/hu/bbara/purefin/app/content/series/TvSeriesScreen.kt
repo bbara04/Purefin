@@ -22,11 +22,11 @@ import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailBodyBox
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
 import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
-import hu.bbara.purefin.core.data.navigation.SeriesDto
+import hu.bbara.purefin.feature.shared.navigation.SeriesDto
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
-import org.jellyfin.sdk.model.UUID
+import java.util.UUID
 
 @Composable
 fun TvSeriesScreen(

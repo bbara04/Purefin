@@ -21,9 +21,9 @@ import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailBodyBox
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.core.data.navigation.EpisodeDto
-import hu.bbara.purefin.core.data.navigation.LocalNavigationManager
-import hu.bbara.purefin.core.data.navigation.Route
+import hu.bbara.purefin.feature.shared.navigation.EpisodeDto
+import hu.bbara.purefin.tv.navigation.LocalNavigationManager
+import hu.bbara.purefin.feature.shared.navigation.Route
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
 import org.jellyfin.sdk.model.api.ImageType

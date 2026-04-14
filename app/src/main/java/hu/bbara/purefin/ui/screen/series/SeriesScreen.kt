@@ -30,12 +30,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.common.ui.MediaSynopsis
-import hu.bbara.purefin.common.ui.PurefinWaitingScreen
-import hu.bbara.purefin.common.ui.components.MediaHero
+import hu.bbara.purefin.ui.common.media.MediaSynopsis
+import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
+import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.core.data.download.DownloadState
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.core.data.navigation.SeriesDto
+import hu.bbara.purefin.feature.shared.navigation.SeriesDto
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season

@@ -1,13 +1,13 @@
 package hu.bbara.purefin.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
+import hu.bbara.purefin.feature.shared.navigation.Route
+import hu.bbara.purefin.ui.screen.library.LibraryScreen
+import hu.bbara.purefin.ui.screen.login.LoginScreen
+import hu.bbara.purefin.ui.screen.AppScreen
 import hu.bbara.purefin.ui.screen.episode.EpisodeScreen
 import hu.bbara.purefin.ui.screen.movie.MovieScreen
 import hu.bbara.purefin.ui.screen.series.SeriesScreen
-import hu.bbara.purefin.app.home.AppScreen
-import hu.bbara.purefin.app.library.ui.LibraryScreen
-import hu.bbara.purefin.core.data.navigation.Route
-import hu.bbara.purefin.login.ui.LoginScreen
 
 fun EntryProviderScope<Route>.appRouteEntryBuilder() {
     entry<Route.Home> {

@@ -32,12 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.common.ui.MediaMetaChip
-import hu.bbara.purefin.common.ui.PurefinWaitingScreen
-import hu.bbara.purefin.common.ui.components.MediaHero
+import hu.bbara.purefin.ui.common.media.MediaMetaChip
+import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
+import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.core.data.download.DownloadState
 import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.core.data.navigation.MovieDto
+import hu.bbara.purefin.feature.shared.navigation.MovieDto
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel

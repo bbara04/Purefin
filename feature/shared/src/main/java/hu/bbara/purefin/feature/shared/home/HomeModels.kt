@@ -4,9 +4,9 @@ import hu.bbara.purefin.core.data.image.JellyfinImageHelper
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Series
-import org.jellyfin.sdk.model.UUID
-import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.CollectionType
+import java.util.UUID
+import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.core.model.LibraryKind
 import org.jellyfin.sdk.model.api.ImageType
 
 
@@ -20,7 +20,7 @@ sealed interface SuggestedItem {
     val imageUrl: String
     val ctaLabel: String
     val progress: Float?
-    val type: BaseItemKind
+    val type: MediaKind
 }
 
 data class SuggestedEpisode (
@@ -34,7 +34,7 @@ data class SuggestedEpisode (
             .filter { it.isNotBlank() },
     override val ctaLabel: String = "Open",
     override val progress: Float? = episode.progress?.toFloat(),
-    override val type: BaseItemKind = BaseItemKind.EPISODE,
+    override val type: MediaKind = MediaKind.EPISODE,
     override val id: UUID = episode.id,
     override val title: String = episode.title,
     override val description: String = episode.synopsis,
@@ -57,7 +57,7 @@ data class SuggestedSeries (
         listOf(series.year, "${series.seasonCount} seasons").filter { it.isNotBlank() },
     override val ctaLabel: String = "Open",
     override val progress: Float? = null,
-    override val type: BaseItemKind = BaseItemKind.SERIES,
+    override val type: MediaKind = MediaKind.SERIES,
     override val id: UUID = series.id,
     override val title: String = series.name,
     override val description: String = series.synopsis,
@@ -78,7 +78,7 @@ data class SuggestedMovie (
             .filter { it.isNotBlank() },
     override val ctaLabel: String = "Open",
     override val progress: Float? = movie.progress?.toFloat(),
-    override val type: BaseItemKind = BaseItemKind.MOVIE,
+    override val type: MediaKind = MediaKind.MOVIE,
     override val id: UUID = movie.id,
     override val title: String = movie.title,
     override val description: String = movie.synopsis,
@@ -94,48 +94,48 @@ sealed interface FocusableItem {
     val secondaryText: String
     val description: String
     val id: UUID
-    val type: BaseItemKind
+    val type: MediaKind
 }
 
 data class ContinueWatchingItem(
-    override val type: BaseItemKind,
+    override val type: MediaKind,
     val movie: Movie? = null,
     val episode: Episode? = null,
 ) : FocusableItem {
     override val id: UUID = when (type) {
-        BaseItemKind.MOVIE -> movie!!.id
-        BaseItemKind.EPISODE -> episode!!.id
+        MediaKind.MOVIE -> movie!!.id
+        MediaKind.EPISODE -> episode!!.id
         else -> throw UnsupportedOperationException("Unsupported item type: $type")
     }
     override val primaryText: String = when (type) {
-        BaseItemKind.MOVIE -> movie!!.title
-        BaseItemKind.EPISODE -> episode!!.title
+        MediaKind.MOVIE -> movie!!.title
+        MediaKind.EPISODE -> episode!!.title
         else -> throw UnsupportedOperationException("Unsupported item type: $type")
     }
     override val secondaryText: String = when (type) {
-        BaseItemKind.MOVIE -> movie!!.year
-        BaseItemKind.EPISODE -> episode!!.releaseDate
+        MediaKind.MOVIE -> movie!!.year
+        MediaKind.EPISODE -> episode!!.releaseDate
         else -> throw UnsupportedOperationException("Unsupported item type: $type")
     }
     override val imageUrl: String = when (type) {
-        BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+        MediaKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
             prefixImageUrl = movie!!.imageUrlPrefix,
             imageType = ImageType.PRIMARY
         )
-        BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+        MediaKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
             prefixImageUrl = episode!!.imageUrlPrefix,
             imageType = ImageType.PRIMARY
         )
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
     override val description: String = when (type) {
-        BaseItemKind.MOVIE -> movie!!.synopsis
-        BaseItemKind.EPISODE -> episode!!.synopsis
+        MediaKind.MOVIE -> movie!!.synopsis
+        MediaKind.EPISODE -> episode!!.synopsis
         else -> throw UnsupportedOperationException("Unsupported item type: $type")
     }
     val progress: Double = when (type) {
-        BaseItemKind.MOVIE -> movie!!.progress ?: 0.0
-        BaseItemKind.EPISODE -> episode!!.progress ?: 0.0
+        MediaKind.MOVIE -> movie!!.progress ?: 0.0
+        MediaKind.EPISODE -> episode!!.progress ?: 0.0
         else -> throw UnsupportedOperationException("Unsupported item type: $type")
     }
 }
@@ -144,8 +144,8 @@ data class NextUpItem(
     val episode: Episode
 ) : FocusableItem {
     override val id: UUID = episode.id
-    override val type: BaseItemKind
-        get() = BaseItemKind.EPISODE
+    override val type: MediaKind
+        get() = MediaKind.EPISODE
     override val imageUrl: String
         get() = JellyfinImageHelper.finishImageUrl(
             prefixImageUrl = episode.imageUrlPrefix,
@@ -160,39 +160,39 @@ data class NextUpItem(
 data class LibraryItem(
     val id: UUID,
     val name: String,
-    val type: CollectionType,
+    val type: LibraryKind,
     val posterUrl: String,
     val isEmpty: Boolean
 )
 
 data class PosterItem(
-    override val type: BaseItemKind,
+    override val type: MediaKind,
     val movie: Movie? = null,
     val series: Series? = null,
     val episode: Episode? = null
 ) : FocusableItem {
     override val id: UUID = when (type) {
-        BaseItemKind.MOVIE -> movie!!.id
-        BaseItemKind.EPISODE -> episode!!.id
-        BaseItemKind.SERIES -> series!!.id
+        MediaKind.MOVIE -> movie!!.id
+        MediaKind.EPISODE -> episode!!.id
+        MediaKind.SERIES -> series!!.id
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
     val title: String = when (type) {
-        BaseItemKind.MOVIE -> movie!!.title
-        BaseItemKind.EPISODE -> episode!!.title
-        BaseItemKind.SERIES -> series!!.name
+        MediaKind.MOVIE -> movie!!.title
+        MediaKind.EPISODE -> episode!!.title
+        MediaKind.SERIES -> series!!.name
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
     override val imageUrl: String = when (type) {
-        BaseItemKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+        MediaKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
             prefixImageUrl = movie!!.imageUrlPrefix,
             imageType = ImageType.PRIMARY
         )
-        BaseItemKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+        MediaKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
             prefixImageUrl = episode!!.imageUrlPrefix,
             imageType = ImageType.PRIMARY
         )
-        BaseItemKind.SERIES -> JellyfinImageHelper.finishImageUrl(
+        MediaKind.SERIES -> JellyfinImageHelper.finishImageUrl(
             prefixImageUrl = series!!.imageUrlPrefix,
             imageType = ImageType.PRIMARY
         )
@@ -200,29 +200,29 @@ data class PosterItem(
     }
     override val primaryText: String
         get() = when (type) {
-            BaseItemKind.MOVIE -> movie!!.title
-            BaseItemKind.EPISODE -> episode!!.title
-            BaseItemKind.SERIES -> series!!.name
+            MediaKind.MOVIE -> movie!!.title
+            MediaKind.EPISODE -> episode!!.title
+            MediaKind.SERIES -> series!!.name
             else -> throw IllegalArgumentException("Invalid type: $type")
         }
     override val secondaryText: String
         get() = when (type) {
-            BaseItemKind.MOVIE -> movie!!.year
-            BaseItemKind.EPISODE -> episode!!.releaseDate
-            BaseItemKind.SERIES -> series!!.year
+            MediaKind.MOVIE -> movie!!.year
+            MediaKind.EPISODE -> episode!!.releaseDate
+            MediaKind.SERIES -> series!!.year
             else -> throw IllegalArgumentException("Invalid type: $type")
         }
     override val description: String
         get() = when (type) {
-            BaseItemKind.MOVIE -> movie!!.synopsis
-            BaseItemKind.EPISODE -> episode!!.synopsis
-            BaseItemKind.SERIES -> series!!.synopsis
+            MediaKind.MOVIE -> movie!!.synopsis
+            MediaKind.EPISODE -> episode!!.synopsis
+            MediaKind.SERIES -> series!!.synopsis
             else -> throw IllegalArgumentException("Invalid type: $type")
         }
 
     fun watched() = when (type) {
-        BaseItemKind.MOVIE -> movie!!.watched
-        BaseItemKind.EPISODE -> episode!!.watched
+        MediaKind.MOVIE -> movie!!.watched
+        MediaKind.EPISODE -> episode!!.watched
         else -> throw IllegalArgumentException("Invalid type: $type")
     }
 }
