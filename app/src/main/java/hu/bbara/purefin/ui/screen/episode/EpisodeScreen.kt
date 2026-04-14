@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app.content.episode
+package hu.bbara.purefin.ui.screen.episode
 
 import android.Manifest
 import android.os.Build
@@ -45,6 +45,9 @@ import hu.bbara.purefin.core.data.navigation.Route
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
+import hu.bbara.purefin.ui.screen.episode.components.EpisodeDetails
+import hu.bbara.purefin.ui.screen.episode.components.EpisodeTopBar
+import hu.bbara.purefin.ui.screen.episode.components.EpisodeTopBarShortcut
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.api.ImageType
 import java.util.UUID

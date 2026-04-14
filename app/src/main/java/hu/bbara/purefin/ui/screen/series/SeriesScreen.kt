@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app.content.series
+package hu.bbara.purefin.ui.screen.series
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,6 +41,13 @@ import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.feature.shared.content.series.SeriesViewModel
+import hu.bbara.purefin.ui.screen.series.components.CastRow
+import hu.bbara.purefin.ui.screen.series.components.EpisodeCarousel
+import hu.bbara.purefin.ui.screen.series.components.SeasonTabs
+import hu.bbara.purefin.ui.screen.series.components.SeriesActionButtons
+import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadOption
+import hu.bbara.purefin.ui.screen.series.components.SeriesMetaChips
+import hu.bbara.purefin.ui.screen.series.components.SeriesTopBar
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.api.ImageType
 import java.util.UUID

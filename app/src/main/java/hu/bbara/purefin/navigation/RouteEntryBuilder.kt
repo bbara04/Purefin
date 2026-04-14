@@ -1,9 +1,9 @@
 package hu.bbara.purefin.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
-import hu.bbara.purefin.app.content.episode.EpisodeScreen
-import hu.bbara.purefin.app.content.movie.MovieScreen
-import hu.bbara.purefin.app.content.series.SeriesScreen
+import hu.bbara.purefin.ui.screen.episode.EpisodeScreen
+import hu.bbara.purefin.ui.screen.movie.MovieScreen
+import hu.bbara.purefin.ui.screen.series.SeriesScreen
 import hu.bbara.purefin.app.home.AppScreen
 import hu.bbara.purefin.app.library.ui.LibraryScreen
 import hu.bbara.purefin.core.data.navigation.Route

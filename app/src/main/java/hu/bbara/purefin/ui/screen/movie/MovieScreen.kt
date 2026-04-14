@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app.content.movie
+package hu.bbara.purefin.ui.screen.movie
 
 import android.Manifest
 import android.os.Build
@@ -41,6 +41,8 @@ import hu.bbara.purefin.core.data.navigation.MovieDto
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
+import hu.bbara.purefin.ui.screen.movie.components.MovieDetails
+import hu.bbara.purefin.ui.screen.movie.components.MovieTopBar
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.api.ImageType
 import java.util.UUID

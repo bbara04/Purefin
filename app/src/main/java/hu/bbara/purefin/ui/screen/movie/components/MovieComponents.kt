@@ -1,4 +1,4 @@
-package hu.bbara.purefin.app.content.movie
+package hu.bbara.purefin.ui.screen.movie.components
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
