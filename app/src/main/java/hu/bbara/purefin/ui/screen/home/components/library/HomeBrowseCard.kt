@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.badge.UnwatchedEpisodeIndicator
 import hu.bbara.purefin.ui.common.badge.WatchStateIndicator
-import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
 import java.util.UUID
 import hu.bbara.purefin.core.model.MediaKind
 

@@ -9,10 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.LibraryItem
-import hu.bbara.purefin.feature.shared.home.NextUpItem
-import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
 import hu.bbara.purefin.tv.home.ui.TvFocusedItemHero
 import hu.bbara.purefin.tv.home.ui.TvHomeContent
 import hu.bbara.purefin.tv.home.ui.rememberTvHomeHeroState

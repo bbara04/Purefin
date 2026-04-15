@@ -18,10 +18,10 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.LibraryItem
-import hu.bbara.purefin.feature.shared.home.NextUpItem
-import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
 import hu.bbara.purefin.tv.home.TvHomeScreen
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.api.BaseItemKind

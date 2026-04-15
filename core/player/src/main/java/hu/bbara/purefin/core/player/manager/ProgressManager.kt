@@ -4,7 +4,7 @@ import android.util.Log
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.MediaProgressWriter
 import hu.bbara.purefin.core.data.PlaybackProgressReporter
-import hu.bbara.purefin.core.data.client.PlaybackReportContext
+import hu.bbara.purefin.core.data.PlaybackReportContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

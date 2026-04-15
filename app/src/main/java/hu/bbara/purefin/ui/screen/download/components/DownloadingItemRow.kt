@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.feature.shared.download.ActiveDownloadItem
+import hu.bbara.purefin.feature.downloads.ActiveDownloadItem
 
 @Composable
 internal fun DownloadingItemRow(

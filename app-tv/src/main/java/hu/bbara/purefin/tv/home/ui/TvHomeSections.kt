@@ -47,14 +47,14 @@ import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.PosterCard
 import hu.bbara.purefin.common.ui.components.MediaProgressBar
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.FocusableItem
-import hu.bbara.purefin.feature.shared.home.NextUpItem
-import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.browse.home.FocusableItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
 import java.util.UUID
 import hu.bbara.purefin.core.model.MediaKind
-import org.jellyfin.sdk.model.api.ImageType
+import hu.bbara.purefin.core.image.ArtworkKind
 
 private val TvHomeSectionsThumbShape = RoundedCornerShape(20.dp)
 private val TvHomeSectionsHorizontalPadding = 32.dp
@@ -93,14 +93,14 @@ fun TvContinueWatchingSection(
                 title = item.primaryText,
                 supporting = item.secondaryText,
                 imageUrl = when (item.type) {
-                    MediaKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+                    MediaKind.MOVIE -> ImageUrlBuilder.finishImageUrl(
                         prefixImageUrl = item.movie?.imageUrlPrefix,
-                        imageType = ImageType.PRIMARY
+                        artworkKind = ArtworkKind.PRIMARY
                     )
 
-                    MediaKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+                    MediaKind.EPISODE -> ImageUrlBuilder.finishImageUrl(
                         prefixImageUrl = item.episode?.imageUrlPrefix,
-                        imageType = ImageType.PRIMARY
+                        artworkKind = ArtworkKind.PRIMARY
                     )
 
                     else -> null

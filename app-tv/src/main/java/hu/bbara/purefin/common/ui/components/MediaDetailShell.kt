@@ -32,8 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.common.ui.MediaSynopsis
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import org.jellyfin.sdk.model.api.ImageType
+import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.core.image.ArtworkKind
 
 internal val MediaDetailHorizontalPadding = 48.dp
 private val MediaDetailHeaderTopPadding = 104.dp
@@ -151,8 +151,8 @@ internal fun TvMediaDetailBodyBox(
 }
 
 internal fun tvMediaDetailBackgroundImageUrl(imageUrlPrefix: String?): String {
-    val primaryImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.PRIMARY)
-    val backdropImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.BACKDROP)
+    val primaryImageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.PRIMARY)
+    val backdropImageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.BACKDROP)
     return backdropImageUrl.ifBlank { primaryImageUrl }
 }
 

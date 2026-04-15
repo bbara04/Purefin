@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.ui.common.card.PosterCard
-import hu.bbara.purefin.feature.shared.download.DownloadsViewModel
+import hu.bbara.purefin.feature.downloads.DownloadsViewModel
 
 @Composable
 fun DownloadsContent(

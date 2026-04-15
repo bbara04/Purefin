@@ -4,7 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import hu.bbara.purefin.feature.shared.home.LibraryItem
+import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.jellyfin.sdk.model.api.CollectionType
 import org.junit.Assert.assertEquals

@@ -1,6 +1,5 @@
 package hu.bbara.purefin.core.data
 
-import hu.bbara.purefin.core.data.client.PlaybackReportContext
 import java.util.UUID
 
 interface PlaybackProgressReporter {

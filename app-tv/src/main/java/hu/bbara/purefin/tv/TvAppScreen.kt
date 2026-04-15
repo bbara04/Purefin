@@ -15,7 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import hu.bbara.purefin.feature.shared.home.AppViewModel
+import hu.bbara.purefin.feature.browse.home.AppViewModel
 import hu.bbara.purefin.tv.home.TvHomeScreen
 import hu.bbara.purefin.tv.home.ui.TvDrawerDestination
 import hu.bbara.purefin.tv.home.ui.TvDrawerDestinationItem

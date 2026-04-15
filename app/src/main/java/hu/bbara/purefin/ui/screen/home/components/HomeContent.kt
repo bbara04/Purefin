@@ -22,11 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.LibraryItem
-import hu.bbara.purefin.feature.shared.home.NextUpItem
-import hu.bbara.purefin.feature.shared.home.PosterItem
-import hu.bbara.purefin.feature.shared.home.SuggestedItem
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.SuggestedItem
 import hu.bbara.purefin.ui.screen.home.components.continuewatching.ContinueWatchingSection
 import hu.bbara.purefin.ui.screen.home.components.featured.SuggestionsSection
 import hu.bbara.purefin.ui.screen.home.components.library.LibraryPosterSection

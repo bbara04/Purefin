@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.header.SectionHeader
-import hu.bbara.purefin.feature.shared.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
 import java.util.UUID
 
 @Composable

@@ -1,0 +1,10 @@
+package hu.bbara.purefin.data.jellyfin.client
+
+import hu.bbara.purefin.core.data.PlaybackReportContext
+import org.jellyfin.sdk.model.api.MediaSourceInfo
+
+data class PlaybackDecision(
+    val url: String,
+    val mediaSource: MediaSourceInfo,
+    val reportContext: PlaybackReportContext
+)

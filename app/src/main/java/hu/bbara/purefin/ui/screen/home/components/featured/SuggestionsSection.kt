@@ -22,7 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.feature.shared.home.SuggestedItem
+import hu.bbara.purefin.feature.browse.home.SuggestedItem
 
 @Composable
 fun SuggestionsSection(

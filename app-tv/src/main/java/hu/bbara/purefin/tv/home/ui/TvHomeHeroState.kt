@@ -5,11 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.FocusableItem
-import hu.bbara.purefin.feature.shared.home.LibraryItem
-import hu.bbara.purefin.feature.shared.home.NextUpItem
-import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.browse.home.FocusableItem
+import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
 import java.util.UUID
 
 internal data class TvHomeItemRegistry(

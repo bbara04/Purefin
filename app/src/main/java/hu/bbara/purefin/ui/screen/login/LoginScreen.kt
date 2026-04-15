@@ -41,7 +41,7 @@ import hu.bbara.purefin.ui.common.textfield.PurefinComplexTextField
 import hu.bbara.purefin.ui.common.textfield.PurefinPasswordField
 import hu.bbara.purefin.ui.common.button.PurefinTextButton
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
-import hu.bbara.purefin.feature.shared.login.LoginViewModel
+import hu.bbara.purefin.feature.login.LoginViewModel
 import kotlinx.coroutines.launch
 
 @Composable

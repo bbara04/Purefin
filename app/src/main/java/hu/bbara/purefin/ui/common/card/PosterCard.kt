@@ -23,7 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.request.ImageRequest
-import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
 import hu.bbara.purefin.ui.common.badge.UnwatchedEpisodeIndicator
 import hu.bbara.purefin.ui.common.badge.WatchStateIndicator
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage

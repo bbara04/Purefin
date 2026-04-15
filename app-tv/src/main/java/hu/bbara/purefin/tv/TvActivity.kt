@@ -37,13 +37,13 @@ import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dagger.hilt.android.AndroidEntryPoint
 import hu.bbara.purefin.common.ui.PurefinWaitingScreen
-import hu.bbara.purefin.core.data.client.JellyfinApiClient
-import hu.bbara.purefin.core.data.client.JellyfinAuthInterceptor
+import hu.bbara.purefin.core.data.SessionBootstrapper
+import hu.bbara.purefin.data.jellyfin.client.JellyfinAuthInterceptor
 import hu.bbara.purefin.core.data.session.UserSessionRepository
-import hu.bbara.purefin.feature.shared.navigation.NavigationCommand
-import hu.bbara.purefin.feature.shared.navigation.NavigationManager
-import hu.bbara.purefin.feature.shared.navigation.Route
 import hu.bbara.purefin.login.ui.LoginScreen
+import hu.bbara.purefin.core.navigation.NavigationCommand
+import hu.bbara.purefin.core.navigation.NavigationManager
+import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.tv.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.tv.navigation.LocalNavigationManager
 import hu.bbara.purefin.ui.theme.AppTheme
@@ -66,7 +66,7 @@ class TvActivity : ComponentActivity() {
     lateinit var navigationManager: NavigationManager
 
     @Inject
-    lateinit var jellyfinApiClient: JellyfinApiClient
+    lateinit var sessionBootstrapper: SessionBootstrapper
 
     @Inject
     lateinit var authInterceptor: JellyfinAuthInterceptor
@@ -94,7 +94,7 @@ class TvActivity : ComponentActivity() {
     }
 
     private suspend fun init() {
-        jellyfinApiClient.updateApiClient()
+        sessionBootstrapper.initialize()
     }
 
     private fun configureImageLoader() {

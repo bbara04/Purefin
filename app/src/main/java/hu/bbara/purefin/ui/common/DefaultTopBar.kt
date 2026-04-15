@@ -27,7 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.shared.search.SearchViewModel
+import hu.bbara.purefin.feature.search.SearchViewModel
 
 @Composable
 fun DefaultTopBar(

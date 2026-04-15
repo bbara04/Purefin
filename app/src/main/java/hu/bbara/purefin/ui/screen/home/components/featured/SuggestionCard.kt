@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.feature.shared.home.SuggestedItem
+import hu.bbara.purefin.feature.browse.home.SuggestedItem
 
 @Composable
 internal fun SuggestionCard(

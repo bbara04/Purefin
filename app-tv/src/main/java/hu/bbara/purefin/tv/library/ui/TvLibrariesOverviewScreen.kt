@@ -44,7 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.common.ui.components.PurefinAsyncImage
-import hu.bbara.purefin.feature.shared.home.LibraryItem
+import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.core.model.LibraryKind
 
 internal const val TvLibrariesOverviewItemTagPrefix = "tv-libraries-overview-item-"

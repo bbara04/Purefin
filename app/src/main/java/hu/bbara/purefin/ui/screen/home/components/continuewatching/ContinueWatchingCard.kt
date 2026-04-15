@@ -25,11 +25,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
+import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
 import java.util.UUID
 import hu.bbara.purefin.core.model.MediaKind
-import org.jellyfin.sdk.model.api.ImageType
+import hu.bbara.purefin.core.image.ArtworkKind
 
 @Composable
 internal fun ContinueWatchingCard(
@@ -53,13 +53,13 @@ internal fun ContinueWatchingCard(
         else -> ""
     }
     val imageUrl = when (item.type) {
-        MediaKind.MOVIE -> JellyfinImageHelper.finishImageUrl(
+        MediaKind.MOVIE -> ImageUrlBuilder.finishImageUrl(
             prefixImageUrl = item.movie?.imageUrlPrefix,
-            imageType = ImageType.PRIMARY
+            artworkKind = ArtworkKind.PRIMARY
         )
-        MediaKind.EPISODE -> JellyfinImageHelper.finishImageUrl(
+        MediaKind.EPISODE -> ImageUrlBuilder.finishImageUrl(
             prefixImageUrl = item.episode?.imageUrlPrefix,
-            imageType = ImageType.PRIMARY
+            artworkKind = ArtworkKind.PRIMARY
         )
         else -> null
     }

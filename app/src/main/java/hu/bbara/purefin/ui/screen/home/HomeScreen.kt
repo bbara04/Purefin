@@ -16,11 +16,11 @@ import androidx.compose.ui.Modifier
 import hu.bbara.purefin.ui.screen.home.components.HomeContent
 import hu.bbara.purefin.ui.screen.home.components.HomeTopBar
 import hu.bbara.purefin.ui.screen.home.components.search.HomeSearchOverlay
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.LibraryItem
-import hu.bbara.purefin.feature.shared.home.NextUpItem
-import hu.bbara.purefin.feature.shared.home.PosterItem
-import hu.bbara.purefin.feature.shared.home.SuggestedItem
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.SuggestedItem
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import java.util.UUID
 

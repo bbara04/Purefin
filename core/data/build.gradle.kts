@@ -3,9 +3,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.ksp)
 }
 
 android {
@@ -30,15 +27,7 @@ kotlin {
 
 dependencies {
     implementation(project(":core:model"))
-    implementation(libs.jellyfin.core)
     implementation(libs.media3.common)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.hilt)
-    ksp(libs.hilt.compiler)
-    implementation(libs.datastore)
-    implementation(libs.okhttp)
-    implementation(libs.logging.interceptor)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+    implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
 }

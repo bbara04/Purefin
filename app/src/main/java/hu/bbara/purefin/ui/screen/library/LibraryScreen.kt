@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.ui.common.card.PosterCard
 import hu.bbara.purefin.ui.common.button.PurefinIconButton
-import hu.bbara.purefin.feature.shared.navigation.LibraryDto
-import hu.bbara.purefin.feature.shared.home.PosterItem
-import hu.bbara.purefin.feature.shared.library.LibraryViewModel
+import hu.bbara.purefin.core.navigation.LibraryDto
+import hu.bbara.purefin.feature.browse.home.PosterItem
+import hu.bbara.purefin.feature.browse.library.LibraryViewModel
 
 @Composable
 fun LibraryScreen(

@@ -1,14 +1,14 @@
 package hu.bbara.purefin.tv.home.ui
 
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
+import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Series
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.NextUpItem
-import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
 import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.ImageType
+import hu.bbara.purefin.core.image.ArtworkKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -33,7 +33,7 @@ class TvFocusedItemHeroTest {
         assertEquals("42%", hero.progressLabel)
         assertNull(hero.watchedText)
         assertEquals(
-            JellyfinImageHelper.finishImageUrl(movie.imageUrlPrefix, ImageType.BACKDROP),
+            ImageUrlBuilder.finishImageUrl(movie.imageUrlPrefix, ArtworkKind.BACKDROP),
             hero.backdropImageUrl
         )
     }

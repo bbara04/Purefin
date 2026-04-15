@@ -35,7 +35,7 @@ import hu.bbara.purefin.ui.common.button.GhostIconButton
 import hu.bbara.purefin.ui.common.button.MediaActionButton
 import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
 import hu.bbara.purefin.ui.common.button.MediaResumeButton
-import hu.bbara.purefin.core.data.download.DownloadState
+import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.player.PlayerActivity
 

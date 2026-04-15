@@ -1,16 +1,16 @@
 package hu.bbara.purefin.tv.home.ui
 
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
+import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Series
-import hu.bbara.purefin.feature.shared.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.shared.home.FocusableItem
-import hu.bbara.purefin.feature.shared.home.NextUpItem
-import hu.bbara.purefin.feature.shared.home.PosterItem
+import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.feature.browse.home.FocusableItem
+import hu.bbara.purefin.feature.browse.home.NextUpItem
+import hu.bbara.purefin.feature.browse.home.PosterItem
 import java.util.UUID
 import hu.bbara.purefin.core.model.MediaKind
-import org.jellyfin.sdk.model.api.ImageType
+import hu.bbara.purefin.core.image.ArtworkKind
 import kotlin.math.roundToInt
 
 internal data class TvFocusedHeroModel(
@@ -42,7 +42,7 @@ internal fun FocusableItem.toTvFocusedHeroModel(): TvFocusedHeroModel {
 }
 
 internal fun backdropImageUrl(imageUrlPrefix: String?, fallbackImageUrl: String): String {
-    val backdropImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.BACKDROP)
+    val backdropImageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.BACKDROP)
     return backdropImageUrl.ifBlank { fallbackImageUrl }
 }
 
@@ -51,7 +51,7 @@ private fun Movie.toTvFocusedHeroModel(): TvFocusedHeroModel {
         id = id,
         backdropImageUrl = backdropImageUrl(
             imageUrlPrefix = imageUrlPrefix,
-            fallbackImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.PRIMARY)
+            fallbackImageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.PRIMARY)
         ),
         title = title,
         metadata = listOf(year, rating, runtime, format).compactMetadata(),
@@ -63,7 +63,7 @@ private fun Episode.toTvFocusedHeroModel(): TvFocusedHeroModel {
         id = id,
         backdropImageUrl = backdropImageUrl(
             imageUrlPrefix = imageUrlPrefix,
-            fallbackImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.PRIMARY)
+            fallbackImageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.PRIMARY)
         ),
         title = title,
         metadata = listOf(
@@ -87,7 +87,7 @@ private fun Series.toTvFocusedHeroModel(): TvFocusedHeroModel {
         id = id,
         backdropImageUrl = backdropImageUrl(
             imageUrlPrefix = imageUrlPrefix,
-            fallbackImageUrl = JellyfinImageHelper.finishImageUrl(imageUrlPrefix, ImageType.PRIMARY)
+            fallbackImageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.PRIMARY)
         ),
         title = name,
         metadata = listOf(year, seasonLabel(seasonCount), unwatchedText).compactMetadata(),

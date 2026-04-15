@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.shared.search.SearchViewModel
+import hu.bbara.purefin.feature.search.SearchViewModel
 import java.util.UUID
 import hu.bbara.purefin.core.model.MediaKind
 

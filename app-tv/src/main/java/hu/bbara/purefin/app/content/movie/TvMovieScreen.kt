@@ -21,9 +21,9 @@ import hu.bbara.purefin.common.ui.components.MediaDetailSectionTitle
 import hu.bbara.purefin.common.ui.components.TvMediaDetailBodyBox
 import hu.bbara.purefin.common.ui.components.TvMediaDetailScaffold
 import hu.bbara.purefin.common.ui.components.tvMediaDetailBackgroundImageUrl
-import hu.bbara.purefin.feature.shared.navigation.MovieDto
+import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.feature.shared.content.movie.MovieScreenViewModel
+import hu.bbara.purefin.feature.content.movie.MovieScreenViewModel
 
 @Composable
 fun TvMovieScreen(

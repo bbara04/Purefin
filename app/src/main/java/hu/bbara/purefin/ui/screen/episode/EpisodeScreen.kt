@@ -37,19 +37,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.ui.common.media.MediaMetaChip
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.common.media.MediaHero
-import hu.bbara.purefin.core.data.download.DownloadState
-import hu.bbara.purefin.core.data.image.JellyfinImageHelper
-import hu.bbara.purefin.feature.shared.navigation.EpisodeDto
+import hu.bbara.purefin.core.download.DownloadState
+import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.core.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.LocalNavigationBackStack
-import hu.bbara.purefin.feature.shared.navigation.Route
+import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.feature.shared.content.episode.EpisodeScreenViewModel
+import hu.bbara.purefin.feature.content.episode.EpisodeScreenViewModel
 import hu.bbara.purefin.ui.screen.episode.components.EpisodeDetails
 import hu.bbara.purefin.ui.screen.episode.components.EpisodeTopBar
 import hu.bbara.purefin.ui.screen.episode.components.EpisodeTopBarShortcut
 import hu.bbara.purefin.ui.theme.AppTheme
-import org.jellyfin.sdk.model.api.ImageType
+import hu.bbara.purefin.core.image.ArtworkKind
 import java.util.UUID
 
 @Composable
@@ -167,7 +167,7 @@ private fun EpisodeHeroSection(
             .height(sectionHeight)
     ) {
         MediaHero(
-            imageUrl = JellyfinImageHelper.finishImageUrl(episode.imageUrlPrefix, ImageType.PRIMARY),
+            imageUrl = ImageUrlBuilder.finishImageUrl(episode.imageUrlPrefix, ArtworkKind.PRIMARY),
             backgroundColor = scheme.background,
             modifier = Modifier.fillMaxSize()
         )
