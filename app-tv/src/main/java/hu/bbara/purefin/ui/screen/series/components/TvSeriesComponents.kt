@@ -8,8 +8,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -54,11 +52,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.ui.common.media.MediaCastRow
-import hu.bbara.purefin.ui.common.media.MediaMetaChip
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
+import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.model.CastMember
 import hu.bbara.purefin.core.model.Episode
@@ -70,17 +70,11 @@ import hu.bbara.purefin.core.image.ArtworkKind
 internal const val SeriesPlayButtonTag = "series-play-button"
 internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun TvSeriesMetaChips(series: Series) {
-    val scheme = MaterialTheme.colorScheme
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        MediaMetaChip(text = series.year)
-        MediaMetaChip(text = "${series.seasonCount} Seasons")
-    }
+    MediaMetadataFlowRow(
+        items = listOf(series.year, "${series.seasonCount} Seasons")
+    )
 }
 
 @Composable
@@ -241,14 +235,21 @@ internal fun TvSeriesHeroSection(
             )
             Spacer(modifier = Modifier.height(24.dp))
             MediaResumeButton(
-                text = nextUpEpisode.playButtonText(),
-                progress = nextUpEpisode.progress?.div(100)?.toFloat() ?: 0f,
+                text = mediaPlayButtonText(nextUpEpisode.progress, nextUpEpisode.watched),
+                progress = mediaPlaybackProgress(nextUpEpisode.progress),
                 onClick = { onPlayEpisode(nextUpEpisode) },
                 modifier = Modifier
                     .sizeIn(minWidth = 216.dp, maxWidth = 240.dp)
                     .focusRequester(playFocusRequester)
                     .focusProperties { down = firstContentFocusRequester }
-                    .testTag(SeriesPlayButtonTag)
+                    .testTag(SeriesPlayButtonTag),
+                focusedScale = 1.08f,
+                focusHaloColor = scheme.primary.copy(alpha = 0.22f),
+                focusBorderWidth = 3.dp,
+                focusBorderColor = scheme.onBackground,
+                overlayBorderWidth = 2.dp,
+                overlayBorderColor = scheme.primary.copy(alpha = 0.95f),
+                focusable = true
             )
         } else {
             Text(
@@ -374,10 +375,6 @@ internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {
         nameSize = 11.sp,
         roleSize = 10.sp
     )
-}
-
-private fun Episode.playButtonText(): String {
-    return if ((progress ?: 0.0) > 0.0 && !watched) "Resume" else "Play"
 }
 
 private fun Episode.heroStatusText(): String {

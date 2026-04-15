@@ -2,8 +2,6 @@ package hu.bbara.purefin.ui.screen.episode.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,13 +18,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.ui.common.media.MediaMetaChip
 import hu.bbara.purefin.ui.common.button.MediaResumeButton
+import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.core.model.Episode
 
 internal const val EpisodePlayButtonTag = "episode-play-button"
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun TvEpisodeHeroSection(
     episode: Episode,
@@ -71,33 +70,26 @@ internal fun TvEpisodeHeroSection(
             fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(18.dp))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            MediaMetaChip(text = episode.releaseDate)
-            MediaMetaChip(text = episode.rating)
-            MediaMetaChip(text = episode.runtime)
-            MediaMetaChip(
-                text = episode.format,
-                background = scheme.primary.copy(alpha = 0.2f),
-                border = scheme.primary.copy(alpha = 0.35f),
-                textColor = scheme.primary
-            )
-        }
+        MediaMetadataFlowRow(
+            items = listOf(episode.releaseDate, episode.rating, episode.runtime, episode.format),
+            highlightedItem = episode.format
+        )
         Spacer(modifier = Modifier.height(24.dp))
         MediaResumeButton(
-            text = episode.playButtonText(),
-            progress = episode.progress?.div(100)?.toFloat() ?: 0f,
+            text = mediaPlayButtonText(episode.progress, episode.watched),
+            progress = mediaPlaybackProgress(episode.progress),
             onClick = onPlay,
             modifier = Modifier
                 .sizeIn(minWidth = 216.dp, maxWidth = 240.dp)
                 .focusRequester(playFocusRequester)
-                .testTag(EpisodePlayButtonTag)
+                .testTag(EpisodePlayButtonTag),
+            focusedScale = 1.08f,
+            focusHaloColor = scheme.primary.copy(alpha = 0.22f),
+            focusBorderWidth = 3.dp,
+            focusBorderColor = scheme.onBackground,
+            overlayBorderWidth = 2.dp,
+            overlayBorderColor = scheme.primary.copy(alpha = 0.95f),
+            focusable = true
         )
     }
-}
-
-private fun Episode.playButtonText(): String {
-    return if ((progress ?: 0.0) > 0.0 && !watched) "Resume" else "Play"
 }

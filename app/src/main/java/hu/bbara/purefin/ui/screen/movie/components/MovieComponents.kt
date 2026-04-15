@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.ui.common.media.MediaCastRow
 import hu.bbara.purefin.ui.common.media.MediaSynopsis
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.ui.common.button.GhostIconButton
 import hu.bbara.purefin.ui.common.button.MediaActionButton
 import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
@@ -92,8 +94,8 @@ internal fun MovieDetails(
 
         Row() {
             MediaResumeButton(
-                text = if (movie.progress == null) "Play" else "Resume",
-                progress = movie.progress?.div(100)?.toFloat() ?: 0f,
+                text = mediaPlayButtonText(movie.progress, movie.watched),
+                progress = mediaPlaybackProgress(movie.progress),
                 onClick = playAction,
                 modifier = Modifier.sizeIn(maxWidth = 200.dp)
             )

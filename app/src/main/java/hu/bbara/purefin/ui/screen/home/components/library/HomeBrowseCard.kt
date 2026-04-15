@@ -23,12 +23,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.ui.common.badge.UnwatchedEpisodeIndicator
-import hu.bbara.purefin.ui.common.badge.WatchStateIndicator
-import hu.bbara.purefin.feature.browse.home.PosterItem
-import java.util.UUID
 import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.feature.browse.home.PosterItem
+import hu.bbara.purefin.ui.common.badge.UnwatchedEpisodeBadge
+import hu.bbara.purefin.ui.common.badge.WatchStateBadge
+import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import java.util.UUID
 
 @Composable
 internal fun HomeBrowseCard(
@@ -94,7 +94,7 @@ internal fun HomeBrowseCard(
                 when (item.type) {
                     MediaKind.MOVIE -> {
                         val movie = item.movie!!
-                        WatchStateIndicator(
+                        WatchStateBadge(
                             size = 28,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
@@ -106,7 +106,7 @@ internal fun HomeBrowseCard(
 
                     MediaKind.EPISODE -> {
                         val episode = item.episode!!
-                        WatchStateIndicator(
+                        WatchStateBadge(
                             size = 28,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
@@ -117,7 +117,7 @@ internal fun HomeBrowseCard(
                     }
 
                     MediaKind.SERIES -> {
-                        UnwatchedEpisodeIndicator(
+                        UnwatchedEpisodeBadge(
                             size = 28,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)

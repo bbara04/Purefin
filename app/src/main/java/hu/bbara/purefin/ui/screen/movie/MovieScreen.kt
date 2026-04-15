@@ -5,10 +5,8 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,9 +30,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.common.media.MediaMetaChip
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.common.media.MediaHero
+import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.navigation.MovieDto
@@ -170,20 +168,10 @@ fun MediaHeroSection(
                 lineHeight = 38.sp
             )
             Spacer(modifier = Modifier.height(16.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                MediaMetaChip(text = movie.year)
-                MediaMetaChip(text = movie.rating)
-                MediaMetaChip(text = movie.runtime)
-                MediaMetaChip(
-                    text = movie.format,
-                    background = scheme.primary.copy(alpha = 0.2f),
-                    border = scheme.primary.copy(alpha = 0.3f),
-                    textColor = scheme.primary
-                )
-            }
+            MediaMetadataFlowRow(
+                items = listOf(movie.year, movie.rating, movie.runtime, movie.format),
+                highlightedItem = movie.format
+            )
         }
     }
 }

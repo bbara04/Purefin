@@ -54,6 +54,7 @@ internal fun MediaDetailsTopBar(
     backFocusRequester: FocusRequester? = null,
     downFocusRequester: FocusRequester? = null
 ) {
+    val scheme = MaterialTheme.colorScheme
     val downModifier = if (downFocusRequester != null) {
         Modifier.focusProperties { down = downFocusRequester }
     } else {
@@ -78,7 +79,11 @@ internal fun MediaDetailsTopBar(
                 icon = Icons.AutoMirrored.Outlined.ArrowBack,
                 contentDescription = "Back",
                 onClick = onBack,
-                modifier = backModifier.then(downModifier)
+                modifier = backModifier.then(downModifier),
+                focusedScale = 1.1f,
+                focusedBorderWidth = 2.5.dp,
+                focusedBorderColor = scheme.primary,
+                focusedBackgroundColor = scheme.primary.copy(alpha = 0.25f)
             )
             if (shortcut != null) {
                 GhostTextButton(
@@ -93,13 +98,21 @@ internal fun MediaDetailsTopBar(
                 icon = Icons.Outlined.Cast,
                 contentDescription = "Cast",
                 onClick = onCastClick,
-                modifier = downModifier
+                modifier = downModifier,
+                focusedScale = 1.1f,
+                focusedBorderWidth = 2.5.dp,
+                focusedBorderColor = scheme.primary,
+                focusedBackgroundColor = scheme.primary.copy(alpha = 0.25f)
             )
             GhostIconButton(
                 icon = Icons.Outlined.MoreVert,
                 contentDescription = "More",
                 onClick = onMoreClick,
-                modifier = downModifier
+                modifier = downModifier,
+                focusedScale = 1.1f,
+                focusedBorderWidth = 2.5.dp,
+                focusedBorderColor = scheme.primary,
+                focusedBackgroundColor = scheme.primary.copy(alpha = 0.25f)
             )
         }
     }

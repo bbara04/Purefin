@@ -8,8 +8,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -58,13 +56,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.ui.common.media.MediaCastRow
-import hu.bbara.purefin.ui.common.media.MediaMetaChip
+import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.ui.common.button.GhostIconButton
 import hu.bbara.purefin.ui.common.button.MediaActionButton
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.ui.common.badge.WatchStateIndicator
+import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.navigation.EpisodeDto
@@ -102,24 +102,11 @@ internal fun SeriesTopBar(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SeriesMetaChips(series: Series) {
-    val scheme = MaterialTheme.colorScheme
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        MediaMetaChip(text = series.year)
-//        MediaMetaChip(text = series.rating)
-        MediaMetaChip(text = "${series.seasonCount} Seasons")
-//        MediaMetaChip(
-//            text = series.,
-//            background = scheme.primary.copy(alpha = 0.2f),
-//            border = scheme.primary.copy(alpha = 0.3f),
-//            textColor = scheme.primary
-//        )
-    }
+    MediaMetadataFlowRow(
+        items = listOf(series.year, "${series.seasonCount} Seasons")
+    )
 }
 
 @Composable
@@ -157,8 +144,8 @@ internal fun SeriesActionButtons(
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (playAction != null && nextUpEpisode != null) {
             MediaResumeButton(
-                text = if ((nextUpEpisode.progress ?: 0.0) > 0.0 && !nextUpEpisode.watched) "Resume" else "Play",
-                progress = nextUpEpisode.progress?.div(100)?.toFloat() ?: 0f,
+                text = mediaPlayButtonText(nextUpEpisode.progress, nextUpEpisode.watched),
+                progress = mediaPlaybackProgress(nextUpEpisode.progress),
                 onClick = playAction,
                 modifier = Modifier.sizeIn(maxWidth = 200.dp)
             )
@@ -388,7 +375,7 @@ private fun EpisodeCard(
                         .align(Alignment.BottomStart)
                 )
             } else {
-                WatchStateIndicator(
+                WatchStateBadge(
                     watched = episode.watched,
                     started = (episode.progress ?: 0.0) > 0.0,
                     modifier = Modifier

@@ -14,7 +14,7 @@
         android:required="true" />
 
     <application
-        android:name="hu.bbara.purefin.TvApplication"
+        android:name="hu.bbara.purefin.tv.TvApplication"
         android:allowBackup="true"
         android:banner="@drawable/banner"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -25,7 +25,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Purefin">
         <activity
-            android:name="hu.bbara.purefin.TvActivity"
+            android:name="hu.bbara.purefin.tv.TvActivity"
             android:exported="true"
             android:theme="@style/Theme.Purefin">
             <intent-filter>

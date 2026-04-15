@@ -64,6 +64,7 @@ private fun TvLibraryTopBar(
     title: String,
     onBack: () -> Unit
 ) {
+    val scheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -74,7 +75,11 @@ private fun TvLibraryTopBar(
         PurefinIconButton(
             icon = Icons.AutoMirrored.Outlined.ArrowBack,
             contentDescription = "Back",
-            onClick = onBack
+            onClick = onBack,
+            focusedScale = 1.1f,
+            focusedBorderWidth = 2.5.dp,
+            focusedBorderColor = scheme.onPrimary,
+            focusedBackgroundColor = scheme.primary
         )
         Text(
             text = title,

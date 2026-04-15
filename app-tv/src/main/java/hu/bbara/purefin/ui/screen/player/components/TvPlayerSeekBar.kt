@@ -1,6 +1,5 @@
 package hu.bbara.purefin.ui.screen.player.components
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,15 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.player.model.MarkerType
 import hu.bbara.purefin.core.player.model.TimedMarker
 
 @Composable
@@ -43,13 +39,8 @@ internal fun TvPlayerSeekBar(
     focusRequester: FocusRequester = remember { FocusRequester() },
     modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
     val safeDuration = durationMs.takeIf { it > 0 } ?: 1L
     val position = positionMs.coerceIn(0, safeDuration)
-    val bufferRatio = (bufferedMs.toFloat() / safeDuration).coerceIn(0f, 1f)
-    val progressRatio = (position.toFloat() / safeDuration).coerceIn(0f, 1f)
-    val combinedMarkers = chapterMarkers.map { it.copy(type = MarkerType.CHAPTER) } +
-        adMarkers.map { it.copy(type = MarkerType.AD) }
     var isFocused by remember { mutableStateOf(false) }
 
     Box(
@@ -90,52 +81,17 @@ internal fun TvPlayerSeekBar(
             .focusable(),
         contentAlignment = Alignment.Center
     ) {
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 2.dp, vertical = 10.dp)
-        ) {
-            val trackHeight = if (isFocused) 6f else 4f
-            val trackTop = size.height / 2 - trackHeight / 2
-            drawRect(
-                color = scheme.onSurface.copy(alpha = 0.2f),
-                size = Size(width = size.width, height = trackHeight),
-                topLeft = Offset(0f, trackTop)
-            )
-            drawRect(
-                color = scheme.onSurface.copy(alpha = 0.4f),
-                size = Size(width = bufferRatio * size.width, height = trackHeight),
-                topLeft = Offset(0f, trackTop)
-            )
-            val progressWidth = progressRatio * size.width
-            drawRect(
-                color = scheme.primary,
-                size = Size(width = progressWidth, height = trackHeight),
-                topLeft = Offset(0f, trackTop)
-            )
-            val thumbRadius = if (isFocused) 9.dp.toPx() else 7.dp.toPx()
-            val thumbCenter = Offset(progressWidth.coerceIn(0f, size.width), size.height / 2)
-            drawCircle(
-                color = scheme.primary,
-                radius = thumbRadius,
-                center = thumbCenter
-            )
-            if (isFocused) {
-                drawCircle(
-                    color = scheme.primary.copy(alpha = 0.3f),
-                    radius = thumbRadius + 4.dp.toPx(),
-                    center = thumbCenter
-                )
-            }
-            combinedMarkers.forEach { marker ->
-                val x = (marker.positionMs.toFloat() / safeDuration) * size.width
-                val color = if (marker.type == MarkerType.AD) scheme.secondary else scheme.primary
-                drawRect(
-                    color = color,
-                    topLeft = Offset(x - 1f, size.height / 2 - 6f),
-                    size = Size(width = 2f, height = 12f)
-                )
-            }
-        }
+        PlayerSeekBarTrack(
+            positionMs = position,
+            durationMs = safeDuration,
+            bufferedMs = bufferedMs,
+            chapterMarkers = chapterMarkers,
+            adMarkers = adMarkers,
+            modifier = Modifier.fillMaxSize(),
+            isFocused = isFocused,
+            thumbRadius = 7.dp,
+            focusedThumbRadius = 9.dp,
+            focusedThumbHaloRadiusDelta = 4.dp
+        )
     }
 }

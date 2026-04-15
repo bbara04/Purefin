@@ -2,8 +2,6 @@ package hu.bbara.purefin.ui.screen.movie.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,13 +18,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.ui.common.media.MediaMetaChip
 import hu.bbara.purefin.ui.common.button.MediaResumeButton
+import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.core.model.Movie
 
 internal const val MoviePlayButtonTag = "movie-play-button"
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun TvMovieHeroSection(
     movie: Movie,
@@ -51,33 +50,26 @@ internal fun TvMovieHeroSection(
             overflow = TextOverflow.Ellipsis
         )
         Spacer(modifier = Modifier.height(18.dp))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            MediaMetaChip(text = movie.year)
-            MediaMetaChip(text = movie.rating)
-            MediaMetaChip(text = movie.runtime)
-            MediaMetaChip(
-                text = movie.format,
-                background = scheme.primary.copy(alpha = 0.2f),
-                border = scheme.primary.copy(alpha = 0.35f),
-                textColor = scheme.primary
-            )
-        }
+        MediaMetadataFlowRow(
+            items = listOf(movie.year, movie.rating, movie.runtime, movie.format),
+            highlightedItem = movie.format
+        )
         Spacer(modifier = Modifier.height(24.dp))
         MediaResumeButton(
-            text = movie.playButtonText(),
-            progress = movie.progress?.div(100)?.toFloat() ?: 0f,
+            text = mediaPlayButtonText(movie.progress, movie.watched),
+            progress = mediaPlaybackProgress(movie.progress),
             onClick = onPlay,
             modifier = Modifier
                 .sizeIn(minWidth = 216.dp, maxWidth = 240.dp)
                 .focusRequester(playFocusRequester)
-                .testTag(MoviePlayButtonTag)
+                .testTag(MoviePlayButtonTag),
+            focusedScale = 1.08f,
+            focusHaloColor = scheme.primary.copy(alpha = 0.22f),
+            focusBorderWidth = 3.dp,
+            focusBorderColor = scheme.onBackground,
+            overlayBorderWidth = 2.dp,
+            overlayBorderColor = scheme.primary.copy(alpha = 0.95f),
+            focusable = true
         )
     }
-}
-
-private fun Movie.playButtonText(): String {
-    return if ((progress ?: 0.0) > 0.0 && !watched) "Resume" else "Play"
 }

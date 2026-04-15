@@ -52,6 +52,7 @@ kotlin {
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:image"))
+    implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:navigation"))
     implementation(project(":core:download"))
