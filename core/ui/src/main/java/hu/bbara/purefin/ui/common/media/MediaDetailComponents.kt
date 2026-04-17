@@ -79,7 +79,10 @@ fun MediaCastRow(
         contentPadding = PaddingValues(horizontal = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(cast) { member ->
+        items(
+            items = cast,
+            key = { member -> "${member.name}:${member.role}:${member.imageUrl.orEmpty()}" }
+        ) { member ->
             Column(modifier = Modifier.width(cardWidth)) {
                 Box(
                     modifier = Modifier

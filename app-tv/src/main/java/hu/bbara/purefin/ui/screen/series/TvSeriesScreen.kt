@@ -81,7 +81,7 @@ internal fun TvSeriesScreenContent(
         resetScrollKey = series.id,
         modifier = modifier
     ) {
-        item {
+        item(key = "series-hero") {
             TvMediaDetailBodyBox(
                 backgroundImageUrl = tvMediaDetailBackgroundImageUrl(series.imageUrlPrefix),
                 modifier = it
@@ -97,7 +97,7 @@ internal fun TvSeriesScreenContent(
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
-        item {
+        item(key = "series-overview") {
             Column(modifier = it.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 MediaDetailOverviewSection(
@@ -107,7 +107,7 @@ internal fun TvSeriesScreenContent(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
-        item {
+        item(key = "series-season-tabs") {
             TvSeasonTabs(
                 seasons = series.seasons,
                 selectedSeason = selectedSeason,
@@ -117,7 +117,7 @@ internal fun TvSeriesScreenContent(
                 modifier = it
             )
         }
-        item {
+        item(key = "series-episodes") {
             Spacer(modifier = Modifier.height(20.dp))
             TvEpisodeCarousel(
                 episodes = selectedSeason.episodes,
@@ -125,7 +125,7 @@ internal fun TvSeriesScreenContent(
             )
         }
         if (series.cast.isNotEmpty()) {
-            item {
+            item(key = "series-cast") {
                 Column(modifier = it) {
                     Spacer(modifier = Modifier.height(20.dp))
                     MediaDetailSectionTitle(text = "Cast")

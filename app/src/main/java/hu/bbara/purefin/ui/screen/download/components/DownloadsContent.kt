@@ -65,7 +65,7 @@ fun DownloadsContent(
         modifier = modifier.background(MaterialTheme.colorScheme.background)
     ) {
         if (activeDownloads.value.isNotEmpty()) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(key = "downloading-header", span = { GridItemSpan(maxLineSpan) }) {
                 Text(
                     text = "Downloading",
                     style = MaterialTheme.typography.titleSmall,
@@ -84,7 +84,7 @@ fun DownloadsContent(
                 )
             }
             if (downloads.value.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
+                item(key = "downloaded-header", span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         text = "Downloaded",
                         style = MaterialTheme.typography.titleSmall,
@@ -95,7 +95,7 @@ fun DownloadsContent(
                 }
             }
         }
-        items(downloads.value) { item ->
+        items(downloads.value, key = { item -> item.id }) { item ->
             PosterCard(
                 item = item,
                 onMovieSelected = viewModel::onMovieSelected,

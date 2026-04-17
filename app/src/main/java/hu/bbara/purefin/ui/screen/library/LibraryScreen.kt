@@ -83,7 +83,7 @@ internal fun LibraryPosterGrid(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = modifier.background(MaterialTheme.colorScheme.background)
     ) {
-        items(libraryItems) { item ->
+        items(libraryItems, key = { item -> item.id }) { item ->
             PosterCard(
                 item = item,
                 onMovieSelected = viewModel::onMovieSelected,

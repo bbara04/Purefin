@@ -105,7 +105,7 @@ fun TvLibraryContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.background(MaterialTheme.colorScheme.background)
         ) {
-            items(libraryItems) { item ->
+            items(libraryItems, key = { item -> item.id }) { item ->
                 PosterCard(
                     item = item,
                     onMovieSelected = onMovieSelected,

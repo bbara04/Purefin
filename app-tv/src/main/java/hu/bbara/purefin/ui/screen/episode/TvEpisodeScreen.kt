@@ -86,7 +86,7 @@ internal fun TvEpisodeScreenContent(
         resetScrollKey = episode.id,
         modifier = modifier
     ) {
-        item {
+        item(key = "episode-hero") {
             TvMediaDetailBodyBox(
                 backgroundImageUrl = ImageUrlBuilder.finishImageUrl(episode.imageUrlPrefix, ArtworkKind.PRIMARY),
                 modifier = it
@@ -101,7 +101,7 @@ internal fun TvEpisodeScreenContent(
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
-        item {
+        item(key = "episode-overview") {
             Column(modifier = it.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 MediaDetailOverviewSection(
@@ -111,7 +111,7 @@ internal fun TvEpisodeScreenContent(
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
-        item {
+        item(key = "episode-playback") {
             Column(modifier = it.fillMaxWidth()) {
                 MediaDetailPlaybackSection(
                     audioTrack = "ENG",
@@ -122,7 +122,7 @@ internal fun TvEpisodeScreenContent(
             }
         }
         if (episode.cast.isNotEmpty()) {
-            item {
+            item(key = "episode-cast") {
                 Column(modifier = it.fillMaxWidth()) {
                     MediaDetailSectionTitle(text = "Cast")
                     Spacer(modifier = Modifier.height(14.dp))

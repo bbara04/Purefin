@@ -84,11 +84,11 @@ fun TvHomeContent(
                 .testTag(TvHomeContentViewportTag),
             contentPadding = contentPadding
         ) {
-            item {
+            item(key = "tv-home-top-spacer") {
                 Spacer(modifier = Modifier.height(8.dp))
             }
             if (hasContinueWatching) {
-                item {
+                item(key = "tv-home-continue-watching") {
                     TvContinueWatchingSection(
                         items = continueWatching,
                         onFocusedItem = onMediaFocused,
@@ -102,13 +102,13 @@ fun TvHomeContent(
             }
 
             if (hasContinueWatching && (hasNextUp || hasLibraries)) {
-                item {
+                item(key = "tv-home-post-continue-gap") {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
             }
 
             if (hasNextUp) {
-                item {
+                item(key = "tv-home-next-up") {
                     TvNextUpSection(
                         items = nextUp,
                         onFocusedItem = onMediaFocused,
@@ -121,7 +121,7 @@ fun TvHomeContent(
             }
 
             if (hasLibraries && (hasContinueWatching || hasNextUp)) {
-                item {
+                item(key = "tv-home-post-next-up-gap") {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
             }
@@ -156,7 +156,7 @@ fun TvHomeContent(
             }
 
             if (hasVisibleContent) {
-                item {
+                item(key = "tv-home-trailing-space") {
                     Spacer(modifier = Modifier.height(TvHomeBringIntoViewTrailingSpace))
                 }
             }

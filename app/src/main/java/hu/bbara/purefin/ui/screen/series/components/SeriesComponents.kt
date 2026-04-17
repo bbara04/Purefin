@@ -304,7 +304,7 @@ internal fun EpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modif
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(episodes) { episode ->
+        items(episodes, key = { episode -> episode.id }) { episode ->
             EpisodeCard(episode = episode)
         }
     }

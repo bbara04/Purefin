@@ -64,7 +64,7 @@ internal fun TvMovieScreenContent(
         resetScrollKey = movie.id,
         modifier = modifier
     ) {
-        item {
+        item(key = "movie-hero") {
             TvMediaDetailBodyBox(
                 backgroundImageUrl = tvMediaDetailBackgroundImageUrl(movie.imageUrlPrefix),
                 modifier = it
@@ -78,7 +78,7 @@ internal fun TvMovieScreenContent(
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
-        item {
+        item(key = "movie-overview") {
             Column(modifier = it.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 MediaDetailOverviewSection(
@@ -88,7 +88,7 @@ internal fun TvMovieScreenContent(
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
-        item {
+        item(key = "movie-playback") {
             Column(modifier = it.fillMaxWidth()) {
                 MediaDetailPlaybackSection(
                     audioTrack = movie.audioTrack,
@@ -99,7 +99,7 @@ internal fun TvMovieScreenContent(
             }
         }
         if (movie.cast.isNotEmpty()) {
-            item {
+            item(key = "movie-cast") {
                 Column(modifier = it.fillMaxWidth()) {
                     MediaDetailSectionTitle(text = "Cast")
                     Spacer(modifier = Modifier.height(14.dp))

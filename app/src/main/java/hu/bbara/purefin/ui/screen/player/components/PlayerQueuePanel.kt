@@ -80,7 +80,7 @@ fun PlayerQueuePanel(
                     exit = fadeOut()
                 ) {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        items(uiState.queue) { item ->
+                        items(uiState.queue, key = { item -> item.id }) { item ->
                             QueueRow(
                                 title = item.title,
                                 subtitle = item.subtitle,

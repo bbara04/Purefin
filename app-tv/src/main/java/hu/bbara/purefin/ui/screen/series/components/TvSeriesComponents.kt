@@ -171,7 +171,7 @@ internal fun TvEpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Mod
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(episodes) { episode ->
+        items(episodes, key = { episode -> episode.id }) { episode ->
             TvEpisodeCard(episode = episode)
         }
     }
