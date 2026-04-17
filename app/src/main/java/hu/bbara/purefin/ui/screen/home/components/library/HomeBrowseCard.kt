@@ -23,39 +23,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.model.MediaKind
-import hu.bbara.purefin.feature.browse.home.PosterItem
-import hu.bbara.purefin.ui.common.badge.UnwatchedEpisodeBadge
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import java.util.UUID
 
 @Composable
 internal fun HomeBrowseCard(
-    item: PosterItem,
+    uiModel: MediaUiModel,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    val supportingText = when (item.type) {
-        MediaKind.MOVIE -> listOf(
-            item.movie?.year,
-            item.movie?.runtime
-        ).filterNotNull().filter { it.isNotBlank() }.joinToString(" • ")
-
-        MediaKind.SERIES -> item.series!!.let { series ->
-            if (series.seasonCount == 1) "1 season" else "${series.seasonCount} seasons"
-        }
-
-        MediaKind.EPISODE -> listOf(
-            "Episode ${item.episode?.index}",
-            item.episode?.runtime
-        ).filterNotNull().filter { it.isNotBlank() }.joinToString(" • ")
-
-        else -> ""
-    }
 
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -66,15 +50,11 @@ internal fun HomeBrowseCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    when (item.type) {
-                        MediaKind.MOVIE -> onMovieSelected(item.id)
-                        MediaKind.SERIES -> onSeriesSelected(item.id)
-                        MediaKind.EPISODE -> {
-                            val episode = item.episode!!
-                            onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
-                        }
-
-                        else -> Unit
+                    //TODO fix this shit
+                    when (uiModel) {
+                        is MovieUiModel -> onMovieSelected(uiModel.id)
+                        is SeriesUiModel -> onSeriesSelected(uiModel.id)
+                        is EpisodeUiModel -> onEpisodeSelected(uiModel.seriesId, uiModel.seasonId, uiModel.id)
                     }
                 }
         ) {
@@ -86,68 +66,42 @@ internal fun HomeBrowseCard(
                     .background(scheme.surface)
             ) {
                 PurefinAsyncImage(
-                    model = item.imageUrl,
-                    contentDescription = item.title,
+                    model = uiModel.imageUrl,
+                    contentDescription = uiModel.primaryText,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                when (item.type) {
-                    MediaKind.MOVIE -> {
-                        val movie = item.movie!!
+                when (uiModel) {
+                    is MovieUiModel, is EpisodeUiModel -> {
                         WatchStateBadge(
                             size = 28,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(8.dp),
-                            watched = movie.watched,
-                            started = (movie.progress ?: 0.0) > 0
+                            watched = uiModel.watched,
+                            started = (uiModel.progress ?: 0f) > 0f
                         )
                     }
-
-                    MediaKind.EPISODE -> {
-                        val episode = item.episode!!
-                        WatchStateBadge(
-                            size = 28,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(8.dp),
-                            watched = episode.watched,
-                            started = (episode.progress ?: 0.0) > 0
-                        )
-                    }
-
-                    MediaKind.SERIES -> {
-                        UnwatchedEpisodeBadge(
-                            size = 28,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(8.dp),
-                            unwatchedCount = item.series!!.unwatchedEpisodeCount
-                        )
-                    }
-
                     else -> Unit
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
             Column(modifier = modifier.padding(12.dp)) {
                 Text(
-                    text = item.title,
+                    text = uiModel.primaryText,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (supportingText.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = supportingText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = scheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = uiModel.secondaryText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }

@@ -23,46 +23,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
 import java.util.UUID
-import hu.bbara.purefin.core.model.MediaKind
-import hu.bbara.purefin.core.image.ArtworkKind
 
 @Composable
 internal fun ContinueWatchingCard(
-    item: ContinueWatchingItem,
+    item: MediaUiModel,
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    val supportingText = when (item.type) {
-        MediaKind.MOVIE -> listOf(
-            item.movie?.year,
-            item.movie?.runtime
-        ).filterNotNull().filter { it.isNotBlank() }.joinToString(" • ")
-
-        MediaKind.EPISODE -> listOf(
-            "Episode ${item.episode?.index}",
-            item.episode?.runtime
-        ).filterNotNull().filter { it.isNotBlank() }.joinToString(" • ")
-
-        else -> ""
-    }
-    val imageUrl = when (item.type) {
-        MediaKind.MOVIE -> ImageUrlBuilder.finishImageUrl(
-            prefixImageUrl = item.movie?.imageUrlPrefix,
-            artworkKind = ArtworkKind.PRIMARY
-        )
-        MediaKind.EPISODE -> ImageUrlBuilder.finishImageUrl(
-            prefixImageUrl = item.episode?.imageUrlPrefix,
-            artworkKind = ArtworkKind.PRIMARY
-        )
-        else -> null
-    }
 
     Surface(
         shape = RoundedCornerShape(26.dp),
@@ -73,13 +48,10 @@ internal fun ContinueWatchingCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    when (item.type) {
-                        MediaKind.MOVIE -> onMovieSelected(item.movie!!.id)
-                        MediaKind.EPISODE -> {
-                            val episode = item.episode!!
-                            onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
-                        }
-
+                    // TODO fix this shit as well
+                    when (item) {
+                        is MovieUiModel -> onMovieSelected(item.id)
+                        is EpisodeUiModel -> onEpisodeSelected(item.seriesId, item.seasonId, item.id)
                         else -> Unit
                     }
                 }
@@ -90,14 +62,12 @@ internal fun ContinueWatchingCard(
                     .aspectRatio(16f / 9f)
                     .background(scheme.surfaceContainer)
             ) {
-                if (imageUrl != null) {
-                    PurefinAsyncImage(
-                        model = imageUrl,
-                        contentDescription = item.primaryText,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+                PurefinAsyncImage(
+                    model = item.imageUrl,
+                    contentDescription = item.primaryText,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -111,12 +81,14 @@ internal fun ContinueWatchingCard(
                             )
                         )
                 )
-                MediaProgressBar(
-                    progress = (item.progress.toFloat() / 100f).coerceIn(0f, 1f),
-                    foregroundColor = scheme.primary,
-                    backgroundColor = Color.White.copy(alpha = 0.24f),
-                    modifier = Modifier.align(Alignment.BottomStart)
-                )
+                item.progress?.let { progress ->
+                    MediaProgressBar(
+                        progress = progress,
+                        foregroundColor = scheme.primary,
+                        backgroundColor = Color.White.copy(alpha = 0.24f),
+                        modifier = Modifier.align(Alignment.BottomStart)
+                    )
+                }
             }
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -129,15 +101,13 @@ internal fun ContinueWatchingCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (supportingText.isNotBlank()) {
-                    Text(
-                        text = supportingText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = scheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Text(
+                    text = item.secondaryText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }

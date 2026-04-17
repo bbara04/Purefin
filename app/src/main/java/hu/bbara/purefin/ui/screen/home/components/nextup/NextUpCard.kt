@@ -22,15 +22,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.feature.browse.home.NextUpItem
 import java.util.UUID
-import hu.bbara.purefin.core.image.ArtworkKind
 
 @Composable
 internal fun NextUpCard(
-    item: NextUpItem,
+    uiModel: MediaUiModel,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -45,9 +44,11 @@ internal fun NextUpCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    onEpisodeSelected(
-                        item.episode.seriesId, item.episode.seasonId, item.episode.id
-                    )
+                    // TODO fix this shit
+                    when (uiModel) {
+                        is EpisodeUiModel -> onEpisodeSelected(uiModel.seriesId, uiModel.seasonId, uiModel.id)
+                        else -> Unit
+                    }
                 }
         ) {
             Box(
@@ -57,8 +58,8 @@ internal fun NextUpCard(
                     .background(scheme.surface)
             ) {
                 PurefinAsyncImage(
-                    model = ImageUrlBuilder.finishImageUrl(item.episode.imageUrlPrefix, ArtworkKind.PRIMARY),
-                    contentDescription = item.primaryText,
+                    model = uiModel.imageUrl,
+                    contentDescription = uiModel.primaryText,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -81,16 +82,14 @@ internal fun NextUpCard(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
             ) {
                 Text(
-                    text = item.primaryText,
+                    text = uiModel.primaryText,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = listOf("Episode ${item.episode.index}", item.episode.runtime, item.secondaryText)
-                        .filter { it.isNotBlank() }
-                        .joinToString(" • "),
+                    text = uiModel.secondaryText,
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurface,
                     maxLines = 1,

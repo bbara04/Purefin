@@ -3,20 +3,30 @@ package hu.bbara.purefin.ui.common.card
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import hu.bbara.purefin.feature.browse.home.PosterItem
 import java.util.UUID
 
 @Composable
 fun PosterCard(
-    item: PosterItem,
+    item: MediaUiModel,
     modifier: Modifier = Modifier,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
     PosterCardContent(
-        model = item.toPosterCardModel(),
-        onClick = { item.open(onMovieSelected, onSeriesSelected, onEpisodeSelected) },
+        model = item,
+        onClick = {
+            //TODO same throw this shit out when to composite onSelect is finished
+            when (item) {
+                is MovieUiModel -> onMovieSelected(item.id)
+                is SeriesUiModel -> onSeriesSelected(item.id)
+                else -> Unit
+            }
+        },
         modifier = modifier
     )
 }

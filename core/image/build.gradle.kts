@@ -10,7 +10,3 @@ kotlin {
     }
     jvmToolchain(11)
 }
-
-dependencies {
-    implementation(project(":core:model"))
-}

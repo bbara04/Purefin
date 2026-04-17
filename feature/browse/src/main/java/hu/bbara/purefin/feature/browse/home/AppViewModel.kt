@@ -5,18 +5,19 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.MediaCatalogReader
-import hu.bbara.purefin.core.download.MediaDownloadController
 import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.core.download.MediaDownloadController
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
 import hu.bbara.purefin.core.model.LibraryKind
 import hu.bbara.purefin.core.model.Media
-import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import hu.bbara.purefin.core.navigation.EpisodeDto
 import hu.bbara.purefin.core.navigation.LibraryDto
 import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
-import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -95,10 +97,10 @@ class AppViewModel @Inject constructor(
         list.mapNotNull { media ->
             when (media) {
                 is Media.MovieMedia -> moviesMap[media.movieId]?.let {
-                    ContinueWatchingItem(type = MediaKind.MOVIE, movie = it)
+                    MovieUiModel(movie = it)
                 }
                 is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
-                    ContinueWatchingItem(type = MediaKind.EPISODE, episode = it)
+                    EpisodeUiModel(episode = it)
                 }
                 else -> null
             }
@@ -116,7 +118,7 @@ class AppViewModel @Inject constructor(
         list.mapNotNull { media ->
             when (media) {
                 is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
-                    NextUpItem(episode = it)
+                    EpisodeUiModel(episode = it)
                 }
                 else -> null
             }
@@ -137,16 +139,16 @@ class AppViewModel @Inject constructor(
             items.mapNotNull { media ->
                 when (media) {
                     is Media.MovieMedia -> moviesMap[media.movieId]?.let {
-                        PosterItem(type = MediaKind.MOVIE, movie = it)
+                        MovieUiModel(movie = it)
                     }
                     is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
-                        PosterItem(type = MediaKind.EPISODE, episode = it)
+                        EpisodeUiModel(episode = it)
                     }
                     is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
-                        PosterItem(type = MediaKind.SERIES, series = it)
+                        SeriesUiModel(series = it)
                     }
                     is Media.SeasonMedia -> seriesMap[media.seriesId]?.let {
-                        PosterItem(type = MediaKind.SERIES, series = it)
+                        SeriesUiModel(series = it)
                     }
                 }
             }.distinctBy { it.id }

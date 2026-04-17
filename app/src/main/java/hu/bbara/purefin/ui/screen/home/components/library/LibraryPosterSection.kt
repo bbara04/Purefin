@@ -9,15 +9,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
-import hu.bbara.purefin.feature.browse.home.PosterItem
 import hu.bbara.purefin.ui.common.header.SectionHeader
 import java.util.UUID
 
 @Composable
 fun LibraryPosterSection(
     library: LibraryItem,
-    items: List<PosterItem>,
+    items: List<MediaUiModel>,
     onLibrarySelected: (LibraryItem) -> Unit,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
@@ -42,7 +42,7 @@ fun LibraryPosterSection(
         ) {
             items(items = items, key = { item -> item.id }) { item ->
                 HomeBrowseCard(
-                    item = item,
+                    uiModel = item,
                     onMovieSelected = onMovieSelected,
                     onSeriesSelected = onSeriesSelected,
                     onEpisodeSelected = onEpisodeSelected

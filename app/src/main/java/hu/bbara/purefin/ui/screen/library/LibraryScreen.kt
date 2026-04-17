@@ -21,11 +21,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.common.card.PosterCard
-import hu.bbara.purefin.ui.common.button.PurefinIconButton
 import hu.bbara.purefin.core.navigation.LibraryDto
-import hu.bbara.purefin.feature.browse.home.PosterItem
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.library.LibraryViewModel
+import hu.bbara.purefin.ui.common.button.PurefinIconButton
+import hu.bbara.purefin.ui.common.card.PosterCard
 
 @Composable
 fun LibraryScreen(
@@ -72,7 +72,7 @@ internal fun LibraryTopBar(
 
 @Composable
 internal fun LibraryPosterGrid(
-    libraryItems: List<PosterItem>,
+    libraryItems: List<MediaUiModel>,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {

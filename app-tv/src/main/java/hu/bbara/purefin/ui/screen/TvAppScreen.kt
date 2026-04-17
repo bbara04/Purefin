@@ -15,20 +15,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import hu.bbara.purefin.core.model.LibraryKind
 import hu.bbara.purefin.feature.browse.home.AppViewModel
 import hu.bbara.purefin.ui.screen.home.TvHomeScreen
 import hu.bbara.purefin.ui.screen.home.components.TvDrawerDestination
 import hu.bbara.purefin.ui.screen.home.components.TvDrawerDestinationItem
 import hu.bbara.purefin.ui.screen.home.components.TvNavigationDrawer
 import hu.bbara.purefin.ui.screen.libraries.TvLibrariesOverviewScreen
-import hu.bbara.purefin.core.model.LibraryKind
 
 @Composable
 fun TvAppScreen(
     viewModel: AppViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val serverUrl by viewModel.serverUrl.collectAsState()
     val libraries by viewModel.libraries.collectAsState()
     val continueWatching by viewModel.continueWatching.collectAsState()
     val nextUp by viewModel.nextUp.collectAsState()
@@ -77,7 +76,6 @@ fun TvAppScreen(
                     libraryContent = latestLibraryContent,
                     continueWatching = continueWatching,
                     nextUp = nextUp,
-                    serverUrl = serverUrl,
                     onMovieSelected = viewModel::onMovieSelected,
                     onSeriesSelected = viewModel::onSeriesSelected,
                     onEpisodeSelected = viewModel::onEpisodeSelected,

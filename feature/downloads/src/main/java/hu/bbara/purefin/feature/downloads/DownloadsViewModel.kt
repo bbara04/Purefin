@@ -5,19 +5,19 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.OfflineCatalogReader
 import hu.bbara.purefin.core.download.MediaDownloadController
+import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.core.model.MediaKind
 import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
-import hu.bbara.purefin.feature.browse.home.PosterItem
-import java.util.UUID
+import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import hu.bbara.purefin.core.image.ArtworkKind
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,8 +53,8 @@ class DownloadsViewModel @Inject constructor(
     ) { movies, series, inProgress ->
         movies.values
             .filter { it.id.toString() !in inProgress }
-            .map { PosterItem(type = MediaKind.MOVIE, movie = it) } +
-        series.values.map { PosterItem(type = MediaKind.SERIES, series = it) }
+            .map { MovieUiModel(it) } +
+        series.values.map { SeriesUiModel(it) }
     }
 
     /** Items currently being downloaded with their progress. */

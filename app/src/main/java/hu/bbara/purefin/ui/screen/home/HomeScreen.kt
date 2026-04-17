@@ -9,29 +9,26 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.feature.browse.home.SuggestedItem
+import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.home.components.HomeContent
 import hu.bbara.purefin.ui.screen.home.components.HomeTopBar
 import hu.bbara.purefin.ui.screen.home.components.search.HomeSearchOverlay
-import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.browse.home.LibraryItem
-import hu.bbara.purefin.feature.browse.home.NextUpItem
-import hu.bbara.purefin.feature.browse.home.PosterItem
-import hu.bbara.purefin.feature.browse.home.SuggestedItem
-import hu.bbara.purefin.ui.screen.AppBottomBar
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     libraries: List<LibraryItem>,
-    libraryContent: Map<UUID, List<PosterItem>>,
+    libraryContent: Map<UUID, List<MediaUiModel>>,
     suggestions: List<SuggestedItem>,
-    continueWatching: List<ContinueWatchingItem>,
-    nextUp: List<NextUpItem>,
+    continueWatching: List<MediaUiModel>,
+    nextUp: List<MediaUiModel>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onMovieSelected: (UUID) -> Unit,
@@ -46,14 +43,6 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     var isSearchVisible by rememberSaveable { mutableStateOf(false) }
-    val subtitle = remember(continueWatching, nextUp, libraries) {
-        when {
-            continueWatching.isNotEmpty() -> "Continue where you left off"
-            nextUp.isNotEmpty() -> "Fresh episodes waiting for you"
-            libraries.isNotEmpty() -> "Browse your latest additions"
-            else -> "Pull to refresh or explore your libraries"
-        }
-    }
 
     Scaffold(
         modifier = modifier

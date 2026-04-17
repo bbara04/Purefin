@@ -5,24 +5,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.FocusableItem
 import hu.bbara.purefin.feature.browse.home.LibraryItem
-import hu.bbara.purefin.feature.browse.home.NextUpItem
-import hu.bbara.purefin.feature.browse.home.PosterItem
 import java.util.UUID
+
+//TODO throw this out and simplify it.
 
 internal data class TvHomeItemRegistry(
     val visibleLibraries: List<LibraryItem>,
-    private val libraryContent: Map<UUID, List<PosterItem>>,
-    private val continueWatching: List<ContinueWatchingItem>,
-    private val nextUp: List<NextUpItem>,
+    private val libraryContent: Map<UUID, List<MediaUiModel>>,
+    private val continueWatching: List<MediaUiModel>,
+    private val nextUp: List<MediaUiModel>,
     val firstAvailableItemId: UUID?,
 ) {
-    val firstAvailableItem: FocusableItem?
+    val firstAvailableItem: MediaUiModel?
         get() = firstAvailableItemId?.let(::itemById)
 
-    fun itemById(id: UUID): FocusableItem? {
+    fun itemById(id: UUID): MediaUiModel? {
         return continueWatching.firstOrNull { it.id == id }
             ?: nextUp.firstOrNull { it.id == id }
             ?: visibleLibraries.asSequence()
@@ -33,16 +33,16 @@ internal data class TvHomeItemRegistry(
 }
 
 internal class TvHomeHeroState(
-    val focusedHero: TvFocusedHeroModel?,
+    val focusedHero: MediaUiModel?,
     val onMediaFocused: (FocusableItem) -> Unit,
 )
 
 @Composable
 internal fun rememberTvHomeItemRegistry(
     libraries: List<LibraryItem>,
-    libraryContent: Map<UUID, List<PosterItem>>,
-    continueWatching: List<ContinueWatchingItem>,
-    nextUp: List<NextUpItem>,
+    libraryContent: Map<UUID, List<MediaUiModel>>,
+    continueWatching: List<MediaUiModel>,
+    nextUp: List<MediaUiModel>,
 ): TvHomeItemRegistry {
     return remember(libraries, libraryContent, continueWatching, nextUp) {
         createTvHomeItemRegistry(
@@ -56,9 +56,9 @@ internal fun rememberTvHomeItemRegistry(
 
 internal fun createTvHomeItemRegistry(
     libraries: List<LibraryItem>,
-    libraryContent: Map<UUID, List<PosterItem>>,
-    continueWatching: List<ContinueWatchingItem>,
-    nextUp: List<NextUpItem>,
+    libraryContent: Map<UUID, List<MediaUiModel>>,
+    continueWatching: List<MediaUiModel>,
+    nextUp: List<MediaUiModel>,
 ): TvHomeItemRegistry {
     val visibleLibraries = libraries.filter { libraryContent[it.id]?.isEmpty() != true }
     val firstAvailableItemId = continueWatching.firstOrNull()?.id
@@ -79,9 +79,9 @@ internal fun createTvHomeItemRegistry(
 @Composable
 internal fun rememberTvHomeHeroState(
     libraries: List<LibraryItem>,
-    libraryContent: Map<UUID, List<PosterItem>>,
-    continueWatching: List<ContinueWatchingItem>,
-    nextUp: List<NextUpItem>,
+    libraryContent: Map<UUID, List<MediaUiModel>>,
+    continueWatching: List<MediaUiModel>,
+    nextUp: List<MediaUiModel>,
 ): TvHomeHeroState {
     val itemRegistry = rememberTvHomeItemRegistry(
         libraries = libraries,
@@ -94,7 +94,7 @@ internal fun rememberTvHomeHeroState(
         focusedItemId?.let(itemRegistry::itemById)
     }
     val focusedHero = remember(focusedItem, itemRegistry) {
-        (focusedItem ?: itemRegistry.firstAvailableItem)?.toTvFocusedHeroModel()
+        (focusedItem ?: itemRegistry.firstAvailableItem)
     }
     val onMediaFocused: (FocusableItem) -> Unit = remember {
         { item ->

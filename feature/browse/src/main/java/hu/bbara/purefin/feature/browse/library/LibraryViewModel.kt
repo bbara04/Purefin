@@ -5,19 +5,20 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.model.LibraryKind
-import hu.bbara.purefin.core.model.MediaKind
-import hu.bbara.purefin.feature.browse.home.PosterItem
 import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
-import java.util.UUID
+import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,7 +29,7 @@ class LibraryViewModel @Inject constructor(
 
     private val selectedLibrary = MutableStateFlow<UUID?>(null)
 
-    val contents: StateFlow<List<PosterItem>> = combine(selectedLibrary, homeRepository.libraries) {
+    val contents: StateFlow<List<MediaUiModel>> = combine(selectedLibrary, homeRepository.libraries) {
         libraryId, libraries ->
         if (libraryId == null) {
             return@combine emptyList()
@@ -36,10 +37,10 @@ class LibraryViewModel @Inject constructor(
         val library = libraries.find { it.id == libraryId } ?: return@combine emptyList()
         when (library.type) {
             LibraryKind.SERIES -> library.series!!.map { series ->
-                PosterItem(type = MediaKind.SERIES, series = series)
+                SeriesUiModel(series)
             }
             LibraryKind.MOVIES -> library.movies!!.map { movie ->
-                PosterItem(type = MediaKind.MOVIE, movie = movie)
+                MovieUiModel(movie)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

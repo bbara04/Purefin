@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 
 internal const val TvHomeHeroTitleTag = "tv-home-hero-title"
@@ -32,7 +33,7 @@ private const val TvHomeHeroAnimationMillis = 180
 
 @Composable
 internal fun TvFocusedItemHero(
-    item: TvFocusedHeroModel,
+    item: MediaUiModel,
     height: Dp,
     modifier: Modifier = Modifier,
 ) {
@@ -44,7 +45,7 @@ internal fun TvFocusedItemHero(
             .background(scheme.background)
     ) {
         Crossfade(
-            targetState = item.backdropImageUrl,
+            targetState = item.imageUrl,
             animationSpec = tween(durationMillis = TvHomeHeroAnimationMillis),
             label = "tv-home-hero-background"
         ) { imageUrl ->
@@ -98,7 +99,7 @@ internal fun TvFocusedItemHero(
                     modifier = Modifier.widthIn(max = 720.dp)
                 ) {
                     Text(
-                        text = hero.title,
+                        text = hero.primaryText,
                         color = scheme.onBackground,
                         fontSize = 34.sp,
                         fontWeight = FontWeight.Bold,
@@ -107,16 +108,14 @@ internal fun TvFocusedItemHero(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.testTag(TvHomeHeroTitleTag)
                     )
-                    hero.metadataText?.let { metadataText ->
-                        Text(
-                            text = metadataText,
-                            color = scheme.onSurfaceVariant,
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                    Text(
+                        text = hero.description,
+                        color = scheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }

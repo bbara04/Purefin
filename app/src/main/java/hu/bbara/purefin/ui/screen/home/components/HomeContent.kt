@@ -22,26 +22,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
-import hu.bbara.purefin.feature.browse.home.NextUpItem
-import hu.bbara.purefin.feature.browse.home.PosterItem
 import hu.bbara.purefin.feature.browse.home.SuggestedItem
 import hu.bbara.purefin.ui.screen.home.components.continuewatching.ContinueWatchingSection
 import hu.bbara.purefin.ui.screen.home.components.featured.SuggestionsSection
 import hu.bbara.purefin.ui.screen.home.components.library.LibraryPosterSection
 import hu.bbara.purefin.ui.screen.home.components.nextup.NextUpSection
 import java.util.UUID
-import hu.bbara.purefin.core.model.MediaKind
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
     libraries: List<LibraryItem>,
-    libraryContent: Map<UUID, List<PosterItem>>,
+    libraryContent: Map<UUID, List<MediaUiModel>>,
     suggestions: List<SuggestedItem>,
-    continueWatching: List<ContinueWatchingItem>,
-    nextUp: List<NextUpItem>,
+    continueWatching: List<MediaUiModel>,
+    nextUp: List<MediaUiModel>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onMovieSelected: (UUID) -> Unit,

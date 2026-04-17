@@ -22,11 +22,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.common.card.PosterCard
-import hu.bbara.purefin.ui.common.button.PurefinIconButton
 import hu.bbara.purefin.core.navigation.LibraryDto
-import hu.bbara.purefin.feature.browse.home.PosterItem
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.library.LibraryViewModel
+import hu.bbara.purefin.ui.common.button.PurefinIconButton
+import hu.bbara.purefin.ui.common.card.PosterCard
 import java.util.UUID
 
 @Composable
@@ -92,7 +92,7 @@ private fun TvLibraryTopBar(
 
 @Composable
 fun TvLibraryContent(
-    libraryItems: List<PosterItem>,
+    libraryItems: List<MediaUiModel>,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     modifier: Modifier = Modifier

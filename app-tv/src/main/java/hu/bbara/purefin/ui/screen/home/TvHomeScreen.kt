@@ -9,10 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
-import hu.bbara.purefin.feature.browse.home.NextUpItem
-import hu.bbara.purefin.feature.browse.home.PosterItem
 import hu.bbara.purefin.ui.screen.home.components.TvFocusedItemHero
 import hu.bbara.purefin.ui.screen.home.components.TvHomeContent
 import hu.bbara.purefin.ui.screen.home.components.rememberTvHomeHeroState
@@ -25,10 +23,9 @@ private val TvHomeMaxHeroHeight = 200.dp
 @Composable
 fun TvHomeScreen(
     libraries: List<LibraryItem>,
-    libraryContent: Map<UUID, List<PosterItem>>,
-    continueWatching: List<ContinueWatchingItem>,
-    nextUp: List<NextUpItem>,
-    serverUrl: String,
+    libraryContent: Map<UUID, List<MediaUiModel>>,
+    continueWatching: List<MediaUiModel>,
+    nextUp: List<MediaUiModel>,
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
@@ -66,7 +63,8 @@ fun TvHomeScreen(
                 libraryContent = libraryContent,
                 continueWatching = continueWatching,
                 nextUp = nextUp,
-                onMediaFocused = heroState.onMediaFocused,
+                //TODO implement it by throwing out complex TvHomeHeroState shit ass code. Fuck ai btw
+                onMediaFocused = {},
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected,

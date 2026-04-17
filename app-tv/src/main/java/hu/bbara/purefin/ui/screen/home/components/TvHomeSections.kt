@@ -44,17 +44,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.ui.common.card.PosterCard
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
+import hu.bbara.purefin.ui.common.card.PosterCard
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.browse.home.FocusableItem
-import hu.bbara.purefin.feature.browse.home.NextUpItem
-import hu.bbara.purefin.feature.browse.home.PosterItem
 import java.util.UUID
-import hu.bbara.purefin.core.model.MediaKind
-import hu.bbara.purefin.core.image.ArtworkKind
 
 private val TvHomeSectionsThumbShape = RoundedCornerShape(20.dp)
 private val TvHomeSectionsHorizontalPadding = 32.dp
@@ -70,8 +65,8 @@ internal fun tvHomeLibraryRowTag(libraryId: UUID): String =
 
 @Composable
 fun TvContinueWatchingSection(
-    items: List<ContinueWatchingItem>,
-    onFocusedItem: (FocusableItem) -> Unit = {},
+    items: List<MediaUiModel>,
+    onFocusedItem: (MediaUiModel) -> Unit = {},
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     firstItemFocusRequester: FocusRequester? = null,
@@ -88,24 +83,11 @@ fun TvContinueWatchingSection(
         rowTestTag = rowTestTag
     ) {
         itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
-            val progressFraction = (item.progress / 100.0).toFloat().coerceIn(0f, 1f)
             TvHomeLandscapeCard(
                 title = item.primaryText,
                 supporting = item.secondaryText,
-                imageUrl = when (item.type) {
-                    MediaKind.MOVIE -> ImageUrlBuilder.finishImageUrl(
-                        prefixImageUrl = item.movie?.imageUrlPrefix,
-                        artworkKind = ArtworkKind.PRIMARY
-                    )
-
-                    MediaKind.EPISODE -> ImageUrlBuilder.finishImageUrl(
-                        prefixImageUrl = item.episode?.imageUrlPrefix,
-                        artworkKind = ArtworkKind.PRIMARY
-                    )
-
-                    else -> null
-                },
-                progress = progressFraction,
+                imageUrl = item.imageUrl,
+                progress = item.progress ?: 0f,
                 imageModifier = Modifier
                     .then(
                         if (index == 0 && firstItemFocusRequester != null) {
@@ -123,13 +105,9 @@ fun TvContinueWatchingSection(
                     ),
                 onFocusedItem = { onFocusedItem(item) },
                 onClick = {
-                    when (item.type) {
-                        MediaKind.MOVIE -> onMovieSelected(item.movie!!.id)
-                        MediaKind.EPISODE -> {
-                            val episode = item.episode!!
-                            onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
-                        }
-
+                    when (item) {
+                        //TODO fix this shit
+                        is EpisodeUiModel -> onEpisodeSelected(item.seriesId, item.seasonId, item.id)
                         else -> Unit
                     }
                 }
@@ -140,8 +118,8 @@ fun TvContinueWatchingSection(
 
 @Composable
 fun TvNextUpSection(
-    items: List<NextUpItem>,
-    onFocusedItem: (FocusableItem) -> Unit = {},
+    items: List<MediaUiModel>,
+    onFocusedItem: (MediaUiModel) -> Unit = {},
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     firstItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
@@ -178,8 +156,10 @@ fun TvNextUpSection(
                     ),
                 onFocusedItem = { onFocusedItem(item) },
                 onClick = {
-                    val episode = item.episode
-                    onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
+                    //TODO FIX
+                    (item as? EpisodeUiModel)?.let { episode ->
+                        onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
+                    }
                 }
             )
         }
@@ -189,8 +169,8 @@ fun TvNextUpSection(
 @Composable
 fun TvLibraryPosterSection(
     title: String,
-    items: List<PosterItem>,
-    onFocusedItem: (FocusableItem) -> Unit = {},
+    items: List<MediaUiModel>,
+    onFocusedItem: (MediaUiModel) -> Unit = {},
     firstItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
     rowTestTag: String? = null,

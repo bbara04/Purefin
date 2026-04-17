@@ -5,27 +5,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.model.MediaKind
-import hu.bbara.purefin.feature.browse.home.FocusableItem
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import hu.bbara.purefin.feature.browse.home.PosterItem
 import java.util.UUID
 
 @Composable
 fun PosterCard(
-    item: PosterItem,
+    item: MediaUiModel,
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier,
     posterWidth: Dp = 144.dp,
     showSecondaryText: Boolean = false,
     indicatorSize: Int = 28,
     indicatorPadding: Dp = 8.dp,
-    onFocusedItem: (FocusableItem) -> Unit = {},
+    onFocusedItem: (MediaUiModel) -> Unit = {},
     onMovieSelected: (UUID) -> Unit,
     onSeriesSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
 ) {
     PosterCardContent(
-        model = item.toPosterCardModel(),
-        onClick = { item.open(onMovieSelected, onSeriesSelected, onEpisodeSelected) },
+        model = item,
+        onClick = {
+            // TODO Fix it by addig a handler into the viewModel like onMediaUiModelSelected
+            when (item) {
+                is SeriesUiModel -> onSeriesSelected(item.id)
+                is MovieUiModel -> onMovieSelected(item.id)
+                is EpisodeUiModel -> onEpisodeSelected(item.seriesId, item.seasonId, item.id)
+            }
+        },
         modifier = modifier,
         imageModifier = imageModifier,
         posterWidth = posterWidth,

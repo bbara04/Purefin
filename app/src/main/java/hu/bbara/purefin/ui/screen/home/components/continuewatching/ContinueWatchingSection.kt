@@ -9,13 +9,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.header.SectionHeader
-import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
 import java.util.UUID
 
 @Composable
 fun ContinueWatchingSection(
-    items: List<ContinueWatchingItem>,
+    items: List<MediaUiModel>,
     onMovieSelected: (UUID) -> Unit,
     onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
     modifier: Modifier = Modifier

@@ -30,7 +30,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.core.model.MediaKind
-import hu.bbara.purefin.ui.common.badge.UnwatchedEpisodeBadge
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 
@@ -57,7 +59,7 @@ sealed interface PosterCardBadge {
 
 @Composable
 fun PosterCardContent(
-    model: PosterCardModel,
+    model: MediaUiModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier,
@@ -108,36 +110,25 @@ fun PosterCardContent(
                     .clickable(onClick = onClick),
                 contentScale = ContentScale.Crop
             )
-            when (val badge = model.badge) {
-                is PosterCardBadge.WatchState -> {
+            when (model) {
+                is MovieUiModel, is EpisodeUiModel -> {
                     WatchStateBadge(
                         size = indicatorSize,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(indicatorPadding),
-                        watched = badge.watched,
-                        started = badge.started
+                        watched = model.watched,
+                        started = (model.progress ?: 0f) > 0f
                     )
                 }
-
-                is PosterCardBadge.UnwatchedEpisodes -> {
-                    UnwatchedEpisodeBadge(
-                        size = indicatorSize,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(indicatorPadding),
-                        unwatchedCount = badge.count
-                    )
-                }
-
-                PosterCardBadge.None -> Unit
+                else -> Unit
             }
         }
         Column(
             modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 8.dp)
         ) {
             Text(
-                text = model.title,
+                text = model.primaryText,
                 color = scheme.onBackground,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
