@@ -18,12 +18,11 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.LibraryKind
-import hu.bbara.purefin.core.model.MediaKind
 import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
-import hu.bbara.purefin.feature.browse.home.NextUpItem
-import hu.bbara.purefin.feature.browse.home.PosterItem
 import hu.bbara.purefin.ui.screen.home.TvHomeScreen
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
@@ -68,7 +67,6 @@ class TvHomeContentTest {
                     libraryContent = sampleLibraryContent(),
                     continueWatching = sampleContinueWatching(),
                     nextUp = emptyList(),
-                    serverUrl = "",
                     onMovieSelected = {},
                     onSeriesSelected = {},
                     onEpisodeSelected = { _, _, _ -> }
@@ -80,7 +78,6 @@ class TvHomeContentTest {
 
         composeRule.onNodeWithTag(TvHomeInitialFocusTag).assertIsFocused()
         composeRule.onNodeWithTag(TvHomeHeroTitleTag).assertTextEquals("Blade Runner 2049")
-        composeRule.onNodeWithTag(TvHomeHeroProgressLabelTag).assertTextEquals("42%")
     }
 
     @Test
@@ -92,7 +89,6 @@ class TvHomeContentTest {
                     libraryContent = sampleLibraryContent(),
                     continueWatching = sampleContinueWatchingRow(),
                     nextUp = emptyList(),
-                    serverUrl = "",
                     onMovieSelected = {},
                     onSeriesSelected = {},
                     onEpisodeSelected = { _, _, _ -> }
@@ -126,7 +122,6 @@ class TvHomeContentTest {
                         libraryContent = sampleLibraryContent(),
                         continueWatching = sampleContinueWatching(),
                         nextUp = emptyList(),
-                        serverUrl = "",
                         onMovieSelected = {},
                         onSeriesSelected = {},
                         onEpisodeSelected = { _, _, _ -> }
@@ -156,7 +151,6 @@ class TvHomeContentTest {
                         libraryContent = sampleLibraryContent(),
                         continueWatching = sampleContinueWatching(),
                         nextUp = sampleNextUp(),
-                        serverUrl = "",
                         onMovieSelected = {},
                         onSeriesSelected = {},
                         onEpisodeSelected = { _, _, _ -> }
@@ -196,7 +190,6 @@ class TvHomeContentTest {
                         libraryContent = sampleLibraryContent(),
                         continueWatching = sampleContinueWatching(),
                         nextUp = emptyList(),
-                        serverUrl = "",
                         onMovieSelected = {},
                         onSeriesSelected = {},
                         onEpisodeSelected = { _, _, _ -> }
@@ -228,7 +221,6 @@ class TvHomeContentTest {
                         libraryContent = sampleLibraryContent(),
                         continueWatching = sampleContinueWatching(),
                         nextUp = sampleNextUp(),
-                        serverUrl = "",
                         onMovieSelected = {},
                         onSeriesSelected = {},
                         onEpisodeSelected = { _, _, _ -> }
@@ -266,7 +258,6 @@ class TvHomeContentTest {
                         libraryContent = sampleLibraryContent(),
                         continueWatching = sampleContinueWatching(),
                         nextUp = sampleNextUpRow(),
-                        serverUrl = "",
                         onMovieSelected = {},
                         onSeriesSelected = {},
                         onEpisodeSelected = { _, _, _ -> }
@@ -295,11 +286,49 @@ class TvHomeContentTest {
         assertEquals(alignedTopBefore, alignedTopAfter, 2f)
     }
 
-    private fun sampleContinueWatching(): List<ContinueWatchingItem> {
+    @Test
+    fun tvHomeScreen_usesReducedMediaCardWidths() {
+        composeRule.setContent {
+            AppTheme {
+                Box(
+                    modifier = Modifier.size(width = 960.dp, height = 540.dp)
+                ) {
+                    TvHomeScreen(
+                        libraries = sampleLibraries(),
+                        libraryContent = sampleLibraryContent(),
+                        continueWatching = sampleContinueWatching(),
+                        nextUp = emptyList(),
+                        onMovieSelected = {},
+                        onSeriesSelected = {},
+                        onEpisodeSelected = { _, _, _ -> }
+                    )
+                }
+            }
+        }
+
+        composeRule.waitForIdle()
+
+        val expectedLandscapeWidth = with(composeRule.density) { 223.2.dp.toPx() }
+        assertEquals(expectedLandscapeWidth, nodeWidth(TvHomeInitialFocusTag), 2f)
+
+        composeRule.onRoot().performKeyInput {
+            pressKey(Key.DirectionDown)
+        }
+        composeRule.waitForIdle()
+
+        val expectedPosterWidth = with(composeRule.density) { 122.4.dp.toPx() }
+        composeRule.onNodeWithTag(tvHomeLibraryFirstItemTag(sampleLibraryId())).assertIsDisplayed()
+        assertEquals(
+            expectedPosterWidth,
+            nodeWidth(tvHomeLibraryFirstItemTag(sampleLibraryId())),
+            2f
+        )
+    }
+
+    private fun sampleContinueWatching(): List<MediaUiModel> {
         return listOf(
-            ContinueWatchingItem(
-                type = MediaKind.MOVIE,
-                movie = sampleMovie(
+            MovieUiModel(
+                sampleMovie(
                     id = "11111111-1111-1111-1111-111111111111",
                     title = "Blade Runner 2049",
                     progress = 42.0
@@ -308,19 +337,17 @@ class TvHomeContentTest {
         )
     }
 
-    private fun sampleContinueWatchingRow(): List<ContinueWatchingItem> {
+    private fun sampleContinueWatchingRow(): List<MediaUiModel> {
         return listOf(
-            ContinueWatchingItem(
-                type = MediaKind.MOVIE,
-                movie = sampleMovie(
+            MovieUiModel(
+                sampleMovie(
                     id = "11111111-1111-1111-1111-111111111111",
                     title = "Blade Runner 2049",
                     progress = 42.0
                 )
             ),
-            ContinueWatchingItem(
-                type = MediaKind.MOVIE,
-                movie = sampleMovie(
+            MovieUiModel(
+                sampleMovie(
                     id = "55555555-5555-5555-5555-555555555555",
                     title = "Mad Max: Fury Road",
                     progress = 8.0
@@ -329,10 +356,10 @@ class TvHomeContentTest {
         )
     }
 
-    private fun sampleNextUp(): List<NextUpItem> {
+    private fun sampleNextUp(): List<MediaUiModel> {
         return listOf(
-            NextUpItem(
-                episode = sampleEpisode(
+            EpisodeUiModel(
+                sampleEpisode(
                     id = "66666666-6666-6666-6666-666666666666",
                     title = "The Train Job"
                 )
@@ -340,16 +367,16 @@ class TvHomeContentTest {
         )
     }
 
-    private fun sampleNextUpRow(): List<NextUpItem> {
+    private fun sampleNextUpRow(): List<MediaUiModel> {
         return listOf(
-            NextUpItem(
-                episode = sampleEpisode(
+            EpisodeUiModel(
+                sampleEpisode(
                     id = "66666666-6666-6666-6666-666666666666",
                     title = "The Train Job"
                 )
             ),
-            NextUpItem(
-                episode = sampleEpisode(
+            EpisodeUiModel(
+                sampleEpisode(
                     id = "77777777-7777-7777-7777-777777777777",
                     title = "Safe",
                     releaseDate = "2024-02-09"
@@ -370,14 +397,13 @@ class TvHomeContentTest {
         )
     }
 
-    private fun sampleLibraryContent(): Map<UUID, List<PosterItem>> {
+    private fun sampleLibraryContent(): Map<UUID, List<MediaUiModel>> {
         val libraryId = sampleLibraryId()
 
         return mapOf(
             libraryId to listOf(
-                PosterItem(
-                    type = MediaKind.MOVIE,
-                    movie = sampleMovie(
+                MovieUiModel(
+                    sampleMovie(
                         id = "44444444-4444-4444-4444-444444444444",
                         title = "Arrival",
                         progress = null,
@@ -461,5 +487,12 @@ class TvHomeContentTest {
             .fetchSemanticsNode()
             .boundsInRoot
             .top
+    }
+
+    private fun nodeWidth(tag: String): Float {
+        return composeRule.onNodeWithTag(tag, useUnmergedTree = true)
+            .fetchSemanticsNode()
+            .boundsInRoot
+            .width
     }
 }

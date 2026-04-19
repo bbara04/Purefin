@@ -64,6 +64,7 @@ fun PosterCardContent(
     modifier: Modifier = Modifier,
     imageModifier: Modifier = Modifier,
     posterWidth: Dp = 144.dp,
+    contentScale: Float = 1f,
     showSecondaryText: Boolean = false,
     indicatorSize: Int = 28,
     indicatorPadding: Dp = 8.dp,
@@ -74,6 +75,14 @@ fun PosterCardContent(
 ) {
     val scheme = MaterialTheme.colorScheme
     var isFocused by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape((14f * contentScale).dp)
+    val unfocusedBorderWidth = (1f * contentScale).dp
+    val scaledFocusedBorderWidth = focusedBorderWidth * contentScale
+    val contentTopPadding = (8f * contentScale).dp
+    val contentHorizontalPadding = (4f * contentScale).dp
+    val contentBottomPadding = (8f * contentScale).dp
+    val titleFontSize = (13f * contentScale).sp
+    val secondaryFontSize = (11f * contentScale).sp
     val scale by animateFloatAsState(
         targetValue = if (isFocused) focusedScale else 1f,
         label = "scale"
@@ -94,11 +103,11 @@ fun PosterCardContent(
                 contentDescription = null,
                 modifier = imageModifier
                     .aspectRatio(2f / 3f)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(shape)
                     .border(
-                        width = if (isFocused) focusedBorderWidth else 1.dp,
+                        width = if (isFocused) scaledFocusedBorderWidth else unfocusedBorderWidth,
                         color = if (isFocused) scheme.primary else scheme.outlineVariant.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = shape
                     )
                     .background(scheme.surfaceVariant)
                     .onFocusChanged {
@@ -125,12 +134,17 @@ fun PosterCardContent(
             }
         }
         Column(
-            modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 8.dp)
+            modifier = Modifier.padding(
+                top = contentTopPadding,
+                start = contentHorizontalPadding,
+                end = contentHorizontalPadding,
+                bottom = contentBottomPadding
+            )
         ) {
             Text(
                 text = model.primaryText,
                 color = scheme.onBackground,
-                fontSize = 13.sp,
+                fontSize = titleFontSize,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -142,7 +156,7 @@ fun PosterCardContent(
                     Text(
                         text = text,
                         color = scheme.onSurfaceVariant,
-                        fontSize = 11.sp,
+                        fontSize = secondaryFontSize,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

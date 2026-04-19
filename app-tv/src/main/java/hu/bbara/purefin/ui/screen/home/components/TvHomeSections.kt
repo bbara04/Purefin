@@ -50,18 +50,34 @@ import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.card.PosterCard
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import java.util.UUID
+import kotlin.math.roundToInt
 
-private val TvHomeSectionsThumbShape = RoundedCornerShape(20.dp)
+private const val TvHomeMediaCardScale = 0.9f
+private val TvHomeSectionsThumbShape = RoundedCornerShape((20f * TvHomeMediaCardScale).dp)
 private val TvHomeSectionsHorizontalPadding = 32.dp
 private val TvHomeSectionsRowSpacing = 18.dp
-private val TvHomeLandscapeCardWidth = 248.dp
-private val TvHomePosterCardWidth = 136.dp
+private val TvHomeLandscapeCardWidth = (248f * TvHomeMediaCardScale).dp
+private val TvHomePosterCardWidth = (136f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeFocusedBorderWidth = (2f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeUnfocusedBorderWidth = (1f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeProgressBarHeight = (6f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeProgressBarPadding = (8f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeMetadataSpacing = (4f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeMetadataTopPadding = (12f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeMetadataHorizontalPadding = (4f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeTitleFontSize = (15f * TvHomeMediaCardScale).sp
+private val TvHomeLandscapeSupportingFontSize = (11f * TvHomeMediaCardScale).sp
+private val TvHomePosterIndicatorSize = (24f * TvHomeMediaCardScale).roundToInt()
+private val TvHomePosterIndicatorPadding = (6f * TvHomeMediaCardScale).dp
 internal const val TvHomeSectionRowTagPrefix = "tv-home-section-row-"
 internal const val TvHomeContinueWatchingRowTag = "${TvHomeSectionRowTagPrefix}continue-watching"
 internal const val TvHomeNextUpRowTag = "${TvHomeSectionRowTagPrefix}next-up"
 
 internal fun tvHomeLibraryRowTag(libraryId: UUID): String =
     "${TvHomeSectionRowTagPrefix}library-$libraryId"
+
+internal fun tvHomeLibraryFirstItemTag(libraryId: UUID): String =
+    "${TvHomeSectionRowTagPrefix}library-item-$libraryId"
 
 @Composable
 fun TvContinueWatchingSection(
@@ -190,9 +206,10 @@ fun TvLibraryPosterSection(
             PosterCard(
                 item = item,
                 posterWidth = TvHomePosterCardWidth,
+                contentScale = TvHomeMediaCardScale,
                 showSecondaryText = true,
-                indicatorSize = 24,
-                indicatorPadding = 6.dp,
+                indicatorSize = TvHomePosterIndicatorSize,
+                indicatorPadding = TvHomePosterIndicatorPadding,
                 imageModifier = Modifier
                     .then(
                         if (index == 0 && firstItemFocusRequester != null) {
@@ -296,7 +313,7 @@ private fun TvHomeLandscapeCard(
                 .aspectRatio(16f / 9f)
                 .clip(TvHomeSectionsThumbShape)
                 .border(
-                    width = if (isFocused) 2.dp else 1.dp,
+                    width = if (isFocused) TvHomeLandscapeFocusedBorderWidth else TvHomeLandscapeUnfocusedBorderWidth,
                     color = if (isFocused) scheme.primary else scheme.outlineVariant.copy(alpha = 0.6f),
                     shape = TvHomeSectionsThumbShape
                 )
@@ -335,21 +352,28 @@ private fun TvHomeLandscapeCard(
                     foregroundColor = scheme.primary,
                     backgroundColor = scheme.surfaceVariant,
                     contentPadding = PaddingValues(0.dp),
-                    barHeight = 6.dp,
+                    barHeight = TvHomeLandscapeProgressBarHeight,
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                        .padding(
+                            horizontal = TvHomeLandscapeProgressBarPadding,
+                            vertical = TvHomeLandscapeProgressBarPadding
+                        )
                 )
             }
         }
         Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.padding(top = 12.dp, start = 4.dp, end = 4.dp)
+            verticalArrangement = Arrangement.spacedBy(TvHomeLandscapeMetadataSpacing),
+            modifier = Modifier.padding(
+                top = TvHomeLandscapeMetadataTopPadding,
+                start = TvHomeLandscapeMetadataHorizontalPadding,
+                end = TvHomeLandscapeMetadataHorizontalPadding
+            )
         ) {
             Text(
                 text = title,
                 color = scheme.onBackground,
-                fontSize = 15.sp,
+                fontSize = TvHomeLandscapeTitleFontSize,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -358,7 +382,7 @@ private fun TvHomeLandscapeCard(
                 Text(
                     text = supporting,
                     color = scheme.onSurfaceVariant,
-                    fontSize = 11.sp,
+                    fontSize = TvHomeLandscapeSupportingFontSize,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
