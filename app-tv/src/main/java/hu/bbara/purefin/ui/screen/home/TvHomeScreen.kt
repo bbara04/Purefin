@@ -43,7 +43,7 @@ fun TvHomeScreen(
         ) {
             TvFocusedItemHero(
                 item = focusedMediaUiModel.value,
-                height = 250.dp
+                height = 220.dp
             )
             TvHomeContent(
                 libraries = libraries,

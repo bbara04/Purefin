@@ -6,7 +6,7 @@ import androidx.compose.foundation.gestures.BringIntoViewSpec
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 
-internal val TvHomeFocusedItemTopOffset = 56.dp
+internal val TvHomeFocusedItemTopOffset = 42.dp
 internal val TvHomeBringIntoViewTrailingSpace = 120.dp
 
 private const val TvHomeRowPivotParentFraction = 0.3f
