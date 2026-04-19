@@ -1,24 +1,22 @@
 package hu.bbara.purefin.ui.screen.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.screen.home.components.TvFocusedItemHero
 import hu.bbara.purefin.ui.screen.home.components.TvHomeContent
-import hu.bbara.purefin.ui.screen.home.components.rememberTvHomeHeroState
 import java.util.UUID
-
-private const val TvHomeHeroHeightFraction = 0.32f
-private val TvHomeMinHeroHeight = 160.dp
-private val TvHomeMaxHeroHeight = 200.dp
 
 @Composable
 fun TvHomeScreen(
@@ -32,39 +30,29 @@ fun TvHomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val heroState = rememberTvHomeHeroState(
-        libraries = libraries,
-        libraryContent = libraryContent,
-        continueWatching = continueWatching,
-        nextUp = nextUp
-    )
+    val focusedMediaUiModel = remember { mutableStateOf<MediaUiModel>(MovieUiModel.createPlaceholder()) }
 
-    BoxWithConstraints(
+    Surface(
         modifier = modifier
             .fillMaxSize()
             .background(scheme.background)
     ) {
-        val heroHeight = heroState.focusedHero?.let {
-            (maxHeight * TvHomeHeroHeightFraction)
-                .coerceIn(TvHomeMinHeroHeight, TvHomeMaxHeroHeight)
-        }
 
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            heroState.focusedHero?.let { hero ->
-                TvFocusedItemHero(
-                    item = hero,
-                    height = heroHeight ?: TvHomeMinHeroHeight
-                )
-            }
+            TvFocusedItemHero(
+                item = focusedMediaUiModel.value,
+                height = 250.dp
+            )
             TvHomeContent(
                 libraries = libraries,
                 libraryContent = libraryContent,
                 continueWatching = continueWatching,
                 nextUp = nextUp,
-                //TODO implement it by throwing out complex TvHomeHeroState shit ass code. Fuck ai btw
-                onMediaFocused = {},
+                onMediaFocused = {
+                    focusedMediaUiModel.value = it
+                },
                 onMovieSelected = onMovieSelected,
                 onSeriesSelected = onSeriesSelected,
                 onEpisodeSelected = onEpisodeSelected,

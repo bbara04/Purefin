@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.jellyfin.core)
     implementation(libs.media3.common)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.slf4j.api)
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
     implementation(libs.datastore)

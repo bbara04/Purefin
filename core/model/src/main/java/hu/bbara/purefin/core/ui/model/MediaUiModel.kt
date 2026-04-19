@@ -38,6 +38,29 @@ class MovieUiModel: MediaUiModel {
         )
         progress = (movie.progress?.toFloat() ?: 0f) / 100f
     }
+
+    companion object {
+        fun createPlaceholder() : MovieUiModel {
+            return MovieUiModel(
+                Movie(
+                    id = UUID.randomUUID(),
+                    libraryId = UUID.randomUUID(),
+                    title = "Loading...",
+                    progress = 0.0,
+                    watched = false,
+                    year = "",
+                    rating = "",
+                    runtime = "",
+                    format = "",
+                    synopsis = "",
+                    imageUrlPrefix = "",
+                    audioTrack = "",
+                    subtitles = "",
+                    cast = emptyList()
+                )
+            )
+        }
+    }
 }
 
 class SeriesUiModel : MediaUiModel {
