@@ -13,6 +13,7 @@ sealed interface MediaUiModel {
     val secondaryText: String
     val description: String
     val primaryImageUrl: String
+    val backdropImageUrl: String
     val progress: Float?
         get() = null
     val watched: Boolean
@@ -24,7 +25,21 @@ class MovieUiModel: MediaUiModel {
     override val primaryText: String
     override val secondaryText: String
     override val description: String
+    private val prefixImageUrl: String
     override val primaryImageUrl: String
+        get() {
+            return ImageUrlBuilder.finishImageUrl(
+                prefixImageUrl = prefixImageUrl,
+                artworkKind = ArtworkKind.PRIMARY
+            )
+        }
+    override val backdropImageUrl: String
+        get() {
+            return ImageUrlBuilder.finishImageUrl(
+                prefixImageUrl = prefixImageUrl,
+                artworkKind = ArtworkKind.BACKDROP
+            )
+        }
     override val progress: Float?
 
     constructor(movie: Movie) {
@@ -32,10 +47,7 @@ class MovieUiModel: MediaUiModel {
         primaryText = movie.title
         secondaryText = movie.year
         description = movie.synopsis
-        primaryImageUrl = ImageUrlBuilder.finishImageUrl(
-            prefixImageUrl = movie.imageUrlPrefix,
-            artworkKind = ArtworkKind.PRIMARY
-        )
+        prefixImageUrl = movie.imageUrlPrefix
         progress = (movie.progress?.toFloat() ?: 0f) / 100f
     }
 
@@ -68,17 +80,28 @@ class SeriesUiModel : MediaUiModel {
     override val primaryText: String
     override val secondaryText: String
     override val description: String
+    private val prefixImageUrl: String
     override val primaryImageUrl: String
+        get() {
+            return ImageUrlBuilder.finishImageUrl(
+                prefixImageUrl = prefixImageUrl,
+                artworkKind = ArtworkKind.PRIMARY
+            )
+        }
+    override val backdropImageUrl: String
+        get() {
+            return ImageUrlBuilder.finishImageUrl(
+                prefixImageUrl = prefixImageUrl,
+                artworkKind = ArtworkKind.BACKDROP
+            )
+        }
 
     constructor(series: Series) {
         id = series.id
         primaryText = series.name
         secondaryText = "${series.seasonCount} seasons"
         description = series.synopsis
-        primaryImageUrl = ImageUrlBuilder.finishImageUrl(
-            prefixImageUrl = series.imageUrlPrefix,
-            artworkKind = ArtworkKind.PRIMARY
-        )
+        prefixImageUrl = series.imageUrlPrefix
     }
 }
 
@@ -87,7 +110,21 @@ class EpisodeUiModel : MediaUiModel {
     override val primaryText: String
     override val secondaryText: String
     override val description: String
+    private val prefixImageUrl: String
     override val primaryImageUrl: String
+        get() {
+            return ImageUrlBuilder.finishImageUrl(
+                prefixImageUrl = prefixImageUrl,
+                artworkKind = ArtworkKind.PRIMARY
+            )
+        }
+    override val backdropImageUrl: String
+        get() {
+            return ImageUrlBuilder.finishImageUrl(
+                prefixImageUrl = prefixImageUrl,
+                artworkKind = ArtworkKind.PRIMARY
+            )
+        }
     override val progress: Float?
     val seriesId: UUID
     val seasonId: UUID
@@ -97,10 +134,7 @@ class EpisodeUiModel : MediaUiModel {
         primaryText = episode.title
         secondaryText = episode.releaseDate
         description = episode.synopsis
-        primaryImageUrl = ImageUrlBuilder.finishImageUrl(
-            prefixImageUrl = episode.imageUrlPrefix,
-            artworkKind = ArtworkKind.PRIMARY
-        )
+        prefixImageUrl = episode.imageUrlPrefix
         progress = (episode.progress?.toFloat() ?: 0f) / 100f
         seriesId = episode.seriesId
         seasonId = episode.seasonId
