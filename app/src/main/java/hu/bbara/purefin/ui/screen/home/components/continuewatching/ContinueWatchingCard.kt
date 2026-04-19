@@ -63,7 +63,7 @@ internal fun ContinueWatchingCard(
                     .background(scheme.surfaceContainer)
             ) {
                 PurefinAsyncImage(
-                    model = item.imageUrl,
+                    model = item.primaryImageUrl,
                     contentDescription = item.primaryText,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

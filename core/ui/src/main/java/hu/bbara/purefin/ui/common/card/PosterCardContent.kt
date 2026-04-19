@@ -90,7 +90,7 @@ fun PosterCardContent(
     ) {
         Box {
             PurefinAsyncImage(
-                model = model.imageUrl,
+                model = model.primaryImageUrl,
                 contentDescription = null,
                 modifier = imageModifier
                     .aspectRatio(2f / 3f)

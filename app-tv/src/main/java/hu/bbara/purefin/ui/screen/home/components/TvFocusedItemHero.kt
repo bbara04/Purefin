@@ -45,7 +45,7 @@ internal fun TvFocusedItemHero(
             .background(scheme.background)
     ) {
         Crossfade(
-            targetState = item.imageUrl,
+            targetState = item.primaryImageUrl,
             animationSpec = tween(durationMillis = TvHomeHeroAnimationMillis),
             label = "tv-home-hero-background"
         ) { imageUrl ->

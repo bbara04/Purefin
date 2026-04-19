@@ -12,7 +12,7 @@ sealed interface MediaUiModel {
     val primaryText: String
     val secondaryText: String
     val description: String
-    val imageUrl: String
+    val primaryImageUrl: String
     val progress: Float?
         get() = null
     val watched: Boolean
@@ -24,7 +24,7 @@ class MovieUiModel: MediaUiModel {
     override val primaryText: String
     override val secondaryText: String
     override val description: String
-    override val imageUrl: String
+    override val primaryImageUrl: String
     override val progress: Float?
 
     constructor(movie: Movie) {
@@ -32,7 +32,7 @@ class MovieUiModel: MediaUiModel {
         primaryText = movie.title
         secondaryText = movie.year
         description = movie.synopsis
-        imageUrl = ImageUrlBuilder.finishImageUrl(
+        primaryImageUrl = ImageUrlBuilder.finishImageUrl(
             prefixImageUrl = movie.imageUrlPrefix,
             artworkKind = ArtworkKind.PRIMARY
         )
@@ -68,14 +68,14 @@ class SeriesUiModel : MediaUiModel {
     override val primaryText: String
     override val secondaryText: String
     override val description: String
-    override val imageUrl: String
+    override val primaryImageUrl: String
 
     constructor(series: Series) {
         id = series.id
         primaryText = series.name
         secondaryText = "${series.seasonCount} seasons"
         description = series.synopsis
-        imageUrl = ImageUrlBuilder.finishImageUrl(
+        primaryImageUrl = ImageUrlBuilder.finishImageUrl(
             prefixImageUrl = series.imageUrlPrefix,
             artworkKind = ArtworkKind.PRIMARY
         )
@@ -87,7 +87,7 @@ class EpisodeUiModel : MediaUiModel {
     override val primaryText: String
     override val secondaryText: String
     override val description: String
-    override val imageUrl: String
+    override val primaryImageUrl: String
     override val progress: Float?
     val seriesId: UUID
     val seasonId: UUID
@@ -97,7 +97,7 @@ class EpisodeUiModel : MediaUiModel {
         primaryText = episode.title
         secondaryText = episode.releaseDate
         description = episode.synopsis
-        imageUrl = ImageUrlBuilder.finishImageUrl(
+        primaryImageUrl = ImageUrlBuilder.finishImageUrl(
             prefixImageUrl = episode.imageUrlPrefix,
             artworkKind = ArtworkKind.PRIMARY
         )

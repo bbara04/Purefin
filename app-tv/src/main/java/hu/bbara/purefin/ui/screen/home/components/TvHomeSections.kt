@@ -86,7 +86,7 @@ fun TvContinueWatchingSection(
             TvHomeLandscapeCard(
                 title = item.primaryText,
                 supporting = item.secondaryText,
-                imageUrl = item.imageUrl,
+                imageUrl = item.primaryImageUrl,
                 progress = item.progress ?: 0f,
                 imageModifier = Modifier
                     .then(
@@ -138,7 +138,7 @@ fun TvNextUpSection(
             TvHomeLandscapeCard(
                 title = item.primaryText,
                 supporting = item.secondaryText,
-                imageUrl = item.imageUrl,
+                imageUrl = item.primaryImageUrl,
                 imageModifier = Modifier
                     .then(
                         if (index == 0 && firstItemFocusRequester != null) {

@@ -66,7 +66,7 @@ internal fun HomeBrowseCard(
                     .background(scheme.surface)
             ) {
                 PurefinAsyncImage(
-                    model = uiModel.imageUrl,
+                    model = uiModel.primaryImageUrl,
                     contentDescription = uiModel.primaryText,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
