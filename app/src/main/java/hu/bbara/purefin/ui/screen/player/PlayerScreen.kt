@@ -78,7 +78,7 @@ fun PlayerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color.Black)
     ) {
         AndroidView(
             factory = { ctx ->
