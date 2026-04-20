@@ -1,6 +1,5 @@
 package hu.bbara.purefin.ui.screen.home.components
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,10 +21,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
 import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
-import hu.bbara.purefin.feature.browse.home.SuggestedItem
 import hu.bbara.purefin.ui.screen.home.components.continuewatching.ContinueWatchingSection
 import hu.bbara.purefin.ui.screen.home.components.featured.SuggestionsSection
 import hu.bbara.purefin.ui.screen.home.components.library.LibraryPosterSection
@@ -37,7 +37,7 @@ import java.util.UUID
 fun HomeContent(
     libraries: List<LibraryItem>,
     libraryContent: Map<UUID, List<MediaUiModel>>,
-    suggestions: List<SuggestedItem>,
+    suggestions: List<MediaUiModel>,
     continueWatching: List<MediaUiModel>,
     nextUp: List<MediaUiModel>,
     isRefreshing: Boolean,
@@ -102,13 +102,10 @@ fun HomeContent(
                         SuggestionsSection(
                             items = suggestions,
                             onItemOpen = { item ->
-                                when (item.type) {
-                                    MediaKind.MOVIE -> onMovieSelected(item.id)
-                                    MediaKind.SERIES -> onSeriesSelected(item.id)
-                                    MediaKind.EPISODE -> onEpisodeSelected(item.id, item.id, item.id)
-                                    else -> {
-                                        Log.e("HomeContent", "Unsupported item type: ${item.type}")
-                                    }
+                                when (item) {
+                                    is MovieUiModel -> onMovieSelected(item.id)
+                                    is SeriesUiModel -> onSeriesSelected(item.id)
+                                    is EpisodeUiModel -> onEpisodeSelected(item.id, item.id, item.id)
                                 }
                             }
                         )

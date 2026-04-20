@@ -7,17 +7,17 @@ import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.MediaCatalogReader
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.download.MediaDownloadController
-import hu.bbara.purefin.core.ui.model.EpisodeUiModel
 import hu.bbara.purefin.core.model.LibraryKind
 import hu.bbara.purefin.core.model.Media
-import hu.bbara.purefin.core.ui.model.MovieUiModel
-import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import hu.bbara.purefin.core.navigation.EpisodeDto
 import hu.bbara.purefin.core.navigation.LibraryDto
 import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
+import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -72,13 +72,13 @@ class AppViewModel @Inject constructor(
         list.mapNotNull { media ->
             when (media) {
                 is Media.MovieMedia -> moviesMap[media.movieId]?.let {
-                    SuggestedMovie(movie = it)
+                    MovieUiModel(movie = it)
                 }
                 is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
-                    SuggestedSeries(series = it)
+                    SeriesUiModel(series = it)
                 }
                 is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
-                    SuggestedEpisode(episode = it)
+                    EpisodeUiModel(episode = it)
                 }
                 else -> null
             }

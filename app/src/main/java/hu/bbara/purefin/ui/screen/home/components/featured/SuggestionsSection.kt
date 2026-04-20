@@ -22,12 +22,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.feature.browse.home.SuggestedItem
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 
 @Composable
 fun SuggestionsSection(
-    items: List<SuggestedItem>,
-    onItemOpen: (SuggestedItem) -> Unit,
+    items: List<MediaUiModel>,
+    onItemOpen: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return

@@ -24,13 +24,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.feature.browse.home.SuggestedItem
 
 @Composable
 internal fun SuggestionCard(
-    item: SuggestedItem,
+    item: MediaUiModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -51,8 +51,8 @@ internal fun SuggestionCard(
                 .aspectRatio(16f / 11f)
         ) {
             PurefinAsyncImage(
-                model = item.imageUrl,
-                contentDescription = item.title,
+                model = item.primaryImageUrl,
+                contentDescription = item.primaryText,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
@@ -77,32 +77,28 @@ internal fun SuggestionCard(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = item.title,
+                        text = item.primaryText,
                         style = MaterialTheme.typography.headlineMedium,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if (item.metadata.isNotEmpty()) {
-                        Text(
-                            text = item.metadata.joinToString(" • "),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = Color.White.copy(alpha = 0.88f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                    if (description.isNotBlank()) {
-                        Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.88f),
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = 520.dp)
-                        )
-                    }
+                    Text(
+                        text = item.secondaryText,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White.copy(alpha = 0.88f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.88f),
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 520.dp)
+                    )
                 }
             }
             if (item.progress != null && item.progress!! > 0f) {
