@@ -23,18 +23,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.ui.model.EpisodeUiModel
 import hu.bbara.purefin.core.ui.model.MediaUiModel
-import hu.bbara.purefin.core.ui.model.MovieUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import java.util.UUID
 
 @Composable
 internal fun ContinueWatchingCard(
     item: MediaUiModel,
-    onMovieSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -47,14 +43,7 @@ internal fun ContinueWatchingCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
-                    // TODO fix this shit as well
-                    when (item) {
-                        is MovieUiModel -> onMovieSelected(item.id)
-                        is EpisodeUiModel -> onEpisodeSelected(item.seriesId, item.seasonId, item.id)
-                        else -> Unit
-                    }
-                }
+                .clickable { onMediaSelected(item) }
         ) {
             Box(
                 modifier = Modifier

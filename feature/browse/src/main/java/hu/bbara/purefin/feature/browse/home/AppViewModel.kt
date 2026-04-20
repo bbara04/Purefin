@@ -16,6 +16,7 @@ import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.core.ui.model.EpisodeUiModel
+import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.core.ui.model.MovieUiModel
 import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -165,7 +166,15 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun onMovieSelected(movieId: UUID) {
+    fun onMediaSelected(mediaUiModel : MediaUiModel) {
+        when (mediaUiModel) {
+            is MovieUiModel -> onMovieSelected(mediaUiModel.id)
+            is SeriesUiModel -> onSeriesSelected(mediaUiModel.id)
+            is EpisodeUiModel -> onEpisodeSelected(mediaUiModel.seriesId, mediaUiModel.seasonId, mediaUiModel.id)
+        }
+    }
+
+    private fun onMovieSelected(movieId: UUID) {
         navigationManager.navigate(Route.MovieRoute(
             MovieDto(
                 id = movieId,
@@ -173,7 +182,7 @@ class AppViewModel @Inject constructor(
         ))
     }
 
-    fun onSeriesSelected(seriesId: UUID) {
+    private fun onSeriesSelected(seriesId: UUID) {
         viewModelScope.launch {
             navigationManager.navigate(Route.SeriesRoute(
                 SeriesDto(
@@ -183,7 +192,7 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun onEpisodeSelected(seriesId: UUID, seasonId: UUID, episodeId: UUID) {
+    private fun onEpisodeSelected(seriesId: UUID, seasonId: UUID, episodeId: UUID) {
         viewModelScope.launch {
             navigationManager.navigate(Route.EpisodeRoute(
                 EpisodeDto(

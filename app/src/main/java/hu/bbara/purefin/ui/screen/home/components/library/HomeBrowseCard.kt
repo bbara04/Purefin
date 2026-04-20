@@ -26,17 +26,13 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.ui.model.EpisodeUiModel
 import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.core.ui.model.MovieUiModel
-import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import java.util.UUID
 
 @Composable
 internal fun HomeBrowseCard(
     uiModel: MediaUiModel,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -49,14 +45,7 @@ internal fun HomeBrowseCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
-                    //TODO fix this shit
-                    when (uiModel) {
-                        is MovieUiModel -> onMovieSelected(uiModel.id)
-                        is SeriesUiModel -> onSeriesSelected(uiModel.id)
-                        is EpisodeUiModel -> onEpisodeSelected(uiModel.seriesId, uiModel.seasonId, uiModel.id)
-                    }
-                }
+                .clickable { onMediaSelected(uiModel) }
         ) {
             Box(
                 modifier = Modifier

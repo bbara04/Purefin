@@ -11,12 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.header.SectionHeader
-import java.util.UUID
 
 @Composable
 fun NextUpSection(
     items: List<MediaUiModel>,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
@@ -34,7 +33,7 @@ fun NextUpSection(
             items(items = items, key = { item -> item.id }) { item ->
                 NextUpCard(
                     uiModel = item,
-                    onEpisodeSelected = onEpisodeSelected
+                    onMediaSelected = onMediaSelected
                 )
             }
         }

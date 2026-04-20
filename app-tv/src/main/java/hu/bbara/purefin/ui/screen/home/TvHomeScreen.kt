@@ -24,9 +24,7 @@ fun TvHomeScreen(
     libraryContent: Map<UUID, List<MediaUiModel>>,
     continueWatching: List<MediaUiModel>,
     nextUp: List<MediaUiModel>,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -53,9 +51,7 @@ fun TvHomeScreen(
                 onMediaFocused = {
                     focusedMediaUiModel.value = it
                 },
-                onMovieSelected = onMovieSelected,
-                onSeriesSelected = onSeriesSelected,
-                onEpisodeSelected = onEpisodeSelected,
+                onMediaSelected = onMediaSelected,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()

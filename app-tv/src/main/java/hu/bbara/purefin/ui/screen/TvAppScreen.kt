@@ -76,9 +76,7 @@ fun TvAppScreen(
                     libraryContent = latestLibraryContent,
                     continueWatching = continueWatching,
                     nextUp = nextUp,
-                    onMovieSelected = viewModel::onMovieSelected,
-                    onSeriesSelected = viewModel::onSeriesSelected,
-                    onEpisodeSelected = viewModel::onEpisodeSelected,
+                    onMediaSelected = viewModel::onMediaSelected,
                     modifier = Modifier.fillMaxSize()
                 )
             }

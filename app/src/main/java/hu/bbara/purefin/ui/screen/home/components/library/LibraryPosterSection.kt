@@ -12,16 +12,13 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.common.header.SectionHeader
-import java.util.UUID
 
 @Composable
 fun LibraryPosterSection(
     library: LibraryItem,
     items: List<MediaUiModel>,
     onLibrarySelected: (LibraryItem) -> Unit,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (items.isEmpty()) return
@@ -43,9 +40,7 @@ fun LibraryPosterSection(
             items(items = items, key = { item -> item.id }) { item ->
                 HomeBrowseCard(
                     uiModel = item,
-                    onMovieSelected = onMovieSelected,
-                    onSeriesSelected = onSeriesSelected,
-                    onEpisodeSelected = onEpisodeSelected
+                    onMediaSelected = onMediaSelected
                 )
             }
         }

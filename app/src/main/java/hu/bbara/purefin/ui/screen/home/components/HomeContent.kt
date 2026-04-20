@@ -21,10 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.ui.model.EpisodeUiModel
 import hu.bbara.purefin.core.ui.model.MediaUiModel
-import hu.bbara.purefin.core.ui.model.MovieUiModel
-import hu.bbara.purefin.core.ui.model.SeriesUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.screen.home.components.continuewatching.ContinueWatchingSection
 import hu.bbara.purefin.ui.screen.home.components.featured.SuggestionsSection
@@ -42,9 +39,7 @@ fun HomeContent(
     nextUp: List<MediaUiModel>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     onLibrarySelected: (LibraryItem) -> Unit,
     onBrowseLibrariesClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -101,13 +96,7 @@ fun HomeContent(
                     item(key = "featured") {
                         SuggestionsSection(
                             items = suggestions,
-                            onItemOpen = { item ->
-                                when (item) {
-                                    is MovieUiModel -> onMovieSelected(item.id)
-                                    is SeriesUiModel -> onSeriesSelected(item.id)
-                                    is EpisodeUiModel -> onEpisodeSelected(item.id, item.id, item.id)
-                                }
-                            }
+                            onItemOpen = { item -> onMediaSelected(item) }
                         )
                     }
                 }
@@ -116,8 +105,7 @@ fun HomeContent(
                     item(key = "continue-watching") {
                         ContinueWatchingSection(
                             items = continueWatching,
-                            onMovieSelected = onMovieSelected,
-                            onEpisodeSelected = onEpisodeSelected
+                            onMediaSelected = onMediaSelected
                         )
                     }
                 }
@@ -126,7 +114,7 @@ fun HomeContent(
                     item(key = "next-up") {
                         NextUpSection(
                             items = nextUp,
-                            onEpisodeSelected = onEpisodeSelected
+                            onMediaSelected = onMediaSelected
                         )
                     }
                 }
@@ -139,9 +127,7 @@ fun HomeContent(
                         library = library,
                         items = libraryContent[library.id].orEmpty(),
                         onLibrarySelected = onLibrarySelected,
-                        onMovieSelected = onMovieSelected,
-                        onSeriesSelected = onSeriesSelected,
-                        onEpisodeSelected = onEpisodeSelected
+                        onMediaSelected = onMediaSelected
                     )
                 }
 

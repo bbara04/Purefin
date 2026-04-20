@@ -30,9 +30,7 @@ fun HomeScreen(
     nextUp: List<MediaUiModel>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     onLibrarySelected: (LibraryItem) -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -72,9 +70,7 @@ fun HomeScreen(
                 nextUp = nextUp,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onMovieSelected = onMovieSelected,
-                onSeriesSelected = onSeriesSelected,
-                onEpisodeSelected = onEpisodeSelected,
+                onMediaSelected = onMediaSelected,
                 onLibrarySelected = onLibrarySelected,
                 onBrowseLibrariesClick = { onTabSelected(1) },
                 modifier = Modifier.padding(innerPadding)
@@ -85,11 +81,12 @@ fun HomeScreen(
                 onDismiss = { isSearchVisible = false },
                 onMovieSelected = {
                     isSearchVisible = false
-                    onMovieSelected(it)
+                    //TODO use MediaUiModel as well
+                    //onMovieSelected(it)
                 },
                 onSeriesSelected = {
                     isSearchVisible = false
-                    onSeriesSelected(it)
+                    //onSeriesSelected(it)
                 },
                 modifier = Modifier
                     .fillMaxSize()

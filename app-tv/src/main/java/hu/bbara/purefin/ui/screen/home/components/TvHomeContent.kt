@@ -37,9 +37,7 @@ fun TvHomeContent(
     continueWatching: List<MediaUiModel>,
     nextUp: List<MediaUiModel>,
     onMediaFocused: (MediaUiModel) -> Unit,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     contentPadding: PaddingValues = PaddingValues(bottom = 32.dp),
     modifier: Modifier = Modifier,
 ) {
@@ -81,8 +79,7 @@ fun TvHomeContent(
                     TvContinueWatchingSection(
                         items = continueWatching,
                         onFocusedItem = onMediaFocused,
-                        onMovieSelected = onMovieSelected,
-                        onEpisodeSelected = onEpisodeSelected,
+                        onMediaSelected = onMediaSelected,
                         firstItemFocusRequester = initialFocusRequester,
                         firstItemTestTag = TvHomeInitialFocusTag,
                         rowTestTag = TvHomeContinueWatchingRowTag
@@ -95,7 +92,7 @@ fun TvHomeContent(
                     TvNextUpSection(
                         items = nextUp,
                         onFocusedItem = onMediaFocused,
-                        onEpisodeSelected = onEpisodeSelected,
+                        onMediaSelected = onMediaSelected,
                         firstItemFocusRequester = initialFocusRequester.takeIf { !hasContinueWatching },
                         firstItemTestTag = TvHomeInitialFocusTag.takeIf { !hasContinueWatching },
                         rowTestTag = TvHomeNextUpRowTag
@@ -115,9 +112,7 @@ fun TvHomeContent(
                         !hasContinueWatching && !hasNextUp && library.id == firstLibraryWithItemsId
                     },
                     firstItemTestTag = tvHomeLibraryFirstItemTag(library.id),
-                    onMovieSelected = onMovieSelected,
-                    onSeriesSelected = onSeriesSelected,
-                    onEpisodeSelected = onEpisodeSelected
+                    onMediaSelected = onMediaSelected
                 )
             }
 

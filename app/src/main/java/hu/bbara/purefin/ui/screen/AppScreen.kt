@@ -52,9 +52,7 @@ fun AppScreen(
             nextUp = nextUp,
             isRefreshing = isRefreshing,
             onRefresh = viewModel::onRefresh,
-            onMovieSelected = viewModel::onMovieSelected,
-            onSeriesSelected = viewModel::onSeriesSelected,
-            onEpisodeSelected = viewModel::onEpisodeSelected,
+            onMediaSelected = viewModel::onMediaSelected,
             onLibrarySelected = { library ->
                 viewModel.onLibrarySelected(
                     library.id,

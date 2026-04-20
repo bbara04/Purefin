@@ -44,10 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.core.ui.model.EpisodeUiModel
 import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
-import hu.bbara.purefin.ui.common.card.PosterCard
+import hu.bbara.purefin.ui.common.card.PosterCardContent
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -83,8 +82,7 @@ internal fun tvHomeLibraryFirstItemTag(libraryId: UUID): String =
 fun TvContinueWatchingSection(
     items: List<MediaUiModel>,
     onFocusedItem: (MediaUiModel) -> Unit = {},
-    onMovieSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     firstItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
     rowTestTag: String? = null,
@@ -120,13 +118,7 @@ fun TvContinueWatchingSection(
                         }
                     ),
                 onFocusedItem = { onFocusedItem(item) },
-                onClick = {
-                    when (item) {
-                        //TODO fix this shit
-                        is EpisodeUiModel -> onEpisodeSelected(item.seriesId, item.seasonId, item.id)
-                        else -> Unit
-                    }
-                }
+                onClick = { onMediaSelected(item) }
             )
         }
     }
@@ -136,7 +128,7 @@ fun TvContinueWatchingSection(
 fun TvNextUpSection(
     items: List<MediaUiModel>,
     onFocusedItem: (MediaUiModel) -> Unit = {},
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     firstItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
     rowTestTag: String? = null,
@@ -171,12 +163,7 @@ fun TvNextUpSection(
                         }
                     ),
                 onFocusedItem = { onFocusedItem(item) },
-                onClick = {
-                    //TODO FIX
-                    (item as? EpisodeUiModel)?.let { episode ->
-                        onEpisodeSelected(episode.seriesId, episode.seasonId, episode.id)
-                    }
-                }
+                onClick = { onMediaSelected(item) }
             )
         }
     }
@@ -191,9 +178,7 @@ fun TvLibraryPosterSection(
     firstItemTestTag: String? = null,
     rowTestTag: String? = null,
     modifier: Modifier = Modifier,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
-    onEpisodeSelected: (UUID, UUID, UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
 ) {
     TvSectionHeader(
         title = title,
@@ -203,8 +188,9 @@ fun TvLibraryPosterSection(
         rowTestTag = rowTestTag
     ) {
         itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
-            PosterCard(
-                item = item,
+            PosterCardContent(
+                model = item,
+                onClick = { onMediaSelected(item) },
                 posterWidth = TvHomePosterCardWidth,
                 contentScale = TvHomeMediaCardScale,
                 showSecondaryText = true,
@@ -225,10 +211,9 @@ fun TvLibraryPosterSection(
                             Modifier
                         }
                     ),
-                onFocusedItem = onFocusedItem,
-                onMovieSelected = onMovieSelected,
-                onSeriesSelected = onSeriesSelected,
-                onEpisodeSelected = onEpisodeSelected
+                onFocused = { onFocusedItem(item) },
+                focusedScale = 1.07f,
+                focusedBorderWidth = 2.dp
             )
         }
     }
