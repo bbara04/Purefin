@@ -4,12 +4,9 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
-import hu.bbara.purefin.core.image.ArtworkKind
-import hu.bbara.purefin.data.offline.cache.CachedMediaItem
-import hu.bbara.purefin.data.offline.cache.HomeCache
-import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.model.Episode
 import hu.bbara.purefin.core.model.Library
 import hu.bbara.purefin.core.model.LibraryKind
@@ -17,13 +14,9 @@ import hu.bbara.purefin.core.model.Media
 import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
+import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
+import hu.bbara.purefin.data.offline.cache.CachedMediaItem
+import hu.bbara.purefin.data.offline.cache.HomeCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,11 +26,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @Singleton
 class InMemoryAppContentRepository @Inject constructor(
@@ -48,10 +48,10 @@ class InMemoryAppContentRepository @Inject constructor(
     private val networkMonitor: NetworkMonitor,
 ) : HomeRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val ensureReadyMutex = Mutex()
     private var refreshJob: Job? = null
-    private var cacheHydrated = false
-    private var initialized = false
+
+    @OptIn(ExperimentalAtomicApi::class)
+    private val initialized = AtomicBoolean(false)
 
     private val librariesState = MutableStateFlow<List<Library>>(emptyList())
     override val libraries: StateFlow<List<Library>> = librariesState.asStateFlow()
@@ -74,27 +74,24 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    override suspend fun ensureReady() {
-        ensureReadyMutex.withLock {
-            hydrateCacheIfNeeded()
-            if (initialized) {
-                return
-            }
-            initialized = true
+    @OptIn(ExperimentalAtomicApi::class)
+    override fun ensureReady() {
+        if (!initialized.compareAndSet(expectedValue = false, newValue = true)) {
+            return
         }
-        refreshHomeData()
+        Log.d(TAG, "Initializing home repository")
+        scope.launch { loadHomeCache() }
+        scope.launch { refreshHomeData() }
     }
 
-    override suspend fun refreshHomeData() {
-        ensureReadyMutex.withLock {
-            hydrateCacheIfNeeded()
-        }
+    @Synchronized
+    override fun refreshHomeData() {
         if (refreshJob?.isActive == true) {
-            refreshJob?.join()
             return
         }
         val job = scope.launch {
             runCatching {
+                Log.d(TAG, "Refreshing home data")
                 if (!networkMonitor.isOnline.first()) {
                     return@runCatching
                 }
@@ -103,22 +100,17 @@ class InMemoryAppContentRepository @Inject constructor(
                 loadContinueWatching()
                 loadNextUp()
                 loadLatestLibraryContent()
+                Log.d(TAG, "Home refresh successful")
                 persistHomeCache()
             }.onFailure { error ->
                 Log.w(TAG, "Home refresh failed; keeping cached content", error)
             }
         }
         refreshJob = job
-        job.join()
     }
 
-    private suspend fun hydrateCacheIfNeeded() {
-        if (cacheHydrated) return
-        loadFromCache()
-        cacheHydrated = true
-    }
-
-    private suspend fun loadFromCache() {
+    private suspend fun loadHomeCache() {
+        Log.d(TAG, "Loading home cache")
         val cache = homeCacheDataStore.data.first()
         if (cache.suggestions.isNotEmpty()) {
             suggestionsState.value = cache.suggestions.mapNotNull { it.toMedia() }
@@ -135,6 +127,7 @@ class InMemoryAppContentRepository @Inject constructor(
                 uuid to items.mapNotNull { it.toMedia() }
             }.toMap()
         }
+        Log.d(TAG, "Home cache loaded")
     }
 
     private suspend fun persistHomeCache() {
