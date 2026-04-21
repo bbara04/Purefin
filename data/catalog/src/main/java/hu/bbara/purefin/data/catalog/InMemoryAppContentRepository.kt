@@ -15,8 +15,17 @@ import hu.bbara.purefin.core.model.Movie
 import hu.bbara.purefin.core.model.Season
 import hu.bbara.purefin.core.model.Series
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.data.offline.cache.CachedMediaItem
 import hu.bbara.purefin.data.offline.cache.HomeCache
+import hu.bbara.purefin.data.offline.cache.toCachedEpisode
+import hu.bbara.purefin.data.offline.cache.toCachedItem
+import hu.bbara.purefin.data.offline.cache.toCachedLibrary
+import hu.bbara.purefin.data.offline.cache.toCachedMovie
+import hu.bbara.purefin.data.offline.cache.toCachedSeries
+import hu.bbara.purefin.data.offline.cache.toEpisode
+import hu.bbara.purefin.data.offline.cache.toLibrary
+import hu.bbara.purefin.data.offline.cache.toMedia
+import hu.bbara.purefin.data.offline.cache.toMovie
+import hu.bbara.purefin.data.offline.cache.toSeries
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -112,6 +121,16 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadHomeCache() {
         Log.d(TAG, "Loading home cache")
         val cache = homeCacheDataStore.data.first()
+        if (cache.libraries.isNotEmpty()) {
+            val libraries = cache.libraries.mapNotNull { it.toLibrary() }
+            librariesState.value = libraries
+            onlineMediaRepository.upsertMovies(
+                libraries.filter { it.type == LibraryKind.MOVIES }.flatMap { it.movies.orEmpty() }
+            )
+            onlineMediaRepository.upsertSeries(
+                libraries.filter { it.type == LibraryKind.SERIES }.flatMap { it.series.orEmpty() }
+            )
+        }
         if (cache.suggestions.isNotEmpty()) {
             suggestionsState.value = cache.suggestions.mapNotNull { it.toMedia() }
         }
@@ -127,10 +146,23 @@ class InMemoryAppContentRepository @Inject constructor(
                 uuid to items.mapNotNull { it.toMedia() }
             }.toMap()
         }
+        if (cache.movies.isNotEmpty()) {
+            onlineMediaRepository.upsertMovies(cache.movies.mapNotNull { it.toMovie() })
+        }
+        if (cache.series.isNotEmpty()) {
+            onlineMediaRepository.upsertSeries(cache.series.mapNotNull { it.toSeries() })
+        }
+        if (cache.episodes.isNotEmpty()) {
+            onlineMediaRepository.upsertEpisodes(cache.episodes.mapNotNull { it.toEpisode() })
+        }
         Log.d(TAG, "Home cache loaded")
     }
 
     private suspend fun persistHomeCache() {
+        val referencedMediaIds = collectReferencedMediaIds()
+        val movies = onlineMediaRepository.movies.value
+        val series = onlineMediaRepository.series.value
+        val episodes = onlineMediaRepository.episodes.value
         val cache = HomeCache(
             suggestions = suggestionsState.value.map { it.toCachedItem() },
             continueWatching = continueWatchingState.value.map { it.toCachedItem() },
@@ -138,27 +170,39 @@ class InMemoryAppContentRepository @Inject constructor(
             latestLibraryContent = latestLibraryContentState.value.map { (uuid, items) ->
                 uuid.toString() to items.map { it.toCachedItem() }
             }.toMap(),
+            libraries = librariesState.value.map { it.toCachedLibrary() },
+            movies = referencedMediaIds.movieIds.mapNotNull { movies[it] }.map { it.toCachedMovie() },
+            series = referencedMediaIds.seriesIds.mapNotNull { series[it] }.map { it.toCachedSeries() },
+            episodes = referencedMediaIds.episodeIds.mapNotNull { episodes[it] }.map { it.toCachedEpisode() },
         )
         homeCacheDataStore.updateData { cache }
     }
 
-    private fun Media.toCachedItem(): CachedMediaItem = when (this) {
-        is Media.MovieMedia -> CachedMediaItem(type = "MOVIE", id = movieId.toString())
-        is Media.SeriesMedia -> CachedMediaItem(type = "SERIES", id = seriesId.toString())
-        is Media.SeasonMedia -> CachedMediaItem(type = "SEASON", id = seasonId.toString(), seriesId = seriesId.toString())
-        is Media.EpisodeMedia -> CachedMediaItem(type = "EPISODE", id = episodeId.toString(), seriesId = seriesId.toString())
-    }
-
-    private fun CachedMediaItem.toMedia(): Media? {
-        val uuid = runCatching { UUID.fromString(id) }.getOrNull() ?: return null
-        val seriesUuid = seriesId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-        return when (type) {
-            "MOVIE" -> Media.MovieMedia(movieId = uuid)
-            "SERIES" -> Media.SeriesMedia(seriesId = uuid)
-            "SEASON" -> Media.SeasonMedia(seasonId = uuid, seriesId = seriesUuid ?: return null)
-            "EPISODE" -> Media.EpisodeMedia(episodeId = uuid, seriesId = seriesUuid ?: return null)
-            else -> null
+    private fun collectReferencedMediaIds(): ReferencedHomeMediaIds {
+        val movieIds = mutableSetOf<UUID>()
+        val seriesIds = mutableSetOf<UUID>()
+        val episodeIds = mutableSetOf<UUID>()
+        val referencedMedia = buildList {
+            addAll(suggestionsState.value)
+            addAll(continueWatchingState.value)
+            addAll(nextUpState.value)
+            latestLibraryContentState.value.values.forEach { addAll(it) }
         }
+
+        referencedMedia.forEach { media ->
+            when (media) {
+                is Media.MovieMedia -> movieIds += media.movieId
+                is Media.SeriesMedia -> seriesIds += media.seriesId
+                is Media.SeasonMedia -> seriesIds += media.seriesId
+                is Media.EpisodeMedia -> episodeIds += media.episodeId
+            }
+        }
+
+        return ReferencedHomeMediaIds(
+            movieIds = movieIds,
+            seriesIds = seriesIds,
+            episodeIds = episodeIds,
+        )
     }
 
     suspend fun loadLibraries() {
@@ -412,3 +456,9 @@ class InMemoryAppContentRepository @Inject constructor(
         private const val TAG = "InMemoryAppContentRepo"
     }
 }
+
+private data class ReferencedHomeMediaIds(
+    val movieIds: Set<UUID>,
+    val seriesIds: Set<UUID>,
+    val episodeIds: Set<UUID>,
+)
