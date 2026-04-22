@@ -10,7 +10,9 @@ import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackProgressReporter
 import hu.bbara.purefin.core.data.SessionBootstrapper
-import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
+import hu.bbara.purefin.data.jellyfin.download.JellyfinDownloadMediaSourceResolver
+import hu.bbara.purefin.data.jellyfin.session.JellyfinAuthenticationRepository
+import hu.bbara.purefin.data.jellyfin.session.JellyfinSessionBootstrapper
 import javax.inject.Singleton
 
 @Module
@@ -19,15 +21,15 @@ abstract class JellyfinBindingsModule {
 
     @Binds
     @Singleton
-    abstract fun bindSessionBootstrapper(impl: JellyfinApiClient): SessionBootstrapper
+    abstract fun bindSessionBootstrapper(impl: JellyfinSessionBootstrapper): SessionBootstrapper
 
     @Binds
     @Singleton
-    abstract fun bindAuthenticationRepository(impl: JellyfinApiClient): AuthenticationRepository
+    abstract fun bindAuthenticationRepository(impl: JellyfinAuthenticationRepository): AuthenticationRepository
 
     @Binds
     @Singleton
-    abstract fun bindDownloadMediaSourceResolver(impl: JellyfinApiClient): DownloadMediaSourceResolver
+    abstract fun bindDownloadMediaSourceResolver(impl: JellyfinDownloadMediaSourceResolver): DownloadMediaSourceResolver
 
     @Binds
     abstract fun bindPlayableMediaRepository(impl: DefaultPlayableMediaRepository): PlayableMediaRepository

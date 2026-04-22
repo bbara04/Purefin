@@ -1,4 +1,4 @@
-package hu.bbara.purefin.data.jellyfin.client
+package hu.bbara.purefin.data.jellyfin.playback
 
 import org.jellyfin.sdk.model.api.CodecProfile
 import org.jellyfin.sdk.model.api.CodecType

@@ -7,12 +7,13 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import hu.bbara.purefin.core.data.PlayableMediaRepository
-import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.data.jellyfin.client.PlaybackDecision
 import hu.bbara.purefin.core.data.PlaybackReportContext
-import hu.bbara.purefin.data.jellyfin.client.playbackCustomCacheKey
 import hu.bbara.purefin.core.data.session.UserSessionRepository
 import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
+import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
+import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecision
+import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,11 +27,12 @@ import org.jellyfin.sdk.model.api.MediaSourceInfo
 @Singleton
 class DefaultPlayableMediaRepository @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
+    private val jellyfinPlaybackResolver: JellyfinPlaybackResolver,
     private val userSessionRepository: UserSessionRepository,
 ) : PlayableMediaRepository {
 
     override suspend fun getMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? = withContext(Dispatchers.IO) {
-        val playbackDecision = jellyfinApiClient.getPlaybackDecision(mediaId) ?: return@withContext null
+        val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(mediaId) ?: return@withContext null
         val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
         val resumePositionMs = calculateResumePosition(baseItem, playbackDecision.mediaSource)
@@ -64,7 +66,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
                 if (existingIds.contains(stringId)) {
                     return@mapNotNull null
                 }
-                val playbackDecision = jellyfinApiClient.getPlaybackDecision(id) ?: return@mapNotNull null
+                val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(id) ?: return@mapNotNull null
                 val artworkUrl = ImageUrlBuilder.toImageUrl(serverUrl, id, ArtworkKind.PRIMARY)
                 createMediaItem(
                     mediaId = stringId,

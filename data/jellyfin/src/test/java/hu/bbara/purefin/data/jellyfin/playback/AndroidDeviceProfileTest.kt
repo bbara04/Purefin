@@ -1,4 +1,4 @@
-package hu.bbara.purefin.data.jellyfin.client
+package hu.bbara.purefin.data.jellyfin.playback
 
 import androidx.media3.common.MimeTypes
 import org.jellyfin.sdk.model.ServerVersion

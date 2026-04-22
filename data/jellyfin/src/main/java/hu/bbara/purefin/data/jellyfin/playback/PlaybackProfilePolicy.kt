@@ -1,6 +1,5 @@
-package hu.bbara.purefin.data.jellyfin.client
+package hu.bbara.purefin.data.jellyfin.playback
 
-import hu.bbara.purefin.core.data.PlaybackProfileFamily
 import org.jellyfin.sdk.model.ServerVersion
 import org.jellyfin.sdk.model.api.DeviceProfile
 

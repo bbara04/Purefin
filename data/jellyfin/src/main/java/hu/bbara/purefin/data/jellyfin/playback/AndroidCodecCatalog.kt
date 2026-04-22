@@ -1,4 +1,4 @@
-package hu.bbara.purefin.data.jellyfin.client
+package hu.bbara.purefin.data.jellyfin.playback
 
 import android.media.MediaCodecInfo
 import android.media.MediaCodecInfo.CodecProfileLevel
