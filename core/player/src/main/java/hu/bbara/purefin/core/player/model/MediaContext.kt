@@ -5,6 +5,6 @@ import hu.bbara.purefin.core.player.preference.MediaTrackPreferences
 
 data class MediaContext(
     val mediaId: String,
-    val preferences: MediaTrackPreferences?,
+    val preferences: MediaTrackPreferences,
     val mediaSegments: List<MediaSegment>
 )

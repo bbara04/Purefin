@@ -10,8 +10,8 @@ class TrackPreferencesRepository @Inject constructor(
 ) {
     val preferences: Flow<TrackPreferences> = trackPreferencesDataStore.data
 
-    fun getMediaPreferences(mediaId: String): Flow<MediaTrackPreferences?> {
-        return preferences.map { it.mediaPreferences[mediaId] }
+    fun getMediaPreferences(mediaId: String): Flow<MediaTrackPreferences> {
+        return preferences.map { it.mediaPreferences[mediaId] ?: MediaTrackPreferences.empty(mediaId = mediaId) }
     }
 
     suspend fun saveAudioPreference(

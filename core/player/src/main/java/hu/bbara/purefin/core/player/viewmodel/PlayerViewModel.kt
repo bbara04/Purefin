@@ -17,7 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
@@ -157,7 +157,7 @@ class PlayerViewModel @Inject constructor(
                 val (mediaItem, resumePositionMs) = result
 
                 val preferenceKey = episodeSeriesLookup.preferenceKeyFor(uuid)
-                val preferences = trackPreferencesRepository.getMediaPreferences(preferenceKey).firstOrNull()
+                val preferences = trackPreferencesRepository.getMediaPreferences(preferenceKey).first()
                 val mediaSegments = playableMediaRepository.getMediaSegments(uuid)
 
                 val mediaContext = MediaContext(

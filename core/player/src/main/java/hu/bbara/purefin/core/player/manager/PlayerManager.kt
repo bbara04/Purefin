@@ -264,9 +264,9 @@ class PlayerManager @Inject constructor(
         _playbackState.update { it.copy(error = null) }
     }
 
-    private suspend fun applyTrackPreferences() {
+    private fun applyTrackPreferences() {
         val context = currentMediaContext ?: return
-        val preferences = context.preferences ?: return
+        val preferences = context.preferences
 
         val currentTrackState = _tracks.value
 

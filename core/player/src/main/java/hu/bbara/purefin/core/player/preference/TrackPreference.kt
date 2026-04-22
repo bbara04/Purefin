@@ -13,7 +13,13 @@ data class MediaTrackPreferences(
     val mediaId: String,
     val audioPreference: AudioTrackProperties? = null,
     val subtitlePreference: SubtitleTrackProperties? = null
-)
+) {
+    companion object {
+        fun empty(mediaId: String): MediaTrackPreferences {
+            return MediaTrackPreferences(mediaId = mediaId)
+        }
+    }
+}
 
 @Serializable
 data class AudioTrackProperties(
