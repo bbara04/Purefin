@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.ui.model.MediaUiModel
@@ -20,6 +22,12 @@ fun ContinueWatchingSection(
 ) {
     if (items.isEmpty()) return
 
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(items) {
+        listState.scrollToItem(index = 0)
+    }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier
@@ -28,7 +36,8 @@ fun ContinueWatchingSection(
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            state = listState
         ) {
             items(items = items, key = { item -> item.id }) { item ->
                 ContinueWatchingCard(
