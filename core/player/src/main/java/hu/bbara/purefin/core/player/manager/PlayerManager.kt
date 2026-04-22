@@ -6,7 +6,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
-import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.PlaybackReportContext
@@ -71,40 +70,6 @@ class PlayerManager @Inject constructor(
     val queue: StateFlow<List<QueueItemUi>> = _queue.asStateFlow()
 
     private val listener = object : Player.Listener {
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            _playbackState.update { it.copy(isPlaying = isPlaying, isBuffering = false, isEnded = false) }
-        }
-
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            val buffering = playbackState == Player.STATE_BUFFERING
-            val ended = playbackState == Player.STATE_ENDED
-            _playbackState.update { state ->
-                state.copy(
-                    isBuffering = buffering,
-                    isEnded = ended,
-                    error = if (playbackState == Player.STATE_IDLE) state.error else null
-                )
-            }
-            if (ended) player.pause()
-        }
-
-        override fun onPlayerError(error: PlaybackException) {
-            _playbackState.update { it.copy(error = error.errorCodeName ?: error.localizedMessage ?: "Playback error") }
-        }
-
-        override fun onTracksChanged(tracks: Tracks) {
-            refreshTracks(tracks)
-            scope.launch {
-                applyTrackPreferences()
-            }
-        }
-
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            clearPendingSeek()
-            refreshMetadata(mediaItem)
-            refreshQueue()
-        }
-
         override fun onPositionDiscontinuity(
             oldPosition: Player.PositionInfo,
             newPosition: Player.PositionInfo,
@@ -112,13 +77,29 @@ class PlayerManager @Inject constructor(
         ) {
             syncPendingSeek(newPosition.positionMs)
         }
+
+        override fun onPlayerError(error: PlaybackException) {
+            _playbackState.update {
+                it.copy(error = mapPlayerError(error))
+            }
+        }
+
+        override fun onEvents(player: Player, events: Player.Events) {
+            if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+                clearPendingSeek()
+            }
+            updateFromPlayer(player)
+            if (events.contains(Player.EVENT_TRACKS_CHANGED)) {
+                scope.launch {
+                    applyTrackPreferences()
+                }
+            }
+        }
     }
 
     init {
         player.addListener(listener)
-        refreshMetadata(player.currentMediaItem)
-        refreshTracks(player.currentTracks)
-        refreshQueue()
+        updateFromPlayer(player)
         startProgressLoop()
     }
 
@@ -128,14 +109,10 @@ class PlayerManager @Inject constructor(
         player.setMediaItem(mediaItem)
         player.prepare()
         player.playWhenReady = true
-        refreshMetadata(mediaItem)
-        refreshQueue()
-        _playbackState.update { it.copy(isEnded = false, error = null) }
     }
 
     fun addToQueue(mediaItem: MediaItem) {
         player.addMediaItem(mediaItem)
-        refreshQueue()
     }
 
     fun togglePlayPause() {
@@ -229,7 +206,6 @@ class PlayerManager @Inject constructor(
             }
         }
         player.trackSelectionParameters = builder.build()
-        refreshTracks(player.currentTracks)
 
         // Save track preference if media context is available
         currentMediaContext?.let { context ->
@@ -256,7 +232,6 @@ class PlayerManager @Inject constructor(
             clearPendingSeek()
             player.seekToDefaultPosition(targetIndex)
             player.playWhenReady = true
-            refreshQueue()
         }
     }
 
@@ -341,7 +316,30 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    private fun refreshQueue() {
+    private fun updateFromPlayer(player: Player) {
+        val currentMediaItem = player.currentMediaItem
+        val playbackState = player.playbackState
+        val playbackReportContext = currentMediaItem?.localConfiguration?.tag as? PlaybackReportContext
+        val currentMetadata = player.mediaMetadata
+        val playerError = player.playerError
+
+        _playbackState.value = PlaybackStateSnapshot(
+            isPlaying = player.isPlaying,
+            isBuffering = playbackState == Player.STATE_BUFFERING,
+            isEnded = playbackState == Player.STATE_ENDED,
+            error = mapPlayerError(playerError)
+        )
+        _metadata.value = MetadataState(
+            mediaId = currentMediaItem?.mediaId,
+            title = currentMetadata.title?.toString(),
+            subtitle = currentMetadata.subtitle?.toString(),
+            playbackReportContext = playbackReportContext,
+        )
+        _tracks.value = trackMapper.map(player.currentTracks)
+        _queue.value = buildQueueSnapshot(player)
+    }
+
+    private fun buildQueueSnapshot(player: Player): List<QueueItemUi> {
         val items = mutableListOf<QueueItemUi>()
         for (i in 0 until player.mediaItemCount) {
             val mediaItem = player.getMediaItemAt(i)
@@ -355,21 +353,7 @@ class PlayerManager @Inject constructor(
                 )
             )
         }
-        _queue.value = items
-    }
-
-    private fun refreshMetadata(mediaItem: MediaItem?) {
-        val playbackReportContext = mediaItem?.localConfiguration?.tag as? PlaybackReportContext
-        _metadata.value = MetadataState(
-            mediaId = mediaItem?.mediaId,
-            title = mediaItem?.mediaMetadata?.title?.toString(),
-            subtitle = mediaItem?.mediaMetadata?.subtitle?.toString(),
-            playbackReportContext = playbackReportContext,
-        )
-    }
-
-    private fun refreshTracks(tracks: Tracks) {
-        _tracks.value = trackMapper.map(tracks)
+        return items
     }
 
     private fun clampSeekPosition(positionMs: Long): Long {
@@ -389,6 +373,10 @@ class PlayerManager @Inject constructor(
         pendingSeekPositionMs = null
     }
 
+    private fun mapPlayerError(error: PlaybackException?): String? {
+        return error?.errorCodeName ?: error?.localizedMessage ?: error?.message
+    }
+
     private fun syncPendingSeek(positionMs: Long) {
         val pendingPosition = pendingSeekPositionMs ?: return
         if (abs(positionMs - pendingPosition) <= SEEK_SETTLE_TOLERANCE_MS) {
@@ -396,4 +384,3 @@ class PlayerManager @Inject constructor(
         }
     }
 }
-
