@@ -5,6 +5,9 @@ import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.MediaProgressWriter
 import hu.bbara.purefin.core.data.PlaybackProgressReporter
 import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.core.player.model.MetadataState
+import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot
+import hu.bbara.purefin.core.player.model.PlaybackStateSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

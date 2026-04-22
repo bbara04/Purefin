@@ -6,18 +6,21 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.EpisodeSeriesLookup
 import hu.bbara.purefin.core.data.PlayableMediaRepository
-import hu.bbara.purefin.core.player.manager.MediaContext
 import hu.bbara.purefin.core.player.manager.PlayerManager
 import hu.bbara.purefin.core.player.manager.ProgressManager
+import hu.bbara.purefin.core.player.model.MediaContext
 import hu.bbara.purefin.core.player.model.PlayerUiState
 import hu.bbara.purefin.core.player.model.TrackOption
+import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.InternalSerializationApi
 import java.util.UUID
 import javax.inject.Inject
 
@@ -26,6 +29,7 @@ class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val playerManager: PlayerManager,
     private val playableMediaRepository: PlayableMediaRepository,
+    private val trackPreferencesRepository: TrackPreferencesRepository,
     private val episodeSeriesLookup: EpisodeSeriesLookup,
     private val progressManager: ProgressManager,
 ) : ViewModel() {
@@ -139,6 +143,7 @@ class PlayerViewModel @Inject constructor(
         loadMediaById(id)
     }
 
+    @OptIn(InternalSerializationApi::class)
     private fun loadMediaById(id: String) {
         val uuid = id.toUuidOrNull()
         if (uuid == null) {
@@ -152,7 +157,14 @@ class PlayerViewModel @Inject constructor(
                 val (mediaItem, resumePositionMs) = result
 
                 val preferenceKey = episodeSeriesLookup.preferenceKeyFor(uuid)
-                val mediaContext = MediaContext(mediaId = id, preferenceKey = preferenceKey)
+                val preferences = trackPreferencesRepository.getMediaPreferences(preferenceKey).firstOrNull()
+                val mediaSegments = playableMediaRepository.getMediaSegments(uuid)
+
+                val mediaContext = MediaContext(
+                    mediaId = id,
+                    preferences = preferences,
+                    mediaSegments = mediaSegments
+                )
 
                 playerManager.play(mediaItem, mediaContext)
 

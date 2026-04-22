@@ -10,6 +10,10 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.core.player.model.MediaContext
+import hu.bbara.purefin.core.player.model.MetadataState
+import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot
+import hu.bbara.purefin.core.player.model.PlaybackStateSnapshot
 import hu.bbara.purefin.core.player.model.QueueItemUi
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
@@ -25,7 +29,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -231,7 +234,7 @@ class PlayerManager @Inject constructor(
         // Save track preference if media context is available
         currentMediaContext?.let { context ->
             scope.launch {
-                saveTrackPreference(option, context.preferenceKey)
+                saveTrackPreference(option, context.mediaId)
             }
         }
     }
@@ -263,7 +266,7 @@ class PlayerManager @Inject constructor(
 
     private suspend fun applyTrackPreferences() {
         val context = currentMediaContext ?: return
-        val preferences = trackPreferencesRepository.getMediaPreferences(context.preferenceKey).firstOrNull() ?: return
+        val preferences = context.preferences ?: return
 
         val currentTrackState = _tracks.value
 
@@ -394,28 +397,3 @@ class PlayerManager @Inject constructor(
     }
 }
 
-data class PlaybackStateSnapshot(
-    val isPlaying: Boolean = false,
-    val isBuffering: Boolean = false,
-    val isEnded: Boolean = false,
-    val error: String? = null
-)
-
-data class PlaybackProgressSnapshot(
-    val durationMs: Long = 0L,
-    val positionMs: Long = 0L,
-    val bufferedMs: Long = 0L,
-    val isLive: Boolean = false
-)
-
-data class MetadataState(
-    val mediaId: String? = null,
-    val title: String? = null,
-    val subtitle: String? = null,
-    val playbackReportContext: PlaybackReportContext? = null,
-)
-
-data class MediaContext(
-    val mediaId: String,
-    val preferenceKey: String
-)

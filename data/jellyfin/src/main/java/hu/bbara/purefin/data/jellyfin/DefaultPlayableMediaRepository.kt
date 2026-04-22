@@ -9,20 +9,27 @@ import androidx.media3.common.util.UnstableApi
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.core.model.MediaSegment
+import hu.bbara.purefin.core.model.SegmentType
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
 import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecision
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import hu.bbara.purefin.core.image.ArtworkKind
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.MediaSegmentDto
+import org.jellyfin.sdk.model.api.MediaSegmentType.INTRO
+import org.jellyfin.sdk.model.api.MediaSegmentType.OUTRO
+import org.jellyfin.sdk.model.api.MediaSegmentType.PREVIEW
+import org.jellyfin.sdk.model.api.MediaSegmentType.RECAP
 import org.jellyfin.sdk.model.api.MediaSourceInfo
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class DefaultPlayableMediaRepository @Inject constructor(
@@ -50,6 +57,13 @@ class DefaultPlayableMediaRepository @Inject constructor(
         )
 
         Pair(mediaItem, resumePositionMs)
+    }
+
+    override suspend fun getMediaSegments(mediaId: UUID): List<MediaSegment> {
+        val mediaSegments = jellyfinApiClient.getMediaSegments(mediaId)
+        return mediaSegments.mapNotNull {
+            it.toMediaSegment()
+        }
     }
 
     override suspend fun getNextUpMediaItems(
@@ -132,5 +146,21 @@ class DefaultPlayableMediaRepository @Inject constructor(
         val seasonNumber = item?.parentIndexNumber ?: return null
         val episodeNumber = item.indexNumber ?: return null
         return "S$seasonNumber:E$episodeNumber"
+    }
+
+    private fun MediaSegmentDto.toMediaSegment(): MediaSegment {
+        val segmentType = when (type) {
+            INTRO -> SegmentType.INTRO
+            PREVIEW -> SegmentType.PREVIEW
+            RECAP -> SegmentType.RECAP
+            OUTRO -> SegmentType.OUTRO
+            else -> SegmentType.MAIN_CONTENT
+        }
+        return MediaSegment(
+            id = itemId,
+            type = segmentType,
+            startMs = startTicks,
+            endMs = endTicks
+        )
     }
 }

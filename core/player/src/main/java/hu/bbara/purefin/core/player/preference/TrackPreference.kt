@@ -1,5 +1,6 @@
 package hu.bbara.purefin.core.player.preference
 
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable
 
 @Serializable

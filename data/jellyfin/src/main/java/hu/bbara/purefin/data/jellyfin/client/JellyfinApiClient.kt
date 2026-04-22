@@ -13,6 +13,7 @@ import org.jellyfin.sdk.api.client.Response
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.extensions.mediaInfoApi
+import org.jellyfin.sdk.api.client.extensions.mediaSegmentsApi
 import org.jellyfin.sdk.api.client.extensions.playStateApi
 import org.jellyfin.sdk.api.client.extensions.suggestionsApi
 import org.jellyfin.sdk.api.client.extensions.tvShowsApi
@@ -30,6 +31,8 @@ import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.DeviceProfile
 import org.jellyfin.sdk.model.api.ItemFields
+import org.jellyfin.sdk.model.api.MediaSegmentDto
+import org.jellyfin.sdk.model.api.MediaSegmentType
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.MediaType
 import org.jellyfin.sdk.model.api.PlayMethod
@@ -262,6 +265,18 @@ class JellyfinApiClient @Inject constructor(
         )
         Log.d("getMediaSources", result.toString())
         result.content.mediaSources
+    }
+
+    suspend fun getMediaSegments(mediaId: UUID) : List<MediaSegmentDto> = withContext(Dispatchers.IO) {
+        if (!ensureConfigured()) {
+            return@withContext emptyList()
+        }
+        val result = api.mediaSegmentsApi.getItemSegments(
+            itemId = mediaId,
+            includeSegmentTypes = listOf(MediaSegmentType.INTRO)
+        )
+        Log.d("getMediaSegments", result.toString())
+        result.content.items
     }
 
     suspend fun getPlaybackInfo(
