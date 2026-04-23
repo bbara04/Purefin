@@ -7,8 +7,10 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.core.model.MediaSegment
 import hu.bbara.purefin.core.player.model.MediaContext
 import hu.bbara.purefin.core.player.model.MetadataState
 import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot
@@ -51,6 +53,8 @@ class PlayerManager @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
+    private val mediaSegmentManager = MediaSegmentManager(player as ExoPlayer)
+
     private var currentMediaContext: MediaContext? = null
     private var pendingSeekPositionMs: Long? = null
 
@@ -84,10 +88,14 @@ class PlayerManager @Inject constructor(
             }
         }
 
-        override fun onEvents(player: Player, events: Player.Events) {
-            if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
-                clearPendingSeek()
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            clearPendingSeek()
+            currentMediaContext?.let {
+                installMediaSegments(it.mediaSegments)
             }
+        }
+
+        override fun onEvents(player: Player, events: Player.Events) {
             updateFromPlayer(player)
             if (events.contains(Player.EVENT_TRACKS_CHANGED)) {
                 scope.launch {
@@ -215,8 +223,10 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    fun setPlaybackSpeed(speed: Float) {
-        player.setPlaybackSpeed(speed)
+    private fun installMediaSegments(mediaSegments: List<MediaSegment>) {
+        mediaSegmentManager.addMediaSegments(
+            mediaSegments = mediaSegments
+        )
     }
 
     fun retry() {

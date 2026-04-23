@@ -2,12 +2,17 @@ package hu.bbara.purefin.core.model
 
 import java.util.UUID
 
-enum class SegmentType {
-    INTRO,
-    OUTRO,
-    MAIN_CONTENT,
-    PREVIEW,
-    RECAP;
+enum class SegmentType(val value: Int) {
+    INTRO(0),
+    OUTRO(1),
+    MAIN_CONTENT(2),
+    PREVIEW(3),
+    RECAP(4);
+
+    companion object {
+        fun fromValue(value: Int): SegmentType? =
+            entries.firstOrNull { it.value == value }
+    }
 }
 
 data class MediaSegment(

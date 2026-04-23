@@ -272,11 +272,6 @@ class PlayerViewModel @Inject constructor(
         playerManager.selectTrack(option)
     }
 
-    fun setPlaybackSpeed(speed: Float) {
-        playerManager.setPlaybackSpeed(speed)
-        _uiState.update { it.copy(playbackSpeed = speed) }
-    }
-
     fun retry() {
         playerManager.retry()
     }
