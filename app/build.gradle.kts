@@ -52,6 +52,8 @@ kotlin {
 dependencies {
     implementation(project(":data"))
     implementation(project(":core"))
+    //TODO: temporary hack fix it
+    implementation(project(":core-model"))
     implementation(project(":core-ui"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

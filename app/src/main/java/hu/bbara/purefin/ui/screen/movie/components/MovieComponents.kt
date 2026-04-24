@@ -29,17 +29,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.ui.common.media.MediaCastRow
-import hu.bbara.purefin.ui.common.media.MediaSynopsis
-import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
-import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
-import hu.bbara.purefin.ui.common.button.GhostIconButton
-import hu.bbara.purefin.ui.common.button.MediaActionButton
-import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
-import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.download.DownloadState
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.player.PlayerActivity
+import hu.bbara.purefin.ui.common.button.GhostIconButton
+import hu.bbara.purefin.ui.common.button.MediaActionButton
+import hu.bbara.purefin.ui.common.button.MediaResumeButton
+import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
+import hu.bbara.purefin.ui.common.media.MediaSynopsis
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 
 @Composable
 internal fun MovieTopBar(
@@ -139,9 +138,10 @@ internal fun MovieDetails(
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(12.dp))
-            MediaCastRow(
-                cast = movie.cast,
-            )
+            //TODO fix
+//            MediaCastRow(
+//                cast = movie.cast,
+//            )
         }
     }
 }

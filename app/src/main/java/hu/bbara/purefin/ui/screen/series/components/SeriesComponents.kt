@@ -55,28 +55,27 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.common.media.MediaCastRow
-import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
-import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
-import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
-import hu.bbara.purefin.ui.common.button.GhostIconButton
-import hu.bbara.purefin.ui.common.button.MediaActionButton
-import hu.bbara.purefin.ui.common.bar.MediaProgressBar
-import hu.bbara.purefin.ui.common.button.MediaResumeButton
-import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.download.DownloadState
+import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.navigation.EpisodeDto
-import hu.bbara.purefin.navigation.LocalNavigationManager
-import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
-import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.navigation.EpisodeDto
+import hu.bbara.purefin.navigation.LocalNavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.player.PlayerActivity
-import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.ui.common.badge.WatchStateBadge
+import hu.bbara.purefin.ui.common.bar.MediaProgressBar
+import hu.bbara.purefin.ui.common.button.GhostIconButton
+import hu.bbara.purefin.ui.common.button.MediaActionButton
+import hu.bbara.purefin.ui.common.button.MediaResumeButton
+import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 
 @Composable
 internal fun SeriesTopBar(
@@ -407,11 +406,12 @@ private fun EpisodeCard(
 
 @Composable
 internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {
-    MediaCastRow(
-        cast = cast,
-        modifier = modifier,
-        cardWidth = 84.dp,
-        nameSize = 11.sp,
-        roleSize = 10.sp
-    )
+    //TODO fix
+//    MediaCastRow(
+//        cast = cast,
+//        modifier = modifier,
+//        cardWidth = 84.dp,
+//        nameSize = 11.sp,
+//        roleSize = 10.sp
+//    )
 }

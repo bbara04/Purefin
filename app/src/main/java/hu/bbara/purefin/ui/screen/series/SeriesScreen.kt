@@ -1,5 +1,7 @@
 package hu.bbara.purefin.ui.screen.series
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,32 +17,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.common.media.MediaSynopsis
-import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
-import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.download.DownloadState
+import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
-import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.navigation.SeriesDto
+import hu.bbara.purefin.ui.common.media.MediaHero
+import hu.bbara.purefin.ui.common.media.MediaSynopsis
 import hu.bbara.purefin.ui.screen.series.components.CastRow
 import hu.bbara.purefin.ui.screen.series.components.EpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.SeasonTabs
@@ -48,8 +48,8 @@ import hu.bbara.purefin.ui.screen.series.components.SeriesActionButtons
 import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadOption
 import hu.bbara.purefin.ui.screen.series.components.SeriesMetaChips
 import hu.bbara.purefin.ui.screen.series.components.SeriesTopBar
+import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.theme.AppTheme
-import hu.bbara.purefin.image.ArtworkKind
 import java.util.UUID
 
 @Composable
