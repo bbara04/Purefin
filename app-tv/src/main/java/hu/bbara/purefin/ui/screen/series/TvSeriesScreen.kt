@@ -28,8 +28,8 @@ import hu.bbara.purefin.ui.screen.series.components.TvEpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.TvSeasonTabs
 import hu.bbara.purefin.ui.screen.series.components.TvSeriesHeroSection
 import hu.bbara.purefin.core.navigation.SeriesDto
-import hu.bbara.purefin.core.model.Season
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.feature.content.series.SeriesViewModel
 import java.util.UUID
 

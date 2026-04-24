@@ -9,9 +9,9 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
-import hu.bbara.purefin.core.data.DownloadMediaSourceResolver
-import hu.bbara.purefin.core.data.OfflineCatalogStore
-import hu.bbara.purefin.core.data.SmartDownloadStore
+import hu.bbara.purefin.data.DownloadMediaSourceResolver
+import hu.bbara.purefin.data.OfflineCatalogStore
+import hu.bbara.purefin.data.SmartDownloadStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch

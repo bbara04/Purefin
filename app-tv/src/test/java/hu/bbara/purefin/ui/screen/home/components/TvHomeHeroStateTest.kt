@@ -1,9 +1,9 @@
 package hu.bbara.purefin.ui.screen.home.components
 
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.LibraryKind
-import hu.bbara.purefin.core.model.MediaKind
-import hu.bbara.purefin.core.model.Movie
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.LibraryKind
+import hu.bbara.purefin.model.MediaKind
+import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.feature.browse.home.NextUpItem

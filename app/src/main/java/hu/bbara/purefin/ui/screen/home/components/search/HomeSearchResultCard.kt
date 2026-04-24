@@ -17,7 +17,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.model.MediaKind
 import hu.bbara.purefin.feature.search.SearchResult
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 

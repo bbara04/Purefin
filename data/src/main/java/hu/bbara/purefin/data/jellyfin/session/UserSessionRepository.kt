@@ -1,7 +1,7 @@
 package hu.bbara.purefin.data.jellyfin.session
 
 import androidx.datastore.core.DataStore
-import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.data.session.UserSessionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first

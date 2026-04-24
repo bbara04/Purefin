@@ -34,15 +34,15 @@ import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
 import hu.bbara.purefin.core.download.DownloadState
-import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.core.navigation.MovieDto
-import hu.bbara.purefin.core.model.CastMember
-import hu.bbara.purefin.core.model.Movie
+import hu.bbara.purefin.model.CastMember
+import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.feature.content.movie.MovieScreenViewModel
 import hu.bbara.purefin.ui.screen.movie.components.MovieDetails
 import hu.bbara.purefin.ui.screen.movie.components.MovieTopBar
 import hu.bbara.purefin.ui.theme.AppTheme
-import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.image.ArtworkKind
 import java.util.UUID
 
 @Composable

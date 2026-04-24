@@ -1,10 +1,9 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
-import hu.bbara.purefin.core.data.PlaybackMethod
-import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.data.PlaybackMethod
+import hu.bbara.purefin.data.PlaybackReportContext
 import org.jellyfin.sdk.model.api.MediaProtocol
 import org.jellyfin.sdk.model.api.MediaSourceInfo
-import org.jellyfin.sdk.model.api.PlayMethod
 
 internal object PlaybackDecisionResolver {
     fun resolve(

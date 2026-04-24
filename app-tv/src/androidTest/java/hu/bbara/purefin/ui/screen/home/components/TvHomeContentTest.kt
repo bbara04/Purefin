@@ -16,9 +16,9 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.LibraryKind
-import hu.bbara.purefin.core.model.Movie
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.LibraryKind
+import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.core.ui.model.EpisodeUiModel
 import hu.bbara.purefin.core.ui.model.MediaUiModel
 import hu.bbara.purefin.core.ui.model.MovieUiModel

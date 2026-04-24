@@ -3,9 +3,9 @@ package hu.bbara.purefin.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.MediaCatalogReader
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.data.session.UserSessionRepository
 import java.util.UUID
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.image.ArtworkKind
 import javax.inject.Inject
 
 @HiltViewModel

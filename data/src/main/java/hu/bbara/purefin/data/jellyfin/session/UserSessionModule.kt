@@ -10,7 +10,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.data.session.UserSessionRepository
 import javax.inject.Singleton
 
 @Module

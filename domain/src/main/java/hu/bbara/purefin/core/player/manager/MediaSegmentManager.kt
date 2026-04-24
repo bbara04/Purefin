@@ -6,8 +6,8 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.PlayerMessage
-import hu.bbara.purefin.core.model.MediaSegment
-import hu.bbara.purefin.core.model.SegmentType
+import hu.bbara.purefin.model.MediaSegment
+import hu.bbara.purefin.model.SegmentType
 import hu.bbara.purefin.core.player.model.SegmentStatus
 
 @OptIn(UnstableApi::class)

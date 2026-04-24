@@ -1,6 +1,6 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
-import hu.bbara.purefin.core.data.PlaybackMethod
+import hu.bbara.purefin.data.PlaybackMethod
 import org.jellyfin.sdk.model.api.MediaProtocol
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.MediaSourceType

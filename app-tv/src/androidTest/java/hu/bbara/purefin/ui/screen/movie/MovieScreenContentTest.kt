@@ -13,8 +13,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.input.key.Key
-import hu.bbara.purefin.core.model.CastMember
-import hu.bbara.purefin.core.model.Movie
+import hu.bbara.purefin.model.CastMember
+import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.ui.theme.AppTheme
 import hu.bbara.purefin.ui.screen.movie.components.MoviePlayButtonTag
 import org.junit.Assert.assertEquals

@@ -4,7 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import hu.bbara.purefin.core.data.PlaybackProfileFamily
+import hu.bbara.purefin.data.PlaybackProfileFamily
 import javax.inject.Singleton
 
 @Module

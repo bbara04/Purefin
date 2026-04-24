@@ -1,10 +1,10 @@
 package hu.bbara.purefin.data.jellyfin.download
 
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Season
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import org.jellyfin.sdk.model.api.BaseItemDto

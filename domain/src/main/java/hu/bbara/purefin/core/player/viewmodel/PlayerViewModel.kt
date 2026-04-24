@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.EpisodeSeriesLookup
-import hu.bbara.purefin.core.data.PlayableMediaRepository
+import hu.bbara.purefin.data.EpisodeSeriesLookup
+import hu.bbara.purefin.data.PlayableMediaRepository
 import hu.bbara.purefin.core.player.manager.PlayerManager
 import hu.bbara.purefin.core.player.manager.ProgressManager
 import hu.bbara.purefin.core.player.model.MediaContext

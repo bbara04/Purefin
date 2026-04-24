@@ -1,6 +1,6 @@
 package hu.bbara.purefin.data.offline
 
-import hu.bbara.purefin.core.data.SmartDownloadStore
+import hu.bbara.purefin.data.SmartDownloadStore
 import hu.bbara.purefin.data.offline.room.dao.SmartDownloadDao
 import hu.bbara.purefin.data.offline.room.entity.SmartDownloadEntity
 import java.util.UUID

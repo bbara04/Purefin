@@ -1,6 +1,6 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
-import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.data.PlaybackReportContext
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 
 data class PlaybackDecision(

@@ -3,10 +3,10 @@ package hu.bbara.purefin.feature.downloads
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.OfflineCatalogReader
+import hu.bbara.purefin.data.OfflineCatalogReader
 import hu.bbara.purefin.core.download.MediaDownloadController
-import hu.bbara.purefin.core.image.ArtworkKind
-import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route

@@ -1,12 +1,12 @@
 package hu.bbara.purefin.data.offline.cache
 
-import hu.bbara.purefin.core.model.CastMember
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Library
-import hu.bbara.purefin.core.model.LibraryKind
-import hu.bbara.purefin.core.model.Media
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.model.CastMember
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Library
+import hu.bbara.purefin.model.LibraryKind
+import hu.bbara.purefin.model.Media
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Series
 import kotlinx.serialization.Serializable
 import java.util.UUID
 

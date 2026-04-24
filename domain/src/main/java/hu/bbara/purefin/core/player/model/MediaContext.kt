@@ -1,6 +1,6 @@
 package hu.bbara.purefin.core.player.model
 
-import hu.bbara.purefin.core.model.MediaSegment
+import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.core.player.preference.MediaTrackPreferences
 
 data class MediaContext(

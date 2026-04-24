@@ -1,7 +1,7 @@
 package hu.bbara.purefin.data.jellyfin.session
 
 import kotlinx.serialization.Serializable
-import hu.bbara.purefin.core.navigation.UuidSerializer
+import hu.bbara.purefin.navigation.UuidSerializer
 import java.util.UUID
 
 @Serializable

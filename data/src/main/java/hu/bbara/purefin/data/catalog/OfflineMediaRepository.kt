@@ -1,12 +1,12 @@
 package hu.bbara.purefin.data.catalog
 
-import hu.bbara.purefin.core.data.MediaCatalogReader
-import hu.bbara.purefin.core.data.MediaProgressWriter
-import hu.bbara.purefin.core.data.OfflineCatalogReader
+import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.data.MediaProgressWriter
+import hu.bbara.purefin.data.OfflineCatalogReader
 import hu.bbara.purefin.data.offline.room.offline.OfflineRoomMediaLocalDataSource
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Series
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton

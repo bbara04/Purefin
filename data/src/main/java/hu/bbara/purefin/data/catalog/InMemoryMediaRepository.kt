@@ -1,14 +1,14 @@
 package hu.bbara.purefin.data.catalog
 
-import hu.bbara.purefin.core.data.MediaCatalogReader
-import hu.bbara.purefin.core.data.MediaProgressWriter
+import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.data.MediaProgressWriter
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.core.data.session.UserSessionRepository
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Season
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale

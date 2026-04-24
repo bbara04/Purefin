@@ -1,8 +1,8 @@
 package hu.bbara.purefin.feature.search
 
-import hu.bbara.purefin.core.model.MediaKind
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.model.MediaKind
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Series
 import java.util.UUID
 
 data class SearchResult(

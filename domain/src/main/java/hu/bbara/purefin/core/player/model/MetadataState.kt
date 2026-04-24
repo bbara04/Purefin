@@ -1,6 +1,6 @@
 package hu.bbara.purefin.core.player.model
 
-import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.data.PlaybackReportContext
 
 data class MetadataState(
     val mediaId: String? = null,

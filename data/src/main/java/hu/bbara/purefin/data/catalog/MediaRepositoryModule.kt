@@ -4,11 +4,11 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import hu.bbara.purefin.core.data.EpisodeSeriesLookup
-import hu.bbara.purefin.core.data.HomeRepository
-import hu.bbara.purefin.core.data.MediaCatalogReader
-import hu.bbara.purefin.core.data.MediaProgressWriter
-import hu.bbara.purefin.core.data.OfflineCatalogReader
+import hu.bbara.purefin.data.EpisodeSeriesLookup
+import hu.bbara.purefin.data.HomeRepository
+import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.data.MediaProgressWriter
+import hu.bbara.purefin.data.OfflineCatalogReader
 
 @Module
 @InstallIn(SingletonComponent::class)

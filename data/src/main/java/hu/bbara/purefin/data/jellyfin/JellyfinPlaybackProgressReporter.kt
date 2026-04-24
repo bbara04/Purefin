@@ -1,8 +1,8 @@
 package hu.bbara.purefin.data.jellyfin
 
-import hu.bbara.purefin.core.data.PlaybackProgressReporter
+import hu.bbara.purefin.data.PlaybackProgressReporter
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.data.PlaybackReportContext
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton

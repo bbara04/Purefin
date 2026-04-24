@@ -3,8 +3,8 @@ package hu.bbara.purefin.feature.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.AuthenticationRepository
-import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.data.AuthenticationRepository
+import hu.bbara.purefin.data.session.UserSessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -2,9 +2,9 @@ package hu.bbara.purefin.core.player.manager
 
 import android.util.Log
 import dagger.hilt.android.scopes.ViewModelScoped
-import hu.bbara.purefin.core.data.MediaProgressWriter
-import hu.bbara.purefin.core.data.PlaybackProgressReporter
-import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.data.MediaProgressWriter
+import hu.bbara.purefin.data.PlaybackProgressReporter
+import hu.bbara.purefin.data.PlaybackReportContext
 import hu.bbara.purefin.core.player.model.MetadataState
 import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot
 import hu.bbara.purefin.core.player.model.PlaybackStateSnapshot

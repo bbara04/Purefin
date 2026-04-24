@@ -59,13 +59,13 @@ import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
 import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.core.model.CastMember
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Season
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.model.CastMember
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.feature.content.series.SeriesViewModel
-import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.image.ArtworkKind
 
 internal const val SeriesPlayButtonTag = "series-play-button"
 internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"

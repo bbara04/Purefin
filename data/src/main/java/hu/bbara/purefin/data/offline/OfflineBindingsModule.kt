@@ -4,8 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import hu.bbara.purefin.core.data.OfflineCatalogStore
-import hu.bbara.purefin.core.data.SmartDownloadStore
+import hu.bbara.purefin.data.OfflineCatalogStore
+import hu.bbara.purefin.data.SmartDownloadStore
 
 @Module
 @InstallIn(SingletonComponent::class)

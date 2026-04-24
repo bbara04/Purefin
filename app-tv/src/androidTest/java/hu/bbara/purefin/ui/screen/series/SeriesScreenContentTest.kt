@@ -11,10 +11,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.input.key.Key
-import hu.bbara.purefin.core.model.CastMember
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Season
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.model.CastMember
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.ui.theme.AppTheme
 import hu.bbara.purefin.ui.screen.series.components.SeriesFirstSeasonTabTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesPlayButtonTag

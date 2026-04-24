@@ -9,8 +9,8 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ViewModelScoped
-import hu.bbara.purefin.core.data.PlaybackReportContext
-import hu.bbara.purefin.core.model.MediaSegment
+import hu.bbara.purefin.data.PlaybackReportContext
+import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.core.player.model.MediaContext
 import hu.bbara.purefin.core.player.model.MetadataState
 import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot

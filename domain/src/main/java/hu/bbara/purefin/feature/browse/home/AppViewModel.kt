@@ -3,12 +3,12 @@ package hu.bbara.purefin.feature.browse.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.HomeRepository
-import hu.bbara.purefin.core.data.MediaCatalogReader
-import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.data.HomeRepository
+import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.data.session.UserSessionRepository
 import hu.bbara.purefin.core.download.MediaDownloadController
-import hu.bbara.purefin.core.model.LibraryKind
-import hu.bbara.purefin.core.model.Media
+import hu.bbara.purefin.model.LibraryKind
+import hu.bbara.purefin.model.Media
 import hu.bbara.purefin.core.navigation.EpisodeDto
 import hu.bbara.purefin.core.navigation.LibraryDto
 import hu.bbara.purefin.core.navigation.MovieDto

@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.feature.search.SearchViewModel
 import java.util.UUID
-import hu.bbara.purefin.core.model.MediaKind
+import hu.bbara.purefin.model.MediaKind
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

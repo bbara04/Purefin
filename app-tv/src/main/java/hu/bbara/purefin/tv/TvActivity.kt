@@ -36,8 +36,8 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dagger.hilt.android.AndroidEntryPoint
-import hu.bbara.purefin.core.data.SessionBootstrapper
-import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.data.SessionBootstrapper
+import hu.bbara.purefin.data.session.UserSessionRepository
 import hu.bbara.purefin.core.navigation.NavigationCommand
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route

@@ -32,8 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.image.ArtworkKind
 
 internal val MediaDetailHorizontalPadding = 48.dp
 private val MediaDetailHeaderTopPadding = 104.dp

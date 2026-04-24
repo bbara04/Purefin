@@ -9,10 +9,10 @@ import hu.bbara.purefin.data.offline.room.entity.EpisodeEntity
 import hu.bbara.purefin.data.offline.room.entity.MovieEntity
 import hu.bbara.purefin.data.offline.room.entity.SeasonEntity
 import hu.bbara.purefin.data.offline.room.entity.SeriesEntity
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Season
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID

@@ -34,12 +34,12 @@ import hu.bbara.purefin.ui.common.media.MediaSynopsis
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.core.download.DownloadState
-import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.core.navigation.SeriesDto
-import hu.bbara.purefin.core.model.CastMember
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Season
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.model.CastMember
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.ui.screen.series.components.CastRow
 import hu.bbara.purefin.ui.screen.series.components.EpisodeCarousel
@@ -49,7 +49,7 @@ import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadOption
 import hu.bbara.purefin.ui.screen.series.components.SeriesMetaChips
 import hu.bbara.purefin.ui.screen.series.components.SeriesTopBar
 import hu.bbara.purefin.ui.theme.AppTheme
-import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.image.ArtworkKind
 import java.util.UUID
 
 @Composable

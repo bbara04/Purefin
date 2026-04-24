@@ -43,7 +43,7 @@ import hu.bbara.purefin.ui.common.button.MediaActionButton
 import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
 import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.core.download.DownloadState
-import hu.bbara.purefin.core.model.Episode
+import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.player.PlayerActivity
 
 internal sealed interface EpisodeTopBarShortcut {

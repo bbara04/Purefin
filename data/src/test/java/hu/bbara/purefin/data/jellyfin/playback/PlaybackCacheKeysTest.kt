@@ -1,6 +1,6 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
-import hu.bbara.purefin.core.data.PlaybackMethod
+import hu.bbara.purefin.data.PlaybackMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

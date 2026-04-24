@@ -3,8 +3,8 @@ package hu.bbara.purefin.feature.browse.library
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.HomeRepository
-import hu.bbara.purefin.core.model.LibraryKind
+import hu.bbara.purefin.data.HomeRepository
+import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route

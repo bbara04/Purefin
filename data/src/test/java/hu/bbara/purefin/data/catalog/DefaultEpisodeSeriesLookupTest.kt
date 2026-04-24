@@ -1,9 +1,9 @@
 package hu.bbara.purefin.data.catalog
 
-import hu.bbara.purefin.core.data.MediaCatalogReader
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Series
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

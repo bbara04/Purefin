@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.core.model.CastMember
+import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 
 @Composable

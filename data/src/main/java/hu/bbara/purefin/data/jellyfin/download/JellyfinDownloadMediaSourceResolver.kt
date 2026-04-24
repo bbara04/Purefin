@@ -1,10 +1,10 @@
 package hu.bbara.purefin.data.jellyfin.download
 
-import hu.bbara.purefin.core.data.DownloadMediaSourceResolver
-import hu.bbara.purefin.core.data.EpisodeDownloadSource
-import hu.bbara.purefin.core.data.MovieDownloadSource
-import hu.bbara.purefin.core.data.PlaybackMethod
-import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.data.DownloadMediaSourceResolver
+import hu.bbara.purefin.data.EpisodeDownloadSource
+import hu.bbara.purefin.data.MovieDownloadSource
+import hu.bbara.purefin.data.PlaybackMethod
+import hu.bbara.purefin.data.session.UserSessionRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecisionResolver
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey

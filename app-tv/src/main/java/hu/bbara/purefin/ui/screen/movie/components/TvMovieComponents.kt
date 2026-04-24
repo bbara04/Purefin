@@ -1,6 +1,5 @@
 package hu.bbara.purefin.ui.screen.movie.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +21,7 @@ import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
 import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
-import hu.bbara.purefin.core.model.Movie
+import hu.bbara.purefin.model.Movie
 
 internal const val MoviePlayButtonTag = "movie-play-button"
 

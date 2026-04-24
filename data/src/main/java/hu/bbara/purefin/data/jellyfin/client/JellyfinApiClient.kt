@@ -3,9 +3,9 @@ package hu.bbara.purefin.data.jellyfin.client
 import android.content.Context
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
-import hu.bbara.purefin.core.data.PlaybackMethod
-import hu.bbara.purefin.core.data.PlaybackReportContext
-import hu.bbara.purefin.core.data.session.UserSessionRepository
+import hu.bbara.purefin.data.PlaybackMethod
+import hu.bbara.purefin.data.PlaybackReportContext
+import hu.bbara.purefin.data.session.UserSessionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext

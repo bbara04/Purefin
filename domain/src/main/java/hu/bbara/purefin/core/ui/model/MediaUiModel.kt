@@ -1,10 +1,10 @@
 package hu.bbara.purefin.core.ui.model
 
-import hu.bbara.purefin.core.image.ArtworkKind
-import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Series
 import java.util.UUID
 
 sealed interface MediaUiModel {

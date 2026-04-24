@@ -3,10 +3,10 @@ package hu.bbara.purefin.feature.content.movie
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.core.data.MediaCatalogReader
+import hu.bbara.purefin.data.MediaCatalogReader
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.download.MediaDownloadController
-import hu.bbara.purefin.core.model.Movie
+import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import java.util.UUID

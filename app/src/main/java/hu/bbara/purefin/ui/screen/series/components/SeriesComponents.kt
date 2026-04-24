@@ -66,17 +66,17 @@ import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.core.download.DownloadState
-import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.core.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.navigation.Route
-import hu.bbara.purefin.core.model.CastMember
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Season
-import hu.bbara.purefin.core.model.Series
+import hu.bbara.purefin.model.CastMember
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.player.PlayerActivity
-import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.image.ArtworkKind
 
 @Composable
 internal fun SeriesTopBar(

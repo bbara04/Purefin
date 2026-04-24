@@ -1,14 +1,11 @@
 package hu.bbara.purefin.data.catalog
 
-import hu.bbara.purefin.core.data.MediaCatalogReader
-import hu.bbara.purefin.core.data.MediaProgressWriter
-import hu.bbara.purefin.core.data.NetworkMonitor
-import hu.bbara.purefin.core.model.Episode
-import hu.bbara.purefin.core.model.Movie
-import hu.bbara.purefin.core.model.Series
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
+import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.data.MediaProgressWriter
+import hu.bbara.purefin.data.NetworkMonitor
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Movie
+import hu.bbara.purefin.model.Series
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,6 +17,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
