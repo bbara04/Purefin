@@ -26,5 +26,5 @@ rootProject.name = "Purefin"
 include(":app")
 include(":app-tv")
 include(":data")
-include(":domain")
+include(":core")
 include(":ui-common")
