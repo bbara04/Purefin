@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import hu.bbara.purefin.data.HomeRepository
 import hu.bbara.purefin.data.NetworkMonitor
-import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.Episode

@@ -1,21 +1,13 @@
 package hu.bbara.purefin.data.catalog
 
-import hu.bbara.purefin.data.MediaCatalogReader
-import hu.bbara.purefin.data.MediaProgressWriter
+import hu.bbara.purefin.data.MediaRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.data.session.UserSessionRepository
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,12 +20,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.BaseItemDto
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class InMemoryMediaRepository @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val jellyfinApiClient: JellyfinApiClient,
-) : MediaCatalogReader, MediaProgressWriter {
+) : MediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

@@ -2,7 +2,7 @@ package hu.bbara.purefin.data.jellyfin.session
 
 import android.util.Log
 import hu.bbara.purefin.data.AuthenticationRepository
-import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -1,7 +1,7 @@
 package hu.bbara.purefin.data
 
-import hu.bbara.purefin.data.catalog.InMemoryMediaRepository
-import hu.bbara.purefin.data.catalog.OfflineMediaRepository
+import hu.bbara.purefin.Offline
+import hu.bbara.purefin.Online
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
@@ -22,8 +22,8 @@ import javax.inject.Singleton
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
 class CompositeMediaRepository @Inject constructor(
-    private val offlineRepository: OfflineMediaRepository,
-    private val onlineRepository: InMemoryMediaRepository,
+    @Offline private val offlineRepository: MediaRepository,
+    @Online private val onlineRepository: MediaRepository,
 ) : MediaCatalogReader, MediaProgressWriter {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

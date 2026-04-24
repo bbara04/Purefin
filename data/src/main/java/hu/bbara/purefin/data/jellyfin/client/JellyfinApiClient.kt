@@ -5,7 +5,7 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.data.PlaybackMethod
 import hu.bbara.purefin.data.PlaybackReportContext
-import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext

@@ -1,15 +1,10 @@
 package hu.bbara.purefin.data.catalog
 
-import hu.bbara.purefin.data.MediaCatalogReader
-import hu.bbara.purefin.data.MediaProgressWriter
-import hu.bbara.purefin.data.OfflineCatalogReader
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.offline.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,11 +12,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class OfflineMediaRepository @Inject constructor(
     private val localDataSource: OfflineRoomMediaLocalDataSource,
-) : OfflineCatalogReader, MediaCatalogReader, MediaProgressWriter {
+) : MediaRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override val movies: StateFlow<Map<UUID, Movie>> = localDataSource.moviesFlow

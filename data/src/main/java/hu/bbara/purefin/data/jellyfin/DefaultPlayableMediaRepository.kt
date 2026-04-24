@@ -8,7 +8,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import hu.bbara.purefin.data.PlayableMediaRepository
 import hu.bbara.purefin.data.PlaybackReportContext
-import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.MediaSegment

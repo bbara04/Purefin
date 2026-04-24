@@ -3,7 +3,8 @@ package hu.bbara.purefin.feature.downloads
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.data.OfflineCatalogReader
+import hu.bbara.purefin.Offline
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.download.MediaDownloadController
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
@@ -22,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DownloadsViewModel @Inject constructor(
-    private val offlineCatalogReader: OfflineCatalogReader,
+    @Offline private val offlineCatalogReader: MediaRepository,
     private val navigationManager: NavigationManager,
     private val downloadManager: MediaDownloadController,
 ) : ViewModel() {

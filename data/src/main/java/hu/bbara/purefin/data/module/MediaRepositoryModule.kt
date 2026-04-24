@@ -4,7 +4,12 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import hu.bbara.purefin.data.OfflineCatalogReader
+import hu.bbara.purefin.Offline
+import hu.bbara.purefin.Online
+import hu.bbara.purefin.data.HomeRepository
+import hu.bbara.purefin.data.MediaRepository
+import hu.bbara.purefin.data.catalog.InMemoryAppContentRepository
+import hu.bbara.purefin.data.catalog.InMemoryMediaRepository
 import hu.bbara.purefin.data.catalog.OfflineMediaRepository
 
 @Module
@@ -12,5 +17,13 @@ import hu.bbara.purefin.data.catalog.OfflineMediaRepository
 abstract class MediaRepositoryModule {
 
     @Binds
-    abstract fun bindOfflineCatalogReader(impl: OfflineMediaRepository): OfflineCatalogReader
+    @Online
+    abstract fun bindOnlineRepository(impl: InMemoryMediaRepository): MediaRepository
+
+    @Binds
+    @Offline
+    abstract fun bindOfflineRepository(impl: OfflineMediaRepository): MediaRepository
+
+    @Binds
+    abstract fun bindHomeRepository(impl: InMemoryAppContentRepository): HomeRepository
 }

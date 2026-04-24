@@ -37,7 +37,7 @@ import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dagger.hilt.android.AndroidEntryPoint
 import hu.bbara.purefin.data.SessionBootstrapper
-import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.navigation.NavigationCommand
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route

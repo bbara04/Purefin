@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.data.HomeRepository
 import hu.bbara.purefin.data.MediaCatalogReader
-import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.download.MediaDownloadController
 import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.Media

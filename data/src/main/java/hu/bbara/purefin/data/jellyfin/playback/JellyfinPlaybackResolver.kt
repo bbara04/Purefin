@@ -1,7 +1,7 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
 import android.util.Log
-import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap

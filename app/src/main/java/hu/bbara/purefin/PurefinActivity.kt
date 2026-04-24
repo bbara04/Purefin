@@ -38,7 +38,7 @@ import coil3.util.DebugLogger
 import dagger.hilt.android.AndroidEntryPoint
 import hu.bbara.purefin.data.SessionBootstrapper
 import hu.bbara.purefin.jellyfin.JellyfinAuthInterceptor
-import hu.bbara.purefin.data.session.UserSessionRepository
+import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.navigation.LocalNavigationManager
 import hu.bbara.purefin.navigation.NavigationCommand

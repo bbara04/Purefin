@@ -30,6 +30,7 @@ kotlin {
 
 dependencies {
     implementation(project(":core-model"))
+    implementation(project(":core"))
     implementation(libs.media3.common)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.jellyfin.core)
