@@ -3,10 +3,11 @@ package hu.bbara.purefin.data
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
-import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import java.util.UUID
 
+//TODO rename MediaRepository
 interface MediaCatalogReader {
     val movies: StateFlow<Map<UUID, Movie>>
     val series: StateFlow<Map<UUID, Series>>

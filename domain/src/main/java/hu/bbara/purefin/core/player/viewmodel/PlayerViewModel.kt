@@ -4,14 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.data.EpisodeSeriesLookup
-import hu.bbara.purefin.data.PlayableMediaRepository
 import hu.bbara.purefin.core.player.manager.PlayerManager
 import hu.bbara.purefin.core.player.manager.ProgressManager
 import hu.bbara.purefin.core.player.model.MediaContext
 import hu.bbara.purefin.core.player.model.PlayerUiState
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
+import hu.bbara.purefin.data.PlayableMediaRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +29,6 @@ class PlayerViewModel @Inject constructor(
     private val playerManager: PlayerManager,
     private val playableMediaRepository: PlayableMediaRepository,
     private val trackPreferencesRepository: TrackPreferencesRepository,
-    private val episodeSeriesLookup: EpisodeSeriesLookup,
     private val progressManager: ProgressManager,
 ) : ViewModel() {
     companion object {
@@ -156,7 +154,10 @@ class PlayerViewModel @Inject constructor(
             if (result != null) {
                 val (mediaItem, resumePositionMs) = result
 
-                val preferenceKey = episodeSeriesLookup.preferenceKeyFor(uuid)
+
+                // TODO use CatalogReader for this instead of episodeSeriesLookup
+//                val preferenceKey = episodeSeriesLookup.preferenceKeyFor(uuid)
+                val preferenceKey = uuid.toString()
                 val preferences = trackPreferencesRepository.getMediaPreferences(preferenceKey).first()
                 val mediaSegments = playableMediaRepository.getMediaSegments(uuid)
 
