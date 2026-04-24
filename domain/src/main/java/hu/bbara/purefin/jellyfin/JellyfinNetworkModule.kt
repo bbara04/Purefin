@@ -1,10 +1,9 @@
-package hu.bbara.purefin.data.jellyfin
+package hu.bbara.purefin.jellyfin
 
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import hu.bbara.purefin.data.jellyfin.client.JellyfinAuthInterceptor
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
 

@@ -1,4 +1,4 @@
-package hu.bbara.purefin.data.jellyfin.client
+package hu.bbara.purefin.jellyfin
 
 import hu.bbara.purefin.data.session.UserSessionRepository
 import kotlinx.coroutines.CoroutineScope
