@@ -4,7 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.PlayerUiState
 
 @Composable
 internal fun TvPlayerLoadingErrorEndCard(

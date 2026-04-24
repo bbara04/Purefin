@@ -41,9 +41,9 @@ import hu.bbara.purefin.data.jellyfin.client.JellyfinAuthInterceptor
 import hu.bbara.purefin.data.session.UserSessionRepository
 import hu.bbara.purefin.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.navigation.LocalNavigationManager
-import hu.bbara.purefin.core.navigation.NavigationCommand
-import hu.bbara.purefin.core.navigation.NavigationManager
-import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.navigation.NavigationCommand
+import hu.bbara.purefin.navigation.NavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.screen.login.LoginScreen
 import hu.bbara.purefin.ui.theme.AppTheme

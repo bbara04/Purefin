@@ -12,7 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.home.components.HomeContent

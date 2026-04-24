@@ -3,7 +3,7 @@ package hu.bbara.purefin.ui.screen.player.components
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import hu.bbara.purefin.core.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.PlayerUiState
 
 @Composable
 fun PlayerLoadingErrorEndCard(

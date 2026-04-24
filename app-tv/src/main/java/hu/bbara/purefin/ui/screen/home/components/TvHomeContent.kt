@@ -23,7 +23,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import java.util.UUID
 

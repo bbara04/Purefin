@@ -1,7 +1,6 @@
 package hu.bbara.purefin.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
-import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.ui.screen.library.LibraryScreen
 import hu.bbara.purefin.ui.screen.login.LoginScreen
 import hu.bbara.purefin.ui.screen.AppScreen

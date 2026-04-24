@@ -11,7 +11,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
+import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.screen.player.PlayerScreen
 import hu.bbara.purefin.ui.theme.AppTheme
 

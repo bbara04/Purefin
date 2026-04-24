@@ -22,7 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
 
 @Composable
 fun SuggestionsSection(

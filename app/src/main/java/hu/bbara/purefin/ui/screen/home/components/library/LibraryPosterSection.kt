@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.common.header.SectionHeader
 

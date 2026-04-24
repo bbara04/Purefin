@@ -1,5 +1,8 @@
 package hu.bbara.purefin.core.player.viewmodel
 
+import hu.bbara.purefin.player.viewmodel.ControlsAutoHideBlocker
+import hu.bbara.purefin.player.viewmodel.ControlsAutoHideCommand
+import hu.bbara.purefin.player.viewmodel.ControlsAutoHidePolicy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

@@ -44,7 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.card.PosterCardContent
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage

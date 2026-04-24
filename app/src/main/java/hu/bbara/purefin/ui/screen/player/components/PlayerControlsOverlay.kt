@@ -37,8 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.button.GhostIconButton
 import hu.bbara.purefin.ui.common.button.PurefinIconButton
-import hu.bbara.purefin.core.player.model.PlayerUiState
-import hu.bbara.purefin.core.player.model.TrackOption
+import hu.bbara.purefin.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.TrackOption
 
 @Composable
 fun PlayerControlsOverlay(

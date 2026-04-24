@@ -11,8 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.ui.model.MediaUiModel
-import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MovieUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.screen.home.components.TvFocusedItemHero
 import hu.bbara.purefin.ui.screen.home.components.TvHomeContent

@@ -22,9 +22,9 @@ import hu.bbara.purefin.ui.common.media.TvMediaDetailBodyBox
 import hu.bbara.purefin.ui.common.media.TvMediaDetailScaffold
 import hu.bbara.purefin.ui.screen.episode.components.TvEpisodeHeroSection
 import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.core.navigation.EpisodeDto
+import hu.bbara.purefin.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.LocalNavigationManager
-import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.feature.content.episode.EpisodeScreenViewModel
 import hu.bbara.purefin.image.ArtworkKind

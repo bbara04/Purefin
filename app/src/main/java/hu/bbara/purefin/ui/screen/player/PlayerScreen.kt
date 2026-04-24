@@ -37,7 +37,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
+import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.common.visual.EmptyValueTimedVisibility
 import hu.bbara.purefin.ui.common.visual.ValueChangeTimedVisibility
 import hu.bbara.purefin.ui.screen.player.components.PersistentOverlayContainer

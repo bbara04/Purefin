@@ -23,9 +23,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.ui.model.EpisodeUiModel
-import hu.bbara.purefin.core.ui.model.MediaUiModel
-import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.ui.model.EpisodeUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MovieUiModel
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 

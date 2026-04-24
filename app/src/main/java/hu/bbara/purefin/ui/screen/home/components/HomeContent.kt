@@ -21,7 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.screen.home.components.continuewatching.ContinueWatchingSection
 import hu.bbara.purefin.ui.screen.home.components.featured.SuggestionsSection

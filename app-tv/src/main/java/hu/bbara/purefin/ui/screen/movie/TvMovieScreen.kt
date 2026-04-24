@@ -22,7 +22,7 @@ import hu.bbara.purefin.ui.common.media.TvMediaDetailBodyBox
 import hu.bbara.purefin.ui.common.media.TvMediaDetailScaffold
 import hu.bbara.purefin.ui.common.media.tvMediaDetailBackgroundImageUrl
 import hu.bbara.purefin.ui.screen.movie.components.TvMovieHeroSection
-import hu.bbara.purefin.core.navigation.MovieDto
+import hu.bbara.purefin.navigation.MovieDto
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.feature.content.movie.MovieScreenViewModel
 

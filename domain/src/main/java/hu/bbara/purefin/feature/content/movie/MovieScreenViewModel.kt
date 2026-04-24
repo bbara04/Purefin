@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.data.MediaCatalogReader
-import hu.bbara.purefin.core.download.DownloadState
-import hu.bbara.purefin.core.download.MediaDownloadController
+import hu.bbara.purefin.download.DownloadState
+import hu.bbara.purefin.download.MediaDownloadController
 import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.core.navigation.NavigationManager
-import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.navigation.NavigationManager
+import hu.bbara.purefin.navigation.Route
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

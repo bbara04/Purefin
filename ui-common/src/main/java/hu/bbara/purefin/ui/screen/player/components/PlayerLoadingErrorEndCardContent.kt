@@ -21,7 +21,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.PlayerUiState
 
 @Composable
 fun PlayerLoadingErrorEndCardContent(

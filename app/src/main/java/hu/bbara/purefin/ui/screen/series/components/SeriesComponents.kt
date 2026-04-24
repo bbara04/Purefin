@@ -65,11 +65,11 @@ import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
-import hu.bbara.purefin.core.download.DownloadState
+import hu.bbara.purefin.download.DownloadState
 import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.core.navigation.EpisodeDto
+import hu.bbara.purefin.navigation.EpisodeDto
 import hu.bbara.purefin.navigation.LocalNavigationManager
-import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season

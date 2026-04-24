@@ -33,9 +33,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
-import hu.bbara.purefin.core.download.DownloadState
+import hu.bbara.purefin.download.DownloadState
 import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.core.navigation.MovieDto
+import hu.bbara.purefin.navigation.MovieDto
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.feature.content.movie.MovieScreenViewModel

@@ -6,7 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.multibindings.IntoSet
-import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.navigation.appRouteEntryBuilder
 
 @Module

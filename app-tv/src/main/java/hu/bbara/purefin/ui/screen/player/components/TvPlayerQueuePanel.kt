@@ -41,8 +41,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.player.model.PlayerUiState
-import hu.bbara.purefin.core.player.model.QueueItemUi
+import hu.bbara.purefin.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.QueueItemUi
 import coil3.compose.AsyncImage
 
 internal const val TvPlayerPlaylistRowTag = "tv_player_playlist_row"

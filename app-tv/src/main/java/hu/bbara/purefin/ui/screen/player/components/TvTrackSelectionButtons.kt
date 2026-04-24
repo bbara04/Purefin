@@ -44,8 +44,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.player.model.PlayerUiState
-import hu.bbara.purefin.core.player.model.TrackOption
+import hu.bbara.purefin.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.TrackOption
 
 internal const val TvPlayerQualityButtonTag = "tv_player_quality_button"
 internal const val TvPlayerAudioButtonTag = "tv_player_audio_button"

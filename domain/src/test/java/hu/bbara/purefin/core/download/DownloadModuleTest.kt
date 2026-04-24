@@ -3,6 +3,7 @@ package hu.bbara.purefin.core.download
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
+import hu.bbara.purefin.download.DownloadModuleFactories
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue

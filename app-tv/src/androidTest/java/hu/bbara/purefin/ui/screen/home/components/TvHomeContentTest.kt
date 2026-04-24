@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.core.ui.model.EpisodeUiModel
-import hu.bbara.purefin.core.ui.model.MediaUiModel
-import hu.bbara.purefin.core.ui.model.MovieUiModel
+import hu.bbara.purefin.ui.model.EpisodeUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.model.MovieUiModel
 import hu.bbara.purefin.feature.browse.home.LibraryItem
 import hu.bbara.purefin.ui.screen.home.TvHomeScreen
 import hu.bbara.purefin.ui.theme.AppTheme

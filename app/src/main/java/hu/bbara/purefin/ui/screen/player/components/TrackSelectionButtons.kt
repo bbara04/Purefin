@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.button.PurefinIconButton
-import hu.bbara.purefin.core.player.model.TrackOption
+import hu.bbara.purefin.player.model.TrackOption
 
 @Composable
 fun QualitySelectionButton(

@@ -47,7 +47,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.core.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.PlayerUiState
 
 internal const val TvPlayerPlaylistStateTag = "tv_player_playlist_state"
 internal const val TvPlayerPlayPauseButtonTag = "tv_player_play_pause_button"
