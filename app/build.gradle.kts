@@ -52,7 +52,7 @@ kotlin {
 dependencies {
     implementation(project(":data"))
     implementation(project(":core"))
-    implementation(project(":ui-common"))
+    implementation(project(":core-ui"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
