@@ -102,7 +102,13 @@ class PlayerManager @Inject constructor(
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             _currentMediaId.value = mediaItem?.mediaId?.let { UUID.fromString(it) }
             scope.launch {
-                updatePlaylist()
+                currentPlayableMedia.value?.let { currentMedia ->
+                    // Only updatePlaylist when episodes are being played. First item is handled when playMedia is being called first time.
+                    if (currentMedia is PlayableMedia.Episode) {
+                        updatePlaylist()
+                    }
+                    seekTo(currentMedia.resumePositionMs)
+                }
             }
         }
 

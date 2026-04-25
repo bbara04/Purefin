@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.data.MediaCatalogReader
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.model.PlayableMedia
 import hu.bbara.purefin.player.manager.PlayerManager
 import hu.bbara.purefin.player.manager.ProgressManager
 import hu.bbara.purefin.player.model.PlayerUiState
@@ -122,22 +123,10 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val currentPlayableMedia = playerManager.currentPlayableMedia
             playerManager.playlist.collect { playlist ->
-                val episodes =
-                    playlist.map { playableMedia -> mediaCatalogReader.getEpisode(playableMedia.id) }
                 _uiState.update { state ->
                     state.copy(
-                        queue = episodes.mapNotNull { episode ->
-                            val episodeValue = episode.first()
-                            if (episodeValue == null) {
-                                Log.e("PlayerViewModel", "Episode not found for playlist: $playlist")
-                                return@mapNotNull null
-                            }
-                            PlaylistElementUiModel(
-                                id = episodeValue.id.toString(),
-                                title = episodeValue.title,
-                                artworkUrl = ImageUrlBuilder.finishImageUrl(prefixImageUrl = episodeValue.imageUrlPrefix, artworkKind = ArtworkKind.PRIMARY),
-                                isCurrent = currentPlayableMedia.value?.id == episodeValue.id
-                            )
+                        queue = playlist.mapNotNull { playableMedia ->
+                            playableMedia.toPlaylistElementUiModel(currentPlayableMedia.value?.id)
                         }
                     )
                 }
@@ -269,6 +258,64 @@ class PlayerViewModel @Inject constructor(
         dataErrorMessage = null
         playerManager.clearError()
         _uiState.update { it.copy(error = null) }
+    }
+
+    private suspend fun PlayableMedia.toPlaylistElementUiModel(currentMediaId: UUID?): PlaylistElementUiModel? {
+        return when (this) {
+            is PlayableMedia.Movie -> {
+                val movie = mediaCatalogReader.getMovie(id).first()
+                if (movie == null) {
+                    Log.e("PlayerViewModel", "Movie not found for playlist item: $id")
+                    null
+                } else {
+                    PlaylistElementUiModel(
+                        id = movie.id.toString(),
+                        title = movie.title,
+                        artworkUrl = ImageUrlBuilder.finishImageUrl(
+                            prefixImageUrl = movie.imageUrlPrefix,
+                            artworkKind = ArtworkKind.PRIMARY
+                        ),
+                        isCurrent = currentMediaId == movie.id
+                    )
+                }
+            }
+
+            is PlayableMedia.Series -> {
+                val series = mediaCatalogReader.getSeries(id).first()
+                if (series == null) {
+                    Log.e("PlayerViewModel", "Series not found for playlist item: $id")
+                    null
+                } else {
+                    PlaylistElementUiModel(
+                        id = series.id.toString(),
+                        title = series.name,
+                        artworkUrl = ImageUrlBuilder.finishImageUrl(
+                            prefixImageUrl = series.imageUrlPrefix,
+                            artworkKind = ArtworkKind.PRIMARY
+                        ),
+                        isCurrent = currentMediaId == series.id
+                    )
+                }
+            }
+
+            is PlayableMedia.Episode -> {
+                val episode = mediaCatalogReader.getEpisode(id).first()
+                if (episode == null) {
+                    Log.e("PlayerViewModel", "Episode not found for playlist item: $id")
+                    null
+                } else {
+                    PlaylistElementUiModel(
+                        id = episode.id.toString(),
+                        title = episode.title,
+                        artworkUrl = ImageUrlBuilder.finishImageUrl(
+                            prefixImageUrl = episode.imageUrlPrefix,
+                            artworkKind = ArtworkKind.PRIMARY
+                        ),
+                        isCurrent = currentMediaId == episode.id
+                    )
+                }
+            }
+        }
     }
 
     override fun onCleared() {

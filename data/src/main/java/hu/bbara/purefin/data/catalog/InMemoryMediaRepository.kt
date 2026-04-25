@@ -1,5 +1,6 @@
 package hu.bbara.purefin.data.catalog
 
+import android.util.Log
 import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.data.converter.toEpisode
@@ -18,9 +19,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jellyfin.sdk.model.api.BaseItemKind
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,6 +50,10 @@ class InMemoryMediaRepository @Inject constructor(
     override suspend fun getMovie(id: UUID): Flow<Movie?> {
         if (!moviesState.value.containsKey(id)) {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
+                if (item.type != BaseItemKind.MOVIE) {
+                    Log.d("InMemoryMediaRepository", "Item is not an movie: ${item.type}")
+                    return flowOf(null)
+                }
                 val movie = item.toMovie(serverUrl.first())
                 moviesState.update { current -> current + (movie.id to movie) }
             }
@@ -57,6 +64,10 @@ class InMemoryMediaRepository @Inject constructor(
     override suspend fun getSeries(id: UUID): Flow<Series?> {
         if (!seriesState.value.containsKey(id)) {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
+                if (item.type != BaseItemKind.SERIES) {
+                    Log.d("InMemoryMediaRepository", "Item is not an series: ${item.type}")
+                    return flowOf(null)
+                }
                 val series = item.toSeries(serverUrl.first())
                 seriesState.update { current -> current + (series.id to series) }
             }
@@ -67,6 +78,10 @@ class InMemoryMediaRepository @Inject constructor(
     override suspend fun getEpisode(id: UUID): Flow<Episode?> {
         if (!episodesState.value.containsKey(id)) {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
+                if (item.type != BaseItemKind.EPISODE) {
+                    Log.d("InMemoryMediaRepository", "Item is not an episode: ${item.type}")
+                    return flowOf(null)
+                }
                 val episode = item.toEpisode(serverUrl.first())
                 episodesState.update { current -> current + (episode.id to episode) }
             }

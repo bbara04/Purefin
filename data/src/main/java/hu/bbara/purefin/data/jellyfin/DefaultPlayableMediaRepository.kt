@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.api.BaseItemDto
+import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.MediaSegmentDto
 import org.jellyfin.sdk.model.api.MediaSegmentType.INTRO
 import org.jellyfin.sdk.model.api.MediaSegmentType.OUTRO
@@ -49,13 +50,30 @@ class DefaultPlayableMediaRepository @Inject constructor(
         val resumePositionMs = calculateResumePosition(baseItem, playbackDecision.mediaSource)
         val mediaTrackPreferences = trackPreferencesRepository.getMediaPreferences(mediaId.toString()).first()
         val mediaSegments = getMediaSegments(mediaId)
-        PlayableMedia(
-            id = mediaId,
-            mediaItem = mediaItem,
-            resumePositionMs = resumePositionMs?.toFloat() ?: 0f,
-            preferences = mediaTrackPreferences,
-            mediaSegments = mediaSegments
-        )
+        when (baseItem.type) {
+            BaseItemKind.MOVIE -> PlayableMedia.Movie(
+                id = mediaId,
+                mediaItem = mediaItem,
+                resumePositionMs = resumePositionMs ?: 0L,
+                preferences = mediaTrackPreferences,
+                mediaSegments = mediaSegments
+            )
+            BaseItemKind.SERIES -> PlayableMedia.Series(
+                id = mediaId,
+                mediaItem = mediaItem,
+                resumePositionMs = resumePositionMs ?: 0L,
+                preferences = mediaTrackPreferences,
+                mediaSegments = mediaSegments
+            )
+            BaseItemKind.EPISODE -> PlayableMedia.Episode(
+                id = mediaId,
+                mediaItem = mediaItem,
+                resumePositionMs = resumePositionMs ?: 0L,
+                preferences = mediaTrackPreferences,
+                mediaSegments = mediaSegments
+            )
+            else -> null
+        }
     }
 
     private suspend fun getMediaItem(baseItem: BaseItemDto, playbackDecision: PlaybackDecision): MediaItem = withContext(Dispatchers.IO) {
