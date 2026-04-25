@@ -1,5 +1,6 @@
 package hu.bbara.purefin.player.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -126,7 +127,8 @@ class PlayerViewModel @Inject constructor(
                         queue = episodes.mapNotNull { episode ->
                             val episodeValue = episode.first()
                             if (episodeValue == null) {
-                                throw IllegalStateException("Episode not found for media id: $episodeValue")
+                                Log.e("PlayerViewModel", "Episode not found for playlist: $playlist")
+                                return@mapNotNull null
                             }
                             PlaylistElementUiModel(
                                 id = episodeValue.id.toString(),

@@ -157,7 +157,7 @@ class PlayerManager @Inject constructor(
         val nextUpPlayableMedias = playableMediaRepository.getNextUpPlayableMedias(
             episodeId = _currentMediaId.value ?: return,
             existingIds = _playlist.value.map { it.id }.toSet(),
-            count = 5
+            count = 10
         )
         addToQueue(nextUpPlayableMedias)
     }

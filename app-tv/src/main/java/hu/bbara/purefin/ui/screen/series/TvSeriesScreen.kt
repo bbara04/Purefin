@@ -10,12 +10,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
+import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.model.Season
+import hu.bbara.purefin.model.Series
+import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.ui.common.media.MediaDetailOverviewSection
 import hu.bbara.purefin.ui.common.media.MediaDetailSectionTitle
 import hu.bbara.purefin.ui.common.media.TvMediaDetailBodyBox
@@ -26,10 +30,7 @@ import hu.bbara.purefin.ui.screen.series.components.SeriesFirstSeasonTabTag
 import hu.bbara.purefin.ui.screen.series.components.TvEpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.TvSeasonTabs
 import hu.bbara.purefin.ui.screen.series.components.TvSeriesHeroSection
-import hu.bbara.purefin.navigation.SeriesDto
-import hu.bbara.purefin.model.Season
-import hu.bbara.purefin.model.Series
-import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import java.util.UUID
 
 @Composable

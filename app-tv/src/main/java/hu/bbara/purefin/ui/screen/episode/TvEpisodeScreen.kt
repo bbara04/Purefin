@@ -13,21 +13,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.common.media.MediaCastRow
-import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
+import hu.bbara.purefin.feature.content.episode.EpisodeScreenViewModel
+import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.navigation.EpisodeDto
+import hu.bbara.purefin.navigation.LocalNavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.ui.common.media.MediaDetailOverviewSection
 import hu.bbara.purefin.ui.common.media.MediaDetailPlaybackSection
 import hu.bbara.purefin.ui.common.media.MediaDetailSectionTitle
 import hu.bbara.purefin.ui.common.media.TvMediaDetailBodyBox
 import hu.bbara.purefin.ui.common.media.TvMediaDetailScaffold
 import hu.bbara.purefin.ui.screen.episode.components.TvEpisodeHeroSection
-import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.navigation.EpisodeDto
-import hu.bbara.purefin.navigation.LocalNavigationManager
-import hu.bbara.purefin.navigation.Route
-import hu.bbara.purefin.model.Episode
-import hu.bbara.purefin.feature.content.episode.EpisodeScreenViewModel
-import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 
 @Composable
 fun TvEpisodeScreen(
@@ -126,7 +125,7 @@ internal fun TvEpisodeScreenContent(
                 Column(modifier = it.fillMaxWidth()) {
                     MediaDetailSectionTitle(text = "Cast")
                     Spacer(modifier = Modifier.height(14.dp))
-                    MediaCastRow(cast = episode.cast)
+//                    MediaCastRow(cast = episode.cast)
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }

@@ -231,15 +231,6 @@ private fun TvQueueRowCard(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            item.subtitle?.takeIf { it.isNotBlank() }?.let { subtitle ->
-                Text(
-                    text = subtitle,
-                    color = scheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
         }
     }
 }

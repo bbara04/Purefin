@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,21 +51,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.common.media.MediaCastRow
-import hu.bbara.purefin.ui.common.bar.MediaProgressBar
-import hu.bbara.purefin.ui.common.button.MediaResumeButton
-import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.ui.common.badge.WatchStateBadge
-import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
-import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
-import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
+import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
-import hu.bbara.purefin.feature.content.series.SeriesViewModel
-import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.ui.common.badge.WatchStateBadge
+import hu.bbara.purefin.ui.common.bar.MediaProgressBar
+import hu.bbara.purefin.ui.common.button.MediaResumeButton
+import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 
 internal const val SeriesPlayButtonTag = "series-play-button"
 internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"
@@ -367,13 +367,13 @@ private fun TvEpisodeCard(
 
 @Composable
 internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {
-    MediaCastRow(
-        cast = cast,
-        modifier = modifier,
-        cardWidth = 84.dp,
-        nameSize = 11.sp,
-        roleSize = 10.sp
-    )
+//    MediaCastRow(
+//        cast = cast,
+//        modifier = modifier,
+//        cardWidth = 84.dp,
+//        nameSize = 11.sp,
+//        roleSize = 10.sp
+//    )
 }
 
 private fun Episode.heroStatusText(): String {
