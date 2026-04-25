@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.player.manager.PlayerManager
 import hu.bbara.purefin.player.manager.ProgressManager
 import hu.bbara.purefin.player.model.PlayerUiState
@@ -133,7 +135,7 @@ class PlayerViewModel @Inject constructor(
                             PlaylistElementUiModel(
                                 id = episodeValue.id.toString(),
                                 title = episodeValue.title,
-                                artworkUrl = episodeValue.imageUrlPrefix,
+                                artworkUrl = ImageUrlBuilder.finishImageUrl(prefixImageUrl = episodeValue.imageUrlPrefix, artworkKind = ArtworkKind.PRIMARY),
                                 isCurrent = currentPlayableMedia.value?.id == episodeValue.id
                             )
                         }
