@@ -11,6 +11,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.util.UUID
 import javax.inject.Inject
@@ -30,6 +31,18 @@ class OfflineMediaRepository @Inject constructor(
 
     override val episodes: StateFlow<Map<UUID, Episode>> = localDataSource.episodesFlow
         .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+
+    override suspend fun getMovie(id: UUID): Flow<Movie?> {
+        return movies.map { it[id] }
+    }
+
+    override suspend fun getSeries(id: UUID): Flow<Series?> {
+        return series.map { it[id] }
+    }
+
+    override suspend fun getEpisode(id: UUID): Flow<Episode?> {
+        return episodes.map { it[id] }
+    }
 
     override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
         return localDataSource.observeSeriesWithContent(seriesId)

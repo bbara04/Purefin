@@ -1,5 +1,7 @@
 package hu.bbara.purefin.player.preference
 
+import hu.bbara.purefin.model.AudioTrackProperties
+import hu.bbara.purefin.model.SubtitleTrackProperties
 import hu.bbara.purefin.player.model.TrackOption
 import hu.bbara.purefin.player.model.TrackType
 import javax.inject.Inject

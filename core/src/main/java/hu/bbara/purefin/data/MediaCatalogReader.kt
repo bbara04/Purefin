@@ -12,5 +12,8 @@ interface MediaCatalogReader {
     val movies: StateFlow<Map<UUID, Movie>>
     val series: StateFlow<Map<UUID, Series>>
     val episodes: StateFlow<Map<UUID, Episode>>
+    suspend fun getMovie(id: UUID): Flow<Movie?>
+    suspend fun getSeries(id: UUID): Flow<Series?>
+    suspend fun getEpisode(id: UUID): Flow<Episode?>
     fun observeSeriesWithContent(seriesId: UUID): Flow<Series?>
 }

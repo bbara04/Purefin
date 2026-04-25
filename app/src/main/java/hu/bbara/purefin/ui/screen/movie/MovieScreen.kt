@@ -30,19 +30,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
-import hu.bbara.purefin.ui.common.media.MediaHero
-import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
 import hu.bbara.purefin.download.DownloadState
+import hu.bbara.purefin.feature.content.movie.MovieScreenViewModel
+import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.navigation.MovieDto
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.feature.content.movie.MovieScreenViewModel
+import hu.bbara.purefin.navigation.MovieDto
+import hu.bbara.purefin.ui.common.media.MediaHero
+import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
 import hu.bbara.purefin.ui.screen.movie.components.MovieDetails
 import hu.bbara.purefin.ui.screen.movie.components.MovieTopBar
+import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.theme.AppTheme
-import hu.bbara.purefin.image.ArtworkKind
 import java.util.UUID
 
 @Composable
@@ -202,8 +202,6 @@ private fun previewMovie(): Movie =
         format = "Dolby Vision",
         synopsis = "A new blade runner uncovers a buried secret that forces him to trace the vanished footsteps of Rick Deckard.",
         imageUrlPrefix = "https://images.unsplash.com/photo-1519608487953-e999c86e7455",
-        audioTrack = "English 5.1",
-        subtitles = "English CC",
         cast = listOf(
             CastMember("Ryan Gosling", "K", null),
             CastMember("Ana de Armas", "Joi", null),

@@ -9,14 +9,16 @@ import androidx.media3.common.util.UnstableApi
 import hu.bbara.purefin.data.PlayableMediaRepository
 import hu.bbara.purefin.data.PlaybackReportContext
 import hu.bbara.purefin.data.UserSessionRepository
-import hu.bbara.purefin.image.ArtworkKind
-import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.model.MediaSegment
-import hu.bbara.purefin.model.SegmentType
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
 import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecision
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
+import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.model.MediaSegment
+import hu.bbara.purefin.model.PlayableMedia
+import hu.bbara.purefin.model.SegmentType
+import hu.bbara.purefin.player.preference.TrackPreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -35,14 +37,30 @@ import javax.inject.Singleton
 class DefaultPlayableMediaRepository @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val jellyfinPlaybackResolver: JellyfinPlaybackResolver,
+    private val trackPreferencesRepository: TrackPreferencesRepository,
     private val userSessionRepository: UserSessionRepository,
 ) : PlayableMediaRepository {
 
-    override suspend fun getMediaItem(mediaId: UUID): Pair<MediaItem, Long?>? = withContext(Dispatchers.IO) {
+    override suspend fun getPlayableMedia(mediaId: UUID): PlayableMedia? = withContext(Dispatchers.IO) {
+        val baseItem = jellyfinApiClient.getItemInfo(mediaId) ?: return@withContext null
         val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(mediaId) ?: return@withContext null
-        val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
+        val mediaItem = getMediaItem(baseItem, playbackDecision)
         val resumePositionMs = calculateResumePosition(baseItem, playbackDecision.mediaSource)
+        val mediaTrackPreferences = trackPreferencesRepository.getMediaPreferences(mediaId.toString()).first()
+        val mediaSegments = getMediaSegments(mediaId)
+        PlayableMedia(
+            id = mediaId,
+            mediaItem = mediaItem,
+            resumePositionMs = resumePositionMs?.toFloat() ?: 0f,
+            preferences = mediaTrackPreferences,
+            mediaSegments = mediaSegments
+        )
+    }
+
+    private suspend fun getMediaItem(baseItem: BaseItemDto, playbackDecision: PlaybackDecision): MediaItem = withContext(Dispatchers.IO) {
+        val mediaId = baseItem.id
+        val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
         val serverUrl = userSessionRepository.serverUrl.first()
         val artworkUrl = ImageUrlBuilder.toImageUrl(serverUrl, mediaId, ArtworkKind.PRIMARY)
@@ -50,46 +68,35 @@ class DefaultPlayableMediaRepository @Inject constructor(
         val mediaItem = createMediaItem(
             mediaId = mediaId.toString(),
             playbackDecision = playbackDecision,
-            title = baseItem?.name ?: playbackDecision.mediaSource.name ?: return@withContext null,
+            title = baseItem?.name ?: playbackDecision.mediaSource.name ?: "Unknown",
             subtitle = seasonEpisodeLabel(baseItem),
             artworkUrl = artworkUrl,
             playbackReportContext = playbackDecision.reportContext,
         )
 
-        Pair(mediaItem, resumePositionMs)
+        return@withContext mediaItem
     }
 
-    override suspend fun getMediaSegments(mediaId: UUID): List<MediaSegment> {
+    private suspend fun getMediaSegments(mediaId: UUID): List<MediaSegment> {
         val mediaSegments = jellyfinApiClient.getMediaSegments(mediaId)
         return mediaSegments.mapNotNull {
             it.toMediaSegment()
         }
     }
 
-    override suspend fun getNextUpMediaItems(
+    override suspend fun getNextUpPlayableMedias(
         episodeId: UUID,
-        existingIds: Set<String>,
+        existingIds: Set<UUID>,
         count: Int,
-    ): List<MediaItem> = withContext(Dispatchers.IO) {
+    ): List<PlayableMedia> = withContext(Dispatchers.IO) {
         runCatching {
-            val serverUrl = userSessionRepository.serverUrl.first()
             val episodes = jellyfinApiClient.getNextEpisodes(episodeId = episodeId, count = count)
             episodes.mapNotNull { episode ->
                 val id = episode.id ?: return@mapNotNull null
-                val stringId = id.toString()
-                if (existingIds.contains(stringId)) {
+                if (existingIds.contains(id)) {
                     return@mapNotNull null
                 }
-                val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(id) ?: return@mapNotNull null
-                val artworkUrl = ImageUrlBuilder.toImageUrl(serverUrl, id, ArtworkKind.PRIMARY)
-                createMediaItem(
-                    mediaId = stringId,
-                    playbackDecision = playbackDecision,
-                    title = episode.name ?: playbackDecision.mediaSource.name ?: return@mapNotNull null,
-                    subtitle = seasonEpisodeLabel(episode),
-                    artworkUrl = artworkUrl,
-                    playbackReportContext = playbackDecision.reportContext,
-                )
+                getPlayableMedia(id)
             }
         }.getOrElse { error ->
             Log.w("PlayableMediaRepo", "Unable to load next-up items for $episodeId", error)

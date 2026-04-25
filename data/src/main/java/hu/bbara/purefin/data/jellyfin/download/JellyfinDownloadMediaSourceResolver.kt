@@ -5,16 +5,20 @@ import hu.bbara.purefin.data.EpisodeDownloadSource
 import hu.bbara.purefin.data.MovieDownloadSource
 import hu.bbara.purefin.data.PlaybackMethod
 import hu.bbara.purefin.data.UserSessionRepository
+import hu.bbara.purefin.data.converter.toEpisode
+import hu.bbara.purefin.data.converter.toMovie
+import hu.bbara.purefin.data.converter.toSeason
+import hu.bbara.purefin.data.converter.toSeries
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecisionResolver
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
-import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.api.MediaSourceInfo
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class JellyfinDownloadMediaSourceResolver @Inject constructor(
@@ -49,7 +53,7 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
         val episodeDto = jellyfinApiClient.getItemInfo(episodeId) ?: return@withContext null
         val episode = episodeDto.toEpisode(serverUrl)
         val series = jellyfinApiClient.getItemInfo(episode.seriesId)?.toSeries(serverUrl) ?: return@withContext null
-        val season = jellyfinApiClient.getItemInfo(episode.seasonId)?.toSeason(series.id) ?: return@withContext null
+        val season = jellyfinApiClient.getItemInfo(episode.seasonId)?.toSeason() ?: return@withContext null
 
         EpisodeDownloadSource(
             episode = episode,

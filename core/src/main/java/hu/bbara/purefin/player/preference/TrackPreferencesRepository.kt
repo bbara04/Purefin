@@ -1,6 +1,10 @@
 package hu.bbara.purefin.player.preference
 
 import androidx.datastore.core.DataStore
+import hu.bbara.purefin.model.AudioTrackProperties
+import hu.bbara.purefin.model.MediaTrackPreferences
+import hu.bbara.purefin.model.SubtitleTrackProperties
+import hu.bbara.purefin.model.TrackPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

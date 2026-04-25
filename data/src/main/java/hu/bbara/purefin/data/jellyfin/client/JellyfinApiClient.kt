@@ -244,9 +244,9 @@ class JellyfinApiClient @Inject constructor(
             seriesId = seriesId,
             enableUserData = true,
             startItemId = episodeId,
-            limit = count + 1,
+            limit = count,
         )
-        val nextUpEpisodes = nextUpEpisodesResult.content.items.drop(1)
+        val nextUpEpisodes = nextUpEpisodesResult.content.items
         Log.d("getNextEpisodes", nextUpEpisodes.toString())
         nextUpEpisodes
     }

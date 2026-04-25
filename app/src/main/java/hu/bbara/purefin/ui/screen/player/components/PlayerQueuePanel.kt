@@ -1,5 +1,4 @@
 package hu.bbara.purefin.ui.screen.player.components
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,8 +29,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.player.model.PlayerUiState
+import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 
 @Composable
 fun PlayerQueuePanel(
@@ -83,7 +82,6 @@ fun PlayerQueuePanel(
                         items(uiState.queue, key = { item -> item.id }) { item ->
                             QueueRow(
                                 title = item.title,
-                                subtitle = item.subtitle,
                                 artworkUrl = item.artworkUrl,
                                 isCurrent = item.isCurrent,
                                 onClick = { onSelect(item.id) }
@@ -105,7 +103,7 @@ fun PlayerQueuePanel(
 @Composable
 private fun QueueRow(
     title: String,
-    subtitle: String?,
+    subtitle: String? = null,
     artworkUrl: String?,
     isCurrent: Boolean,
     onClick: () -> Unit

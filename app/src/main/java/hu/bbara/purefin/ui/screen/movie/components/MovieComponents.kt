@@ -125,8 +125,8 @@ internal fun MovieDetails(
         MediaPlaybackSettings(
             backgroundColor = MaterialTheme.colorScheme.surface,
             foregroundColor = MaterialTheme.colorScheme.onSurface,
-            audioTrack = movie.audioTrack,
-            subtitles = movie.subtitles
+            audioTrack = "ENG",
+            subtitles = "ENG"
         )
 
         if (movie.cast.isNotEmpty()) {

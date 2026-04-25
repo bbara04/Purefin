@@ -30,8 +30,6 @@ data class CachedMovie(
     val format: String,
     val synopsis: String,
     val imageUrlPrefix: String,
-    val audioTrack: String,
-    val subtitles: String,
     val cast: List<CachedCastMember> = emptyList()
 )
 
@@ -156,8 +154,6 @@ fun Movie.toCachedMovie() = CachedMovie(
     format = format,
     synopsis = synopsis,
     imageUrlPrefix = imageUrlPrefix,
-    audioTrack = audioTrack,
-    subtitles = subtitles,
     cast = cast.map { it.toCachedCastMember() },
 )
 
@@ -176,8 +172,6 @@ fun CachedMovie.toMovie(): Movie? {
         format = format,
         synopsis = synopsis,
         imageUrlPrefix = imageUrlPrefix,
-        audioTrack = audioTrack,
-        subtitles = subtitles,
         cast = cast.map { it.toCastMember() },
     )
 }

@@ -14,7 +14,7 @@ data class PlayerUiState(
     val playbackSpeed: Float = 1f,
     val chapters: List<TimedMarker> = emptyList(),
     val ads: List<TimedMarker> = emptyList(),
-    val queue: List<QueueItemUi> = emptyList(),
+    val queue: List<PlaylistElementUiModel> = emptyList(),
     val audioTracks: List<TrackOption> = emptyList(),
     val textTracks: List<TrackOption> = emptyList(),
     val qualityTracks: List<TrackOption> = emptyList(),
@@ -47,10 +47,9 @@ data class TimedMarker(
 
 enum class MarkerType { CHAPTER, AD }
 
-data class QueueItemUi(
+data class PlaylistElementUiModel(
     val id: String,
     val title: String,
-    val subtitle: String?,
     val artworkUrl: String?,
     val isCurrent: Boolean
 )

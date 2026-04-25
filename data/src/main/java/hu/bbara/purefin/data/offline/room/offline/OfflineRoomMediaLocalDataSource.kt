@@ -220,9 +220,7 @@ class OfflineRoomMediaLocalDataSource(
         runtime = runtime,
         format = format,
         synopsis = synopsis,
-        imageUrlPrefix = imageUrlPrefix,
-        audioTrack = audioTrack,
-        subtitles = subtitles
+        imageUrlPrefix = imageUrlPrefix
     )
 
     private fun Series.toEntity() = SeriesEntity(
@@ -273,8 +271,6 @@ class OfflineRoomMediaLocalDataSource(
         format = format,
         synopsis = synopsis,
         imageUrlPrefix = imageUrlPrefix,
-        audioTrack = audioTrack,
-        subtitles = subtitles,
         cast = emptyList()
     )
 

@@ -21,6 +21,4 @@ data class MovieEntity(
     val format: String,
     val synopsis: String,
     val imageUrlPrefix: String,
-    val audioTrack: String,
-    val subtitles: String
 )

@@ -20,11 +20,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -41,9 +41,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.player.model.PlayerUiState
-import hu.bbara.purefin.player.model.QueueItemUi
 import coil3.compose.AsyncImage
+import hu.bbara.purefin.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.PlaylistElementUiModel
 
 internal const val TvPlayerPlaylistRowTag = "tv_player_playlist_row"
 internal const val TvPlayerPlaylistCurrentItemTag = "tv_player_playlist_current_item"
@@ -159,7 +159,7 @@ internal fun TvPlayerQueuePanel(
 
 @Composable
 private fun TvQueueRowCard(
-    item: QueueItemUi,
+    item: PlaylistElementUiModel,
     isCurrent: Boolean,
     isFirst: Boolean,
     isLast: Boolean,

@@ -4,13 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.bbara.purefin.data.MediaCatalogReader
 import hu.bbara.purefin.player.manager.PlayerManager
 import hu.bbara.purefin.player.manager.ProgressManager
-import hu.bbara.purefin.player.model.MediaContext
 import hu.bbara.purefin.player.model.PlayerUiState
+import hu.bbara.purefin.player.model.PlaylistElementUiModel
 import hu.bbara.purefin.player.model.TrackOption
-import hu.bbara.purefin.player.preference.TrackPreferencesRepository
-import hu.bbara.purefin.data.PlayableMediaRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,8 +26,7 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val playerManager: PlayerManager,
-    private val playableMediaRepository: PlayableMediaRepository,
-    private val trackPreferencesRepository: TrackPreferencesRepository,
+    private val mediaCatalogReader: MediaCatalogReader,
     private val progressManager: ProgressManager,
 ) : ViewModel() {
     companion object {
@@ -47,7 +45,6 @@ class PlayerViewModel @Inject constructor(
 
     private val controlsAutoHidePolicy = ControlsAutoHidePolicy(DEFAULT_CONTROLS_AUTO_HIDE_MS)
     private var autoHideJob: Job? = null
-    private var lastNextUpMediaId: String? = null
     private var dataErrorMessage: String? = null
 
     init {
@@ -101,11 +98,6 @@ class PlayerViewModel @Inject constructor(
                         subtitle = metadata.subtitle
                     )
                 }
-                val currentMediaId = metadata.mediaId
-                if (!currentMediaId.isNullOrEmpty() && currentMediaId != lastNextUpMediaId) {
-                    lastNextUpMediaId = currentMediaId
-                    loadNextUp(currentMediaId)
-                }
             }
         }
 
@@ -125,73 +117,60 @@ class PlayerViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            playerManager.queue.collect { queue ->
-                _uiState.update { it.copy(queue = queue) }
+            val currentPlayableMedia = playerManager.currentPlayableMedia
+            playerManager.playlist.collect { playlist ->
+                val episodes =
+                    playlist.map { playableMedia -> mediaCatalogReader.getEpisode(playableMedia.id) }
+                _uiState.update { state ->
+                    state.copy(
+                        queue = episodes.mapNotNull { episode ->
+                            val episodeValue = episode.first()
+                            if (episodeValue == null) {
+                                throw IllegalStateException("Episode not found for media id: $episodeValue")
+                            }
+                            PlaylistElementUiModel(
+                                id = episodeValue.id.toString(),
+                                title = episodeValue.title,
+                                artworkUrl = episodeValue.imageUrlPrefix,
+                                isCurrent = currentPlayableMedia.value?.id == episodeValue.id
+                            )
+                        }
+                    )
+                }
             }
         }
     }
 
     private fun loadInitialMedia() {
         val id = mediaId ?: return
-        loadMediaById(id)
+        viewModelScope.launch {
+            loadMediaById(id)
+        }
     }
 
     fun loadMedia(id: String) {
         if (mediaId != null) return // Already loading from SavedStateHandle
-        loadMediaById(id)
+        viewModelScope.launch {
+            loadMediaById(id)
+        }
     }
 
     @OptIn(InternalSerializationApi::class)
-    private fun loadMediaById(id: String) {
+    private suspend fun loadMediaById(id: String) {
         val uuid = id.toUuidOrNull()
         if (uuid == null) {
             dataErrorMessage = "Invalid media id"
             _uiState.update { it.copy(error = dataErrorMessage) }
             return
         }
+        //TODO hack to preload the series media
+        mediaCatalogReader.getEpisode(UUID.fromString(id))
         viewModelScope.launch {
-            val result = playableMediaRepository.getMediaItem(uuid)
-            if (result != null) {
-                val (mediaItem, resumePositionMs) = result
-
-
-                // TODO use CatalogReader for this instead of episodeSeriesLookup
-//                val preferenceKey = episodeSeriesLookup.preferenceKeyFor(uuid)
-                val preferenceKey = uuid.toString()
-                val preferences = trackPreferencesRepository.getMediaPreferences(preferenceKey).first()
-                val mediaSegments = playableMediaRepository.getMediaSegments(uuid)
-
-                val mediaContext = MediaContext(
-                    mediaId = id,
-                    preferences = preferences,
-                    mediaSegments = mediaSegments
-                )
-
-                playerManager.play(mediaItem, mediaContext)
-
-                // Seek to resume position after play() is called
-                resumePositionMs?.let { playerManager.seekTo(it) }
-
-                if (dataErrorMessage != null) {
-                    dataErrorMessage = null
-                    _uiState.update { it.copy(error = null) }
-                }
-            } else {
-                dataErrorMessage = "Unable to load media"
-                _uiState.update { it.copy(error = dataErrorMessage) }
+            runCatching {
+                playerManager.play(uuid)
+            }.onFailure { e ->
+                _uiState.update { it.copy(error = e.message) }
             }
-        }
-    }
-
-    private fun loadNextUp(currentMediaId: String) {
-        val uuid = currentMediaId.toUuidOrNull() ?: return
-        viewModelScope.launch {
-            val queuedIds = uiState.value.queue.map { it.id }.toSet()
-            val items = playableMediaRepository.getNextUpMediaItems(
-                episodeId = uuid,
-                existingIds = queuedIds,
-            )
-            items.forEach { playerManager.addToQueue(it) }
         }
     }
 
@@ -277,9 +256,9 @@ class PlayerViewModel @Inject constructor(
         playerManager.retry()
     }
 
-    fun playQueueItem(id: String, autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
-        playerManager.playQueueItem(id)
-        showControls(autoHideDelayMs)
+    fun playQueueItem(id: String) {
+        playerManager.play(id.toUuidOrNull() ?: return)
+        showControls()
     }
 
     fun clearError() {

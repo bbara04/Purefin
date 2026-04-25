@@ -276,7 +276,7 @@ fun TvPlayerScreen(
                 onExpandPlaylist = expandPlaylist,
                 onCollapsePlaylist = collapsePlaylistToControls,
                 onSelectQueueItem = { id ->
-                    viewModel.playQueueItem(id, TV_CONTROLS_AUTO_HIDE_MS)
+                    viewModel.playQueueItem(id)
                     collapsePlaylistToControls()
                 },
                 qualityButtonEnabled = uiState.qualityTracks.isNotEmpty(),

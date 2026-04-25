@@ -2,11 +2,13 @@ package hu.bbara.purefin.data.catalog
 
 import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.UserSessionRepository
+import hu.bbara.purefin.data.converter.toEpisode
+import hu.bbara.purefin.data.converter.toMovie
+import hu.bbara.purefin.data.converter.toSeason
+import hu.bbara.purefin.data.converter.toSeries
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,12 +21,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.api.BaseItemDto
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,6 +33,8 @@ class InMemoryMediaRepository @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    private val serverUrl = userSessionRepository.serverUrl
+
     private val moviesState = MutableStateFlow<Map<UUID, Movie>>(emptyMap())
     override val movies: StateFlow<Map<UUID, Movie>> = moviesState.asStateFlow()
 
@@ -44,6 +43,39 @@ class InMemoryMediaRepository @Inject constructor(
 
     private val episodesState = MutableStateFlow<Map<UUID, Episode>>(emptyMap())
     override val episodes: StateFlow<Map<UUID, Episode>> = episodesState.asStateFlow()
+
+    override suspend fun getMovie(id: UUID): Flow<Movie?> {
+        if (!moviesState.value.containsKey(id)) {
+            jellyfinApiClient.getItemInfo(id)?.let { item ->
+                val movie = item.toMovie(serverUrl.first())
+                moviesState.update { current -> current + (movie.id to movie) }
+            }
+        }
+        return moviesState.map { it[id] }
+    }
+
+    override suspend fun getSeries(id: UUID): Flow<Series?> {
+        if (!seriesState.value.containsKey(id)) {
+            jellyfinApiClient.getItemInfo(id)?.let { item ->
+                val series = item.toSeries(serverUrl.first())
+                seriesState.update { current -> current + (series.id to series) }
+            }
+        }
+        return seriesState.map { it[id] }
+    }
+
+    override suspend fun getEpisode(id: UUID): Flow<Episode?> {
+        if (!episodesState.value.containsKey(id)) {
+            jellyfinApiClient.getItemInfo(id)?.let { item ->
+                val episode = item.toEpisode(serverUrl.first())
+                episodesState.update { current -> current + (episode.id to episode) }
+            }
+        }
+        val episodeFlow = episodesState.map { it[id] }
+        val seriesId = episodeFlow.first()!!.seriesId
+        observeSeriesWithContent(seriesId = seriesId)
+        return episodeFlow
+    }
 
     fun upsertMovies(movies: List<Movie>) {
         moviesState.update { current -> current + movies.associateBy { it.id } }
@@ -101,54 +133,5 @@ class InMemoryMediaRepository @Inject constructor(
 
         val allEpisodes = filledSeasons.flatMap { it.episodes }
         episodesState.update { current -> current + allEpisodes.associateBy { it.id } }
-    }
-
-    private fun BaseItemDto.toSeason(): Season {
-        return Season(
-            id = id,
-            seriesId = seriesId!!,
-            name = name ?: "Unknown",
-            index = indexNumber ?: 0,
-            unwatchedEpisodeCount = userData!!.unplayedItemCount!!,
-            episodeCount = childCount!!,
-            episodes = emptyList(),
-        )
-    }
-
-    private fun BaseItemDto.toEpisode(serverUrl: String): Episode {
-        val releaseDate = formatReleaseDate(premiereDate, productionYear)
-        val imageUrlPrefix = id?.let { itemId ->
-            ImageUrlBuilder.toPrefixImageUrl(url = serverUrl, itemId = itemId)
-        } ?: ""
-        return Episode(
-            id = id,
-            seriesId = seriesId!!,
-            seasonId = parentId!!,
-            title = name ?: "Unknown title",
-            index = indexNumber!!,
-            releaseDate = releaseDate,
-            rating = officialRating ?: "NR",
-            runtime = formatRuntime(runTimeTicks),
-            progress = userData!!.playedPercentage,
-            watched = userData!!.played,
-            format = container?.uppercase() ?: "VIDEO",
-            synopsis = overview ?: "No synopsis available.",
-            imageUrlPrefix = imageUrlPrefix,
-            cast = emptyList(),
-        )
-    }
-
-    private fun formatReleaseDate(date: LocalDateTime?, fallbackYear: Int?): String {
-        if (date == null) return fallbackYear?.toString() ?: "—"
-        val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
-        return date.toLocalDate().format(formatter)
-    }
-
-    private fun formatRuntime(ticks: Long?): String {
-        if (ticks == null || ticks <= 0) return "—"
-        val totalSeconds = ticks / 10_000_000
-        val hours = TimeUnit.SECONDS.toHours(totalSeconds)
-        val minutes = TimeUnit.SECONDS.toMinutes(totalSeconds) % 60
-        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
     }
 }

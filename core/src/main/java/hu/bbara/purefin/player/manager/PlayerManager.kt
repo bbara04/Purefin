@@ -9,17 +9,17 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ViewModelScoped
+import hu.bbara.purefin.data.PlayableMediaRepository
 import hu.bbara.purefin.data.PlaybackReportContext
+import hu.bbara.purefin.model.AudioTrackProperties
 import hu.bbara.purefin.model.MediaSegment
-import hu.bbara.purefin.player.model.MediaContext
+import hu.bbara.purefin.model.PlayableMedia
+import hu.bbara.purefin.model.SubtitleTrackProperties
 import hu.bbara.purefin.player.model.MetadataState
 import hu.bbara.purefin.player.model.PlaybackProgressSnapshot
 import hu.bbara.purefin.player.model.PlaybackStateSnapshot
-import hu.bbara.purefin.player.model.QueueItemUi
 import hu.bbara.purefin.player.model.TrackOption
 import hu.bbara.purefin.player.model.TrackType
-import hu.bbara.purefin.player.preference.AudioTrackProperties
-import hu.bbara.purefin.player.preference.SubtitleTrackProperties
 import hu.bbara.purefin.player.preference.TrackMatcher
 import hu.bbara.purefin.player.preference.TrackPreferencesRepository
 import kotlinx.coroutines.CoroutineScope
@@ -28,11 +28,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -44,6 +48,7 @@ import kotlin.math.abs
 class PlayerManager @Inject constructor(
     val player: Player,
     private val trackMapper: TrackMapper,
+    private val playableMediaRepository: PlayableMediaRepository,
     private val trackPreferencesRepository: TrackPreferencesRepository,
     private val trackMatcher: TrackMatcher
 ) {
@@ -55,7 +60,13 @@ class PlayerManager @Inject constructor(
 
     private val mediaSegmentManager = MediaSegmentManager(player as ExoPlayer)
 
-    private var currentMediaContext: MediaContext? = null
+    private val _currentMediaId = MutableStateFlow<UUID?>(null)
+    val currentPlayableMedia: StateFlow<PlayableMedia?> by lazy {
+        combine(_currentMediaId, _playlist) { mediaId, playlist ->
+            playlist.firstOrNull { it.id == mediaId }
+        }.stateIn(scope, SharingStarted.Eagerly, null)
+    }
+
     private var pendingSeekPositionMs: Long? = null
 
     private val _playbackState = MutableStateFlow(PlaybackStateSnapshot())
@@ -70,8 +81,8 @@ class PlayerManager @Inject constructor(
     private val _tracks = MutableStateFlow(TrackSelectionState())
     val tracks: StateFlow<TrackSelectionState> = _tracks.asStateFlow()
 
-    private val _queue = MutableStateFlow<List<QueueItemUi>>(emptyList())
-    val queue: StateFlow<List<QueueItemUi>> = _queue.asStateFlow()
+    private val _playlist = MutableStateFlow(emptyList<PlayableMedia>())
+    val playlist: StateFlow<List<PlayableMedia>> = _playlist.asStateFlow()
 
     private val listener = object : Player.Listener {
         override fun onPositionDiscontinuity(
@@ -89,9 +100,9 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            clearPendingSeek()
-            currentMediaContext?.let {
-                installMediaSegments(it.mediaSegments)
+            _currentMediaId.value = mediaItem?.mediaId?.let { UUID.fromString(it) }
+            scope.launch {
+                updatePlaylist()
             }
         }
 
@@ -111,16 +122,49 @@ class PlayerManager @Inject constructor(
         startProgressLoop()
     }
 
-    fun play(mediaItem: MediaItem, mediaContext: MediaContext? = null) {
-        currentMediaContext = mediaContext
-        clearPendingSeek()
-        player.setMediaItem(mediaItem)
+    fun play(mediaId: UUID) {
+        scope.launch {
+            if (_playlist.value.map { it.id }.contains(mediaId)) {
+                playFromPlaylist(mediaId)
+            } else {
+                playNewMedia(mediaId)
+            }
+        }
+    }
+
+    private fun playFromPlaylist(mediaId: UUID) {
+        val index = _playlist.value.indexOfFirst { it.id == mediaId }
+        if (index != -1) {
+            player.seekToDefaultPosition(index)
+            player.playWhenReady = true
+        } else {
+            _playbackState.update { it.copy(error = "Media not found in playlist") }
+        }
+    }
+
+    private suspend fun playNewMedia(mediaId: UUID) {
+        val playableMedia = playableMediaRepository.getPlayableMedia(mediaId)
+        if (playableMedia == null) {
+            _playbackState.update { it.copy(error = "Media not found") }
+            return
+        }
+        player.setMediaItem(playableMedia.mediaItem)
         player.prepare()
         player.playWhenReady = true
     }
 
-    fun addToQueue(mediaItem: MediaItem) {
-        player.addMediaItem(mediaItem)
+    private suspend fun updatePlaylist() {
+        val nextUpPlayableMedias = playableMediaRepository.getNextUpPlayableMedias(
+            episodeId = _currentMediaId.value ?: return,
+            existingIds = _playlist.value.map { it.id }.toSet(),
+            count = 5
+        )
+        addToQueue(nextUpPlayableMedias)
+    }
+
+    private fun addToQueue(playableMedias: List<PlayableMedia>) {
+        _playlist.update { it + playableMedias }
+        player.addMediaItems(playableMedias.map { it.mediaItem })
     }
 
     fun togglePlayPause() {
@@ -215,10 +259,10 @@ class PlayerManager @Inject constructor(
         }
         player.trackSelectionParameters = builder.build()
 
-        // Save track preference if media context is available
-        currentMediaContext?.let { context ->
+        // Save track preference if media id is available
+        _currentMediaId.value?.let { mediaId ->
             scope.launch {
-                saveTrackPreference(option, context.mediaId)
+                saveTrackPreference(option, mediaId)
             }
         }
     }
@@ -235,23 +279,12 @@ class PlayerManager @Inject constructor(
         player.playWhenReady = true
     }
 
-    fun playQueueItem(id: String) {
-        val items = _queue.value
-        val targetIndex = items.indexOfFirst { it.id == id }
-        if (targetIndex >= 0) {
-            clearPendingSeek()
-            player.seekToDefaultPosition(targetIndex)
-            player.playWhenReady = true
-        }
-    }
-
     fun clearError() {
         _playbackState.update { it.copy(error = null) }
     }
 
     private fun applyTrackPreferences() {
-        val context = currentMediaContext ?: return
-        val preferences = context.preferences
+        val preferences = currentPlayableMedia.value?.preferences ?: return
 
         val currentTrackState = _tracks.value
 
@@ -274,7 +307,7 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    private suspend fun saveTrackPreference(option: TrackOption, preferenceKey: String) {
+    private suspend fun saveTrackPreference(option: TrackOption, mediaId: UUID) {
         when (option.type) {
             TrackType.AUDIO -> {
                 val properties = AudioTrackProperties(
@@ -282,7 +315,7 @@ class PlayerManager @Inject constructor(
                     channelCount = option.channelCount,
                     label = option.label
                 )
-                trackPreferencesRepository.saveAudioPreference(preferenceKey, properties)
+                trackPreferencesRepository.saveAudioPreference(mediaId.toString(), properties)
             }
 
             TrackType.TEXT -> {
@@ -292,7 +325,7 @@ class PlayerManager @Inject constructor(
                     label = option.label,
                     isOff = option.isOff
                 )
-                trackPreferencesRepository.saveSubtitlePreference(preferenceKey, properties)
+                trackPreferencesRepository.saveSubtitlePreference(mediaId.toString(), properties)
             }
 
             TrackType.VIDEO -> {
@@ -346,24 +379,6 @@ class PlayerManager @Inject constructor(
             playbackReportContext = playbackReportContext,
         )
         _tracks.value = trackMapper.map(player.currentTracks)
-        _queue.value = buildQueueSnapshot(player)
-    }
-
-    private fun buildQueueSnapshot(player: Player): List<QueueItemUi> {
-        val items = mutableListOf<QueueItemUi>()
-        for (i in 0 until player.mediaItemCount) {
-            val mediaItem = player.getMediaItemAt(i)
-            items.add(
-                QueueItemUi(
-                    id = mediaItem.mediaId.ifEmpty { i.toString() },
-                    title = mediaItem.mediaMetadata.title?.toString() ?: "Item ${i + 1}",
-                    subtitle = mediaItem.mediaMetadata.subtitle?.toString(),
-                    artworkUrl = mediaItem.mediaMetadata.artworkUri?.toString(),
-                    isCurrent = i == player.currentMediaItemIndex
-                )
-            )
-        }
-        return items
     }
 
     private fun clampSeekPosition(positionMs: Long): Long {

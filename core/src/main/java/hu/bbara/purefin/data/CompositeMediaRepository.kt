@@ -43,6 +43,24 @@ class CompositeMediaRepository @Inject constructor(
         .flatMapLatest { it.episodes }
         .stateIn(scope, SharingStarted.Companion.Eagerly, emptyMap())
 
+    override suspend fun getMovie(id: UUID): Flow<Movie?> {
+        return activeRepository
+            .flatMapLatest { it.getMovie(id) }
+            .stateIn(scope, SharingStarted.Companion.Eagerly, null)
+    }
+
+    override suspend fun getSeries(id: UUID): Flow<Series?> {
+        return activeRepository
+            .flatMapLatest { it.getSeries(id) }
+            .stateIn(scope, SharingStarted.Companion.Eagerly, null)
+    }
+
+    override suspend fun getEpisode(id: UUID): Flow<Episode?> {
+        return activeRepository
+            .flatMapLatest { it.getEpisode(id) }
+            .stateIn(scope, SharingStarted.Companion.Eagerly, null)
+    }
+
     override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
         return activeRepository.flatMapLatest { it.observeSeriesWithContent(seriesId) }
     }

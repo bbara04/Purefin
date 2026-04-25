@@ -40,7 +40,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.player.model.PlayerUiState
-import hu.bbara.purefin.player.model.QueueItemUi
+import hu.bbara.purefin.player.model.PlaylistElementUiModel
 import hu.bbara.purefin.player.model.TrackOption
 import hu.bbara.purefin.player.model.TrackType
 import hu.bbara.purefin.ui.screen.player.TV_HIDDEN_STOP_FEEDBACK_MS
@@ -247,14 +247,14 @@ class TvPlayerControlsOverlayTest {
                 OverlayHost(
                     uiState = samplePlayerState().copy(
                         queue = listOf(
-                            QueueItemUi(
+                            PlaylistElementUiModel(
                                 id = "first",
                                 title = "Episode 1",
                                 subtitle = "Fallback entry",
                                 artworkUrl = null,
                                 isCurrent = false
                             ),
-                            QueueItemUi(
+                            PlaylistElementUiModel(
                                 id = "second",
                                 title = "Episode 2",
                                 subtitle = "Later",
@@ -871,21 +871,21 @@ private fun samplePlayerState(): PlayerUiState = PlayerUiState(
     positionMs = 120_000,
     bufferedMs = 240_000,
     queue = listOf(
-        QueueItemUi(
+        PlaylistElementUiModel(
             id = "played",
             title = "Already Played",
             subtitle = "Episode 0",
             artworkUrl = null,
             isCurrent = false
         ),
-        QueueItemUi(
+        PlaylistElementUiModel(
             id = "current",
             title = "Currently Playing",
             subtitle = "Episode 1",
             artworkUrl = null,
             isCurrent = true
         ),
-        QueueItemUi(
+        PlaylistElementUiModel(
             id = "next",
             title = "Episode 2",
             subtitle = "Up next",

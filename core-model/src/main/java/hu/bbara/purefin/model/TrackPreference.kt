@@ -1,4 +1,4 @@
-package hu.bbara.purefin.player.preference
+package hu.bbara.purefin.model
 
 import kotlinx.serialization.Serializable
 

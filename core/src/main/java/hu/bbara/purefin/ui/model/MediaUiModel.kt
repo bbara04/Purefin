@@ -66,8 +66,6 @@ class MovieUiModel: MediaUiModel {
                     format = "",
                     synopsis = "",
                     imageUrlPrefix = "",
-                    audioTrack = "",
-                    subtitles = "",
                     cast = emptyList()
                 )
             )

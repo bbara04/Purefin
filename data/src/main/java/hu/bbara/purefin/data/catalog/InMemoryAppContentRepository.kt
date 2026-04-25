@@ -5,15 +5,11 @@ import androidx.datastore.core.DataStore
 import hu.bbara.purefin.data.HomeRepository
 import hu.bbara.purefin.data.NetworkMonitor
 import hu.bbara.purefin.data.UserSessionRepository
-import hu.bbara.purefin.image.ArtworkKind
-import hu.bbara.purefin.image.ImageUrlBuilder
-import hu.bbara.purefin.model.Episode
-import hu.bbara.purefin.model.Library
-import hu.bbara.purefin.model.LibraryKind
-import hu.bbara.purefin.model.Media
-import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.model.Season
-import hu.bbara.purefin.model.Series
+import hu.bbara.purefin.data.converter.toEpisode
+import hu.bbara.purefin.data.converter.toLibrary
+import hu.bbara.purefin.data.converter.toMovie
+import hu.bbara.purefin.data.converter.toSeason
+import hu.bbara.purefin.data.converter.toSeries
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.offline.cache.HomeCache
 import hu.bbara.purefin.data.offline.cache.toCachedEpisode
@@ -26,6 +22,9 @@ import hu.bbara.purefin.data.offline.cache.toLibrary
 import hu.bbara.purefin.data.offline.cache.toMedia
 import hu.bbara.purefin.data.offline.cache.toMovie
 import hu.bbara.purefin.data.offline.cache.toSeries
+import hu.bbara.purefin.model.Library
+import hu.bbara.purefin.model.LibraryKind
+import hu.bbara.purefin.model.Media
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,14 +34,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.CollectionType
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.concurrent.atomics.AtomicBoolean
@@ -235,10 +229,10 @@ class InMemoryAppContentRepository @Inject constructor(
             }
         return when (library.type) {
             LibraryKind.MOVIES -> library.copy(
-                movies = contentItem.map { it.toMovie(serverUrl(), library.id) },
+                movies = contentItem.map { it.toMovie(serverUrl()) },
             )
             LibraryKind.SERIES -> library.copy(
-                series = contentItem.map { it.toSeries(serverUrl(), library.id) },
+                series = contentItem.map { it.toSeries(serverUrl()) },
             )
         }
     }
@@ -317,13 +311,13 @@ class InMemoryAppContentRepository @Inject constructor(
                 }
             library.id to when (library.collectionType) {
                 CollectionType.MOVIES -> latestFromLibrary.map {
-                    val movie = it.toMovie(serverUrl(), library.id)
+                    val movie = it.toMovie(serverUrl())
                     Media.MovieMedia(movieId = movie.id)
                 }
                 CollectionType.TVSHOWS -> latestFromLibrary.map {
                     when (it.type) {
                         BaseItemKind.SERIES -> {
-                            val series = it.toSeries(serverUrl(), library.id)
+                            val series = it.toSeries(serverUrl())
                             Media.SeriesMedia(seriesId = series.id)
                         }
                         BaseItemKind.SEASON -> {
@@ -345,111 +339,6 @@ class InMemoryAppContentRepository @Inject constructor(
 
     private suspend fun serverUrl(): String {
         return userSessionRepository.serverUrl.first()
-    }
-
-    private fun BaseItemDto.toLibrary(serverUrl: String): Library {
-        return when (collectionType) {
-            CollectionType.MOVIES -> Library(
-                id = id,
-                name = name!!,
-                posterUrl = ImageUrlBuilder.toImageUrl(url = serverUrl, itemId = id, artworkKind = ArtworkKind.PRIMARY),
-                type = LibraryKind.MOVIES,
-                movies = emptyList(),
-            )
-            CollectionType.TVSHOWS -> Library(
-                id = id,
-                name = name!!,
-                posterUrl = ImageUrlBuilder.toImageUrl(url = serverUrl, itemId = id, artworkKind = ArtworkKind.PRIMARY),
-                type = LibraryKind.SERIES,
-                series = emptyList(),
-            )
-            else -> throw UnsupportedOperationException("Unsupported library type: $collectionType")
-        }
-    }
-
-    private fun BaseItemDto.toMovie(serverUrl: String, libraryId: UUID): Movie {
-        return Movie(
-            id = id,
-            libraryId = libraryId,
-            title = name ?: "Unknown title",
-            progress = userData!!.playedPercentage,
-            watched = userData!!.played,
-            year = productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
-            rating = officialRating ?: "NR",
-            runtime = formatRuntime(runTimeTicks),
-            synopsis = overview ?: "No synopsis available",
-            format = container?.uppercase() ?: "VIDEO",
-            imageUrlPrefix = ImageUrlBuilder.toPrefixImageUrl(url = serverUrl, itemId = id),
-            subtitles = "ENG",
-            audioTrack = "ENG",
-            cast = emptyList(),
-        )
-    }
-
-    private fun BaseItemDto.toSeries(serverUrl: String, libraryId: UUID): Series {
-        return Series(
-            id = id,
-            libraryId = libraryId,
-            name = name ?: "Unknown",
-            synopsis = overview ?: "No synopsis available",
-            year = productionYear?.toString() ?: premiereDate?.year?.toString().orEmpty(),
-            imageUrlPrefix = ImageUrlBuilder.toPrefixImageUrl(url = serverUrl, itemId = id),
-            unwatchedEpisodeCount = userData!!.unplayedItemCount!!,
-            seasonCount = childCount!!,
-            seasons = emptyList(),
-            cast = emptyList(),
-        )
-    }
-
-    private fun BaseItemDto.toSeason(): Season {
-        return Season(
-            id = id,
-            seriesId = seriesId!!,
-            name = name ?: "Unknown",
-            index = indexNumber ?: 0,
-            unwatchedEpisodeCount = userData!!.unplayedItemCount!!,
-            episodeCount = childCount!!,
-            episodes = emptyList(),
-        )
-    }
-
-    private fun BaseItemDto.toEpisode(serverUrl: String): Episode {
-        val releaseDate = formatReleaseDate(premiereDate, productionYear)
-        val imageUrlPrefix = id?.let { itemId ->
-            ImageUrlBuilder.toPrefixImageUrl(url = serverUrl, itemId = itemId)
-        } ?: ""
-        return Episode(
-            id = id,
-            seriesId = seriesId!!,
-            seasonId = parentId!!,
-            title = name ?: "Unknown title",
-            index = indexNumber!!,
-            releaseDate = releaseDate,
-            rating = officialRating ?: "NR",
-            runtime = formatRuntime(runTimeTicks),
-            progress = userData!!.playedPercentage,
-            watched = userData!!.played,
-            format = container?.uppercase() ?: "VIDEO",
-            synopsis = overview ?: "No synopsis available.",
-            imageUrlPrefix = imageUrlPrefix,
-            cast = emptyList(),
-        )
-    }
-
-    private fun formatReleaseDate(date: LocalDateTime?, fallbackYear: Int?): String {
-        if (date == null) {
-            return fallbackYear?.toString() ?: "—"
-        }
-        val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
-        return date.toLocalDate().format(formatter)
-    }
-
-    private fun formatRuntime(ticks: Long?): String {
-        if (ticks == null || ticks <= 0) return "—"
-        val totalSeconds = ticks / 10_000_000
-        val hours = TimeUnit.SECONDS.toHours(totalSeconds)
-        val minutes = TimeUnit.SECONDS.toMinutes(totalSeconds) % 60
-        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
     }
 
     companion object {
