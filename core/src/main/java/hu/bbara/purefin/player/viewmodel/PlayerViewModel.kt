@@ -19,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -121,13 +122,14 @@ class PlayerViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val currentPlayableMedia = playerManager.currentPlayableMedia
-            playerManager.playlist.collect { playlist ->
+            combine(playerManager.playlist, playerManager.currentPlayableMedia) { playlist, currentPlayableMedia ->
+                playlist.mapNotNull { playableMedia ->
+                    playableMedia.toPlaylistElementUiModel(currentPlayableMedia?.id)
+                }
+            }.collect { queue ->
                 _uiState.update { state ->
                     state.copy(
-                        queue = playlist.mapNotNull { playableMedia ->
-                            playableMedia.toPlaylistElementUiModel(currentPlayableMedia.first()?.id)
-                        }
+                        queue = queue
                     )
                 }
             }
