@@ -145,7 +145,7 @@ private fun QueueRow(
                 color = scheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             if (subtitle != null) {
