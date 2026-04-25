@@ -106,12 +106,11 @@ class PlayerManager @Inject constructor(
                     _playbackState.update { it.copy(error = "Media not found in playlist") }
                     return@launch
                 }
+                seekTo(currentMedia.resumePositionMs)
                 // Only updatePlaylist when episodes are being played. First item is handled when playMedia is being called first time.
                 if (currentMedia is PlayableMedia.Episode) {
                     updatePlaylist()
                 }
-                seekTo(currentMedia.resumePositionMs)
-                resumePlayback()
             }
         }
 
