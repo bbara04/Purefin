@@ -27,12 +27,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -61,28 +61,27 @@ class PlayerManager @Inject constructor(
     private val mediaSegmentManager = MediaSegmentManager(player as ExoPlayer)
 
     private val _currentMediaId = MutableStateFlow<UUID?>(null)
-    val currentPlayableMedia: StateFlow<PlayableMedia?> by lazy {
-        combine(_currentMediaId, _playlist) { mediaId, playlist ->
-            playlist.firstOrNull { it.id == mediaId }
-        }.stateIn(scope, SharingStarted.Eagerly, null)
-    }
-
-    private var pendingSeekPositionMs: Long? = null
-
-    private val _playbackState = MutableStateFlow(PlaybackStateSnapshot())
-    val playbackState: StateFlow<PlaybackStateSnapshot> = _playbackState.asStateFlow()
-
-    private val _progress = MutableStateFlow(PlaybackProgressSnapshot())
-    val progress: StateFlow<PlaybackProgressSnapshot> = _progress.asStateFlow()
-
-    private val _metadata = MutableStateFlow(MetadataState())
-    val metadata: StateFlow<MetadataState> = _metadata.asStateFlow()
-
-    private val _tracks = MutableStateFlow(TrackSelectionState())
-    val tracks: StateFlow<TrackSelectionState> = _tracks.asStateFlow()
-
     private val _playlist = MutableStateFlow(emptyList<PlayableMedia>())
     val playlist: StateFlow<List<PlayableMedia>> = _playlist.asStateFlow()
+
+    val currentPlayableMedia: Flow<PlayableMedia?> =
+        combine(_currentMediaId, _playlist) { mediaId, playlist ->
+            playlist.firstOrNull { it.id == mediaId }
+        }
+
+    private var pendingSeekPositionMs: Long? = null
+    private val _playbackState = MutableStateFlow(PlaybackStateSnapshot())
+
+    val playbackState: StateFlow<PlaybackStateSnapshot> = _playbackState.asStateFlow()
+    private val _progress = MutableStateFlow(PlaybackProgressSnapshot())
+
+    val progress: StateFlow<PlaybackProgressSnapshot> = _progress.asStateFlow()
+    private val _metadata = MutableStateFlow(MetadataState())
+
+    val metadata: StateFlow<MetadataState> = _metadata.asStateFlow()
+    private val _tracks = MutableStateFlow(TrackSelectionState())
+
+    val tracks: StateFlow<TrackSelectionState> = _tracks.asStateFlow()
 
     private val listener = object : Player.Listener {
         override fun onPositionDiscontinuity(
@@ -102,13 +101,17 @@ class PlayerManager @Inject constructor(
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             _currentMediaId.value = mediaItem?.mediaId?.let { UUID.fromString(it) }
             scope.launch {
-                currentPlayableMedia.value?.let { currentMedia ->
-                    // Only updatePlaylist when episodes are being played. First item is handled when playMedia is being called first time.
-                    if (currentMedia is PlayableMedia.Episode) {
-                        updatePlaylist()
-                    }
-                    seekTo(currentMedia.resumePositionMs)
+                val currentMedia = _playlist.value.firstOrNull { it.id == _currentMediaId.value }
+                if (currentMedia == null) {
+                    _playbackState.update { it.copy(error = "Media not found in playlist") }
+                    return@launch
                 }
+                // Only updatePlaylist when episodes are being played. First item is handled when playMedia is being called first time.
+                if (currentMedia is PlayableMedia.Episode) {
+                    updatePlaylist()
+                }
+                seekTo(currentMedia.resumePositionMs)
+                resumePlayback()
             }
         }
 
@@ -142,21 +145,20 @@ class PlayerManager @Inject constructor(
         val index = _playlist.value.indexOfFirst { it.id == mediaId }
         if (index != -1) {
             player.seekToDefaultPosition(index)
-            player.playWhenReady = true
         } else {
             _playbackState.update { it.copy(error = "Media not found in playlist") }
         }
     }
 
     private suspend fun playNewMedia(mediaId: UUID) {
-        val playableMedia = playableMediaRepository.getPlayableMedia(mediaId)
+        var playableMedia = playableMediaRepository.getPlayableMedia(mediaId)
         if (playableMedia == null) {
             _playbackState.update { it.copy(error = "Media not found") }
             return
         }
+        _playlist.update { it + playableMedia }
         player.setMediaItem(playableMedia.mediaItem)
         player.prepare()
-        player.playWhenReady = true
     }
 
     private suspend fun updatePlaylist() {
@@ -289,8 +291,8 @@ class PlayerManager @Inject constructor(
         _playbackState.update { it.copy(error = null) }
     }
 
-    private fun applyTrackPreferences() {
-        val preferences = currentPlayableMedia.value?.preferences ?: return
+    private suspend fun applyTrackPreferences() {
+        val preferences = currentPlayableMedia.firstOrNull()?.preferences ?: return
 
         val currentTrackState = _tracks.value
 

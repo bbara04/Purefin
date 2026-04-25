@@ -126,7 +126,7 @@ class PlayerViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         queue = playlist.mapNotNull { playableMedia ->
-                            playableMedia.toPlaylistElementUiModel(currentPlayableMedia.value?.id)
+                            playableMedia.toPlaylistElementUiModel(currentPlayableMedia.first()?.id)
                         }
                     )
                 }

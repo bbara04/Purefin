@@ -86,10 +86,9 @@ class InMemoryMediaRepository @Inject constructor(
                 episodesState.update { current -> current + (episode.id to episode) }
             }
         }
-        val episodeFlow = episodesState.map { it[id] }
-        val seriesId = episodeFlow.first()!!.seriesId
-        observeSeriesWithContent(seriesId = seriesId)
-        return episodeFlow
+        val episode = episodesState.value[id] ?: return flowOf(null)
+        observeSeriesWithContent(seriesId = episode.seriesId)
+        return episodesState.map { it[id] }
     }
 
     fun upsertMovies(movies: List<Movie>) {
