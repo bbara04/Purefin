@@ -23,11 +23,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.ui.common.badge.WatchStateBadge
+import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.model.EpisodeUiModel
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.model.MovieUiModel
-import hu.bbara.purefin.ui.common.badge.WatchStateBadge
-import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 
 @Composable
 internal fun HomeBrowseCard(
@@ -80,7 +80,7 @@ internal fun HomeBrowseCard(
                     text = uiModel.primaryText,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
