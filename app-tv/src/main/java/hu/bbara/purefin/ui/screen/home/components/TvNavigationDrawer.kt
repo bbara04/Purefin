@@ -30,9 +30,10 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.NavigationDrawer
 import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.Text
-import androidx.tv.material3.MaterialTheme as TvMaterialTheme
 import androidx.tv.material3.darkColorScheme
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.tv.R
+import androidx.tv.material3.MaterialTheme as TvMaterialTheme
 
 internal const val TvDrawerItemTagPrefix = "tv-drawer-item-"
 internal const val TvDrawerTitleTag = "tv-drawer-title"
@@ -43,8 +44,8 @@ private val TvDrawerExpandedWidth = 280.dp
 @Composable
 fun TvNavigationDrawer(
     destinations: List<TvDrawerDestinationItem>,
-    selectedDestination: TvDrawerDestination,
-    onDestinationSelected: (TvDrawerDestination) -> Unit,
+    selectedDestination: Route,
+    onDestinationSelected: (Route) -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
@@ -132,15 +133,15 @@ fun TvDrawerHeader(
 private fun androidx.tv.material3.NavigationDrawerScope.TvNavigationDrawerRail(
     drawerValue: DrawerValue,
     destinations: List<TvDrawerDestinationItem>,
-    selectedDestination: TvDrawerDestination,
-    onDestinationSelected: (TvDrawerDestination) -> Unit,
+    selectedDestination: Route,
+    onDestinationSelected: (Route) -> Unit,
 ) {
     val expanded = drawerValue == DrawerValue.Open
     val drawerWidth = animateDpAsState(
         targetValue = if (expanded) TvDrawerExpandedWidth else TvDrawerCollapsedWidth,
         label = "tv-drawer-width"
     )
-    val scheme = androidx.tv.material3.MaterialTheme.colorScheme
+    val scheme = MaterialTheme.colorScheme
 
     Box(
         modifier = Modifier

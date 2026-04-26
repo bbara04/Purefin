@@ -24,9 +24,12 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.navigation.LibraryDto
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.junit.Rule
 import org.junit.Test
+import java.util.UUID
 
 @OptIn(ExperimentalTestApi::class)
 class TvNavigationDrawerTest {
@@ -56,20 +59,26 @@ class TvNavigationDrawerTest {
 
     @Test
     fun tvNavigationDrawer_updatesSelectedDestination() {
-        var selectedDestination by mutableStateOf(TvDrawerDestination.HOME)
+        val libraryRoute = Route.LibraryRoute(
+            library = LibraryDto(
+                id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
+                name = "Movies"
+            )
+        )
+        var selectedDestination by mutableStateOf<Route>(Route.Home)
 
         composeRule.setContent {
             AppTheme {
                 TvNavigationDrawer(
                     destinations = listOf(
                         TvDrawerDestinationItem(
-                            destination = TvDrawerDestination.HOME,
+                            destination = Route.Home,
                             label = "Home",
                             icon = Icons.Outlined.Home
                         ),
                         TvDrawerDestinationItem(
-                            destination = TvDrawerDestination.LIBRARIES,
-                            label = "Libraries",
+                            destination = libraryRoute,
+                            label = "Movies",
                             icon = Icons.Outlined.Collections
                         )
                     ),

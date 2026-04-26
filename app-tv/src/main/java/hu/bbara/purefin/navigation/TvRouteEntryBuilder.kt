@@ -1,6 +1,8 @@
 package hu.bbara.purefin.navigation
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
+import hu.bbara.purefin.feature.browse.home.AppViewModel
 import hu.bbara.purefin.ui.screen.episode.TvEpisodeScreen
 import hu.bbara.purefin.ui.screen.movie.TvMovieScreen
 import hu.bbara.purefin.ui.screen.series.TvSeriesScreen
@@ -51,6 +53,10 @@ fun EntryProviderScope<Route>.tvPlayerSection() {
 
 fun EntryProviderScope<Route>.tvLibrarySection() {
     entry<Route.LibraryRoute> { route ->
-        TvLibraryScreen(library = route.library)
+        val viewModel: AppViewModel = hiltViewModel()
+        TvLibraryScreen(
+            library = route.library,
+            onMediaSelected = viewModel::onMediaSelected
+        )
     }
 }

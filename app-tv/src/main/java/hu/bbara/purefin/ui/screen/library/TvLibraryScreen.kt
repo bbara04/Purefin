@@ -4,15 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,16 +19,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.navigation.LibraryDto
-import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.library.LibraryViewModel
-import hu.bbara.purefin.ui.common.button.PurefinIconButton
+import hu.bbara.purefin.navigation.LibraryDto
 import hu.bbara.purefin.ui.common.card.PosterCard
-import java.util.UUID
+import hu.bbara.purefin.ui.model.MediaUiModel
 
 @Composable
 fun TvLibraryScreen(
     library: LibraryDto,
+    onMediaSelected: (MediaUiModel) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
@@ -45,15 +41,13 @@ fun TvLibraryScreen(
         modifier = modifier,
         topBar = {
             TvLibraryTopBar(
-                title = library.name,
-                onBack = viewModel::onBack
+                title = library.name
             )
         }
     ) { innerPadding ->
         TvLibraryContent(
             libraryItems = libraryItems.value,
-            onMovieSelected = viewModel::onMovieSelected,
-            onSeriesSelected = viewModel::onSeriesSelected,
+            onMediaSelected = onMediaSelected,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -61,40 +55,23 @@ fun TvLibraryScreen(
 
 @Composable
 private fun TvLibraryTopBar(
-    title: String,
-    onBack: () -> Unit
+    title: String
 ) {
-    val scheme = MaterialTheme.colorScheme
-    Row(
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        PurefinIconButton(
-            icon = Icons.AutoMirrored.Outlined.ArrowBack,
-            contentDescription = "Back",
-            onClick = onBack,
-            focusedScale = 1.1f,
-            focusedBorderWidth = 2.5.dp,
-            focusedBorderColor = scheme.onPrimary,
-            focusedBackgroundColor = scheme.primary
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(top = 12.dp)
-        )
-    }
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    )
 }
 
 @Composable
 fun TvLibraryContent(
     libraryItems: List<MediaUiModel>,
-    onMovieSelected: (UUID) -> Unit,
-    onSeriesSelected: (UUID) -> Unit,
+    onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -108,9 +85,9 @@ fun TvLibraryContent(
             items(libraryItems, key = { item -> item.id }) { item ->
                 PosterCard(
                     item = item,
-                    onMovieSelected = onMovieSelected,
-                    onSeriesSelected = onSeriesSelected,
-                    onEpisodeSelected = { _, _, _ -> }
+                    onMovieSelected = { onMediaSelected(item) },
+                    onSeriesSelected = { onMediaSelected(item) },
+                    onEpisodeSelected = { _, _, _ -> onMediaSelected(item) }
                 )
             }
         }

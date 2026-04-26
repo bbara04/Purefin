@@ -1,15 +1,10 @@
 package hu.bbara.purefin.ui.screen.home.components
 
 import androidx.compose.ui.graphics.vector.ImageVector
-
-enum class TvDrawerDestination {
-    HOME,
-    LIBRARIES
-}
+import hu.bbara.purefin.navigation.Route
 
 data class TvDrawerDestinationItem(
-    val destination: TvDrawerDestination,
+    val destination: Route,
     val label: String,
-    val icon: ImageVector,
-    val selected: Boolean = false
+    val icon: ImageVector
 )

@@ -2,7 +2,6 @@ package hu.bbara.purefin.ui.screen
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Collections
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.Tv
@@ -10,18 +9,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import hu.bbara.purefin.model.LibraryKind
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import hu.bbara.purefin.feature.browse.home.AppViewModel
+import hu.bbara.purefin.model.LibraryKind
+import hu.bbara.purefin.navigation.LibraryDto
+import hu.bbara.purefin.navigation.LocalNavigationManager
+import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.ui.screen.home.TvHomeScreen
-import hu.bbara.purefin.ui.screen.home.components.TvDrawerDestination
 import hu.bbara.purefin.ui.screen.home.components.TvDrawerDestinationItem
 import hu.bbara.purefin.ui.screen.home.components.TvNavigationDrawer
-import hu.bbara.purefin.ui.screen.libraries.TvLibrariesOverviewScreen
+import hu.bbara.purefin.ui.screen.library.TvLibraryScreen
 
 @Composable
 fun TvAppScreen(
@@ -32,28 +37,32 @@ fun TvAppScreen(
     val continueWatching by viewModel.continueWatching.collectAsState()
     val nextUp by viewModel.nextUp.collectAsState()
     val latestLibraryContent by viewModel.latestLibraryContent.collectAsState()
+    val navigationManager = LocalNavigationManager.current
 
-    var selectedDestination by rememberSaveable { androidx.compose.runtime.mutableStateOf(TvDrawerDestination.HOME) }
+    @Suppress("UNCHECKED_CAST")
+    val backStack = rememberNavBackStack(Route.Home) as NavBackStack<Route>
+    val selectedDestination = backStack.lastOrNull() ?: Route.Home
 
-    val destinations = remember(libraries, selectedDestination) {
+    val destinations = remember(libraries) {
         listOf(
             TvDrawerDestinationItem(
-                destination = TvDrawerDestination.HOME,
+                destination = Route.Home,
                 label = "Home",
-                icon = Icons.Outlined.Home,
-                selected = selectedDestination == TvDrawerDestination.HOME
-            ),
-            TvDrawerDestinationItem(
-                destination = TvDrawerDestination.LIBRARIES,
-                label = "Libraries",
-                icon = when {
-                    libraries.any { it.type == LibraryKind.MOVIES } -> Icons.Outlined.Movie
-                    libraries.any { it.type == LibraryKind.SERIES } -> Icons.Outlined.Tv
-                    else -> Icons.Outlined.Collections
-                },
-                selected = selectedDestination == TvDrawerDestination.LIBRARIES
+                icon = Icons.Outlined.Home
             )
-        )
+        ) + libraries.map { library ->
+            val destination = Route.LibraryRoute(
+                library = LibraryDto(id = library.id, name = library.name)
+            )
+            TvDrawerDestinationItem(
+                destination = destination,
+                label = library.name,
+                icon = when (library.type) {
+                    LibraryKind.MOVIES -> Icons.Outlined.Movie
+                    LibraryKind.SERIES -> Icons.Outlined.Tv
+                }
+            )
+        }
     }
 
     LifecycleResumeEffect(Unit) {
@@ -61,34 +70,55 @@ fun TvAppScreen(
         onPauseOrDispose { }
     }
 
+    val tvEntryProvider = entryProvider {
+        entry<Route.Home> {
+            TvHomeScreen(
+                libraries = libraries,
+                libraryContent = latestLibraryContent,
+                continueWatching = continueWatching,
+                nextUp = nextUp,
+                onMediaSelected = viewModel::onMediaSelected,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        entry<Route.LibraryRoute> { route ->
+            TvLibraryScreen(
+                library = route.library,
+                onMediaSelected = viewModel::onMediaSelected,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+
     TvNavigationDrawer(
         destinations = destinations,
         selectedDestination = selectedDestination,
         onDestinationSelected = { destination ->
-            selectedDestination = destination
+            if (selectedDestination != destination) {
+                backStack.clear()
+                backStack.add(Route.Home)
+                if (destination is Route.LibraryRoute) {
+                    backStack.add(destination)
+                }
+            }
         },
         modifier = modifier.fillMaxSize()
     ) {
-        when (selectedDestination) {
-            TvDrawerDestination.HOME -> {
-                TvHomeScreen(
-                    libraries = libraries,
-                    libraryContent = latestLibraryContent,
-                    continueWatching = continueWatching,
-                    nextUp = nextUp,
-                    onMediaSelected = viewModel::onMediaSelected,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            TvDrawerDestination.LIBRARIES -> {
-                TvLibrariesOverviewScreen(
-                    libraries = libraries,
-                    onLibrarySelected = { library ->
-                        viewModel.onLibrarySelected(library.id, library.name)
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
+        NavDisplay(
+            backStack = backStack,
+            onBack = {
+                if (backStack.size > 1) {
+                    backStack.removeLastOrNull()
+                } else {
+                    navigationManager.pop()
+                }
+            },
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator()
+            ),
+            entryProvider = tvEntryProvider,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
