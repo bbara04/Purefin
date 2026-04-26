@@ -49,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.SubtitleView
 import hu.bbara.purefin.player.viewmodel.ControlsAutoHideBlocker
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.screen.player.components.TvIconButton
@@ -59,6 +60,7 @@ import hu.bbara.purefin.ui.screen.player.components.TvTrackSelectionPanel
 import kotlinx.coroutines.delay
 
 private const val TV_CONTROLS_AUTO_HIDE_MS = 5_000L
+private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.22f
 internal const val TV_HIDDEN_STOP_FEEDBACK_MS = 1_200L
 internal const val TvPlayerHiddenStopFeedbackTag = "tv_player_hidden_stop_feedback"
 
@@ -215,6 +217,15 @@ fun TvPlayerScreen(
         }
     }
 
+    val playerControlsVisible =
+        controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null
+    val subtitleBottomPaddingFraction =
+        if (playerControlsVisible) {
+            CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION
+        } else {
+            SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION
+        }
+
     BackHandler(enabled = true) {
         when {
             trackPanelType != null -> closeTrackPanel()
@@ -254,16 +265,18 @@ fun TvPlayerScreen(
                     useController = false
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                     player = viewModel.player
+                    subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
                 }
             },
-            update = { it.player = viewModel.player },
+            update = {
+                it.player = viewModel.player
+                it.subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
+            },
             modifier = Modifier
                 .fillMaxHeight()
                 .align(Alignment.Center)
         )
 
-        val playerControlsVisible =
-            controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null
         AnimatedVisibility(
             visible = playerControlsVisible,
             enter = fadeIn(),

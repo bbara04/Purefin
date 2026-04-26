@@ -39,6 +39,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import androidx.media3.ui.SubtitleView
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.common.button.PurefinTextButton
 import hu.bbara.purefin.ui.common.visual.EmptyValueTimedVisibility
@@ -52,6 +53,8 @@ import hu.bbara.purefin.ui.screen.player.components.PlayerQueuePanel
 import hu.bbara.purefin.ui.screen.player.components.rememberPersistentOverlayController
 import kotlin.math.abs
 import kotlin.math.roundToInt
+
+private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.32f
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -78,6 +81,14 @@ fun PlayerScreen(
         }
     }
 
+    val playerControlsVisible = controlsVisible || uiState.isEnded || uiState.error != null
+    val subtitleBottomPaddingFraction =
+        if (playerControlsVisible) {
+            CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION
+        } else {
+            SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION
+        }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -89,10 +100,12 @@ fun PlayerScreen(
                     useController = false
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                     player = viewModel.player
+                    subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
                 }
             },
             update = {
                 it.player = viewModel.player
+                it.subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
             },
             modifier = Modifier
                 .fillMaxHeight()
@@ -171,7 +184,6 @@ fun PlayerScreen(
             )
         }
 
-        val playerControlsVisible = controlsVisible || uiState.isEnded || uiState.error != null
         AnimatedVisibility(
             visible = playerControlsVisible,
             enter = fadeIn(),
