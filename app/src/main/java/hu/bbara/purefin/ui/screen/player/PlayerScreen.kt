@@ -32,12 +32,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
+import hu.bbara.purefin.ui.common.button.PurefinTextButton
 import hu.bbara.purefin.ui.common.visual.EmptyValueTimedVisibility
 import hu.bbara.purefin.ui.common.visual.ValueChangeTimedVisibility
 import hu.bbara.purefin.ui.screen.player.components.PersistentOverlayContainer
@@ -168,8 +171,9 @@ fun PlayerScreen(
             )
         }
 
+        val playerControlsVisible = controlsVisible || uiState.isEnded || uiState.error != null
         AnimatedVisibility(
-            visible = controlsVisible || uiState.isEnded || uiState.error != null,
+            visible = playerControlsVisible,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -183,12 +187,33 @@ fun PlayerScreen(
                 onSeek = { viewModel.seekTo(it) },
                 onSeekRelative = { delta -> viewModel.seekBy(delta) },
                 onSeekLiveEdge = { viewModel.seekToLiveEdge() },
+                onSkipSegment = { viewModel.skipActiveSegment() },
                 onNext = { viewModel.next() },
                 onPrevious = { viewModel.previous() },
                 onSelectTrack = { viewModel.selectTrack(it) },
                 onQueueSelected = { viewModel.playQueueItem(it) },
                 onOpenQueue = { showQueuePanel = true }
             )
+        }
+
+        AnimatedVisibility(
+            visible = !playerControlsVisible && uiState.activeSkippableSegmentEndMs != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 24.dp, bottom = 24.dp)
+        ) {
+            PurefinTextButton(
+                onClick = { viewModel.skipActiveSegment() },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text(
+                    text = "Skip",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
         }
 
         PlayerLoadingErrorEndCard(

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -50,6 +51,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import hu.bbara.purefin.player.viewmodel.ControlsAutoHideBlocker
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
+import hu.bbara.purefin.ui.screen.player.components.TvIconButton
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerLoadingErrorEndCard
 import hu.bbara.purefin.ui.screen.player.components.TvTrackPanelType
@@ -116,6 +118,7 @@ fun TvPlayerScreen(
     val qualityButtonFocusRequester = remember { FocusRequester() }
     val audioButtonFocusRequester = remember { FocusRequester() }
     val subtitlesButtonFocusRequester = remember { FocusRequester() }
+    val skipButtonFocusRequester = remember { FocusRequester() }
     val expandPlaylist: () -> Unit = {
         if (!isPlaylistExpanded) {
             isPlaylistExpanded = true
@@ -158,6 +161,10 @@ fun TvPlayerScreen(
         viewModel.seekToLiveEdge()
         showTvControls()
     }
+    val skipSegmentAndShowControls: () -> Unit = {
+        viewModel.skipActiveSegment()
+        showTvControls()
+    }
     val nextAndShowControls: () -> Unit = {
         viewModel.next(TV_CONTROLS_AUTO_HIDE_MS)
     }
@@ -177,6 +184,10 @@ fun TvPlayerScreen(
         if (controlsVisible) {
             controlsFocusRequester.requestFocus()
         } else {
+            uiState.activeSkippableSegmentEndMs?.let {
+                skipButtonFocusRequester.requestFocus()
+                return@LaunchedEffect
+            }
             hiddenControlFocusRequester.requestFocus()
         }
     }
@@ -251,8 +262,10 @@ fun TvPlayerScreen(
                 .align(Alignment.Center)
         )
 
+        val playerControlsVisible =
+            controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null
         AnimatedVisibility(
-            visible = controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null,
+            visible = playerControlsVisible,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -268,6 +281,7 @@ fun TvPlayerScreen(
                 onSeek = seekAndShowControls,
                 onSeekRelative = seekByAndShowControls,
                 onSeekLiveEdge = seekToLiveEdgeAndShowControls,
+                onSkipSegment = skipSegmentAndShowControls,
                 onNext = nextAndShowControls,
                 onPrevious = previousAndShowControls,
                 onOpenAudioPanel = { trackPanelType = TvTrackPanelType.AUDIO },
@@ -282,6 +296,24 @@ fun TvPlayerScreen(
                 qualityButtonEnabled = uiState.qualityTracks.isNotEmpty(),
                 audioButtonEnabled = uiState.audioTracks.isNotEmpty(),
                 subtitlesButtonEnabled = uiState.textTracks.isNotEmpty()
+            )
+        }
+
+        AnimatedVisibility(
+            visible = !playerControlsVisible && uiState.activeSkippableSegmentEndMs != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 24.dp, bottom = 24.dp)
+        ) {
+            TvIconButton(
+                icon = Icons.Outlined.SkipNext,
+                contentDescription = "Skip segment",
+                onClick = skipSegmentAndShowControls,
+                size = 64,
+                label = "Skip",
+                modifier = Modifier.focusRequester(skipButtonFocusRequester)
             )
         }
 

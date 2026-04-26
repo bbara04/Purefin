@@ -35,10 +35,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.common.button.GhostIconButton
-import hu.bbara.purefin.ui.common.button.PurefinIconButton
+import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.player.model.PlayerUiState
 import hu.bbara.purefin.player.model.TrackOption
+import hu.bbara.purefin.ui.common.button.GhostIconButton
+import hu.bbara.purefin.ui.common.button.PurefinIconButton
+import hu.bbara.purefin.ui.common.button.PurefinTextButton
 
 @Composable
 fun PlayerControlsOverlay(
@@ -50,6 +52,7 @@ fun PlayerControlsOverlay(
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
     onSeekLiveEdge: () -> Unit,
+    onSkipSegment: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onSelectTrack: (TrackOption) -> Unit,
@@ -100,6 +103,7 @@ fun PlayerControlsOverlay(
                 onSeekForward = { onSeekRelative(30_000) },
                 onSeekBackward = { onSeekRelative(-10_000) },
                 onSeekLiveEdge = onSeekLiveEdge,
+                onSkipSegment = onSkipSegment,
                 onSelectTrack = onSelectTrack,
                 onQueueSelected = onQueueSelected,
                 modifier = Modifier.align(Alignment.BottomCenter)
@@ -163,12 +167,33 @@ private fun BottomSection(
     onSeekForward: () -> Unit,
     onSeekBackward: () -> Unit,
     onSeekLiveEdge: () -> Unit,
+    onSkipSegment: () -> Unit,
     onSelectTrack: (TrackOption) -> Unit,
     onQueueSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(modifier = modifier) {
+        if (uiState.activeSkippableSegmentEndMs != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                PurefinTextButton(
+                    onClick = onSkipSegment,
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(
+                        text = "Skip",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -122,6 +122,14 @@ class PlayerViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            playerManager.activeSkippableSegment.collect { mediaSegment ->
+                _uiState.update {
+                    it.copy(activeSkippableSegmentEndMs = mediaSegment?.endMs)
+                }
+            }
+        }
+
+        viewModelScope.launch {
             combine(playerManager.playlist, playerManager.currentPlayableMedia) { playlist, currentPlayableMedia ->
                 playlist.mapNotNull { playableMedia ->
                     playableMedia.toPlaylistElementUiModel(currentPlayableMedia?.id)
@@ -192,6 +200,10 @@ class PlayerViewModel @Inject constructor(
 
     fun seekToLiveEdge() {
         playerManager.seekToLiveEdge()
+    }
+
+    fun skipActiveSegment() {
+        playerManager.skipActiveSegment()
     }
 
     fun setControlsAutoHideDelay(autoHideDelayMs: Long) {

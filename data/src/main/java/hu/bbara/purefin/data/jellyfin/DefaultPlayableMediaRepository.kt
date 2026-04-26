@@ -184,8 +184,8 @@ class DefaultPlayableMediaRepository @Inject constructor(
         return MediaSegment(
             id = itemId,
             type = segmentType,
-            startMs = startTicks,
-            endMs = endTicks
+            startMs = startTicks / 10_000L,
+            endMs = endTicks / 10_000L
         )
     }
 }

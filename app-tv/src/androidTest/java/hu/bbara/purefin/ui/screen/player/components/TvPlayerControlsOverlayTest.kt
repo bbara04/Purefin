@@ -689,6 +689,7 @@ private fun OverlayHost(
             onSeek = { _ -> },
             onSeekRelative = { _ -> },
             onSeekLiveEdge = {},
+            onSkipSegment = {},
             onNext = {},
             onPrevious = {},
             onOpenAudioPanel = {},
@@ -804,6 +805,7 @@ private fun TrackPanelHost(
                 onSeek = { _ -> },
                 onSeekRelative = { _ -> },
                 onSeekLiveEdge = {},
+                onSkipSegment = {},
                 onNext = {},
                 onPrevious = {},
                 onOpenAudioPanel = {

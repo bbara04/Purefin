@@ -10,6 +10,7 @@ data class PlayerUiState(
     val durationMs: Long = 0L,
     val positionMs: Long = 0L,
     val bufferedMs: Long = 0L,
+    val activeSkippableSegmentEndMs: Long? = null,
     val error: String? = null,
     val playbackSpeed: Float = 1f,
     val chapters: List<TimedMarker> = emptyList(),

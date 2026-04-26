@@ -14,10 +14,12 @@ import hu.bbara.purefin.data.PlaybackReportContext
 import hu.bbara.purefin.model.AudioTrackProperties
 import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.model.PlayableMedia
+import hu.bbara.purefin.model.SegmentType
 import hu.bbara.purefin.model.SubtitleTrackProperties
 import hu.bbara.purefin.player.model.MetadataState
 import hu.bbara.purefin.player.model.PlaybackProgressSnapshot
 import hu.bbara.purefin.player.model.PlaybackStateSnapshot
+import hu.bbara.purefin.player.model.SegmentStatus
 import hu.bbara.purefin.player.model.TrackOption
 import hu.bbara.purefin.player.model.TrackType
 import hu.bbara.purefin.player.preference.TrackMatcher
@@ -80,8 +82,16 @@ class PlayerManager @Inject constructor(
 
     val metadata: StateFlow<MetadataState> = _metadata.asStateFlow()
     private val _tracks = MutableStateFlow(TrackSelectionState())
-
     val tracks: StateFlow<TrackSelectionState> = _tracks.asStateFlow()
+    private val _activeSkippableSegment = MutableStateFlow<MediaSegment?>(null)
+
+    val activeSkippableSegment: StateFlow<MediaSegment?> = _activeSkippableSegment.asStateFlow()
+
+    private val mediaSegmentListener = object : MediaSegmentManager.MediaSegmentListener {
+        override fun onEvent(mediaSegment: MediaSegment, status: SegmentStatus) {
+            handleMediaSegmentEvent(mediaSegment, status)
+        }
+    }
 
     private val listener = object : Player.Listener {
         override fun onPositionDiscontinuity(
@@ -99,6 +109,7 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            clearActiveSkippableSegment()
             _currentMediaId.value = mediaItem?.mediaId?.let { UUID.fromString(it) }
             scope.launch {
                 val currentMedia = _playlist.value.firstOrNull { it.id == _currentMediaId.value }
@@ -107,6 +118,7 @@ class PlayerManager @Inject constructor(
                     return@launch
                 }
                 seekTo(currentMedia.resumePositionMs)
+                installMediaSegments(currentMedia.mediaSegments)
                 // Only updatePlaylist when episodes are being played. First item is handled when playMedia is being called first time.
                 if (currentMedia is PlayableMedia.Episode) {
                     updatePlaylist()
@@ -125,6 +137,7 @@ class PlayerManager @Inject constructor(
     }
 
     init {
+        mediaSegmentManager.registerListener(mediaSegmentListener)
         player.addListener(listener)
         updateFromPlayer(player)
         startProgressLoop()
@@ -192,6 +205,7 @@ class PlayerManager @Inject constructor(
 
     fun seekTo(positionMs: Long) {
         val target = clampSeekPosition(positionMs)
+        clearActiveSegmentIfPositionOutside(target)
         pendingSeekPositionMs = target
         _progress.update { progress ->
             progress.copy(
@@ -219,6 +233,7 @@ class PlayerManager @Inject constructor(
 
     fun next() {
         clearPendingSeek()
+        clearActiveSkippableSegment()
         if (player.hasNextMediaItem()) {
             player.seekToNextMediaItem()
         }
@@ -226,6 +241,7 @@ class PlayerManager @Inject constructor(
 
     fun previous() {
         clearPendingSeek()
+        clearActiveSkippableSegment()
         if (player.hasPreviousMediaItem()) {
             player.seekToPreviousMediaItem()
         }
@@ -282,8 +298,15 @@ class PlayerManager @Inject constructor(
 
     fun retry() {
         clearPendingSeek()
+        clearActiveSkippableSegment()
         player.prepare()
         player.playWhenReady = true
+    }
+
+    fun skipActiveSegment() {
+        val mediaSegment = _activeSkippableSegment.value ?: return
+        seekTo(mediaSegment.endMs)
+        clearActiveSkippableSegment()
     }
 
     fun clearError() {
@@ -342,6 +365,8 @@ class PlayerManager @Inject constructor(
     }
 
     fun release() {
+        clearActiveSkippableSegment()
+        mediaSegmentManager.release()
         scope.cancel()
         player.removeListener(listener)
         player.release()
@@ -403,6 +428,29 @@ class PlayerManager @Inject constructor(
 
     private fun clearPendingSeek() {
         pendingSeekPositionMs = null
+    }
+
+    private fun clearActiveSkippableSegment() {
+        _activeSkippableSegment.value = null
+    }
+
+    private fun clearActiveSegmentIfPositionOutside(positionMs: Long) {
+        val activeSegment = _activeSkippableSegment.value ?: return
+        if (positionMs < activeSegment.startMs || positionMs >= activeSegment.endMs) {
+            clearActiveSkippableSegment()
+        }
+    }
+
+    private fun handleMediaSegmentEvent(mediaSegment: MediaSegment, status: SegmentStatus) {
+        if (mediaSegment.type == SegmentType.MAIN_CONTENT) return
+        when (status) {
+            SegmentStatus.START -> _activeSkippableSegment.value = mediaSegment
+            SegmentStatus.END -> {
+                if (_activeSkippableSegment.value?.id == mediaSegment.id) {
+                    clearActiveSkippableSegment()
+                }
+            }
+        }
     }
 
     private fun mapPlayerError(error: PlaybackException?): String? {

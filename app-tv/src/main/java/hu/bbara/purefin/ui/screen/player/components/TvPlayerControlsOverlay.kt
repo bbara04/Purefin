@@ -65,6 +65,7 @@ internal fun TvPlayerControlsOverlay(
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
     onSeekLiveEdge: () -> Unit,
+    onSkipSegment: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onOpenAudioPanel: () -> Unit,
@@ -110,6 +111,7 @@ internal fun TvPlayerControlsOverlay(
             onSeek = onSeek,
             onSeekRelative = onSeekRelative,
             onSeekLiveEdge = onSeekLiveEdge,
+            onSkipSegment = onSkipSegment,
             onNext = onNext,
             onPrevious = onPrevious,
             onOpenAudioPanel = onOpenAudioPanel,
@@ -172,6 +174,7 @@ private fun TvPlayerBottomSection(
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
     onSeekLiveEdge: () -> Unit,
+    onSkipSegment: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onOpenAudioPanel: () -> Unit,
@@ -215,6 +218,24 @@ private fun TvPlayerBottomSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (uiState.activeSkippableSegmentEndMs != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TvIconButton(
+                        icon = Icons.Outlined.SkipNext,
+                        contentDescription = "Skip segment",
+                        onClick = onSkipSegment,
+                        size = 64,
+                        label = "Skip",
+                        modifier = expandPlaylistModifier
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+            }
             Text(
                 text = formatTime(uiState.positionMs),
                 color = scheme.onSurface,

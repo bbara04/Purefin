@@ -32,7 +32,6 @@ import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.DeviceProfile
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaSegmentDto
-import org.jellyfin.sdk.model.api.MediaSegmentType
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.MediaType
 import org.jellyfin.sdk.model.api.PlayMethod
@@ -273,7 +272,7 @@ class JellyfinApiClient @Inject constructor(
         }
         val result = api.mediaSegmentsApi.getItemSegments(
             itemId = mediaId,
-            includeSegmentTypes = listOf(MediaSegmentType.INTRO)
+            //includeSegmentTypes = listOf(MediaSegmentType.INTRO)
         )
         Log.d("getMediaSegments", result.toString())
         result.content.items
