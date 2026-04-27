@@ -3,6 +3,9 @@ package hu.bbara.purefin.ui.screen
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,9 +29,6 @@ import hu.bbara.purefin.ui.screen.home.HomeScreen
 import hu.bbara.purefin.ui.screen.home.components.HomeNavItem
 import hu.bbara.purefin.ui.screen.libraries.LibrariesScreen
 import kotlinx.serialization.Serializable
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 
 @Composable
 fun AppScreen(
@@ -99,9 +99,6 @@ fun AppScreen(
             LibrariesScreen(
                 items = libraryNavItems,
                 onLibrarySelected = { item -> viewModel.onLibrarySelected(item.id, item.label) },
-                onProfileClick = {},
-                onSettingsClick = {},
-                onLogoutClick = viewModel::logout,
                 selectedTab = selectedTab,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()
