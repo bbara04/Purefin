@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.api.client.Response
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
+import org.jellyfin.sdk.api.client.extensions.genresApi
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.extensions.mediaInfoApi
 import org.jellyfin.sdk.api.client.extensions.mediaSegmentsApi
@@ -248,6 +249,18 @@ class JellyfinApiClient @Inject constructor(
         val nextUpEpisodes = nextUpEpisodesResult.content.items
         Log.d("getNextEpisodes", nextUpEpisodes.toString())
         nextUpEpisodes
+    }
+
+    suspend fun getGenres(id: UUID? = null) : List<BaseItemDto> = withContext(Dispatchers.IO) {
+        if (!ensureConfigured()) {
+            return@withContext emptyList()
+        }
+        val result = api.genresApi.getGenres(
+            userId = getUserId(),
+            parentId = id,
+        )
+        Log.d("getGenres", result.toString())
+        result.content.items
     }
 
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
