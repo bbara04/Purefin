@@ -1,10 +1,8 @@
 package hu.bbara.purefin.ui.screen
 
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -12,7 +10,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.IntOffset
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation3.runtime.NavBackStack
@@ -20,7 +17,6 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import hu.bbara.purefin.feature.browse.home.AppViewModel
 import hu.bbara.purefin.navigation.LocalNavigationManager
@@ -125,9 +121,9 @@ fun AppScreen(
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator()
         ),
-        transitionSpec = { appTabTransition() },
-        popTransitionSpec = { appTabTransition() },
-        predictivePopTransitionSpec = { _ -> appTabTransition() },
+        transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(220)) },
+        popTransitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(220)) },
+        predictivePopTransitionSpec = { _ -> fadeIn(tween(220)) togetherWith fadeOut(tween(220)) },
         entryProvider = tabEntryProvider,
         modifier = modifier.fillMaxSize()
     )
@@ -156,27 +152,6 @@ private fun Int.toAppTabRoute(): AppTabRoute = when (this) {
     1 -> AppTabRoute.Libraries
     2 -> AppTabRoute.Downloads
     else -> AppTabRoute.Home
-}
-
-private fun AnimatedContentTransitionScope<Scene<AppTabRoute>>.appTabTransition(): ContentTransform {
-    val initialIndex = initialState.metadata.appTabIndex()
-    val targetIndex = targetState.metadata.appTabIndex()
-    val animationSpec = tween<IntOffset>(durationMillis = 140)
-
-    return when {
-        targetIndex > initialIndex -> {
-            slideInHorizontally(animationSpec = animationSpec) { fullWidth -> fullWidth } togetherWith
-                slideOutHorizontally(animationSpec = animationSpec) { fullWidth -> -fullWidth }
-        }
-        targetIndex < initialIndex -> {
-            slideInHorizontally(animationSpec = animationSpec) { fullWidth -> -fullWidth } togetherWith
-                slideOutHorizontally(animationSpec = animationSpec) { fullWidth -> fullWidth }
-        }
-        else -> {
-            slideInHorizontally(animationSpec = animationSpec) { 0 } togetherWith
-                slideOutHorizontally(animationSpec = animationSpec) { 0 }
-        }
-    }
 }
 
 private fun appTabMetadata(route: AppTabRoute): Map<String, Any> =
