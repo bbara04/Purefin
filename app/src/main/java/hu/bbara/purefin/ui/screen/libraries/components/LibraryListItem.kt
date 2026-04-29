@@ -11,18 +11,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.screen.home.components.HomeNavItem
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import hu.bbara.purefin.ui.model.LibraryUiModel
 
 @Composable
 fun LibraryListItem(
-    item: HomeNavItem,
+    uiModel: LibraryUiModel,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         PurefinAsyncImage(
-            model = item.posterUrl,
-            contentDescription = item.label,
+            model = uiModel.posterUrl,
+            contentDescription = uiModel.name,
             contentScale = ContentScale.Inside,
             modifier = Modifier
                 .fillMaxWidth()
@@ -30,7 +30,7 @@ fun LibraryListItem(
                 .clip(RoundedCornerShape(24.dp))
         )
         Text(
-            text = item.label,
+            text = uiModel.name,
             style = MaterialTheme.typography.displaySmall
         )
     }

@@ -9,12 +9,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.screen.home.components.HomeNavItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 
 @Composable
 fun LibrariesContent(
-    items: List<HomeNavItem>,
-    onLibrarySelected: (HomeNavItem) -> Unit,
+    items: List<LibraryUiModel>,
+    onLibrarySelected: (LibraryUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
@@ -26,7 +26,7 @@ fun LibrariesContent(
     ) {
         items(items, key = { it.id }) { item ->
             LibraryListItem(
-                item = item,
+                uiModel = item,
                 modifier = Modifier.clickable {
                     onLibrarySelected(item)
                 }

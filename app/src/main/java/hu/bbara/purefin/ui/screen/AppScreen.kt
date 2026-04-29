@@ -22,7 +22,6 @@ import hu.bbara.purefin.feature.browse.home.AppViewModel
 import hu.bbara.purefin.navigation.LocalNavigationManager
 import hu.bbara.purefin.ui.screen.download.DownloadsScreen
 import hu.bbara.purefin.ui.screen.home.HomeScreen
-import hu.bbara.purefin.ui.screen.home.components.HomeNavItem
 import hu.bbara.purefin.ui.screen.libraries.LibrariesScreen
 import kotlinx.serialization.Serializable
 
@@ -43,14 +42,6 @@ fun AppScreen(
     val backStack = rememberNavBackStack(AppTabRoute.Home) as NavBackStack<AppTabRoute>
     val currentRoute = backStack.lastOrNull() ?: AppTabRoute.Home
     val selectedTab = currentRoute.toTabIndex()
-
-    val libraryNavItems = libraries.map {
-        HomeNavItem(
-            id = it.id,
-            label = it.name,
-            posterUrl = it.posterUrl
-        )
-    }
 
     LifecycleResumeEffect(Unit) {
         viewModel.onResumed()
@@ -93,8 +84,8 @@ fun AppScreen(
         }
         entry<AppTabRoute.Libraries>(metadata = appTabMetadata(AppTabRoute.Libraries)) {
             LibrariesScreen(
-                items = libraryNavItems,
-                onLibrarySelected = { item -> viewModel.onLibrarySelected(item.id, item.label) },
+                items = libraries,
+                onLibrarySelected = { item -> viewModel.onLibrarySelected(item.id, item.name) },
                 selectedTab = selectedTab,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()
