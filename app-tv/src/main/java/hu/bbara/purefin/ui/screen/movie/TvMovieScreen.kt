@@ -67,7 +67,7 @@ internal fun TvMovieScreenContent(
     ) {
         TvMediaDetailBodyBox(
             backgroundImageUrl = tvMediaDetailBackgroundImageUrl(movie.imageUrlPrefix),
-            modifier = Modifier
+            modifier = it
         ) {
             TvMovieHeroSection(
                 movie = movie,
@@ -75,31 +75,31 @@ internal fun TvMovieScreenContent(
                 playFocusRequester = playFocusRequester,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(2.dp))
         }
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Spacer(modifier = Modifier.height(16.dp))
+        Column(modifier = it.fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(4.dp))
             MediaDetailOverviewSection(
                 synopsis = movie.synopsis,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
-    }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        MediaDetailPlaybackSection(
-            audioTrack = "ENG",
-            subtitles = "ENG",
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-    }
-    if (movie.cast.isNotEmpty()) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            MediaDetailSectionTitle(text = "Cast")
-            Spacer(modifier = Modifier.height(14.dp))
+        Column(modifier = it.fillMaxWidth()) {
+            MediaDetailPlaybackSection(
+                audioTrack = "ENG",
+                subtitles = "ENG",
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        if (movie.cast.isNotEmpty()) {
+            Column(modifier = it.fillMaxWidth()) {
+                MediaDetailSectionTitle(text = "Cast")
+                Spacer(modifier = Modifier.height(14.dp))
 //                    MediaCastRow(cast = movie.cast)
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
     }
 }

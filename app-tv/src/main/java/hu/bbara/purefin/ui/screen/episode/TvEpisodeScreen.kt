@@ -99,15 +99,15 @@ internal fun TvEpisodeScreenContent(
                 playFocusRequester = playFocusRequester,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(2.dp))
         }
         Column(modifier = it.fillMaxWidth()) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             MediaDetailOverviewSection(
                 synopsis = episode.synopsis,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         Column(modifier = it.fillMaxWidth()) {
             MediaDetailPlaybackSection(
@@ -115,7 +115,7 @@ internal fun TvEpisodeScreenContent(
                 subtitles = "ENG",
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         Column(modifier = it.fillMaxWidth()) {
             MediaDetailSectionTitle(text = "Cast")
@@ -125,4 +125,3 @@ internal fun TvEpisodeScreenContent(
         }
     }
 }
-

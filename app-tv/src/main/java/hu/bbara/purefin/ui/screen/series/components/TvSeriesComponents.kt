@@ -191,54 +191,53 @@ internal fun TvSeriesHeroSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .widthIn(max = 760.dp)
+            .widthIn(max = 560.dp)
     ) {
         Text(
             text = series.name,
             color = scheme.onBackground,
-            fontSize = 42.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            lineHeight = 48.sp,
-            maxLines = 2,
+            lineHeight = 28.sp,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         TvSeriesMetaChips(series = series)
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         if (nextUpEpisode != null) {
             Text(
                 text = nextUpEpisode.heroStatusText(),
                 color = scheme.primary,
-                fontSize = 18.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = nextUpEpisode.title,
                 color = scheme.onBackground,
-                fontSize = 22.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "Episode ${nextUpEpisode.index} • ${nextUpEpisode.runtime}",
                 color = mutedStrong,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             MediaResumeButton(
                 text = mediaPlayButtonText(nextUpEpisode.progress, nextUpEpisode.watched),
                 progress = mediaPlaybackProgress(nextUpEpisode.progress),
                 onClick = { onPlayEpisode(nextUpEpisode) },
                 modifier = Modifier
-                    .sizeIn(minWidth = 216.dp, maxWidth = 240.dp)
+                    .sizeIn(minWidth = 160.dp, maxWidth = 192.dp)
                     .focusRequester(playFocusRequester)
                     .focusProperties { down = firstContentFocusRequester }
                     .testTag(SeriesPlayButtonTag),
@@ -248,13 +247,16 @@ internal fun TvSeriesHeroSection(
                 focusBorderColor = scheme.onBackground,
                 overlayBorderWidth = 2.dp,
                 overlayBorderColor = scheme.primary.copy(alpha = 0.95f),
-                focusable = true
+                focusable = true,
+                height = 40.dp,
+                textSize = 13.sp,
+                iconSize = 20.dp
             )
         } else {
             Text(
                 text = "Choose a season below to start watching.",
                 color = mutedStrong,
-                fontSize = 16.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
         }

@@ -39,47 +39,47 @@ internal fun TvEpisodeHeroSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .widthIn(max = 760.dp)
+            .widthIn(max = 560.dp)
     ) {
         if (!seriesTitle.isNullOrBlank()) {
             Text(
                 text = seriesTitle,
                 color = scheme.primary,
-                fontSize = 18.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(2.dp))
         }
         Text(
             text = episode.title,
             color = scheme.onBackground,
-            fontSize = 42.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            lineHeight = 48.sp,
-            maxLines = 2,
+            lineHeight = 28.sp,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = "Episode ${episode.index}",
             color = mutedStrong,
-            fontSize = 18.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Medium
         )
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         MediaMetadataFlowRow(
             items = listOf(episode.releaseDate, episode.rating, episode.runtime, episode.format),
             highlightedItem = episode.format
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         MediaResumeButton(
             text = mediaPlayButtonText(episode.progress, episode.watched),
             progress = mediaPlaybackProgress(episode.progress),
             onClick = onPlay,
             modifier = Modifier
-                .sizeIn(minWidth = 216.dp, maxWidth = 240.dp)
+                .sizeIn(minWidth = 160.dp, maxWidth = 192.dp)
                 .focusRequester(playFocusRequester)
                 .testTag(EpisodePlayButtonTag),
             focusedScale = 1.08f,
@@ -88,7 +88,10 @@ internal fun TvEpisodeHeroSection(
             focusBorderColor = scheme.onBackground,
             overlayBorderWidth = 2.dp,
             overlayBorderColor = scheme.primary.copy(alpha = 0.95f),
-            focusable = true
+            focusable = true,
+            height = 40.dp,
+            textSize = 13.sp,
+            iconSize = 20.dp
         )
     }
 }

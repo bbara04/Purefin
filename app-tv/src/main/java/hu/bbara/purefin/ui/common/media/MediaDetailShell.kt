@@ -32,8 +32,8 @@ import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 
 internal val MediaDetailHorizontalPadding = 48.dp
-private val MediaDetailHeaderTopPadding = 24.dp
-private val MediaDetailHeaderBottomPadding = 24.dp
+private val MediaDetailHeaderTopPadding = 6.dp
+private val MediaDetailHeaderBottomPadding = 4.dp
 private const val MediaDetailBodyImageWidthFraction = 0.66f
 
 internal val TvMediaDetailBringIntoViewSpec: BringIntoViewSpec =
@@ -77,7 +77,7 @@ internal fun TvMediaDetailScaffold(
 internal fun TvMediaDetailBodyBox(
     backgroundImageUrl: String,
     modifier: Modifier = Modifier,
-    heightFraction: Float = 0.48f,
+    heightFraction: Float = 0.24f,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -173,12 +173,11 @@ internal fun MediaDetailOverviewSection(
         title = "Overview",
         titleColor = scheme.onBackground,
         bodyColor = scheme.onSurfaceVariant.copy(alpha = 0.85f),
-        titleFontSize = 22.sp,
-        bodyFontSize = 16.sp,
-        bodyLineHeight = 24.sp,
-        titleSpacing = 14.dp,
-        collapsedLines = 5,
-        collapseInitially = false
+        titleFontSize = 15.sp,
+        bodyFontSize = 11.sp,
+        bodyLineHeight = 14.sp,
+        titleSpacing = 2.dp,
+        collapsedLines = 1
     )
 }
 

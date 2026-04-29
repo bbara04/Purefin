@@ -37,29 +37,29 @@ internal fun TvMovieHeroSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .widthIn(max = 760.dp)
+            .widthIn(max = 560.dp)
     ) {
         Text(
             text = movie.title,
             color = scheme.onBackground,
-            fontSize = 42.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            lineHeight = 48.sp,
-            maxLines = 2,
+            lineHeight = 28.sp,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         MediaMetadataFlowRow(
             items = listOf(movie.year, movie.rating, movie.runtime, movie.format),
             highlightedItem = movie.format
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         MediaResumeButton(
             text = mediaPlayButtonText(movie.progress, movie.watched),
             progress = mediaPlaybackProgress(movie.progress),
             onClick = onPlay,
             modifier = Modifier
-                .sizeIn(minWidth = 216.dp, maxWidth = 240.dp)
+                .sizeIn(minWidth = 160.dp, maxWidth = 192.dp)
                 .focusRequester(playFocusRequester)
                 .testTag(MoviePlayButtonTag),
             focusedScale = 1.08f,
@@ -68,7 +68,10 @@ internal fun TvMovieHeroSection(
             focusBorderColor = scheme.onBackground,
             overlayBorderWidth = 2.dp,
             overlayBorderColor = scheme.primary.copy(alpha = 0.95f),
-            focusable = true
+            focusable = true,
+            height = 40.dp,
+            textSize = 13.sp,
+            iconSize = 20.dp
         )
     }
 }

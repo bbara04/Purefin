@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -50,7 +52,10 @@ fun MediaResumeButton(
     focusBorderColor: Color = Color.Transparent,
     overlayBorderWidth: Dp = 0.dp,
     overlayBorderColor: Color = Color.Transparent,
-    focusable: Boolean = false
+    focusable: Boolean = false,
+    height: Dp = 52.dp,
+    textSize: TextUnit = 16.sp,
+    iconSize: Dp = 24.dp
 ) {
     val scheme = MaterialTheme.colorScheme
     val primaryColor = scheme.primary
@@ -73,7 +78,7 @@ fun MediaResumeButton(
     BoxWithConstraints(
         modifier = modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .height(52.dp)
+            .height(height)
             .background(haloColor, shape)
             .border(
                 width = if (isFocused) focusBorderWidth else 0.dp,
@@ -91,7 +96,12 @@ fun MediaResumeButton(
                 .background(onPrimaryColor),
             contentAlignment = Alignment.Center
         ) {
-            ResumeButtonContent(text = text, color = primaryColor)
+            ResumeButtonContent(
+                text = text,
+                color = primaryColor,
+                textSize = textSize,
+                iconSize = iconSize
+            )
         }
 
         Box(
@@ -111,7 +121,12 @@ fun MediaResumeButton(
                 .background(primaryColor),
             contentAlignment = Alignment.Center
         ) {
-            ResumeButtonContent(text = text, color = onPrimaryColor)
+            ResumeButtonContent(
+                text = text,
+                color = onPrimaryColor,
+                textSize = textSize,
+                iconSize = iconSize
+            )
         }
 
         if (isFocused && overlayBorderWidth > 0.dp) {
@@ -125,13 +140,23 @@ fun MediaResumeButton(
 }
 
 @Composable
-private fun ResumeButtonContent(text: String, color: Color) {
+private fun ResumeButtonContent(
+    text: String,
+    color: Color,
+    textSize: TextUnit,
+    iconSize: Dp
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Text(text, color = color, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(text, color = color, fontWeight = FontWeight.Bold, fontSize = textSize)
         Spacer(Modifier.width(8.dp))
-        Icon(Icons.Filled.PlayArrow, null, tint = color)
+        Icon(
+            imageVector = Icons.Filled.PlayArrow,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(iconSize)
+        )
     }
 }

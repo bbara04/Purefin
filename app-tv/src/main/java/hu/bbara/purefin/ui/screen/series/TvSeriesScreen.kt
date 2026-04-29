@@ -93,15 +93,15 @@ internal fun TvSeriesScreenContent(
                 firstContentFocusRequester = firstContentFocusRequester,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(2.dp))
         }
         Column(modifier = it.fillMaxWidth()) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             MediaDetailOverviewSection(
                 synopsis = series.synopsis,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         TvSeasonTabs(
             seasons = series.seasons,
@@ -111,7 +111,7 @@ internal fun TvSeriesScreenContent(
             onSelect = { selectedSeason = it },
             modifier = it
         )
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         TvEpisodeCarousel(
             episodes = selectedSeason.episodes,
             modifier = it
@@ -127,7 +127,6 @@ internal fun TvSeriesScreenContent(
         }
     }
 }
-
 
 private fun Series.defaultSeason(): Season {
     for (season in seasons) {
