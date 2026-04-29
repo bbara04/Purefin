@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.model.MediaUiModel
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import java.util.UUID
 
 internal const val TvHomeInitialFocusTag = "tv-home-initial-focus-item"
@@ -32,7 +32,7 @@ internal const val TvHomeContentViewportTag = "tv-home-content-viewport"
 
 @Composable
 fun TvHomeContent(
-    libraries: List<LibraryItem>,
+    libraries: List<LibraryUiModel>,
     libraryContent: Map<UUID, List<MediaUiModel>>,
     continueWatching: List<MediaUiModel>,
     nextUp: List<MediaUiModel>,

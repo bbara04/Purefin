@@ -12,7 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.home.components.HomeContent
@@ -23,7 +23,7 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    libraries: List<LibraryItem>,
+    libraries: List<LibraryUiModel>,
     libraryContent: Map<UUID, List<MediaUiModel>>,
     suggestions: List<MediaUiModel>,
     continueWatching: List<MediaUiModel>,
@@ -31,7 +31,7 @@ fun HomeScreen(
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onMediaSelected: (MediaUiModel) -> Unit,
-    onLibrarySelected: (LibraryItem) -> Unit,
+    onLibrarySelected: (LibraryUiModel) -> Unit,
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onLogoutClick: () -> Unit,

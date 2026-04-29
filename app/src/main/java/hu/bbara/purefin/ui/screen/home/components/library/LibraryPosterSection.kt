@@ -12,14 +12,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.model.MediaUiModel
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.common.header.SectionHeader
 
 @Composable
 fun LibraryPosterSection(
-    library: LibraryItem,
+    library: LibraryUiModel,
     items: List<MediaUiModel>,
-    onLibrarySelected: (LibraryItem) -> Unit,
+    onLibrarySelected: (LibraryUiModel) -> Unit,
     onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {

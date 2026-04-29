@@ -43,7 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.model.LibraryKind
 
 internal const val TvLibrariesOverviewItemTagPrefix = "tv-libraries-overview-item-"
@@ -52,8 +52,8 @@ private val TvLibrariesOverviewCardShape = RoundedCornerShape(18.dp)
 
 @Composable
 fun TvLibrariesOverviewScreen(
-    libraries: List<LibraryItem>,
-    onLibrarySelected: (LibraryItem) -> Unit,
+    libraries: List<LibraryUiModel>,
+    onLibrarySelected: (LibraryUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -117,7 +117,7 @@ fun TvLibrariesOverviewScreen(
 
 @Composable
 private fun TvLibraryOverviewCard(
-    item: LibraryItem,
+    item: LibraryUiModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {

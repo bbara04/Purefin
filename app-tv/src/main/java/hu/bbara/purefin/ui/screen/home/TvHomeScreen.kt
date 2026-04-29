@@ -13,14 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.model.MovieUiModel
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.screen.home.components.TvFocusedItemHero
 import hu.bbara.purefin.ui.screen.home.components.TvHomeContent
 import java.util.UUID
 
 @Composable
 fun TvHomeScreen(
-    libraries: List<LibraryItem>,
+    libraries: List<LibraryUiModel>,
     libraryContent: Map<UUID, List<MediaUiModel>>,
     continueWatching: List<MediaUiModel>,
     nextUp: List<MediaUiModel>,

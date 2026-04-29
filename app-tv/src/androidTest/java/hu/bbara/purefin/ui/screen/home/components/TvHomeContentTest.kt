@@ -22,7 +22,7 @@ import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.ui.model.EpisodeUiModel
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.model.MovieUiModel
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.screen.home.TvHomeScreen
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
@@ -385,9 +385,9 @@ class TvHomeContentTest {
         )
     }
 
-    private fun sampleLibraries(): List<LibraryItem> {
+    private fun sampleLibraries(): List<LibraryUiModel> {
         return listOf(
-            LibraryItem(
+            LibraryUiModel(
                 id = sampleLibraryId(),
                 name = "Movies",
                 type = LibraryKind.MOVIES,

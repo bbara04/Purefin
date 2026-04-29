@@ -16,6 +16,7 @@ import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
 import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.ui.model.EpisodeUiModel
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.model.MovieUiModel
 import hu.bbara.purefin.ui.model.SeriesUiModel
@@ -51,12 +52,12 @@ class AppViewModel @Inject constructor(
 
     val libraries = homeRepository.libraries.map { libraries ->
         libraries.map {
-            LibraryItem(
+            LibraryUiModel(
                 id = it.id,
                 name = it.name,
                 type = it.type,
                 posterUrl = it.posterUrl,
-                isEmpty = when(it.type) {
+                isEmpty = when (it.type) {
                     LibraryKind.MOVIES -> mediaCatalogReader.movies.value.isEmpty()
                     LibraryKind.SERIES -> mediaCatalogReader.series.value.isEmpty()
                 }

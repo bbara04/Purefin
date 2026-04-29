@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import hu.bbara.purefin.model.LibraryKind
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -20,14 +20,14 @@ class TvLibrariesOverviewScreenTest {
     @Test
     fun tvLibrariesOverviewScreen_opensSelectedLibrary() {
         val libraries = listOf(
-            LibraryItem(
+            LibraryUiModel(
                 id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
                 name = "Movies",
                 type = LibraryKind.MOVIES,
                 posterUrl = "",
                 isEmpty = false
             ),
-            LibraryItem(
+            LibraryUiModel(
                 id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
                 name = "Shows",
                 type = LibraryKind.SERIES,
@@ -35,7 +35,7 @@ class TvLibrariesOverviewScreenTest {
                 isEmpty = false
             )
         )
-        var openedLibrary: LibraryItem? = null
+        var openedLibrary: LibraryUiModel? = null
 
         composeRule.setContent {
             AppTheme {

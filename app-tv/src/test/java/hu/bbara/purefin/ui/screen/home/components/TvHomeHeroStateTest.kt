@@ -5,7 +5,7 @@ import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.MediaKind
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.feature.browse.home.NextUpItem
 import hu.bbara.purefin.feature.browse.home.PosterItem
 import org.junit.Assert.assertEquals
@@ -104,8 +104,8 @@ class TvHomeHeroStateTest {
         assertEquals(continueWatching, registry.firstAvailableItem)
     }
 
-    private fun sampleLibrary(id: UUID, isEmpty: Boolean = false): LibraryItem {
-        return LibraryItem(
+    private fun sampleLibrary(id: UUID, isEmpty: Boolean = false): LibraryUiModel {
+        return LibraryUiModel(
             id = id,
             name = "Movies",
             type = LibraryKind.MOVIES,

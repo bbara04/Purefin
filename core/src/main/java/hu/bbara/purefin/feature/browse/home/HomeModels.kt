@@ -3,7 +3,6 @@ package hu.bbara.purefin.feature.browse.home
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.Episode
-import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.MediaKind
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
@@ -34,14 +33,6 @@ data class NextUpItem(
     override val description: String
         get() = episode.synopsis
 }
-
-data class LibraryItem(
-    val id: UUID,
-    val name: String,
-    val type: LibraryKind,
-    val posterUrl: String,
-    val isEmpty: Boolean
-)
 
 data class PosterItem(
     override val type: MediaKind,

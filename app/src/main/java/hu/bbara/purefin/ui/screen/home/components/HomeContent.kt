@@ -22,7 +22,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.model.MediaUiModel
-import hu.bbara.purefin.feature.browse.home.LibraryItem
+import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.screen.home.components.continuewatching.ContinueWatchingSection
 import hu.bbara.purefin.ui.screen.home.components.featured.SuggestionsSection
 import hu.bbara.purefin.ui.screen.home.components.library.LibraryPosterSection
@@ -32,7 +32,7 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeContent(
-    libraries: List<LibraryItem>,
+    libraries: List<LibraryUiModel>,
     libraryContent: Map<UUID, List<MediaUiModel>>,
     suggestions: List<MediaUiModel>,
     continueWatching: List<MediaUiModel>,
@@ -40,7 +40,7 @@ fun HomeContent(
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onMediaSelected: (MediaUiModel) -> Unit,
-    onLibrarySelected: (LibraryItem) -> Unit,
+    onLibrarySelected: (LibraryUiModel) -> Unit,
     onBrowseLibrariesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
