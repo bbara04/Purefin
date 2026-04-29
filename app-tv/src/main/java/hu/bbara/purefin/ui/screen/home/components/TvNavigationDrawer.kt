@@ -1,11 +1,9 @@
 package hu.bbara.purefin.ui.screen.home.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -38,9 +35,6 @@ import androidx.tv.material3.MaterialTheme as TvMaterialTheme
 internal const val TvDrawerItemTagPrefix = "tv-drawer-item-"
 internal const val TvDrawerTitleTag = "tv-drawer-title"
 
-private val TvDrawerCollapsedWidth = 92.dp
-private val TvDrawerExpandedWidth = 280.dp
-
 @Composable
 fun TvNavigationDrawer(
     destinations: List<TvDrawerDestinationItem>,
@@ -52,9 +46,9 @@ fun TvNavigationDrawer(
     ProvideTvDrawerTheme {
         NavigationDrawer(
             modifier = modifier.fillMaxSize(),
-            drawerContent = {
+            drawerContent = { drawerValue ->
                 TvNavigationDrawerRail(
-                    drawerValue = if (hasFocus) DrawerValue.Open else DrawerValue.Closed,
+                    drawerValue = drawerValue,
                     destinations = destinations,
                     selectedDestination = selectedDestination,
                     onDestinationSelected = onDestinationSelected
@@ -137,54 +131,42 @@ private fun androidx.tv.material3.NavigationDrawerScope.TvNavigationDrawerRail(
     onDestinationSelected: (Route) -> Unit,
 ) {
     val expanded = drawerValue == DrawerValue.Open
-    val drawerWidth = animateDpAsState(
-        targetValue = if (expanded) TvDrawerExpandedWidth else TvDrawerCollapsedWidth,
-        label = "tv-drawer-width"
-    )
     val scheme = MaterialTheme.colorScheme
 
-    Box(
+    Column(
         modifier = Modifier
-            .width(drawerWidth.value)
             .fillMaxHeight()
             .background(scheme.surface.copy(alpha = 0.96f))
+            .padding(horizontal = 12.dp, vertical = 24.dp)
+            .selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 24.dp)
-                .selectableGroup(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            TvDrawerHeader(
-                expanded = expanded,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
-            )
-            destinations.forEachIndexed { index, destination ->
-                val isSelected = destination.destination == selectedDestination
-                NavigationDrawerItem(
-                    selected = isSelected,
-                    onClick = { onDestinationSelected(destination.destination) },
-                    modifier = Modifier
-                        .testTag("$TvDrawerItemTagPrefix$index")
-                        .semantics { selected = isSelected },
-                    leadingContent = {
-                        Icon(
-                            imageVector = destination.icon,
-                            contentDescription = destination.label
-                        )
-                    }
-                ) {
-                    if (expanded) {
-                        Text(
-                            text = destination.label,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+        TvDrawerHeader(
+            expanded = expanded,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+        )
+        destinations.forEachIndexed { index, destination ->
+            val isSelected = destination.destination == selectedDestination
+            NavigationDrawerItem(
+                selected = isSelected,
+                onClick = { onDestinationSelected(destination.destination) },
+                modifier = Modifier
+                    .testTag("$TvDrawerItemTagPrefix$index")
+                    .semantics { selected = isSelected },
+                leadingContent = {
+                    Icon(
+                        imageVector = destination.icon,
+                        contentDescription = destination.label
+                    )
                 }
+            ) {
+                Text(
+                    text = destination.label,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-            Spacer(modifier = Modifier.weight(1f))
         }
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
