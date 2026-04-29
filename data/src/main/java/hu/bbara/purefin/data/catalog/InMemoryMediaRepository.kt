@@ -11,6 +11,7 @@ import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -105,7 +106,14 @@ class InMemoryMediaRepository @Inject constructor(
 
     override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
         scope.launch {
-            ensureSeriesContentLoaded(seriesId)
+            try {
+                ensureSeriesContentLoaded(seriesId)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.e("InMemoryMediaRepository", "Failed to load content for series $seriesId", error)
+                throw error
+            }
         }
         return seriesState.map { it[seriesId] }
     }

@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.data.PlaybackMethod
 import hu.bbara.purefin.data.PlaybackReportContext
 import hu.bbara.purefin.data.UserSessionRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -85,7 +86,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun configureFromSession(): Boolean = withContext(Dispatchers.IO) {
-        ensureConfigured()
+        logApiFailure("configureFromSession") {
+            ensureConfigured()
+        }
     }
 
     suspend fun authenticate(
@@ -93,224 +96,254 @@ class JellyfinApiClient @Inject constructor(
         username: String,
         password: String,
     ): AuthenticationResult? = withContext(Dispatchers.IO) {
-        val trimmedUrl = url.trim()
-        if (trimmedUrl.isBlank()) {
-            return@withContext null
-        }
+        logApiFailure("authenticate") {
+            val trimmedUrl = url.trim()
+            if (trimmedUrl.isBlank()) {
+                return@logApiFailure null
+            }
 
-        api.update(baseUrl = trimmedUrl)
-        api.userApi.authenticateUserByName(username = username, password = password).content
+            api.update(baseUrl = trimmedUrl)
+            api.userApi.authenticateUserByName(username = username, password = password).content
+        }
     }
 
     suspend fun getLibraries(): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getLibraries") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val response = api.userViewsApi.getUserViews(
+                userId = getUserId(),
+                presetViews = listOf(CollectionType.MOVIES, CollectionType.TVSHOWS),
+                includeHidden = false,
+            )
+            Log.d("getLibraries", response.content.toString())
+            response.content.items
         }
-        val response = api.userViewsApi.getUserViews(
-            userId = getUserId(),
-            presetViews = listOf(CollectionType.MOVIES, CollectionType.TVSHOWS),
-            includeHidden = false,
-        )
-        Log.d("getLibraries", response.content.toString())
-        response.content.items
     }
 
     suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getLibraryContent($libraryId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val getItemsRequest = GetItemsRequest(
+                userId = getUserId(),
+                enableImages = true,
+                parentId = libraryId,
+                fields = itemFields,
+                enableUserData = true,
+                includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+                recursive = true,
+            )
+            val response = api.itemsApi.getItems(getItemsRequest)
+            Log.d("getLibraryContent", response.content.toString())
+            response.content.items
         }
-        val getItemsRequest = GetItemsRequest(
-            userId = getUserId(),
-            enableImages = true,
-            parentId = libraryId,
-            fields = itemFields,
-            enableUserData = true,
-            includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-            recursive = true,
-        )
-        val response = api.itemsApi.getItems(getItemsRequest)
-        Log.d("getLibraryContent", response.content.toString())
-        response.content.items
     }
 
     suspend fun getSuggestions(): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getSuggestions") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val userId = getUserId() ?: return@logApiFailure emptyList()
+            val response = api.suggestionsApi.getSuggestions(
+                userId = userId,
+                mediaType = listOf(MediaType.VIDEO),
+                type = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+                limit = 8,
+                enableTotalRecordCount = true,
+            )
+            Log.d("getSuggestions", response.content.toString())
+            response.content.items
         }
-        val userId = getUserId() ?: return@withContext emptyList()
-        val response = api.suggestionsApi.getSuggestions(
-            userId = userId,
-            mediaType = listOf(MediaType.VIDEO),
-            type = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-            limit = 8,
-            enableTotalRecordCount = true,
-        )
-        Log.d("getSuggestions", response.content.toString())
-        response.content.items
     }
 
     suspend fun getContinueWatching(): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getContinueWatching") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val userId = getUserId() ?: return@logApiFailure emptyList()
+            val getResumeItemsRequest = GetResumeItemsRequest(
+                userId = userId,
+                fields = itemFields,
+                includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
+                enableUserData = true,
+                startIndex = 0,
+            )
+            val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
+            Log.d("getContinueWatching", response.content.toString())
+            response.content.items
         }
-        val userId = getUserId() ?: return@withContext emptyList()
-        val getResumeItemsRequest = GetResumeItemsRequest(
-            userId = userId,
-            fields = itemFields,
-            includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
-            enableUserData = true,
-            startIndex = 0,
-        )
-        val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
-        Log.d("getContinueWatching", response.content.toString())
-        response.content.items
     }
 
     suspend fun getNextUpEpisodes(): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            throw IllegalStateException("Not configured")
+        logApiFailure("getNextUpEpisodes") {
+            if (!ensureConfigured()) {
+                throw IllegalStateException("Not configured")
+            }
+            val getNextUpRequest = GetNextUpRequest(
+                userId = getUserId(),
+                fields = itemFields,
+                enableResumable = false,
+            )
+            val result = api.tvShowsApi.getNextUp(getNextUpRequest)
+            Log.d("getNextUpEpisodes", result.content.toString())
+            result.content.items
         }
-        val getNextUpRequest = GetNextUpRequest(
-            userId = getUserId(),
-            fields = itemFields,
-            enableResumable = false,
-        )
-        val result = api.tvShowsApi.getNextUp(getNextUpRequest)
-        Log.d("getNextUpEpisodes", result.content.toString())
-        result.content.items
     }
 
     suspend fun getLatestFromLibrary(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getLatestFromLibrary($libraryId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val response = api.userLibraryApi.getLatestMedia(
+                userId = getUserId(),
+                parentId = libraryId,
+                fields = itemFields,
+                includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
+                limit = 10,
+            )
+            Log.d("getLatestFromLibrary", response.content.toString())
+            response.content
         }
-        val response = api.userLibraryApi.getLatestMedia(
-            userId = getUserId(),
-            parentId = libraryId,
-            fields = itemFields,
-            includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
-            limit = 10,
-        )
-        Log.d("getLatestFromLibrary", response.content.toString())
-        response.content
     }
 
     suspend fun getItemInfo(mediaId: UUID): BaseItemDto? = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext null
+        logApiFailure("getItemInfo($mediaId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure null
+            }
+            val result = api.userLibraryApi.getItem(itemId = mediaId, userId = getUserId())
+            Log.d("getItemInfo", result.content.toString())
+            result.content
         }
-        val result = api.userLibraryApi.getItem(itemId = mediaId, userId = getUserId())
-        Log.d("getItemInfo", result.content.toString())
-        result.content
     }
 
     suspend fun getSeasons(seriesId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getSeasons($seriesId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val result = api.tvShowsApi.getSeasons(
+                userId = getUserId(),
+                seriesId = seriesId,
+                fields = itemFields,
+                enableUserData = true,
+            )
+            Log.d("getSeasons", result.content.toString())
+            result.content.items
         }
-        val result = api.tvShowsApi.getSeasons(
-            userId = getUserId(),
-            seriesId = seriesId,
-            fields = itemFields,
-            enableUserData = true,
-        )
-        Log.d("getSeasons", result.content.toString())
-        result.content.items
     }
 
     suspend fun getEpisodesInSeason(seriesId: UUID, seasonId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getEpisodesInSeason(series=$seriesId, season=$seasonId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val result = api.tvShowsApi.getEpisodes(
+                userId = getUserId(),
+                seriesId = seriesId,
+                seasonId = seasonId,
+                fields = itemFields,
+                enableUserData = true,
+            )
+            Log.d("getEpisodesInSeason", result.content.toString())
+            result.content.items
         }
-        val result = api.tvShowsApi.getEpisodes(
-            userId = getUserId(),
-            seriesId = seriesId,
-            seasonId = seasonId,
-            fields = itemFields,
-            enableUserData = true,
-        )
-        Log.d("getEpisodesInSeason", result.content.toString())
-        result.content.items
     }
 
     suspend fun getNextEpisodes(episodeId: UUID, count: Int): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getNextEpisodes($episodeId, count=$count)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val episodeInfo = getItemInfo(episodeId) ?: return@logApiFailure emptyList()
+            val seriesId = episodeInfo.seriesId ?: return@logApiFailure emptyList()
+            val nextUpEpisodesResult = api.tvShowsApi.getEpisodes(
+                userId = getUserId(),
+                seriesId = seriesId,
+                enableUserData = true,
+                startItemId = episodeId,
+                limit = count,
+            )
+            val nextUpEpisodes = nextUpEpisodesResult.content.items
+            Log.d("getNextEpisodes", nextUpEpisodes.toString())
+            nextUpEpisodes
         }
-        val episodeInfo = getItemInfo(episodeId) ?: return@withContext emptyList()
-        val seriesId = episodeInfo.seriesId ?: return@withContext emptyList()
-        val nextUpEpisodesResult = api.tvShowsApi.getEpisodes(
-            userId = getUserId(),
-            seriesId = seriesId,
-            enableUserData = true,
-            startItemId = episodeId,
-            limit = count,
-        )
-        val nextUpEpisodes = nextUpEpisodesResult.content.items
-        Log.d("getNextEpisodes", nextUpEpisodes.toString())
-        nextUpEpisodes
     }
 
     suspend fun getGenres(id: UUID? = null) : List<BaseItemDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getGenres($id)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val result = api.genresApi.getGenres(
+                userId = getUserId(),
+                parentId = id,
+            )
+            Log.d("getGenres", result.toString())
+            result.content.items
         }
-        val result = api.genresApi.getGenres(
-            userId = getUserId(),
-            parentId = id,
-        )
-        Log.d("getGenres", result.toString())
-        result.content.items
     }
 
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getMediaSources($mediaId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val result = api.mediaInfoApi.getPostedPlaybackInfo(
+                mediaId,
+                PlaybackInfoDto(
+                    userId = getUserId(),
+                    deviceProfile = null,
+                    maxStreamingBitrate = 100_000_000,
+                ),
+            )
+            Log.d("getMediaSources", result.toString())
+            result.content.mediaSources
         }
-        val result = api.mediaInfoApi.getPostedPlaybackInfo(
-            mediaId,
-            PlaybackInfoDto(
-                userId = getUserId(),
-                deviceProfile = null,
-                maxStreamingBitrate = 100_000_000,
-            ),
-        )
-        Log.d("getMediaSources", result.toString())
-        result.content.mediaSources
     }
 
     suspend fun getMediaSegments(mediaId: UUID) : List<MediaSegmentDto> = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext emptyList()
+        logApiFailure("getMediaSegments($mediaId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val result = api.mediaSegmentsApi.getItemSegments(
+                itemId = mediaId,
+                //includeSegmentTypes = listOf(MediaSegmentType.INTRO)
+            )
+            Log.d("getMediaSegments", result.toString())
+            result.content.items
         }
-        val result = api.mediaSegmentsApi.getItemSegments(
-            itemId = mediaId,
-            //includeSegmentTypes = listOf(MediaSegmentType.INTRO)
-        )
-        Log.d("getMediaSegments", result.toString())
-        result.content.items
     }
 
     suspend fun getPlaybackInfo(
         mediaId: UUID,
         deviceProfile: DeviceProfile,
     ): PlaybackInfoResponse? = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext null
+        logApiFailure("getPlaybackInfo($mediaId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure null
+            }
+            api.mediaInfoApi.getPostedPlaybackInfo(
+                mediaId,
+                PlaybackInfoDto(
+                    userId = getUserId(),
+                    deviceProfile = deviceProfile,
+                    enableDirectPlay = true,
+                    enableDirectStream = true,
+                    enableTranscoding = true,
+                    allowVideoStreamCopy = true,
+                    allowAudioStreamCopy = true,
+                    autoOpenLiveStream = false,
+                ),
+            ).content
         }
-        api.mediaInfoApi.getPostedPlaybackInfo(
-            mediaId,
-            PlaybackInfoDto(
-                userId = getUserId(),
-                deviceProfile = deviceProfile,
-                enableDirectPlay = true,
-                enableDirectStream = true,
-                enableTranscoding = true,
-                allowVideoStreamCopy = true,
-                allowAudioStreamCopy = true,
-                autoOpenLiveStream = false,
-            ),
-        ).content
     }
 
     fun getVideoStreamUrl(
@@ -320,21 +353,28 @@ class JellyfinApiClient @Inject constructor(
         tag: String? = null,
         playSessionId: String? = null,
         liveStreamId: String? = null,
-    ): String = api.videosApi.getVideoStreamUrl(
-        itemId = itemId,
-        container = container,
-        mediaSourceId = mediaSourceId,
-        static = true,
-        tag = tag,
-        playSessionId = playSessionId,
-        liveStreamId = liveStreamId,
-    )
+    ): String = try {
+        api.videosApi.getVideoStreamUrl(
+            itemId = itemId,
+            container = container,
+            mediaSourceId = mediaSourceId,
+            static = true,
+            tag = tag,
+            playSessionId = playSessionId,
+            liveStreamId = liveStreamId,
+        )
+    } catch (error: Exception) {
+        Log.e(TAG, "getVideoStreamUrl($itemId) failed", error)
+        throw error
+    }
 
     suspend fun getPublicSystemInfoVersion(): String? = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) {
-            return@withContext null
+        logApiFailure("getPublicSystemInfoVersion") {
+            if (!ensureConfigured()) {
+                return@logApiFailure null
+            }
+            SystemApi(api).getPublicSystemInfo().content.version
         }
-        SystemApi(api).getPublicSystemInfo().content.version
     }
 
     suspend fun reportPlaybackStart(
@@ -342,24 +382,26 @@ class JellyfinApiClient @Inject constructor(
         positionTicks: Long = 0L,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) return@withContext
-        api.playStateApi.reportPlaybackStart(
-            PlaybackStartInfo(
-                itemId = itemId,
-                positionTicks = positionTicks,
-                canSeek = true,
-                isPaused = false,
-                isMuted = false,
-                mediaSourceId = reportContext.mediaSourceId,
-                audioStreamIndex = reportContext.audioStreamIndex,
-                subtitleStreamIndex = reportContext.subtitleStreamIndex,
-                liveStreamId = reportContext.liveStreamId,
-                playSessionId = reportContext.playSessionId,
-                playMethod = reportContext.playMethod.toJellyfinPlayMethod(),
-                repeatMode = RepeatMode.REPEAT_NONE,
-                playbackOrder = PlaybackOrder.DEFAULT,
-            ),
-        )
+        logApiFailure("reportPlaybackStart($itemId)") {
+            if (!ensureConfigured()) return@logApiFailure
+            api.playStateApi.reportPlaybackStart(
+                PlaybackStartInfo(
+                    itemId = itemId,
+                    positionTicks = positionTicks,
+                    canSeek = true,
+                    isPaused = false,
+                    isMuted = false,
+                    mediaSourceId = reportContext.mediaSourceId,
+                    audioStreamIndex = reportContext.audioStreamIndex,
+                    subtitleStreamIndex = reportContext.subtitleStreamIndex,
+                    liveStreamId = reportContext.liveStreamId,
+                    playSessionId = reportContext.playSessionId,
+                    playMethod = reportContext.playMethod.toJellyfinPlayMethod(),
+                    repeatMode = RepeatMode.REPEAT_NONE,
+                    playbackOrder = PlaybackOrder.DEFAULT,
+                ),
+            )
+        }
     }
 
     suspend fun reportPlaybackProgress(
@@ -368,24 +410,26 @@ class JellyfinApiClient @Inject constructor(
         isPaused: Boolean,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) return@withContext
-        api.playStateApi.reportPlaybackProgress(
-            PlaybackProgressInfo(
-                itemId = itemId,
-                positionTicks = positionTicks,
-                canSeek = true,
-                isPaused = isPaused,
-                isMuted = false,
-                mediaSourceId = reportContext.mediaSourceId,
-                audioStreamIndex = reportContext.audioStreamIndex,
-                subtitleStreamIndex = reportContext.subtitleStreamIndex,
-                liveStreamId = reportContext.liveStreamId,
-                playSessionId = reportContext.playSessionId,
-                playMethod = reportContext.playMethod.toJellyfinPlayMethod(),
-                repeatMode = RepeatMode.REPEAT_NONE,
-                playbackOrder = PlaybackOrder.DEFAULT,
-            ),
-        )
+        logApiFailure("reportPlaybackProgress($itemId)") {
+            if (!ensureConfigured()) return@logApiFailure
+            api.playStateApi.reportPlaybackProgress(
+                PlaybackProgressInfo(
+                    itemId = itemId,
+                    positionTicks = positionTicks,
+                    canSeek = true,
+                    isPaused = isPaused,
+                    isMuted = false,
+                    mediaSourceId = reportContext.mediaSourceId,
+                    audioStreamIndex = reportContext.audioStreamIndex,
+                    subtitleStreamIndex = reportContext.subtitleStreamIndex,
+                    liveStreamId = reportContext.liveStreamId,
+                    playSessionId = reportContext.playSessionId,
+                    playMethod = reportContext.playMethod.toJellyfinPlayMethod(),
+                    repeatMode = RepeatMode.REPEAT_NONE,
+                    playbackOrder = PlaybackOrder.DEFAULT,
+                ),
+            )
+        }
     }
 
     suspend fun reportPlaybackStopped(
@@ -393,22 +437,39 @@ class JellyfinApiClient @Inject constructor(
         positionTicks: Long,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        if (!ensureConfigured()) return@withContext
-        api.playStateApi.reportPlaybackStopped(
-            PlaybackStopInfo(
-                itemId = itemId,
-                positionTicks = positionTicks,
-                mediaSourceId = reportContext.mediaSourceId,
-                liveStreamId = reportContext.liveStreamId,
-                playSessionId = reportContext.playSessionId,
-                failed = false,
-            ),
-        )
+        logApiFailure("reportPlaybackStopped($itemId)") {
+            if (!ensureConfigured()) return@logApiFailure
+            api.playStateApi.reportPlaybackStopped(
+                PlaybackStopInfo(
+                    itemId = itemId,
+                    positionTicks = positionTicks,
+                    mediaSourceId = reportContext.mediaSourceId,
+                    liveStreamId = reportContext.liveStreamId,
+                    playSessionId = reportContext.playSessionId,
+                    failed = false,
+                ),
+            )
+        }
+    }
+
+    private suspend fun <T> logApiFailure(operation: String, block: suspend () -> T): T {
+        return try {
+            block()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.e(TAG, "$operation failed", error)
+            throw error
+        }
     }
 
     private fun PlaybackMethod.toJellyfinPlayMethod(): PlayMethod = when (this) {
         PlaybackMethod.DIRECT_PLAY -> PlayMethod.DIRECT_PLAY
         PlaybackMethod.DIRECT_STREAM -> PlayMethod.DIRECT_STREAM
         PlaybackMethod.TRANSCODE -> PlayMethod.TRANSCODE
+    }
+
+    companion object {
+        private const val TAG = "JellyfinApiClient"
     }
 }
