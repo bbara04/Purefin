@@ -1,12 +1,10 @@
 package hu.bbara.purefin.navigation
 
-import java.util.UUID
 import kotlinx.serialization.Serializable
-import hu.bbara.purefin.navigation.UuidSerializer
+import java.util.UUID
 
 @Serializable
 data class LibraryDto(
     @Serializable(with = UuidSerializer::class)
     val id: UUID,
-    val name: String,
 )

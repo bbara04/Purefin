@@ -163,7 +163,7 @@ class AppViewModel @Inject constructor(
 
     fun onLibrarySelected(id: UUID, name: String) {
         viewModelScope.launch {
-            navigationManager.navigate(Route.LibraryRoute(library = LibraryDto(id = id, name = name)))
+            navigationManager.navigate(Route.LibraryRoute(library = LibraryDto(id = id)))
         }
     }
 
