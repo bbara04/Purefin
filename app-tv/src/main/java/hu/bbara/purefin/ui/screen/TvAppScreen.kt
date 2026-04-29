@@ -52,7 +52,7 @@ fun TvAppScreen(
             )
         ) + libraries.map { library ->
             val destination = Route.LibraryRoute(
-                library = LibraryDto(id = library.id)
+                library = LibraryDto(id = library.id, name = library.name)
             )
             TvDrawerDestinationItem(
                 destination = destination,
