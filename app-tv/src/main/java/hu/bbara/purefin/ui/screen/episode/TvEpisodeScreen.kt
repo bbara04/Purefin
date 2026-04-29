@@ -85,50 +85,44 @@ internal fun TvEpisodeScreenContent(
         resetScrollKey = episode.id,
         modifier = modifier
     ) {
-        item(key = "episode-hero") {
-            TvMediaDetailBodyBox(
-                backgroundImageUrl = ImageUrlBuilder.finishImageUrl(episode.imageUrlPrefix, ArtworkKind.PRIMARY),
-                modifier = it
-            ) {
-                TvEpisodeHeroSection(
-                    episode = episode,
-                    seriesTitle = seriesTitle,
-                    onPlay = onPlay,
-                    playFocusRequester = playFocusRequester,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+        TvMediaDetailBodyBox(
+            backgroundImageUrl = ImageUrlBuilder.finishImageUrl(
+                episode.imageUrlPrefix,
+                ArtworkKind.PRIMARY
+            ),
+            modifier = it
+        ) {
+            TvEpisodeHeroSection(
+                episode = episode,
+                seriesTitle = seriesTitle,
+                onPlay = onPlay,
+                playFocusRequester = playFocusRequester,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(12.dp))
         }
-        item(key = "episode-overview") {
-            Column(modifier = it.fillMaxWidth()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                MediaDetailOverviewSection(
-                    synopsis = episode.synopsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
+        Column(modifier = it.fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            MediaDetailOverviewSection(
+                synopsis = episode.synopsis,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(20.dp))
         }
-        item(key = "episode-playback") {
-            Column(modifier = it.fillMaxWidth()) {
-                MediaDetailPlaybackSection(
-                    audioTrack = "ENG",
-                    subtitles = "ENG",
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
+        Column(modifier = it.fillMaxWidth()) {
+            MediaDetailPlaybackSection(
+                audioTrack = "ENG",
+                subtitles = "ENG",
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(20.dp))
         }
-        if (episode.cast.isNotEmpty()) {
-            item(key = "episode-cast") {
-                Column(modifier = it.fillMaxWidth()) {
-                    MediaDetailSectionTitle(text = "Cast")
-                    Spacer(modifier = Modifier.height(14.dp))
-//                    MediaCastRow(cast = episode.cast)
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-            }
+        Column(modifier = it.fillMaxWidth()) {
+            MediaDetailSectionTitle(text = "Cast")
+            Spacer(modifier = Modifier.height(14.dp))
+//          MediaCastRow(cast = episode.cast)
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
+

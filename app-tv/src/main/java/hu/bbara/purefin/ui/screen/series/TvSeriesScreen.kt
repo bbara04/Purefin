@@ -81,62 +81,53 @@ internal fun TvSeriesScreenContent(
         resetScrollKey = series.id,
         modifier = modifier
     ) {
-        item(key = "series-hero") {
-            TvMediaDetailBodyBox(
-                backgroundImageUrl = tvMediaDetailBackgroundImageUrl(series.imageUrlPrefix),
-                modifier = it
-            ) {
-                TvSeriesHeroSection(
-                    series = series,
-                    nextUpEpisode = nextUpEpisode,
-                    onPlayEpisode = { onPlayEpisode(it.id) },
-                    playFocusRequester = playFocusRequester,
-                    firstContentFocusRequester = firstContentFocusRequester,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-        }
-        item(key = "series-overview") {
-            Column(modifier = it.fillMaxWidth()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                MediaDetailOverviewSection(
-                    synopsis = series.synopsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
-        item(key = "series-season-tabs") {
-            TvSeasonTabs(
-                seasons = series.seasons,
-                selectedSeason = selectedSeason,
-                firstItemFocusRequester = firstContentFocusRequester,
-                firstItemTestTag = SeriesFirstSeasonTabTag,
-                onSelect = { selectedSeason = it },
-                modifier = it
+        TvMediaDetailBodyBox(
+            backgroundImageUrl = tvMediaDetailBackgroundImageUrl(series.imageUrlPrefix),
+            modifier = it
+        ) {
+            TvSeriesHeroSection(
+                series = series,
+                nextUpEpisode = nextUpEpisode,
+                onPlayEpisode = { onPlayEpisode(it.id) },
+                playFocusRequester = playFocusRequester,
+                firstContentFocusRequester = firstContentFocusRequester,
+                modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(12.dp))
         }
-        item(key = "series-episodes") {
-            Spacer(modifier = Modifier.height(20.dp))
-            TvEpisodeCarousel(
-                episodes = selectedSeason.episodes,
-                modifier = it
+        Column(modifier = it.fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            MediaDetailOverviewSection(
+                synopsis = series.synopsis,
+                modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(24.dp))
         }
+        TvSeasonTabs(
+            seasons = series.seasons,
+            selectedSeason = selectedSeason,
+            firstItemFocusRequester = firstContentFocusRequester,
+            firstItemTestTag = SeriesFirstSeasonTabTag,
+            onSelect = { selectedSeason = it },
+            modifier = it
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        TvEpisodeCarousel(
+            episodes = selectedSeason.episodes,
+            modifier = it
+        )
         if (series.cast.isNotEmpty()) {
-            item(key = "series-cast") {
-                Column(modifier = it) {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    MediaDetailSectionTitle(text = "Cast")
-                    Spacer(modifier = Modifier.height(14.dp))
-                    CastRow(cast = series.cast)
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
+            Column(modifier = it) {
+                Spacer(modifier = Modifier.height(20.dp))
+                MediaDetailSectionTitle(text = "Cast")
+                Spacer(modifier = Modifier.height(14.dp))
+                CastRow(cast = series.cast)
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
+
 
 private fun Series.defaultSeason(): Season {
     for (season in seasons) {

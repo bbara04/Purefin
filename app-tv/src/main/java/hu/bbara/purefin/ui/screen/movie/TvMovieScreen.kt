@@ -27,7 +27,9 @@ import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 
 @Composable
 fun TvMovieScreen(
-    movie: MovieDto, viewModel: MovieScreenViewModel = hiltViewModel(), modifier: Modifier = Modifier
+    movie: MovieDto,
+    viewModel: MovieScreenViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
 ) {
     LaunchedEffect(movie.id) {
         viewModel.selectMovie(movie.id)
@@ -63,49 +65,41 @@ internal fun TvMovieScreenContent(
         resetScrollKey = movie.id,
         modifier = modifier
     ) {
-        item(key = "movie-hero") {
-            TvMediaDetailBodyBox(
-                backgroundImageUrl = tvMediaDetailBackgroundImageUrl(movie.imageUrlPrefix),
-                modifier = it
-            ) {
-                TvMovieHeroSection(
-                    movie = movie,
-                    onPlay = onPlay,
-                    playFocusRequester = playFocusRequester,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+        TvMediaDetailBodyBox(
+            backgroundImageUrl = tvMediaDetailBackgroundImageUrl(movie.imageUrlPrefix),
+            modifier = Modifier
+        ) {
+            TvMovieHeroSection(
+                movie = movie,
+                onPlay = onPlay,
+                playFocusRequester = playFocusRequester,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(12.dp))
         }
-        item(key = "movie-overview") {
-            Column(modifier = it.fillMaxWidth()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                MediaDetailOverviewSection(
-                    synopsis = movie.synopsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            MediaDetailOverviewSection(
+                synopsis = movie.synopsis,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(20.dp))
         }
-        item(key = "movie-playback") {
-            Column(modifier = it.fillMaxWidth()) {
-                MediaDetailPlaybackSection(
-                    audioTrack = "ENG",
-                    subtitles = "ENG",
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-        }
-        if (movie.cast.isNotEmpty()) {
-            item(key = "movie-cast") {
-                Column(modifier = it.fillMaxWidth()) {
-                    MediaDetailSectionTitle(text = "Cast")
-                    Spacer(modifier = Modifier.height(14.dp))
+    }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        MediaDetailPlaybackSection(
+            audioTrack = "ENG",
+            subtitles = "ENG",
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+    if (movie.cast.isNotEmpty()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            MediaDetailSectionTitle(text = "Cast")
+            Spacer(modifier = Modifier.height(14.dp))
 //                    MediaCastRow(cast = movie.cast)
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
