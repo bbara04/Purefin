@@ -278,11 +278,7 @@ private fun TvEpisodeCard(
             .width(260.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .onFocusChanged { isFocused = it.isFocused }
-            .clickable { viewModel.onSelectEpisode(
-                seriesId = episode.seriesId,
-                seasonId = episode.seasonId,
-                episodeId = episode.id
-            ) },
+            .clickable { viewModel.onPlayEpisode(episode.id) },
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
