@@ -17,7 +17,7 @@ import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.ui.theme.AppTheme
 import hu.bbara.purefin.ui.screen.series.components.SeriesFirstSeasonTabTag
-import hu.bbara.purefin.ui.screen.series.components.SeriesPlayButtonTag
+import hu.bbara.purefin.ui.screen.series.components.SeriesNextUpEpisodeCardTag
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -30,7 +30,7 @@ class SeriesScreenContentTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun seriesScreenContent_focusesPrimaryAction_whenNextUpExists() {
+    fun seriesScreenContent_focusesNextUpEpisode_whenNextUpExists() {
         composeRule.setContent {
             AppTheme {
                 TvSeriesScreenContent(
@@ -44,8 +44,7 @@ class SeriesScreenContentTest {
 
         composeRule.onNodeWithText("Severance").assertIsDisplayed()
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
-        composeRule.onNodeWithText("Continue Watching").assertIsDisplayed()
-        composeRule.onNodeWithTag(SeriesPlayButtonTag).assertIsDisplayed()
+        composeRule.onNodeWithTag(SeriesNextUpEpisodeCardTag).assertIsDisplayed()
             .assertIsFocused()
         composeRule.onNodeWithText("Season 1").assertIsDisplayed()
         composeRule.onNodeWithText("Good News About Hell").assertIsDisplayed()
@@ -66,7 +65,6 @@ class SeriesScreenContentTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("Overview").assertIsDisplayed()
-        composeRule.onNodeWithText("Choose a season below to start watching.").assertIsDisplayed()
         composeRule.onNodeWithTag(SeriesFirstSeasonTabTag)
             .assertIsDisplayed()
             .assertIsFocused()
@@ -87,7 +85,7 @@ class SeriesScreenContentTest {
 
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag(SeriesPlayButtonTag).assertIsFocused()
+        composeRule.onNodeWithTag(SeriesNextUpEpisodeCardTag).assertIsFocused()
         composeRule.onRoot().performKeyInput {
             pressKey(Key.DirectionCenter)
         }

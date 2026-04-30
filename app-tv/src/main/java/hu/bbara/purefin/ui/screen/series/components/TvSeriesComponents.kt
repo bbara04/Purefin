@@ -1,13 +1,16 @@
 package hu.bbara.purefin.ui.screen.series.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -16,9 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -30,16 +31,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -50,8 +52,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.CastMember
@@ -60,14 +60,13 @@ import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
-import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
-import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
-import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.screen.home.components.TvHomeRowBringIntoViewSpec
+import java.util.UUID
 
-internal const val SeriesPlayButtonTag = "series-play-button"
 internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"
+internal const val SeriesNextUpEpisodeCardTag = "series-next-up-episode-card"
 
 @Composable
 internal fun TvSeriesMetaChips(series: Series) {
@@ -152,26 +151,56 @@ private fun TvSeasonTab(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun TvEpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modifier) {
+internal fun TvEpisodeCarousel(
+    episodes: List<Episode>,
+    onPlayEpisode: (Episode) -> Unit,
+    modifier: Modifier = Modifier,
+    focusedEpisodeId: UUID? = null
+) {
     val listState = rememberLazyListState()
+    val focusedEpisodeFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(episodes) {
+    LaunchedEffect(episodes, focusedEpisodeId) {
+        val focusedEpisodeIndex = focusedEpisodeId?.let { id ->
+            episodes.indexOfFirst { it.id == id }
+        } ?: -1
         val firstUnwatchedIndex = episodes.indexOfFirst { !it.watched }.let { if (it == -1) 0 else it }
-        if (firstUnwatchedIndex != 0) {
-            listState.animateScrollToItem(firstUnwatchedIndex)
+        val targetIndex = focusedEpisodeIndex.takeIf { it >= 0 } ?: firstUnwatchedIndex
+
+        if (targetIndex != 0) {
+            listState.scrollToItem(targetIndex)
         } else {
             listState.scrollToItem(0)
         }
+
+        if (focusedEpisodeIndex >= 0) {
+            withFrameNanos { }
+            focusedEpisodeFocusRequester.requestFocus()
+        }
     }
 
-    LazyRow(
-        state = listState,
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(episodes, key = { episode -> episode.id }) { episode ->
-            TvEpisodeCard(episode = episode)
+    CompositionLocalProvider(LocalBringIntoViewSpec provides TvHomeRowBringIntoViewSpec) {
+        LazyRow(
+            state = listState,
+            modifier = modifier,
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(episodes, key = { episode -> episode.id }) { episode ->
+                TvEpisodeCard(
+                    episode = episode,
+                    onPlayEpisode = { onPlayEpisode(episode) },
+                    modifier = if (episode.id == focusedEpisodeId) {
+                        Modifier
+                            .focusRequester(focusedEpisodeFocusRequester)
+                            .testTag(SeriesNextUpEpisodeCardTag)
+                    } else {
+                        Modifier
+                    }
+                )
+            }
         }
     }
 }
@@ -179,10 +208,6 @@ internal fun TvEpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Mod
 @Composable
 internal fun TvSeriesHeroSection(
     series: Series,
-    nextUpEpisode: Episode?,
-    onPlayEpisode: (Episode) -> Unit,
-    playFocusRequester: FocusRequester,
-    firstContentFocusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -190,8 +215,8 @@ internal fun TvSeriesHeroSection(
 
     Column(
         modifier = modifier
+            .padding(top = 24.dp)
             .fillMaxWidth()
-            .widthIn(max = 560.dp)
     ) {
         Text(
             text = series.name,
@@ -204,69 +229,31 @@ internal fun TvSeriesHeroSection(
         )
         Spacer(modifier = Modifier.height(4.dp))
         TvSeriesMetaChips(series = series)
-        Spacer(modifier = Modifier.height(6.dp))
-        if (nextUpEpisode != null) {
-            Text(
-                text = nextUpEpisode.heroStatusText(),
-                color = scheme.primary,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = nextUpEpisode.title,
-                color = scheme.onBackground,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = "Episode ${nextUpEpisode.index} • ${nextUpEpisode.runtime}",
-                color = mutedStrong,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            MediaResumeButton(
-                text = mediaPlayButtonText(nextUpEpisode.progress, nextUpEpisode.watched),
-                progress = mediaPlaybackProgress(nextUpEpisode.progress),
-                onClick = { onPlayEpisode(nextUpEpisode) },
-                modifier = Modifier
-                    .sizeIn(minWidth = 160.dp, maxWidth = 192.dp)
-                    .focusRequester(playFocusRequester)
-                    .focusProperties { down = firstContentFocusRequester }
-                    .testTag(SeriesPlayButtonTag),
-                focusedScale = 1.08f,
-                focusHaloColor = scheme.primary.copy(alpha = 0.22f),
-                focusBorderWidth = 3.dp,
-                focusBorderColor = scheme.onBackground,
-                overlayBorderWidth = 2.dp,
-                overlayBorderColor = scheme.primary.copy(alpha = 0.95f),
-                focusable = true,
-                height = 40.dp,
-                textSize = 13.sp,
-                iconSize = 20.dp
-            )
-        } else {
-            Text(
-                text = "Choose a season below to start watching.",
-                color = mutedStrong,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = "Overview",
+            color = scheme.onBackground,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = series.synopsis,
+            color = mutedStrong,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth(0.4f)
+        )
     }
 }
 
 @Composable
 private fun TvEpisodeCard(
-    viewModel: SeriesViewModel = hiltViewModel(),
-    episode: Episode
+    episode: Episode,
+    onPlayEpisode: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
     val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
@@ -274,11 +261,11 @@ private fun TvEpisodeCard(
     val scale by animateFloatAsState(targetValue = if (isFocused) 1.07f else 1.0f, label = "scale")
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(260.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .onFocusChanged { isFocused = it.isFocused }
-            .clickable { viewModel.onPlayEpisode(episode.id) },
+            .clickable { onPlayEpisode() },
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
@@ -372,8 +359,4 @@ internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {
 //        nameSize = 11.sp,
 //        roleSize = 10.sp
 //    )
-}
-
-private fun Episode.heroStatusText(): String {
-    return if ((progress ?: 0.0) > 0.0 && !watched) "Continue Watching" else "Up Next"
 }

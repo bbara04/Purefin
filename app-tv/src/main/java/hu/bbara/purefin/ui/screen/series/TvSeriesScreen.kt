@@ -2,8 +2,10 @@ package hu.bbara.purefin.ui.screen.series
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,15 +19,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.navigation.SeriesDto
-import hu.bbara.purefin.ui.common.media.MediaDetailOverviewSection
-import hu.bbara.purefin.ui.common.media.MediaDetailSectionTitle
+import hu.bbara.purefin.ui.common.media.MediaDetailHorizontalPadding
 import hu.bbara.purefin.ui.common.media.TvMediaDetailBodyBox
 import hu.bbara.purefin.ui.common.media.TvMediaDetailScaffold
 import hu.bbara.purefin.ui.common.media.tvMediaDetailBackgroundImageUrl
-import hu.bbara.purefin.ui.screen.series.components.CastRow
 import hu.bbara.purefin.ui.screen.series.components.SeriesFirstSeasonTabTag
 import hu.bbara.purefin.ui.screen.series.components.TvEpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.TvSeasonTabs
@@ -63,18 +64,16 @@ internal fun TvSeriesScreenContent(
     onPlayEpisode: (UUID) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var selectedSeason by remember(series.id) { mutableStateOf(series.defaultSeason()) }
     val nextUpEpisode = remember(series.id) { series.nextUpEpisode() }
-    val playFocusRequester = remember { FocusRequester() }
+    var selectedSeason by remember(series.id, nextUpEpisode?.seasonId) {
+        mutableStateOf(series.defaultSeason(nextUpEpisode))
+    }
     val firstContentFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(series.id, nextUpEpisode?.id) {
+        if (nextUpEpisode != null) return@LaunchedEffect
         withFrameNanos { }
-        if (nextUpEpisode != null) {
-            playFocusRequester.requestFocus()
-        } else {
-            firstContentFocusRequester.requestFocus()
-        }
+        firstContentFocusRequester.requestFocus()
     }
 
     TvMediaDetailScaffold(
@@ -83,52 +82,44 @@ internal fun TvSeriesScreenContent(
     ) {
         TvMediaDetailBodyBox(
             backgroundImageUrl = tvMediaDetailBackgroundImageUrl(series.imageUrlPrefix),
-            modifier = it
+            modifier = Modifier.fillMaxSize(),
+            heightFraction = 1f
         ) {
-            TvSeriesHeroSection(
-                series = series,
-                nextUpEpisode = nextUpEpisode,
-                onPlayEpisode = { onPlayEpisode(it.id) },
-                playFocusRequester = playFocusRequester,
-                firstContentFocusRequester = firstContentFocusRequester,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-        }
-        Column(modifier = it.fillMaxWidth()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            MediaDetailOverviewSection(
-                synopsis = series.synopsis,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        TvSeasonTabs(
-            seasons = series.seasons,
-            selectedSeason = selectedSeason,
-            firstItemFocusRequester = firstContentFocusRequester,
-            firstItemTestTag = SeriesFirstSeasonTabTag,
-            onSelect = { selectedSeason = it },
-            modifier = it
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TvEpisodeCarousel(
-            episodes = selectedSeason.episodes,
-            modifier = it
-        )
-        if (series.cast.isNotEmpty()) {
-            Column(modifier = it) {
-                Spacer(modifier = Modifier.height(20.dp))
-                MediaDetailSectionTitle(text = "Cast")
-                Spacer(modifier = Modifier.height(14.dp))
-                CastRow(cast = series.cast)
-                Spacer(modifier = Modifier.height(24.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = MediaDetailHorizontalPadding)
+            ) {
+                TvSeriesHeroSection(
+                    series = series,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(18.dp))
+                TvSeasonTabs(
+                    seasons = series.seasons,
+                    selectedSeason = selectedSeason,
+                    firstItemFocusRequester = firstContentFocusRequester,
+                    firstItemTestTag = SeriesFirstSeasonTabTag,
+                    onSelect = { selectedSeason = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                TvEpisodeCarousel(
+                    episodes = selectedSeason.episodes,
+                    onPlayEpisode = { onPlayEpisode(it.id) },
+                    focusedEpisodeId = nextUpEpisode?.id,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
 }
 
-private fun Series.defaultSeason(): Season {
+private fun Series.defaultSeason(nextUpEpisode: Episode?): Season {
+    if (nextUpEpisode != null) {
+        seasons.firstOrNull { it.id == nextUpEpisode.seasonId }?.let { return it }
+    }
+
     for (season in seasons) {
         if (season.episodes.any { !it.watched }) {
             return season
