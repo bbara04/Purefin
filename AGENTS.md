@@ -12,6 +12,14 @@ Follow these instructions before making changes:
 
 ---
 
+## Ui principles
+* Ui design should align with the material ui 3 design system
+* For new components check https://m3.material.io/components if there is an available solution for the problem.
+* Using Box components are a red flag and should be only used when there is no other option.
+* When styling components check the material ui 3 site first and use it for the decision https://m3.material.io/styles
+
+---
+
 ## Repository Expectations
 
 * Always use the currently used syntax in the codebase. Include examples for any naming you introduce.
