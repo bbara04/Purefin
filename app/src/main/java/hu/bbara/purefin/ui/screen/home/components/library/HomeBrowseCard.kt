@@ -1,7 +1,6 @@
 package hu.bbara.purefin.ui.screen.home.components.library
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,8 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,16 +37,13 @@ internal fun HomeBrowseCard(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    Surface(
+    Card(
+        onClick = { onMediaSelected(uiModel) },
         shape = RoundedCornerShape(12.dp),
-        color = scheme.surfaceContainer,
+        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         modifier = modifier.width(188.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onMediaSelected(uiModel) }
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -75,7 +72,7 @@ internal fun HomeBrowseCard(
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
-            Column(modifier = modifier.padding(12.dp)) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 Text(
                     text = uiModel.primaryText,
                     style = MaterialTheme.typography.bodyLarge,
@@ -87,7 +84,7 @@ internal fun HomeBrowseCard(
                 Text(
                     text = uiModel.secondaryText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurface,
+                    color = scheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

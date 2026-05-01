@@ -1,7 +1,6 @@
 package hu.bbara.purefin.ui.screen.home.components.continuewatching
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,16 +35,13 @@ internal fun ContinueWatchingCard(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    Surface(
+    Card(
+        onClick = { onMediaSelected(item) },
         shape = RoundedCornerShape(26.dp),
-        color = scheme.surfaceContainer,
+        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         modifier = modifier.width(280.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onMediaSelected(item) }
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -93,7 +90,7 @@ internal fun ContinueWatchingCard(
                 Text(
                     text = item.secondaryText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurface,
+                    color = scheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
