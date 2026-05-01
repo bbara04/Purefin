@@ -206,12 +206,6 @@ class PlayerViewModel @Inject constructor(
         playerManager.skipActiveSegment()
     }
 
-    fun setControlsAutoHideDelay(autoHideDelayMs: Long) {
-        applyControlsAutoHideCommand(
-            controlsAutoHidePolicy.setAutoHideDelay(autoHideDelayMs)
-        )
-    }
-
     fun setControlsAutoHideBlocked(
         blocker: ControlsAutoHideBlocker,
         blocked: Boolean
