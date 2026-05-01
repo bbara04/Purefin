@@ -23,7 +23,7 @@ import hu.bbara.purefin.data.offline.room.entity.SmartDownloadEntity
         EpisodeEntity::class,
         SmartDownloadEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(UuidConverters::class)

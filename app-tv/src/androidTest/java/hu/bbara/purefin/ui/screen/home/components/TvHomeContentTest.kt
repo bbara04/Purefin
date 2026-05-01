@@ -425,7 +425,9 @@ class TvHomeContentTest {
         return Episode(
             id = UUID.fromString(id),
             seriesId = seriesId,
+            seriesName = "Firefly",
             seasonId = seasonId,
+            seasonIndex = 1,
             index = 1,
             title = title,
             synopsis = "A crew member takes the shuttle for a spin and makes a mess.",

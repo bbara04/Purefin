@@ -120,7 +120,9 @@ class SeriesScreenContentTest {
                         Episode(
                             id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
                             seriesId = seriesId,
+                            seriesName = "Severance",
                             seasonId = seasonId,
+                            seasonIndex = 1,
                             index = 1,
                             title = "Good News About Hell",
                             synopsis = "Mark is promoted after an unexpected tragedy.",
@@ -136,7 +138,9 @@ class SeriesScreenContentTest {
                         Episode(
                             id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
                             seriesId = seriesId,
+                            seriesName = "Severance",
                             seasonId = seasonId,
+                            seasonIndex = 1,
                             index = 2,
                             title = "Half Loop",
                             synopsis = "Mark takes the team out for a sanctioned dinner.",

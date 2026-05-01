@@ -268,7 +268,9 @@ private fun previewSeries(): Series {
         Episode(
             id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"),
             seriesId = seriesId,
+            seriesName = "Constellation",
             seasonId = seasonOneId,
+            seasonIndex = 1,
             index = 1,
             title = "A Fresh Start",
             synopsis = "A fractured crew tries to reassemble after a year apart.",
@@ -284,7 +286,9 @@ private fun previewSeries(): Series {
         Episode(
             id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2"),
             seriesId = seriesId,
+            seriesName = "Constellation",
             seasonId = seasonOneId,
+            seasonIndex = 1,
             index = 2,
             title = "Signals",
             synopsis = "Anomalies around the station point to a cover-up.",
@@ -302,7 +306,9 @@ private fun previewSeries(): Series {
         Episode(
             id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3"),
             seriesId = seriesId,
+            seriesName = "Constellation",
             seasonId = seasonTwoId,
+            seasonIndex = 2,
             index = 1,
             title = "Return Window",
             synopsis = "A high-risk jump changes the rules of the mission.",

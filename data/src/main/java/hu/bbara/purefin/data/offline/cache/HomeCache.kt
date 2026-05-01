@@ -50,7 +50,9 @@ data class CachedSeries(
 data class CachedEpisode(
     val id: String,
     val seriesId: String,
+    val seriesName: String,
     val seasonId: String,
+    val seasonIndex: Int,
     val index: Int,
     val title: String,
     val synopsis: String,
@@ -208,7 +210,9 @@ fun CachedSeries.toSeries(): Series? {
 fun Episode.toCachedEpisode() = CachedEpisode(
     id = id.toString(),
     seriesId = seriesId.toString(),
+    seriesName = seriesName,
     seasonId = seasonId.toString(),
+    seasonIndex = seasonIndex,
     index = index,
     title = title,
     synopsis = synopsis,
@@ -229,7 +233,9 @@ fun CachedEpisode.toEpisode(): Episode? {
     return Episode(
         id = episodeId,
         seriesId = seriesUuid,
+        seriesName = seriesName,
         seasonId = seasonUuid,
+        seasonIndex = seasonIndex,
         index = index,
         title = title,
         synopsis = synopsis,

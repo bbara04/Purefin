@@ -105,7 +105,9 @@ class EpisodeScreenContentTest {
         return Episode(
             id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
             seriesId = seriesId,
+            seriesName = "Severance",
             seasonId = seasonId,
+            seasonIndex = 2,
             index = 4,
             title = "The You You Are",
             synopsis = "Mark is pulled deeper into Lumon's fractured world as the team chases a clue.",

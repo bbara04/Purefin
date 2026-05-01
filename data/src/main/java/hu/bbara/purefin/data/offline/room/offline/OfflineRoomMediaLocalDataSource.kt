@@ -246,7 +246,9 @@ class OfflineRoomMediaLocalDataSource(
     private fun Episode.toEntity() = EpisodeEntity(
         id = id,
         seriesId = seriesId,
+        seriesName = seriesName,
         seasonId = seasonId,
+        seasonIndex = seasonIndex,
         index = index,
         title = title,
         synopsis = synopsis,
@@ -300,7 +302,9 @@ class OfflineRoomMediaLocalDataSource(
     private fun EpisodeEntity.toDomain() = Episode(
         id = id,
         seriesId = seriesId,
+        seriesName = seriesName,
         seasonId = seasonId,
+        seasonIndex = seasonIndex,
         index = index,
         title = title,
         synopsis = synopsis,

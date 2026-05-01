@@ -95,7 +95,9 @@ class TvFocusedItemHeroTest {
         return Episode(
             id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
             seriesId = UUID.fromString("44444444-4444-4444-4444-444444444444"),
+            seriesName = "Love, Death & Robots",
             seasonId = UUID.fromString("55555555-5555-5555-5555-555555555555"),
+            seasonIndex = 3,
             index = 3,
             title = "The Very Pulse of the Machine",
             synopsis = "An astronaut faces a strange world alone.",

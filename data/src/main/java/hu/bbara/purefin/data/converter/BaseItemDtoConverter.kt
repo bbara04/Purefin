@@ -95,7 +95,9 @@ fun BaseItemDto.toEpisode(serverUrl: String): Episode {
     return Episode(
         id = id,
         seriesId = seriesId!!,
+        seriesName = seriesName!!,
         seasonId = parentId!!,
+        seasonIndex = parentIndexNumber!!,
         title = name ?: "Unknown title",
         index = indexNumber!!,
         releaseDate = releaseDate,

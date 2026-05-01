@@ -126,7 +126,9 @@ class TvHomeHeroStateTest {
             episode = Episode(
                 id = UUID.fromString(id),
                 seriesId = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                seriesName = "Sample Series",
                 seasonId = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+                seasonIndex = 1,
                 index = 1,
                 title = "Next Episode",
                 synopsis = "Episode synopsis",
