@@ -103,7 +103,6 @@ private fun SeriesScreenInternal(
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val textMutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
 
     fun getDefaultSeason() : Season {
         for (season in series.seasons) {
@@ -162,7 +161,7 @@ private fun SeriesScreenInternal(
                 Spacer(modifier = Modifier.height(24.dp))
                 MediaSynopsis(
                     synopsis = series.synopsis,
-                    bodyColor = textMutedStrong,
+                    bodyColor = scheme.onSurface,
                     bodyFontSize = 13.sp,
                     bodyLineHeight = null,
                     titleSpacing = 8.dp

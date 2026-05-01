@@ -2,21 +2,18 @@ package hu.bbara.purefin.ui.common.button
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -51,7 +48,13 @@ internal fun CircularIconButton(
         label = "background"
     )
 
-    Box(
+    FilledIconButton(
+        onClick = onClick,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = backgroundColor,
+            contentColor = iconColor
+        ),
+        shape = CircleShape,
         modifier = modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
             .size(size)
@@ -60,16 +63,11 @@ internal fun CircularIconButton(
                 color = borderColor,
                 shape = CircleShape
             )
-            .clip(CircleShape)
-            .background(backgroundColor)
             .onFocusChanged { isFocused = it.isFocused || it.hasFocus }
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = contentDescription,
-            tint = iconColor
+            contentDescription = contentDescription
         )
     }
 }

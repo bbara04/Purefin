@@ -45,7 +45,6 @@ internal fun MovieTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -107,8 +106,8 @@ internal fun MovieDetails(
             )
             Row() {
                 MediaActionButton(
-                    backgroundColor = MaterialTheme.colorScheme.secondary,
-                    iconColor = MaterialTheme.colorScheme.onSecondary,
+                    backgroundColor = MaterialTheme.colorScheme.surface,
+                    iconColor = MaterialTheme.colorScheme.onSurface,
                     icon = when (downloadState) {
                         is DownloadState.NotDownloaded -> Icons.Outlined.Download
                         is DownloadState.Downloading -> Icons.Outlined.Close

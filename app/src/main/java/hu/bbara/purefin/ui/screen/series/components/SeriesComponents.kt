@@ -151,15 +151,15 @@ internal fun SeriesActionButtons(
             Spacer(modifier = Modifier.width(12.dp))
         }
         MediaActionButton(
-            backgroundColor = MaterialTheme.colorScheme.secondary,
-            iconColor = MaterialTheme.colorScheme.onSecondary,
+            backgroundColor = MaterialTheme.colorScheme.surface,
+            iconColor = MaterialTheme.colorScheme.onSurface,
             icon = Icons.Outlined.Add,
             height = 48.dp
         )
         Spacer(modifier = Modifier.width(12.dp))
         MediaActionButton(
-            backgroundColor = scheme.secondary,
-            iconColor = scheme.onSecondary,
+            backgroundColor = MaterialTheme.colorScheme.surface,
+            iconColor = MaterialTheme.colorScheme.onSurface,
             icon = when {
                 seriesDownloadState is DownloadState.Downloading -> Icons.Outlined.Close
                 seriesDownloadState is DownloadState.Downloaded -> Icons.Outlined.DownloadDone

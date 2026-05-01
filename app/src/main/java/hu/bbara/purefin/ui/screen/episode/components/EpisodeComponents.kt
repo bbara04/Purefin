@@ -142,15 +142,15 @@ internal fun EpisodeDetails(
             )
             VerticalDivider(
                 color = MaterialTheme.colorScheme.secondary,
-                thickness = 4.dp,
+                thickness = 2.dp,
                 modifier = Modifier
                     .height(48.dp)
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             )
             Row() {
                 MediaActionButton(
-                    backgroundColor = MaterialTheme.colorScheme.secondary,
-                    iconColor = MaterialTheme.colorScheme.onSecondary,
+                    backgroundColor = MaterialTheme.colorScheme.surface,
+                    iconColor = MaterialTheme.colorScheme.onSurface,
                     icon = when (downloadState) {
                         is DownloadState.NotDownloaded -> Icons.Outlined.Download
                         is DownloadState.Downloading -> Icons.Outlined.Close

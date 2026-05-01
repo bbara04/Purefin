@@ -23,8 +23,8 @@ fun MediaActionButton(
     CircularIconButton(
         icon = icon,
         contentDescription = null,
-        containerColor = backgroundColor.copy(alpha = 0.6f),
-        focusedBackgroundColor = focusedBackgroundColor ?: backgroundColor.copy(alpha = 0.6f),
+        containerColor = backgroundColor,
+        focusedBackgroundColor = focusedBackgroundColor ?: backgroundColor,
         iconColor = iconColor,
         size = height,
         onClick = onClick,
