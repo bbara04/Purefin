@@ -6,12 +6,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,10 +18,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayCircle
@@ -44,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
@@ -52,6 +49,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.Tab
+import androidx.tv.material3.TabDefaults
+import androidx.tv.material3.TabRow
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.CastMember
@@ -64,6 +64,7 @@ import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
 import hu.bbara.purefin.ui.screen.home.components.TvHomeRowBringIntoViewSpec
 import java.util.UUID
+import androidx.tv.material3.Text as TvText
 
 internal const val SeriesFirstSeasonTabTag = "series-first-season-tab"
 internal const val SeriesNextUpEpisodeCardTag = "series-next-up-episode-card"
@@ -84,17 +85,21 @@ internal fun TvSeasonTabs(
     firstItemTestTag: String? = null,
     onSelect: (Season) -> Unit
 ) {
-    Row(
+    val selectedSeasonIndex = seasons.indexOf(selectedSeason).coerceAtLeast(0)
+
+    TabRow(
+        selectedTabIndex = selectedSeasonIndex,
         modifier = modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
+            .wrapContentWidth(Alignment.Start),
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         seasons.forEachIndexed { index, season ->
-            TvSeasonTab(
-                name = season.name,
-                isSelected = season == selectedSeason,
-                onSelect = { onSelect(season) },
+            Tab(
+                selected = index == selectedSeasonIndex,
+                onFocus = { onSelect(season) },
+                onClick = { onSelect(season) },
+                colors = TabDefaults.underlinedIndicatorTabColors(),
                 modifier = Modifier
                     .then(
                         if (index == 0 && firstItemFocusRequester != null) {
@@ -103,44 +108,28 @@ internal fun TvSeasonTabs(
                             Modifier
                         }
                     )
-            )
+                    .then(
+                        if (index == 0 && firstItemTestTag != null) {
+                            Modifier.testTag(firstItemTestTag)
+                        } else {
+                            Modifier
+                        }
+                    )
+            ) {
+                TvText(
+                    text = season.name,
+                    fontSize = 13.sp,
+                    fontWeight = if (index == selectedSeasonIndex) {
+                        FontWeight.Bold
+                    } else {
+                        FontWeight.Medium
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun TvSeasonTab(
-    name: String,
-    isSelected: Boolean,
-    onSelect: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val scheme = MaterialTheme.colorScheme
-    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
-    var isFocused by remember { mutableStateOf(false) }
-    val color = if (isSelected || isFocused) scheme.primary else mutedStrong
-    val underlineColor = if (isSelected || isFocused) scheme.primary else Color.Transparent
-    val underlineHeight = if (isFocused) 3.dp else 2.dp
-
-    Column(
-        modifier = modifier
-            .padding(bottom = 8.dp)
-            .onFocusChanged { isFocused = it.isFocused }
-            .clickable { onSelect() }
-    ) {
-        Text(
-            text = name,
-            color = color,
-            fontSize = 13.sp,
-            fontWeight = if (isSelected || isFocused) FontWeight.Bold else FontWeight.Medium
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .height(underlineHeight)
-                .width(52.dp)
-                .background(underlineColor)
-        )
     }
 }
 

@@ -94,7 +94,7 @@ internal fun TvSeriesScreenContent(
                     series = series,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 TvSeasonTabs(
                     seasons = series.seasons,
                     selectedSeason = selectedSeason,
@@ -103,7 +103,7 @@ internal fun TvSeriesScreenContent(
                     onSelect = { selectedSeason = it },
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 TvEpisodeCarousel(
                     episodes = selectedSeason.episodes,
                     onPlayEpisode = { onPlayEpisode(it.id) },
