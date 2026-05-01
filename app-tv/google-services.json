@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "407366050869",
+    "project_id": "purefin-12eec",
+    "storage_bucket": "purefin-12eec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407366050869:android:8fa3540adfc514add73d7c",
+        "android_client_info": {
+          "package_name": "hu.bbara.purefin.tv"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8a9BnlFSmcw4v0gukC1qcyESznUUWsXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
