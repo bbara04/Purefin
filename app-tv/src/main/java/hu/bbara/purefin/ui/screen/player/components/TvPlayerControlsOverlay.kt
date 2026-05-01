@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -218,52 +217,16 @@ private fun TvPlayerBottomSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (uiState.activeSkippableSegmentEndMs != null) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TvIconButton(
-                        icon = Icons.Outlined.SkipNext,
-                        contentDescription = "Skip segment",
-                        onClick = onSkipSegment,
-                        size = 64,
-                        label = "Skip",
-                        modifier = expandPlaylistModifier
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-            }
             Text(
                 text = formatTime(uiState.positionMs),
                 color = scheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium
             )
-            if (uiState.isLive) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "LIVE",
-                        color = scheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Catch up",
-                        color = scheme.onSurface,
-                        modifier = Modifier.clickable { onSeekLiveEdge() }
-                    )
-                }
-            } else {
-                Text(
-                    text = formatTime(uiState.durationMs),
-                    color = scheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+            Text(
+                text = formatTime(uiState.durationMs),
+                color = scheme.onSurface,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
         TvPlayerSeekBar(
             positionMs = uiState.positionMs,
@@ -330,7 +293,7 @@ private fun TvPlayerBottomSection(
                 )
             }
             Row(
-                modifier = Modifier.align(Alignment.CenterEnd),
+                modifier = Modifier.align(Alignment.CenterStart),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -355,6 +318,22 @@ private fun TvPlayerBottomSection(
                         .focusRequester(subtitlesButtonFocusRequester)
                         .testTag(TvPlayerSubtitlesButtonTag)
                 )
+            }
+            if (uiState.activeSkippableSegmentEndMs != null) {
+                Row(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TvIconButton(
+                        icon = Icons.Outlined.SkipNext,
+                        contentDescription = "Skip segment",
+                        onClick = onSkipSegment,
+                        size = 64,
+                        label = "Skip",
+                        modifier = expandPlaylistModifier
+                    )
+                }
             }
         }
         AnimatedVisibility(
