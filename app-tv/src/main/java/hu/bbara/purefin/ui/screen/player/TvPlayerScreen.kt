@@ -181,12 +181,16 @@ fun TvPlayerScreen(
         }
     }
 
-    LaunchedEffect(controlsVisible, controlsAutoHideBlocked) {
+    LaunchedEffect(
+        controlsVisible,
+        controlsAutoHideBlocked,
+        uiState.activeSkippableSegmentEndMs
+    ) {
         if (controlsAutoHideBlocked) return@LaunchedEffect
         if (controlsVisible) {
             controlsFocusRequester.requestFocus()
         } else {
-            uiState.activeSkippableSegmentEndMs?.let {
+            if (uiState.activeSkippableSegmentEndMs != null) {
                 skipButtonFocusRequester.requestFocus()
                 return@LaunchedEffect
             }
@@ -254,6 +258,8 @@ fun TvPlayerScreen(
                     onResumePlaybackWithoutShowingControls = resumePlaybackWithoutShowingControls,
                     onSeekRelative = seekByWithoutShowingControls,
                     onShowControls = showTvControls,
+                    onSkipSegment = skipSegmentAndShowControls,
+                    hasSkippableSegment = uiState.activeSkippableSegmentEndMs != null,
                     onTogglePlayPause = togglePlayPauseAndShowControls
                 )
             }
@@ -385,6 +391,8 @@ internal fun handleTvPlayerRootKeyEvent(
     onResumePlaybackWithoutShowingControls: () -> Unit,
     onSeekRelative: (Long) -> Unit,
     onShowControls: () -> Unit,
+    onSkipSegment: () -> Unit = {},
+    hasSkippableSegment: Boolean = false,
     onTogglePlayPause: () -> Unit
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
@@ -428,7 +436,9 @@ internal fun handleTvPlayerRootKeyEvent(
             }
 
             Key.DirectionCenter, Key.Enter -> {
-                if (isPlaying) {
+                if (hasSkippableSegment) {
+                    onSkipSegment()
+                } else if (isPlaying) {
                     onPausePlaybackWithoutShowingControls()
                 } else {
                     onResumePlaybackWithoutShowingControls()
