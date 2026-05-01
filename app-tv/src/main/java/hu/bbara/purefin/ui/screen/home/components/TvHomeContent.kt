@@ -20,11 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.model.LibraryUiModel
+import hu.bbara.purefin.ui.model.MediaUiModel
 import java.util.UUID
 
 internal const val TvHomeInitialFocusTag = "tv-home-initial-focus-item"
@@ -46,9 +46,6 @@ fun TvHomeContent(
     val hasContinueWatching = continueWatching.isNotEmpty()
     val hasNextUp = nextUp.isNotEmpty()
     val hasLibraryItems = libraries.any { libraryContent[it.id].orEmpty().isNotEmpty() }
-    val firstLibraryWithItemsId = libraries.firstOrNull {
-        libraryContent[it.id].orEmpty().isNotEmpty()
-    }?.id
     val hasVisibleContent = hasContinueWatching || hasNextUp
     val hasInitialFocusableItem = hasContinueWatching || hasNextUp || hasLibraryItems
     val initialFocusRequester = remember { FocusRequester() }
@@ -68,7 +65,7 @@ fun TvHomeContent(
             modifier = modifier
                 .fillMaxSize()
                 .background(scheme.background)
-                .testTag(TvHomeContentViewportTag),
+                .focusRequester(initialFocusRequester),
             contentPadding = contentPadding
         ) {
             item(key = "tv-home-top-spacer") {
@@ -80,9 +77,6 @@ fun TvHomeContent(
                         items = continueWatching,
                         onFocusedItem = onMediaFocused,
                         onMediaSelected = onMediaSelected,
-                        firstItemFocusRequester = initialFocusRequester,
-                        firstItemTestTag = TvHomeInitialFocusTag,
-                        rowTestTag = TvHomeContinueWatchingRowTag
                     )
                 }
             }
@@ -93,9 +87,6 @@ fun TvHomeContent(
                         items = nextUp,
                         onFocusedItem = onMediaFocused,
                         onMediaSelected = onMediaSelected,
-                        firstItemFocusRequester = initialFocusRequester.takeIf { !hasContinueWatching },
-                        firstItemTestTag = TvHomeInitialFocusTag.takeIf { !hasContinueWatching },
-                        rowTestTag = TvHomeNextUpRowTag
                     )
                 }
             }
@@ -108,10 +99,6 @@ fun TvHomeContent(
                     title = library.name,
                     items = libraryContent[library.id].orEmpty(),
                     onFocusedItem = onMediaFocused,
-                    firstItemFocusRequester = initialFocusRequester.takeIf {
-                        !hasContinueWatching && !hasNextUp && library.id == firstLibraryWithItemsId
-                    },
-                    firstItemTestTag = tvHomeLibraryFirstItemTag(library.id),
                     onMediaSelected = onMediaSelected
                 )
             }
