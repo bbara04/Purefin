@@ -49,6 +49,9 @@ class PlayerViewModel @Inject constructor(
     val controlsVisible: StateFlow<Boolean> = _controlsVisible.asStateFlow()
 
     private val controlsAutoHidePolicy = ControlsAutoHidePolicy(DEFAULT_CONTROLS_AUTO_HIDE_MS)
+    private val seekByCollector = SeekByCollector(viewModelScope) { deltaMs ->
+        playerManager.seekBy(deltaMs)
+    }
     private var autoHideJob: Job? = null
     private var dataErrorMessage: String? = null
 
@@ -191,18 +194,21 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun seekTo(positionMs: Long) {
+        seekByCollector.clear()
         playerManager.seekTo(positionMs)
     }
 
     fun seekBy(deltaMs: Long) {
-        playerManager.seekBy(deltaMs)
+        seekByCollector.seekBySoon(deltaMs)
     }
 
     fun seekToLiveEdge() {
+        seekByCollector.clear()
         playerManager.seekToLiveEdge()
     }
 
     fun skipActiveSegment() {
+        seekByCollector.clear()
         playerManager.skipActiveSegment()
     }
 
@@ -240,11 +246,13 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun next(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
+        seekByCollector.clear()
         playerManager.next()
         showControls(autoHideDelayMs)
     }
 
     fun previous(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
+        seekByCollector.clear()
         playerManager.previous()
         showControls(autoHideDelayMs)
     }
@@ -258,6 +266,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun playQueueItem(id: String) {
+        seekByCollector.clear()
         playerManager.play(id.toUuidOrNull() ?: return)
         showControls()
     }
