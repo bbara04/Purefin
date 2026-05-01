@@ -152,6 +152,7 @@ fun PosterCardContent(
                 text = model.primaryText,
                 color = scheme.onBackground,
                 fontSize = 13.sp,
+                lineHeight = 13.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -164,6 +165,7 @@ fun PosterCardContent(
                         text = text,
                         color = scheme.onSurfaceVariant,
                         fontSize = 11.sp,
+                        lineHeight = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

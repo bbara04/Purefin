@@ -4,6 +4,7 @@ package hu.bbara.purefin.ui.screen.home.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -66,11 +67,9 @@ fun TvHomeContent(
                 .fillMaxSize()
                 .background(scheme.background)
                 .focusRequester(initialFocusRequester),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
             contentPadding = contentPadding
         ) {
-            item(key = "tv-home-top-spacer") {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
             if (hasContinueWatching) {
                 item(key = "tv-home-continue-watching") {
                     TvContinueWatchingSection(

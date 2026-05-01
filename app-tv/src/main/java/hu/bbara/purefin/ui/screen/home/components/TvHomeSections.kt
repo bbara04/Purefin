@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -63,8 +65,8 @@ private val TvHomeLandscapeFocusedBorderWidth = (2f * TvHomeMediaCardScale).dp
 private val TvHomeLandscapeUnfocusedBorderWidth = (1f * TvHomeMediaCardScale).dp
 private val TvHomeLandscapeProgressBarHeight = (6f * TvHomeMediaCardScale).dp
 private val TvHomeLandscapeProgressBarPadding = (8f * TvHomeMediaCardScale).dp
-private val TvHomeLandscapeMetadataSpacing = (4f * TvHomeMediaCardScale).dp
-private val TvHomeLandscapeMetadataTopPadding = (12f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeMetadataSpacing = (1f * TvHomeMediaCardScale).dp
+private val TvHomeLandscapeMetadataTopPadding = (6f * TvHomeMediaCardScale).dp
 private val TvHomeLandscapeMetadataHorizontalPadding = (4f * TvHomeMediaCardScale).dp
 private val TvHomeLandscapeTitleFontSize = (15f * TvHomeMediaCardScale).sp
 private val TvHomeLandscapeSupportingFontSize = (11f * TvHomeMediaCardScale).sp
@@ -87,6 +89,10 @@ fun TvContinueWatchingSection(
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
+    TvSectionHeader(
+        title = "Continue Watching",
+    )
+    Spacer(modifier = Modifier.height(8.dp))
     TvHomeSectionRow(
         items = items,
         onFocused = onFocusedItem,
@@ -117,6 +123,7 @@ fun TvNextUpSection(
     TvSectionHeader(
         title = "Next Up",
     )
+    Spacer(modifier = Modifier.height(8.dp))
     TvHomeSectionRow(
         items = items,
         onFocused = onFocusedItem,
@@ -142,10 +149,10 @@ fun TvLibraryPosterSection(
     onMediaSelected: (MediaUiModel) -> Unit,
 ) {
     if (items.isEmpty()) return
-
     TvSectionHeader(
         title = title,
     )
+    Spacer(modifier = Modifier.height(8.dp))
     TvHomeSectionRow(
         items = items,
         onFocused = onFocusedItem,
@@ -327,6 +334,7 @@ private fun TvHomeLandscapeCard(
                 text = title,
                 color = scheme.onBackground,
                 fontSize = TvHomeLandscapeTitleFontSize,
+                lineHeight = TvHomeLandscapeTitleFontSize,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -336,6 +344,7 @@ private fun TvHomeLandscapeCard(
                     text = supporting,
                     color = scheme.onSurfaceVariant,
                     fontSize = TvHomeLandscapeSupportingFontSize,
+                    lineHeight = TvHomeLandscapeSupportingFontSize,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
