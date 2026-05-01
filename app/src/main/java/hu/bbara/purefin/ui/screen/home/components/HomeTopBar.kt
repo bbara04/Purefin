@@ -38,10 +38,11 @@ fun HomeTopBar(
             IconButton(
                 onClick = onSearchClick,
                 colors = IconButtonColors(
-                    containerColor = scheme.secondary,
-                    contentColor = scheme.onSecondary,
-                    disabledContainerColor = scheme.secondary,
-                    disabledContentColor = scheme.onSecondary),
+                    containerColor = scheme.surface,
+                    contentColor = scheme.onSurface,
+                    disabledContainerColor = scheme.surface,
+                    disabledContentColor = scheme.onSurface
+                ),
                 modifier = Modifier.size(50.dp),
             ) {
                 Icon(
@@ -54,10 +55,11 @@ fun HomeTopBar(
             IconButton(
                 onClick = { isProfileMenuExpanded = true },
                 colors = IconButtonColors(
-                    containerColor = scheme.secondary,
-                    contentColor = scheme.onSecondary,
-                    disabledContainerColor = scheme.secondary,
-                    disabledContentColor = scheme.onSecondary),
+                    containerColor = scheme.surface,
+                    contentColor = scheme.onSurface,
+                    disabledContainerColor = scheme.surface,
+                    disabledContentColor = scheme.onSurface
+                ),
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape),
