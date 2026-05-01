@@ -103,13 +103,6 @@ internal fun TvSeasonTabs(
                             Modifier
                         }
                     )
-                    .then(
-                        if (index == 0 && firstItemTestTag != null) {
-                            Modifier.testTag(firstItemTestTag)
-                        } else {
-                            Modifier
-                        }
-                    )
             )
         }
     }

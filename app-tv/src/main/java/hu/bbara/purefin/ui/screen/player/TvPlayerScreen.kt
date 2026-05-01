@@ -42,6 +42,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -85,9 +86,13 @@ fun TvPlayerScreen(
     val controlsAutoHideBlocked = isPlaylistExpanded || trackPanelType != null
 
     val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        viewModel.setControlsAutoHideDelay(TV_CONTROLS_AUTO_HIDE_MS)
-    }
+    val focusManager = LocalFocusManager.current
+    val rootFocusRequester = remember { FocusRequester() }
+    val controlsFocusRequester = remember { FocusRequester() }
+    val qualityButtonFocusRequester = remember { FocusRequester() }
+    val audioButtonFocusRequester = remember { FocusRequester() }
+    val subtitlesButtonFocusRequester = remember { FocusRequester() }
+    val skipButtonFocusRequester = remember { FocusRequester() }
     LaunchedEffect(uiState.isPlaying) {
         val activity = context as? Activity
         if (uiState.isPlaying) {
@@ -115,12 +120,6 @@ fun TvPlayerScreen(
         )
     }
 
-    val hiddenControlFocusRequester = remember { FocusRequester() }
-    val controlsFocusRequester = remember { FocusRequester() }
-    val qualityButtonFocusRequester = remember { FocusRequester() }
-    val audioButtonFocusRequester = remember { FocusRequester() }
-    val subtitlesButtonFocusRequester = remember { FocusRequester() }
-    val skipButtonFocusRequester = remember { FocusRequester() }
     val expandPlaylist: () -> Unit = {
         if (!isPlaylistExpanded) {
             isPlaylistExpanded = true
@@ -194,7 +193,7 @@ fun TvPlayerScreen(
                 skipButtonFocusRequester.requestFocus()
                 return@LaunchedEffect
             }
-            hiddenControlFocusRequester.requestFocus()
+            focusManager.clearFocus()
         }
     }
 
@@ -243,7 +242,7 @@ fun TvPlayerScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .focusRequester(hiddenControlFocusRequester)
+            .focusRequester(rootFocusRequester)
             .onPreviewKeyEvent { event ->
                 handleTvPlayerRootKeyEvent(
                     event = event,
