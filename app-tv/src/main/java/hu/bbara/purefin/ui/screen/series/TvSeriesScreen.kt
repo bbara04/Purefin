@@ -37,6 +37,7 @@ import java.util.UUID
 @Composable
 fun TvSeriesScreen(
     series: SeriesDto,
+    focusedEpisodeId: UUID? = null,
     modifier: Modifier = Modifier,
     viewModel: SeriesViewModel = hiltViewModel()
 ) {
@@ -51,6 +52,7 @@ fun TvSeriesScreen(
         TvSeriesScreenContent(
             series = seriesData,
             onPlayEpisode = viewModel::onPlayEpisode,
+            focusedEpisodeId = focusedEpisodeId,
             modifier = modifier
         )
     } else {
@@ -62,16 +64,25 @@ fun TvSeriesScreen(
 internal fun TvSeriesScreenContent(
     series: Series,
     onPlayEpisode: (UUID) -> Unit,
+    focusedEpisodeId: UUID? = null,
     modifier: Modifier = Modifier,
 ) {
     val nextUpEpisode = remember(series.id) { series.nextUpEpisode() }
-    var selectedSeason by remember(series.id, nextUpEpisode?.seasonId) {
-        mutableStateOf(series.defaultSeason(nextUpEpisode))
+    val focusedEpisode = remember(series.id, focusedEpisodeId) {
+        focusedEpisodeId?.let { id ->
+            series.seasons
+                .flatMap { it.episodes }
+                .firstOrNull { it.id == id }
+        }
+    }
+    val initialEpisode = focusedEpisode ?: nextUpEpisode
+    var selectedSeason by remember(series.id, initialEpisode?.seasonId) {
+        mutableStateOf(series.defaultSeason(initialEpisode))
     }
     val firstContentFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(series.id, nextUpEpisode?.id) {
-        if (nextUpEpisode != null) return@LaunchedEffect
+    LaunchedEffect(series.id, initialEpisode?.id) {
+        if (initialEpisode != null) return@LaunchedEffect
         withFrameNanos { }
         firstContentFocusRequester.requestFocus()
     }
@@ -107,7 +118,7 @@ internal fun TvSeriesScreenContent(
                 TvEpisodeCarousel(
                     episodes = selectedSeason.episodes,
                     onPlayEpisode = { onPlayEpisode(it.id) },
-                    focusedEpisodeId = nextUpEpisode?.id,
+                    focusedEpisodeId = initialEpisode?.id,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

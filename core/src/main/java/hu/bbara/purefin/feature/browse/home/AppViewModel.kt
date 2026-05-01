@@ -171,7 +171,11 @@ class AppViewModel @Inject constructor(
         when (mediaUiModel) {
             is MovieUiModel -> onMovieSelected(mediaUiModel.id)
             is SeriesUiModel -> onSeriesSelected(mediaUiModel.id)
-            is EpisodeUiModel -> onSeriesSelected(mediaUiModel.seriesId)
+            is EpisodeUiModel -> onEpisodeSelected(
+                seriesId = mediaUiModel.seriesId,
+                seasonId = mediaUiModel.seasonId,
+                episodeId = mediaUiModel.id
+            )
         }
     }
 

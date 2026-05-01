@@ -3,7 +3,6 @@ package hu.bbara.purefin.navigation
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import hu.bbara.purefin.feature.browse.home.AppViewModel
-import hu.bbara.purefin.ui.screen.episode.TvEpisodeScreen
 import hu.bbara.purefin.ui.screen.movie.TvMovieScreen
 import hu.bbara.purefin.ui.screen.series.TvSeriesScreen
 import hu.bbara.purefin.ui.screen.login.LoginScreen
@@ -37,7 +36,10 @@ fun EntryProviderScope<Route>.tvSeriesSection() {
 
 fun EntryProviderScope<Route>.tvEpisodeSection() {
     entry<Route.EpisodeRoute> { route ->
-        TvEpisodeScreen(episode = route.item)
+        TvSeriesScreen(
+            series = SeriesDto(id = route.item.seriesId),
+            focusedEpisodeId = route.item.id
+        )
     }
 }
 
