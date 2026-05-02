@@ -15,6 +15,7 @@ import hu.bbara.purefin.ui.screen.library.components.LibraryTopBar
 fun LibrariesScreen(
     items: List<LibraryUiModel>,
     onLibrarySelected: (LibraryUiModel) -> Unit,
+    onSearchClick: () -> Unit,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -25,7 +26,7 @@ fun LibrariesScreen(
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
             LibraryTopBar(
-                onSearchClick = {},
+                onSearchClick = onSearchClick,
             )
         },
         bottomBar = {

@@ -87,6 +87,7 @@ fun AppScreen(
             LibrariesScreen(
                 items = libraries,
                 onLibrarySelected = { item -> viewModel.onLibrarySelected(item.id, item.name) },
+                onSearchClick = viewModel::openSearch,
                 selectedTab = selectedTab,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()
