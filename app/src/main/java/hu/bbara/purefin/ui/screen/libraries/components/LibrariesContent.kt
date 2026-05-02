@@ -1,6 +1,5 @@
 package hu.bbara.purefin.ui.screen.libraries.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -27,9 +26,7 @@ fun LibrariesContent(
         items(items, key = { it.id }) { item ->
             LibraryListItem(
                 uiModel = item,
-                modifier = Modifier.clickable {
-                    onLibrarySelected(item)
-                }
+                onClick = { onLibrarySelected(item) }
             )
         }
     }
