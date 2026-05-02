@@ -24,17 +24,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
+import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
 
 @Composable
 internal fun NextUpCard(
     uiModel: MediaUiModel,
+    sharedBoundsKey: String,
     onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
+    val onClick = rememberHomeMediaSharedBoundsClick(sharedBoundsKey) {
+        onMediaSelected(uiModel)
+    }
 
     Card(
-        onClick = { onMediaSelected(uiModel) },
+        onClick = onClick,
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         modifier = modifier.width(256.dp)
@@ -42,6 +48,7 @@ internal fun NextUpCard(
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
+                    .homeMediaSharedBoundsSource(sharedBoundsKey)
                     .fillMaxWidth()
                     .aspectRatio(16f / 10f)
                     .background(scheme.surface)

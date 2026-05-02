@@ -26,18 +26,25 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
+import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
 
 @Composable
 internal fun SuggestionCard(
     item: MediaUiModel,
+    sharedBoundsKey: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
     val description = item.description.trim()
+    val onCardClick = rememberHomeMediaSharedBoundsClick(
+        sharedBoundsKey = sharedBoundsKey,
+        onClick = onClick
+    )
 
     ElevatedCard(
-        onClick = onClick,
+        onClick = onCardClick,
         colors = CardDefaults.elevatedCardColors(containerColor = scheme.surfaceContainerLow),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
         shape = RoundedCornerShape(30.dp),
@@ -45,6 +52,7 @@ internal fun SuggestionCard(
     ) {
         Box(
             modifier = Modifier
+                .homeMediaSharedBoundsSource(sharedBoundsKey)
                 .fillMaxWidth()
                 .aspectRatio(16f / 11f)
         ) {

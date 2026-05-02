@@ -39,6 +39,8 @@ import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.navigation.MovieDto
 import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsDestination
+import hu.bbara.purefin.ui.common.media.isHomeMediaSharedBoundsTransitionActive
 import hu.bbara.purefin.ui.screen.movie.components.MovieDetails
 import hu.bbara.purefin.ui.screen.movie.components.MovieTopBar
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
@@ -94,14 +96,18 @@ private fun MovieScreenInternal(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isHomeMediaTransitionActive = isHomeMediaSharedBoundsTransitionActive()
+
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            MovieTopBar(
-                onBack = onBack,
-                modifier = Modifier
-            )
+            if (!isHomeMediaTransitionActive) {
+                MovieTopBar(
+                    onBack = onBack,
+                    modifier = Modifier
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -110,15 +116,17 @@ private fun MovieScreenInternal(
                 .verticalScroll(rememberScrollState())
         ) {
             MediaHeroSection(movie = movie)
-            MovieDetails(
-                movie = movie,
-                downloadState = downloadState,
-                onDownloadClick = onDownloadClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-            )
+            if (!isHomeMediaTransitionActive) {
+                MovieDetails(
+                    movie = movie,
+                    downloadState = downloadState,
+                    onDownloadClick = onDownloadClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                )
+            }
         }
     }
 }
@@ -134,6 +142,7 @@ fun MediaHeroSection(
 
     Box (
         modifier = modifier
+            .homeMediaSharedBoundsDestination()
             .height(sectionHeight)
     ) {
         MediaHero(

@@ -18,4 +18,8 @@ val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { nu
 val LocalNavSharedAnimatedVisibilityScope =
     compositionLocalOf<AnimatedVisibilityScope?> { null }
 
+val LocalHomeMediaSharedBoundsKey = compositionLocalOf<String?> { null }
+
+val LocalSetHomeMediaSharedBoundsKey = staticCompositionLocalOf<(String) -> Unit> { {} }
+
 const val HOME_SEARCH_SHARED_BOUNDS_KEY = "home_search_shared_bounds"

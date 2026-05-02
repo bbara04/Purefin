@@ -34,6 +34,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsDestination
+import hu.bbara.purefin.ui.common.media.isHomeMediaSharedBoundsTransitionActive
 import hu.bbara.purefin.download.DownloadState
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.navigation.EpisodeDto
@@ -117,17 +119,20 @@ private fun EpisodeScreenInternal(
     onDownloadClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isHomeMediaTransitionActive = isHomeMediaSharedBoundsTransitionActive()
 
     Scaffold(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            EpisodeTopBar(
-                shortcut = topBarShortcut,
-                onBack = onBack,
-                onSeriesClick = onSeriesClick,
-                modifier = Modifier
-            )
+            if (!isHomeMediaTransitionActive) {
+                EpisodeTopBar(
+                    shortcut = topBarShortcut,
+                    onBack = onBack,
+                    onSeriesClick = onSeriesClick,
+                    modifier = Modifier
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -136,15 +141,17 @@ private fun EpisodeScreenInternal(
                 .verticalScroll(rememberScrollState())
         ) {
             EpisodeHeroSection(episode = episode)
-            EpisodeDetails(
-                episode = episode,
-                downloadState = downloadState,
-                onDownloadClick = onDownloadClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-            )
+            if (!isHomeMediaTransitionActive) {
+                EpisodeDetails(
+                    episode = episode,
+                    downloadState = downloadState,
+                    onDownloadClick = onDownloadClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                )
+            }
         }
     }
 }
@@ -160,6 +167,7 @@ private fun EpisodeHeroSection(
 
     Box(
         modifier = modifier
+            .homeMediaSharedBoundsDestination()
             .fillMaxWidth()
             .height(sectionHeight)
     ) {

@@ -26,17 +26,23 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
+import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
 
 @Composable
 internal fun ContinueWatchingCard(
     item: MediaUiModel,
+    sharedBoundsKey: String,
     onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
+    val onClick = rememberHomeMediaSharedBoundsClick(sharedBoundsKey) {
+        onMediaSelected(item)
+    }
 
     Card(
-        onClick = { onMediaSelected(item) },
+        onClick = onClick,
         shape = RoundedCornerShape(26.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         modifier = modifier.width(280.dp)
@@ -44,6 +50,7 @@ internal fun ContinueWatchingCard(
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
+                    .homeMediaSharedBoundsSource(sharedBoundsKey)
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
                     .background(scheme.surfaceContainer)

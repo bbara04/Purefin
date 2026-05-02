@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
+import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
 import hu.bbara.purefin.ui.model.EpisodeUiModel
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.model.MovieUiModel
@@ -32,13 +34,17 @@ import hu.bbara.purefin.ui.model.MovieUiModel
 @Composable
 internal fun HomeBrowseCard(
     uiModel: MediaUiModel,
+    sharedBoundsKey: String,
     onMediaSelected: (MediaUiModel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
+    val onClick = rememberHomeMediaSharedBoundsClick(sharedBoundsKey) {
+        onMediaSelected(uiModel)
+    }
 
     Card(
-        onClick = { onMediaSelected(uiModel) },
+        onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
         modifier = modifier.width(188.dp)
@@ -46,6 +52,7 @@ internal fun HomeBrowseCard(
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
+                    .homeMediaSharedBoundsSource(sharedBoundsKey)
                     .fillMaxWidth()
                     .aspectRatio(16f / 10f)
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))

@@ -41,6 +41,8 @@ import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.navigation.SeriesDto
 import hu.bbara.purefin.ui.common.media.MediaHero
 import hu.bbara.purefin.ui.common.media.MediaSynopsis
+import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsDestination
+import hu.bbara.purefin.ui.common.media.isHomeMediaSharedBoundsTransitionActive
 import hu.bbara.purefin.ui.screen.series.components.CastRow
 import hu.bbara.purefin.ui.screen.series.components.EpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.SeasonTabs
@@ -103,6 +105,7 @@ private fun SeriesScreenInternal(
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val isHomeMediaTransitionActive = isHomeMediaSharedBoundsTransitionActive()
 
     fun getDefaultSeason() : Season {
         for (season in series.seasons) {
@@ -131,10 +134,12 @@ private fun SeriesScreenInternal(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            SeriesTopBar(
-                onBack = onBack,
-                modifier = Modifier
-            )
+            if (!isHomeMediaTransitionActive) {
+                SeriesTopBar(
+                    onBack = onBack,
+                    modifier = Modifier
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -143,48 +148,50 @@ private fun SeriesScreenInternal(
                 .verticalScroll(rememberScrollState())
         ) {
             SeriesHeroSection(series = series)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-            ) {
-                SeriesActionButtons(
-                    nextUpEpisode = nextUpEpisode,
-                    seriesDownloadState = seriesDownloadState,
-                    selectedSeason = selectedSeason,
-                    seasonDownloadState = seasonDownloadState,
-                    onDownloadOptionSelected = { option ->
-                        onDownloadOptionSelected(option, selectedSeason)
-                    }
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                MediaSynopsis(
-                    synopsis = series.synopsis,
-                    bodyColor = scheme.onSurface,
-                    bodyFontSize = 13.sp,
-                    bodyLineHeight = null,
-                    titleSpacing = 8.dp
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                SeasonTabs(
-                    seasons = series.seasons,
-                    selectedSeason = selectedSeason,
-                    onSelect = { selectedSeasonId = it.id }
-                )
-                EpisodeCarousel(
-                    episodes = selectedSeason.episodes,
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                if(series.cast.isNotEmpty()) {
-                    Text(
-                        text = "Cast",
-                        color = scheme.onBackground,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+            if (!isHomeMediaTransitionActive) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = innerPadding.calculateBottomPadding())
+                ) {
+                    SeriesActionButtons(
+                        nextUpEpisode = nextUpEpisode,
+                        seriesDownloadState = seriesDownloadState,
+                        selectedSeason = selectedSeason,
+                        seasonDownloadState = seasonDownloadState,
+                        onDownloadOptionSelected = { option ->
+                            onDownloadOptionSelected(option, selectedSeason)
+                        }
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    CastRow(cast = series.cast)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    MediaSynopsis(
+                        synopsis = series.synopsis,
+                        bodyColor = scheme.onSurface,
+                        bodyFontSize = 13.sp,
+                        bodyLineHeight = null,
+                        titleSpacing = 8.dp
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    SeasonTabs(
+                        seasons = series.seasons,
+                        selectedSeason = selectedSeason,
+                        onSelect = { selectedSeasonId = it.id }
+                    )
+                    EpisodeCarousel(
+                        episodes = selectedSeason.episodes,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    if(series.cast.isNotEmpty()) {
+                        Text(
+                            text = "Cast",
+                            color = scheme.onBackground,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        CastRow(cast = series.cast)
+                    }
                 }
             }
         }
@@ -202,6 +209,7 @@ private fun SeriesHeroSection(
 
     Box(
         modifier = modifier
+            .homeMediaSharedBoundsDestination()
             .fillMaxWidth()
             .height(sectionHeight)
     ) {

@@ -41,8 +41,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import hu.bbara.purefin.data.SessionBootstrapper
 import hu.bbara.purefin.jellyfin.JellyfinAuthInterceptor
 import hu.bbara.purefin.data.UserSessionRepository
+import hu.bbara.purefin.navigation.LocalHomeMediaSharedBoundsKey
 import hu.bbara.purefin.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.navigation.LocalNavigationManager
+import hu.bbara.purefin.navigation.LocalSetHomeMediaSharedBoundsKey
 import hu.bbara.purefin.navigation.LocalSharedTransitionScope
 import hu.bbara.purefin.navigation.NavigationCommand
 import hu.bbara.purefin.navigation.NavigationManager
@@ -158,6 +160,7 @@ class PurefinActivity : ComponentActivity() {
         if (isLoggedIn) {
             @Suppress("UNCHECKED_CAST")
             val backStack = rememberNavBackStack(Route.Home) as NavBackStack<Route>
+            var homeMediaSharedBoundsKey by remember { mutableStateOf<String?>(null) }
             val appEntryProvider =
                 entryProvider {
                     entryBuilders.forEach { builder -> builder() }
@@ -180,7 +183,11 @@ class PurefinActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalNavigationManager provides navigationManager,
                     LocalNavigationBackStack provides backStack.toList(),
-                    LocalSharedTransitionScope provides this
+                    LocalSharedTransitionScope provides this,
+                    LocalHomeMediaSharedBoundsKey provides homeMediaSharedBoundsKey,
+                    LocalSetHomeMediaSharedBoundsKey provides { key ->
+                        homeMediaSharedBoundsKey = key
+                    }
                 ) {
                     NavDisplay(
                         backStack = backStack,

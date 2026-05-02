@@ -27,13 +27,25 @@ fun EntryProviderScope<Route>.appRouteEntryBuilder() {
         }
     }
     entry<Route.MovieRoute> {
-        MovieScreen(movie = it.item)
+        CompositionLocalProvider(
+            LocalNavSharedAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current
+        ) {
+            MovieScreen(movie = it.item)
+        }
     }
     entry<Route.SeriesRoute> {
-        SeriesScreen(series = it.item)
+        CompositionLocalProvider(
+            LocalNavSharedAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current
+        ) {
+            SeriesScreen(series = it.item)
+        }
     }
     entry<Route.EpisodeRoute> {
-        EpisodeScreen(episode = it.item)
+        CompositionLocalProvider(
+            LocalNavSharedAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current
+        ) {
+            EpisodeScreen(episode = it.item)
+        }
     }
     entry<Route.LibraryRoute> {
         LibraryScreen(library = it.library)

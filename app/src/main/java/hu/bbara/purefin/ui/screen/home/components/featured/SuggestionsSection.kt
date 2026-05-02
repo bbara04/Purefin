@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsKey
 import hu.bbara.purefin.ui.model.MediaUiModel
 
 @Composable
@@ -49,9 +50,11 @@ fun SuggestionsSection(
             pageSpacing = 16.dp,
             modifier = Modifier.fillMaxWidth()
         ) { page ->
+            val item = items[page]
             SuggestionCard(
-                item = items[page],
-                onClick = { onItemOpen(items[page]) }
+                item = item,
+                sharedBoundsKey = homeMediaSharedBoundsKey("suggestion-$page", item.id),
+                onClick = { onItemOpen(item) }
             )
         }
         if (items.size > 1) {
