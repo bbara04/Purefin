@@ -22,7 +22,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,9 +46,7 @@ fun DefaultTopBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 PurefinLogo(
-                    contentDescription = "Purefin",
                     modifier = Modifier.size(48.dp),
-                    contentScale = ContentScale.Fit,
                 )
                 Text(
                     text = "PureFin",

@@ -12,5 +12,5 @@ interface HomeRepository {
     val nextUp: StateFlow<List<Media>>
     val latestLibraryContent: StateFlow<Map<UUID, List<Media>>>
     fun ensureReady()
-    fun refreshHomeData()
+    suspend fun refreshHomeData()
 }

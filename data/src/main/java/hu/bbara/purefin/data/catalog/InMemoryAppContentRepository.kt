@@ -88,30 +88,28 @@ class InMemoryAppContentRepository @Inject constructor(
         scope.launch { refreshHomeData() }
     }
 
-    @Synchronized
-    override fun refreshHomeData() {
-        if (refreshJob?.isActive == true) {
-            return
-        }
-        val job = scope.launch {
-            runCatching {
-                Log.d(TAG, "Refreshing home data")
-                if (!networkMonitor.isOnline.first()) {
-                    return@runCatching
+    override suspend fun refreshHomeData() {
+        val job = synchronized(this) {
+            refreshJob?.takeIf { it.isActive } ?: scope.launch {
+                runCatching {
+                    Log.d(TAG, "Refreshing home data")
+                    if (!networkMonitor.isOnline.first()) {
+                        return@runCatching
+                    }
+                    loadLibraries()
+                    loadSuggestions()
+                    loadContinueWatching()
+                    loadNextUp()
+                    loadLatestLibraryContent()
+                    loadGenres()
+                    Log.d(TAG, "Home refresh successful")
+                    persistHomeCache()
+                }.onFailure { error ->
+                    Log.w(TAG, "Home refresh failed; keeping cached content", error)
                 }
-                loadLibraries()
-                loadSuggestions()
-                loadContinueWatching()
-                loadNextUp()
-                loadLatestLibraryContent()
-                loadGenres()
-                Log.d(TAG, "Home refresh successful")
-                persistHomeCache()
-            }.onFailure { error ->
-                Log.w(TAG, "Home refresh failed; keeping cached content", error)
-            }
+            }.also { refreshJob = it }
         }
-        refreshJob = job
+        job.join()
     }
 
     private suspend fun loadHomeCache() {
