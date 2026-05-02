@@ -27,6 +27,7 @@ fun BaseItemDto.toLibrary(serverUrl: String): Library {
                 artworkKind = ArtworkKind.PRIMARY
             ),
             type = LibraryKind.MOVIES,
+            size = childCount ?: 0,
             movies = emptyList(),
         )
         CollectionType.TVSHOWS -> Library(
@@ -38,6 +39,7 @@ fun BaseItemDto.toLibrary(serverUrl: String): Library {
                 artworkKind = ArtworkKind.PRIMARY
             ),
             type = LibraryKind.SERIES,
+            size = childCount ?: 0,
             series = emptyList(),
         )
         else -> throw UnsupportedOperationException("Unsupported library type: $collectionType")

@@ -57,6 +57,7 @@ class AppViewModel @Inject constructor(
                 name = it.name,
                 type = it.type,
                 posterUrl = it.posterUrl,
+                size = it.size,
                 isEmpty = when (it.type) {
                     LibraryKind.MOVIES -> mediaCatalogReader.movies.value.isEmpty()
                     LibraryKind.SERIES -> mediaCatalogReader.series.value.isEmpty()

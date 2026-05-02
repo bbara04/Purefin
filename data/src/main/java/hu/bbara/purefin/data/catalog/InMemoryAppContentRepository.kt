@@ -230,9 +230,11 @@ class InMemoryAppContentRepository @Inject constructor(
         return when (library.type) {
             LibraryKind.MOVIES -> library.copy(
                 movies = contentItem.map { it.toMovie(serverUrl()) },
+                size = contentItem.size,
             )
             LibraryKind.SERIES -> library.copy(
                 series = contentItem.map { it.toSeries(serverUrl()) },
+                size = contentItem.size,
             )
         }
     }

@@ -7,6 +7,7 @@ data class Library(
     val name: String,
     val type: LibraryKind,
     val posterUrl: String,
+    val size: Int,
     val series: List<Series>? = null,
     val movies: List<Movie>? = null,
 ) {

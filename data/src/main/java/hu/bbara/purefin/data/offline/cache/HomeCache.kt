@@ -79,6 +79,7 @@ data class CachedLibrary(
     val name: String,
     val type: String,
     val posterUrl: String,
+    val size: Int = 0,
     val series: List<CachedSeries>? = null,
     val movies: List<CachedMovie>? = null,
 )
@@ -100,6 +101,7 @@ fun Library.toCachedLibrary() = CachedLibrary(
     name = name,
     type = type.name,
     posterUrl = posterUrl,
+    size = size,
     series = series?.map { it.toCachedSeries() },
     movies = movies?.map { it.toCachedMovie() },
 )
@@ -112,6 +114,7 @@ fun CachedLibrary.toLibrary(): Library? {
             name = name,
             type = LibraryKind.MOVIES,
             posterUrl = posterUrl,
+            size = size,
             movies = movies?.mapNotNull { it.toMovie() } ?: emptyList(),
         )
         "SERIES" -> Library(
@@ -119,6 +122,7 @@ fun CachedLibrary.toLibrary(): Library? {
             name = name,
             type = LibraryKind.SERIES,
             posterUrl = posterUrl,
+            size = size,
             series = series?.mapNotNull { it.toSeries() } ?: emptyList(),
         )
         else -> null

@@ -8,5 +8,6 @@ data class LibraryUiModel(
     val name: String,
     val type: LibraryKind,
     val posterUrl: String,
+    val size: Int,
     val isEmpty: Boolean
 )

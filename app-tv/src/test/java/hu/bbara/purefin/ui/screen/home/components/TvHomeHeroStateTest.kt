@@ -110,6 +110,7 @@ class TvHomeHeroStateTest {
             name = "Movies",
             type = LibraryKind.MOVIES,
             posterUrl = "",
+            size = 1,
             isEmpty = isEmpty
         )
     }

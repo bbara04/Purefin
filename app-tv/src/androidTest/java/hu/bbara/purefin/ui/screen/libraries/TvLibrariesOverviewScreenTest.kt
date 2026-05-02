@@ -25,6 +25,7 @@ class TvLibrariesOverviewScreenTest {
                 name = "Movies",
                 type = LibraryKind.MOVIES,
                 posterUrl = "",
+                size = 1,
                 isEmpty = false
             ),
             LibraryUiModel(
@@ -32,6 +33,7 @@ class TvLibrariesOverviewScreenTest {
                 name = "Shows",
                 type = LibraryKind.SERIES,
                 posterUrl = "",
+                size = 1,
                 isEmpty = false
             )
         )

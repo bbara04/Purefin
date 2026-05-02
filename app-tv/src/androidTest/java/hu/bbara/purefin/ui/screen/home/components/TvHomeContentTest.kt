@@ -392,6 +392,7 @@ class TvHomeContentTest {
                 name = "Movies",
                 type = LibraryKind.MOVIES,
                 posterUrl = "",
+                size = 1,
                 isEmpty = false
             )
         )
