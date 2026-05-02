@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun CircularIconButton(
@@ -47,6 +48,7 @@ internal fun CircularIconButton(
         targetValue = if (isFocused) focusedBackgroundColor else containerColor,
         label = "background"
     )
+    val iconSize = (size - 24.dp).coerceAtLeast(0.dp)
 
     FilledIconButton(
         onClick = onClick,
@@ -67,7 +69,8 @@ internal fun CircularIconButton(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = contentDescription
+            contentDescription = contentDescription,
+            modifier = Modifier.size(iconSize)
         )
     }
 }
