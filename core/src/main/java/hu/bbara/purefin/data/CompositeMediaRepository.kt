@@ -25,12 +25,12 @@ import javax.inject.Singleton
 class CompositeMediaRepository @Inject constructor(
     @Offline private val offlineRepository: MediaRepository,
     @Online private val onlineRepository: MediaRepository,
-) : MediaCatalogReader, MediaProgressWriter {
+) : MediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // TODO move this into the domain layer and there you can use NetworkMonitor. Data should be free of android stuff.
-    private val activeRepository: Flow<MediaCatalogReader> = flowOf(onlineRepository)
+    private val activeRepository: Flow<MediaRepository> = flowOf(onlineRepository)
 
     override val movies: StateFlow<Map<UUID, Movie>> = activeRepository
         .flatMapLatest { it.movies }

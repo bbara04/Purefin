@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.data.HomeRepository
-import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.download.MediaDownloadController
 import hu.bbara.purefin.model.LibraryKind
@@ -34,7 +34,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val homeRepository: HomeRepository,
-    private val mediaCatalogReader: MediaCatalogReader,
+    private val mediaCatalogReader: MediaRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,

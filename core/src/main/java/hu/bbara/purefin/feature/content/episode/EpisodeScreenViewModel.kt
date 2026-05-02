@@ -3,7 +3,7 @@ package hu.bbara.purefin.feature.content.episode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.download.DownloadState
 import hu.bbara.purefin.download.MediaDownloadController
 import hu.bbara.purefin.model.Episode
@@ -22,7 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EpisodeScreenViewModel @Inject constructor(
-    private val mediaCatalogReader: MediaCatalogReader,
+    private val mediaCatalogReader: MediaRepository,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
 ): ViewModel() {

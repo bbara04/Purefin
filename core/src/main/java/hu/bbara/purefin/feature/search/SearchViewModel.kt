@@ -3,7 +3,7 @@ package hu.bbara.purefin.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.data.MediaCatalogReader
+import hu.bbara.purefin.data.MediaRepository
 import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
@@ -26,7 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 @OptIn(FlowPreview::class)
 class SearchViewModel @Inject constructor(
-    private val mediaCatalogReader: MediaCatalogReader,
+    private val mediaCatalogReader: MediaRepository,
     private val userSessionRepository: UserSessionRepository,
     private val navigationManager: NavigationManager,
 ) : ViewModel() {

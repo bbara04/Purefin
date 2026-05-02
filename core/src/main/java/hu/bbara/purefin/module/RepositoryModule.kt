@@ -5,8 +5,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import hu.bbara.purefin.data.CompositeMediaRepository
-import hu.bbara.purefin.data.MediaCatalogReader
 import hu.bbara.purefin.data.MediaProgressWriter
+import hu.bbara.purefin.data.MediaRepository
 
 
 @Module
@@ -14,7 +14,7 @@ import hu.bbara.purefin.data.MediaProgressWriter
 abstract class RepositoryModule {
 
     @Binds
-    abstract fun bindMediaCatalogReader(impl: CompositeMediaRepository): MediaCatalogReader
+    abstract fun bindMediaRepository(impl: CompositeMediaRepository): MediaRepository
 
     @Binds
     abstract fun bindMediaProgressWrite(impl: CompositeMediaRepository): MediaProgressWriter
