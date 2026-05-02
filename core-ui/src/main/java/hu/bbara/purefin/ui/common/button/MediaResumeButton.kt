@@ -59,7 +59,7 @@ fun MediaResumeButton(
 ) {
     val scheme = MaterialTheme.colorScheme
     val primaryColor = scheme.primary
-    val onPrimaryColor = scheme.onPrimary
+    val defaultColor = scheme.surface
     val shape = RoundedCornerShape(50)
     var isFocused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -93,7 +93,7 @@ fun MediaResumeButton(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(onPrimaryColor),
+                .background(defaultColor),
             contentAlignment = Alignment.Center
         ) {
             ResumeButtonContent(
@@ -123,7 +123,7 @@ fun MediaResumeButton(
         ) {
             ResumeButtonContent(
                 text = text,
-                color = onPrimaryColor,
+                color = defaultColor,
                 textSize = textSize,
                 iconSize = iconSize
             )
