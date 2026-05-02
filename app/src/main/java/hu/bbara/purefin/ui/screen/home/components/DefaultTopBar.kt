@@ -7,18 +7,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,18 +32,27 @@ import hu.bbara.purefin.navigation.LocalNavSharedAnimatedVisibilityScope
 import hu.bbara.purefin.navigation.LocalSharedTransitionScope
 import hu.bbara.purefin.ui.common.image.PurefinLogo
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DefaultTopBar(
     actions: @Composable RowScope.() -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    TopAppBar(
-        title = {
+    Surface(
+        color = scheme.background,
+        contentColor = scheme.onSurface,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .statusBarsPadding()
+                .height(84.dp)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Row(
-                modifier = Modifier,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 PurefinLogo(
@@ -56,16 +66,12 @@ fun DefaultTopBar(
                     color = scheme.onSecondary
                 )
             }
-        },
-        actions = actions,
-        colors = TopAppBarDefaults.largeTopAppBarColors(
-            containerColor = scheme.background,
-            navigationIconContentColor = scheme.onSurface,
-            actionIconContentColor = scheme.onSurface,
-            titleContentColor = scheme.onSurface
-        ),
-        modifier = Modifier.padding(end = 12.dp)
-    )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                content = actions
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
