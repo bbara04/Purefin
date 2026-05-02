@@ -3,7 +3,9 @@ package hu.bbara.purefin.ui.screen.home.components.continuewatching
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -11,8 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.header.SectionHeader
+import hu.bbara.purefin.ui.model.MediaUiModel
 
 @Composable
 fun ContinueWatchingSection(
@@ -33,6 +35,7 @@ fun ContinueWatchingSection(
         modifier = modifier
     ) {
         SectionHeader(title = "Continue Watching")
+        Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
