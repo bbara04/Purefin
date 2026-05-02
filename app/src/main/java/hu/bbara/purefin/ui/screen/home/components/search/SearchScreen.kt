@@ -35,6 +35,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -65,6 +66,7 @@ import hu.bbara.purefin.navigation.HOME_SEARCH_SHARED_BOUNDS_KEY
 import hu.bbara.purefin.navigation.LocalNavSharedAnimatedVisibilityScope
 import hu.bbara.purefin.navigation.LocalSharedTransitionScope
 import hu.bbara.purefin.ui.common.image.PurefinLogo
+import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 import hu.bbara.purefin.ui.theme.AppTheme
 import java.util.UUID
 
@@ -133,7 +135,8 @@ private fun SearchFullScreenContent(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    Column(
+    Scaffold(
+        topBar = { SearchHeader() },
         modifier = modifier
             .fillMaxSize()
             .background(scheme.background)
@@ -141,9 +144,7 @@ private fun SearchFullScreenContent(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
             .padding(bottom = 28.dp)
-    ) {
-        SearchHeader(modifier = Modifier.padding(top = 12.dp))
-        Spacer(modifier = Modifier.height(24.dp))
+    ) { innerPadding ->
         SearchField(
             query = query,
             onQueryChange = onQueryChange,
@@ -205,51 +206,11 @@ private fun SearchHeader(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Outlined.Menu,
-                contentDescription = "Menu",
-                tint = scheme.primary,
-                modifier = Modifier.size(30.dp)
-            )
+    DefaultTopBar(
+        leftActions = {
+
         }
-        Spacer(modifier = Modifier.weight(1f))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            PurefinLogo(
-                modifier = Modifier.size(64.dp)
-            )
-            Text(
-                text = "PureFin",
-                color = scheme.primary,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                fontStyle = FontStyle.Italic
-            )
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        Surface(
-            shape = CircleShape,
-            color = scheme.surfaceContainer,
-            border = BorderStroke(1.dp, scheme.outlineVariant.copy(alpha = 0.28f)),
-            modifier = Modifier.size(48.dp)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Outlined.Person,
-                    contentDescription = "Profile",
-                    tint = scheme.onSurfaceVariant,
-                    modifier = Modifier.size(26.dp)
-                )
-            }
-        }
-    }
+    )
 }
 
 @Composable

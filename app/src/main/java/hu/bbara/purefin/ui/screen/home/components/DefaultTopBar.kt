@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
@@ -23,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -85,6 +88,34 @@ fun DefaultTopBar(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun DefaultTopBarIconButton(
+    imageVector: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    IconButton(
+        onClick = onClick,
+        colors = IconButtonColors(
+            containerColor = scheme.surface,
+            contentColor = scheme.onSurface,
+            disabledContainerColor = scheme.surface,
+            disabledContentColor = scheme.onSurface
+        ),
+        modifier = Modifier
+            .size(50.dp)
+            .clip(CircleShape),
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(30.dp),
+        )
     }
 }
 
