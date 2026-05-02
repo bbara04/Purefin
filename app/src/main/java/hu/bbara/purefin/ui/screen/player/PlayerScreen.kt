@@ -32,16 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import hu.bbara.purefin.player.viewmodel.PlayerViewModel
-import hu.bbara.purefin.ui.common.button.PurefinTextButton
 import hu.bbara.purefin.ui.common.visual.EmptyValueTimedVisibility
 import hu.bbara.purefin.ui.common.visual.ValueChangeTimedVisibility
 import hu.bbara.purefin.ui.screen.player.components.PersistentOverlayContainer
@@ -50,6 +47,7 @@ import hu.bbara.purefin.ui.screen.player.components.PlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.PlayerGesturesLayer
 import hu.bbara.purefin.ui.screen.player.components.PlayerLoadingErrorEndCard
 import hu.bbara.purefin.ui.screen.player.components.PlayerQueuePanel
+import hu.bbara.purefin.ui.screen.player.components.SkipSegmentButton
 import hu.bbara.purefin.ui.screen.player.components.rememberPersistentOverlayController
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -216,16 +214,7 @@ fun PlayerScreen(
                 .align(Alignment.BottomEnd)
                 .padding(end = 24.dp, bottom = 24.dp)
         ) {
-            PurefinTextButton(
-                onClick = { viewModel.skipActiveSegment() },
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(
-                    text = "Skip",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
+            SkipSegmentButton(onClick = { viewModel.skipActiveSegment() })
         }
 
         PlayerLoadingErrorEndCard(

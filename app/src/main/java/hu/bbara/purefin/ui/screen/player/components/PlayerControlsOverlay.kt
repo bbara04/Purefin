@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
@@ -22,6 +26,9 @@ import androidx.compose.material.icons.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.Replay10
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,12 +42,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.player.model.PlayerUiState
 import hu.bbara.purefin.player.model.TrackOption
 import hu.bbara.purefin.ui.common.button.GhostIconButton
 import hu.bbara.purefin.ui.common.button.PurefinIconButton
-import hu.bbara.purefin.ui.common.button.PurefinTextButton
 
 @Composable
 fun PlayerControlsOverlay(
@@ -283,25 +288,44 @@ private fun BottomSection(
                 )
             }
             if (uiState.activeSkippableSegmentEndMs != null) {
-                Row(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    PurefinTextButton(
-                        onClick = onSkipSegment,
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        Text(
-                            text = "Skip",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                    }
-                }
+                SkipSegmentButton(
+                    onClick = onSkipSegment,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+fun SkipSegmentButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 44.dp),
+        shape = RoundedCornerShape(50),
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = scheme.secondary.copy(alpha = 0.92f),
+            contentColor = scheme.onSecondary
+        ),
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+    ) {
+        Text(
+            text = "Skip",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Icon(
+            imageVector = Icons.Outlined.SkipNext,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
 
