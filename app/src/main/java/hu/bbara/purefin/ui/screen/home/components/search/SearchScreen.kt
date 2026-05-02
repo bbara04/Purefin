@@ -70,7 +70,7 @@ import java.util.UUID
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun SearchFullScreen(
+fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
