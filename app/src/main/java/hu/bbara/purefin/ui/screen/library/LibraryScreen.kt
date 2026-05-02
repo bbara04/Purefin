@@ -2,6 +2,7 @@ package hu.bbara.purefin.ui.screen.library
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -67,38 +68,41 @@ internal fun LibraryPosterGrid(
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 120.dp),
-        contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = modifier.background(MaterialTheme.colorScheme.background)
-    ) {
-        items(libraryItems, key = { item -> item.id }) { item ->
-            MediaImageCard(
-                imageUrl = item.primaryImageUrl,
-                title = item.primaryText,
-                subtitle = item.secondaryText,
-                onClick = {
+    BoxWithConstraints(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
+        val minCellSize = if (maxWidth >= 600.dp) 220.dp else 120.dp
+
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = minCellSize),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            items(libraryItems, key = { item -> item.id }) { item ->
+                MediaImageCard(
+                    imageUrl = item.primaryImageUrl,
+                    title = item.primaryText,
+                    subtitle = item.secondaryText,
+                    onClick = {
+                        when (item) {
+                            is MovieUiModel -> viewModel.onMovieSelected(item.id)
+                            is SeriesUiModel -> viewModel.onSeriesSelected(item.id)
+                            is EpisodeUiModel -> Unit
+                        }
+                    }
+                ) {
                     when (item) {
-                        is MovieUiModel -> viewModel.onMovieSelected(item.id)
-                        is SeriesUiModel -> viewModel.onSeriesSelected(item.id)
-                        is EpisodeUiModel -> Unit
+                        is MovieUiModel, is EpisodeUiModel -> {
+                            WatchStateBadge(
+                                size = 28,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp),
+                                watched = item.watched,
+                                started = (item.progress ?: 0f) > 0f
+                            )
+                        }
+                        else -> Unit
                     }
-                }
-            ) {
-                when (item) {
-                    is MovieUiModel, is EpisodeUiModel -> {
-                        WatchStateBadge(
-                            size = 28,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(8.dp),
-                            watched = item.watched,
-                            started = (item.progress ?: 0f) > 0f
-                        )
-                    }
-                    else -> Unit
                 }
             }
         }
