@@ -5,8 +5,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.data.MediaCatalogReader
 import hu.bbara.purefin.data.UserSessionRepository
+import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
-import java.util.UUID
+import hu.bbara.purefin.model.MediaKind
+import hu.bbara.purefin.navigation.MovieDto
+import hu.bbara.purefin.navigation.NavigationManager
+import hu.bbara.purefin.navigation.Route
+import hu.bbara.purefin.navigation.SeriesDto
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +20,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import hu.bbara.purefin.image.ArtworkKind
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,7 +28,10 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val mediaCatalogReader: MediaCatalogReader,
     private val userSessionRepository: UserSessionRepository,
+    private val navigationManager: NavigationManager,
 ) : ViewModel() {
+
+    val genres = mediaCatalogReader.genres
 
     private val _searchResult = MutableStateFlow<List<SearchResult>>(emptyList())
     val searchResult = _searchResult.asStateFlow()
@@ -52,6 +60,34 @@ class SearchViewModel @Inject constructor(
 
     fun search(query: String) {
         this.query.value = query
+    }
+
+    fun onSearchResultSelected(searchResult: SearchResult) {
+        when (searchResult.type) {
+            MediaKind.MOVIE -> onMovieSelected(searchResult.id)
+            MediaKind.SERIES -> onSeriesSelected(searchResult.id)
+            else -> Unit
+        }
+    }
+
+    private fun onMovieSelected(movieId: UUID) {
+        navigationManager.navigate(
+            Route.MovieRoute(
+                MovieDto(
+                    id = movieId,
+                )
+            )
+        )
+    }
+
+    private fun onSeriesSelected(seriesId: UUID) {
+        navigationManager.navigate(
+            Route.SeriesRoute(
+                SeriesDto(
+                    id = seriesId,
+                )
+            )
+        )
     }
 
     private suspend fun createImageUrl(id: UUID) : String {

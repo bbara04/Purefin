@@ -3,6 +3,7 @@ package hu.bbara.purefin.data
 import hu.bbara.purefin.Offline
 import hu.bbara.purefin.Online
 import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Genre
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
 import kotlinx.coroutines.CoroutineScope
@@ -10,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -33,15 +34,19 @@ class CompositeMediaRepository @Inject constructor(
 
     override val movies: StateFlow<Map<UUID, Movie>> = activeRepository
         .flatMapLatest { it.movies }
-        .stateIn(scope, SharingStarted.Companion.Eagerly, emptyMap())
+        .stateIn(scope, Eagerly, emptyMap())
 
     override val series: StateFlow<Map<UUID, Series>> = activeRepository
         .flatMapLatest { it.series }
-        .stateIn(scope, SharingStarted.Companion.Eagerly, emptyMap())
+        .stateIn(scope, Eagerly, emptyMap())
 
     override val episodes: StateFlow<Map<UUID, Episode>> = activeRepository
         .flatMapLatest { it.episodes }
-        .stateIn(scope, SharingStarted.Companion.Eagerly, emptyMap())
+        .stateIn(scope, Eagerly, emptyMap())
+
+    override val genres: StateFlow<Set<Genre>> = activeRepository
+        .flatMapLatest { it.genres }
+        .stateIn(scope, Eagerly, emptySet())
 
     override suspend fun getMovie(id: UUID): Flow<Movie?> {
         return activeRepository

@@ -9,6 +9,7 @@ import hu.bbara.purefin.data.converter.toSeason
 import hu.bbara.purefin.data.converter.toSeries
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Genre
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
 import kotlinx.coroutines.CancellationException
@@ -47,6 +48,9 @@ class InMemoryMediaRepository @Inject constructor(
 
     private val episodesState = MutableStateFlow<Map<UUID, Episode>>(emptyMap())
     override val episodes: StateFlow<Map<UUID, Episode>> = episodesState.asStateFlow()
+
+    private val genresState = MutableStateFlow<Set<Genre>>(emptySet())
+    override var genres: StateFlow<Set<Genre>> = genresState.asStateFlow()
 
     override suspend fun getMovie(id: UUID): Flow<Movie?> {
         if (!moviesState.value.containsKey(id)) {
@@ -90,6 +94,10 @@ class InMemoryMediaRepository @Inject constructor(
         val episode = episodesState.value[id] ?: return flowOf(null)
         observeSeriesWithContent(seriesId = episode.seriesId)
         return episodesState.map { it[id] }
+    }
+
+    fun upsertGenres(genres: Set<Genre>) {
+        genresState.update { current -> current + genres }
     }
 
     fun upsertMovies(movies: List<Movie>) {

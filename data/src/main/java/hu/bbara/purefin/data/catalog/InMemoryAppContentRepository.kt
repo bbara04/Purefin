@@ -6,6 +6,7 @@ import hu.bbara.purefin.data.HomeRepository
 import hu.bbara.purefin.data.NetworkMonitor
 import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.data.converter.toEpisode
+import hu.bbara.purefin.data.converter.toGenre
 import hu.bbara.purefin.data.converter.toLibrary
 import hu.bbara.purefin.data.converter.toMovie
 import hu.bbara.purefin.data.converter.toSeason
@@ -103,6 +104,7 @@ class InMemoryAppContentRepository @Inject constructor(
                 loadContinueWatching()
                 loadNextUp()
                 loadLatestLibraryContent()
+                loadGenres()
                 Log.d(TAG, "Home refresh successful")
                 persistHomeCache()
             }.onFailure { error ->
@@ -199,7 +201,7 @@ class InMemoryAppContentRepository @Inject constructor(
         )
     }
 
-    suspend fun loadLibraries() {
+    private suspend fun loadLibraries() {
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
                 Log.w(TAG, "Unable to load libraries", error)
@@ -221,7 +223,7 @@ class InMemoryAppContentRepository @Inject constructor(
         onlineMediaRepository.upsertSeries(series)
     }
 
-    suspend fun loadLibrary(library: Library): Library {
+    private suspend fun loadLibrary(library: Library): Library {
         val contentItem = runCatching { jellyfinApiClient.getLibraryContent(library.id) }
             .getOrElse { error ->
                 Log.w(TAG, "Unable to load library ${library.id}", error)
@@ -237,7 +239,7 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    suspend fun loadSuggestions() {
+    private suspend fun loadSuggestions() {
         val suggestionsItems = runCatching { jellyfinApiClient.getSuggestions() }
             .getOrElse { error ->
                 Log.w(TAG, "Unable to load suggestions", error)
@@ -258,7 +260,7 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    suspend fun loadContinueWatching() {
+    private suspend fun loadContinueWatching() {
         val continueWatchingItems = runCatching { jellyfinApiClient.getContinueWatching() }
             .getOrElse { error ->
                 Log.w(TAG, "Unable to load continue watching", error)
@@ -279,7 +281,7 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    suspend fun loadNextUp() {
+    private suspend fun loadNextUp() {
         val nextUpItems = runCatching { jellyfinApiClient.getNextUpEpisodes() }
             .getOrElse { error ->
                 Log.w(TAG, "Unable to load next up", error)
@@ -294,7 +296,7 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    suspend fun loadLatestLibraryContent() {
+    private suspend fun loadLatestLibraryContent() {
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
                 Log.w(TAG, "Unable to load latest library content", error)
@@ -335,6 +337,12 @@ class InMemoryAppContentRepository @Inject constructor(
             }
         }
         latestLibraryContentState.value = latestLibraryContents
+    }
+
+    private suspend fun loadGenres() {
+        val baseItemDtos = jellyfinApiClient.getGenres()
+        val genres = baseItemDtos.map { it.toGenre() }
+        onlineMediaRepository.upsertGenres(genres.toSet())
     }
 
     private suspend fun serverUrl(): String {

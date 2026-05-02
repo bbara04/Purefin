@@ -3,6 +3,7 @@ package hu.bbara.purefin.data.converter
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.Genre
 import hu.bbara.purefin.model.Library
 import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.Movie
@@ -109,6 +110,12 @@ fun BaseItemDto.toEpisode(serverUrl: String): Episode {
         synopsis = overview ?: "No synopsis available.",
         imageUrlPrefix = imageUrlPrefix,
         cast = emptyList(),
+    )
+}
+
+fun BaseItemDto.toGenre() : Genre {
+    return Genre(
+        name = name ?: "Unknown"
     )
 }
 
