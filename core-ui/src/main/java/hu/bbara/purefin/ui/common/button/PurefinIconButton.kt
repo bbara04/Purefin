@@ -24,8 +24,8 @@ fun PurefinIconButton(
     CircularIconButton(
         icon = icon,
         contentDescription = contentDescription,
-        containerColor = scheme.secondary,
-        focusedBackgroundColor = focusedBackgroundColor ?: scheme.secondary,
+        containerColor = scheme.surface,
+        focusedBackgroundColor = focusedBackgroundColor ?: scheme.surface,
         iconColor = scheme.onSecondary,
         size = size.dp,
         onClick = onClick,
