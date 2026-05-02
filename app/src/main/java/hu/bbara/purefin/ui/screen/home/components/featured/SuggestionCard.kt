@@ -23,11 +23,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
 import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
+import hu.bbara.purefin.ui.model.MediaUiModel
 
 @Composable
 internal fun SuggestionCard(
@@ -74,7 +74,7 @@ internal fun SuggestionCard(
                             )
                         )
                     )
-            )
+                )
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
