@@ -116,13 +116,14 @@ class JellyfinApiClient @Inject constructor(
                 userId = getUserId(),
                 includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
                 searchTerm = searchTerm,
+                recursive = true
             )
             Log.d("searchBySearchTerm", response.content.toString())
             response.content.items
         }
     }
 
-    suspend fun searchByGenre(genres: List<String>): List<BaseItemDto> = withContext(Dispatchers.IO) {
+    suspend fun searchByGenre(genres: Set<String>): List<BaseItemDto> = withContext(Dispatchers.IO) {
         logApiFailure("searchMovie") {
             if (!ensureConfigured()) {
                 return@logApiFailure emptyList()
@@ -130,7 +131,8 @@ class JellyfinApiClient @Inject constructor(
             val response = api.itemsApi.getItems(
                 userId = getUserId(),
                 includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-                genres = genres
+                genres = genres,
+                recursive = true
             )
             Log.d("searchByGenre", response.content.toString())
             response.content.items

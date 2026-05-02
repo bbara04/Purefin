@@ -8,9 +8,11 @@ import hu.bbara.purefin.Offline
 import hu.bbara.purefin.Online
 import hu.bbara.purefin.data.HomeRepository
 import hu.bbara.purefin.data.LocalMediaRepository
+import hu.bbara.purefin.data.SearchManager
 import hu.bbara.purefin.data.catalog.InMemoryAppContentRepository
 import hu.bbara.purefin.data.catalog.InMemoryLocalMediaRepository
 import hu.bbara.purefin.data.catalog.OfflineLocalMediaRepository
+import hu.bbara.purefin.data.jellyfin.SearchManagerImpl
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -26,4 +28,7 @@ abstract class MediaRepositoryModule {
 
     @Binds
     abstract fun bindHomeRepository(impl: InMemoryAppContentRepository): HomeRepository
+
+    @Binds
+    abstract fun bindSearchManager(impl: SearchManagerImpl): SearchManager
 }

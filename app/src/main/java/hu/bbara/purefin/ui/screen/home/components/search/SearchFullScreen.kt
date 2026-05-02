@@ -113,6 +113,7 @@ fun SearchFullScreen(
         onResultClick = viewModel::onSearchResultSelected,
         onGenreSelected = { genre ->
             selectedGenreName = genre.name.takeIf { it != selectedGenreName }
+            viewModel.setSelectedGenre(selectedGenreName)
         },
         modifier = modifier.then(sharedBoundsModifier)
     )
@@ -158,21 +159,44 @@ private fun SearchFullScreenContent(
                 selectedGenreName = selectedGenreName,
                 onGenreSelected = onGenreSelected
             )
-        } else {
-            SectionTitle(text = "Search Results")
-            Spacer(modifier = Modifier.height(16.dp))
-            if (searchResults.isEmpty()) {
-                SearchMessage(
-                    title = "No matches",
-                    body = "Try a different title or browse your libraries."
-                )
-            } else {
-                SearchResultsGrid(
-                    results = searchResults,
+            if (selectedGenreName != null) {
+                Spacer(modifier = Modifier.height(30.dp))
+                SectionTitle(text = "Search Results")
+                Spacer(modifier = Modifier.height(16.dp))
+                SearchResults(
+                    searchResults = searchResults,
                     onResultClick = onResultClick
                 )
             }
+        } else {
+            SectionTitle(text = "Search Results")
+            Spacer(modifier = Modifier.height(16.dp))
+            SearchResults(
+                searchResults = searchResults,
+                onResultClick = onResultClick
+            )
         }
+    }
+}
+
+@Composable
+private fun SearchResults(
+    searchResults: List<SearchResult>,
+    onResultClick: (SearchResult) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (searchResults.isEmpty()) {
+        SearchMessage(
+            title = "No matches",
+            body = "Try a different title or browse your libraries.",
+            modifier = modifier
+        )
+    } else {
+        SearchResultsGrid(
+            results = searchResults,
+            onResultClick = onResultClick,
+            modifier = modifier
+        )
     }
 }
 
