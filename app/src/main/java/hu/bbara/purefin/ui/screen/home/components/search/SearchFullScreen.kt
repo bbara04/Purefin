@@ -62,7 +62,7 @@ import hu.bbara.purefin.ui.theme.AppTheme
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeSearchFullScreen(
+fun SearchFullScreen(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -388,9 +388,9 @@ private fun CategoryCard(
 
 @Preview(showBackground = true)
 @Composable
-private fun HomeSearchFullScreenPreview() {
+private fun SearchFullScreenPreview() {
     AppTheme {
-        HomeSearchFullScreen(modifier = Modifier.fillMaxSize())
+        SearchFullScreen(modifier = Modifier.fillMaxSize())
     }
 }
 

@@ -41,7 +41,7 @@ import hu.bbara.purefin.model.MediaKind
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeSearchOverlay(
+fun SearchOverlay(
     visible: Boolean,
     topPadding: Dp,
     onDismiss: () -> Unit,
@@ -138,7 +138,7 @@ fun HomeSearchOverlay(
                         modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         items(searchResults, key = { result -> "${result.type}:${result.id}" }) { item ->
-                            HomeSearchResultCard(
+                            SearchResultCard(
                                 item = item,
                                 onClick = {
                                     when (item.type) {

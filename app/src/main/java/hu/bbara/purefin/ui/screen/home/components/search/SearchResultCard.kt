@@ -22,7 +22,7 @@ import hu.bbara.purefin.feature.search.SearchResult
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 
 @Composable
-internal fun HomeSearchResultCard(
+internal fun SearchResultCard(
     item: SearchResult,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
