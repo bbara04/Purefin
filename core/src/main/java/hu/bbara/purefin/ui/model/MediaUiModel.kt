@@ -130,7 +130,7 @@ class EpisodeUiModel : MediaUiModel {
     constructor(episode: Episode) {
         id = episode.id
         primaryText = episode.seriesName
-        secondaryText = "${episode.seasonIndex} x ${episode.index} : ${episode.title}"
+        secondaryText = "S${episode.seasonIndex.toString().padStart(2, '0')}xE${episode.index.toString().padStart(2, '0')} : ${episode.title}"
         description = episode.synopsis
         prefixImageUrl = episode.imageUrlPrefix
         progress = (episode.progress?.toFloat() ?: 0f) / 100f
