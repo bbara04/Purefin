@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -41,6 +43,7 @@ import hu.bbara.purefin.jellyfin.JellyfinAuthInterceptor
 import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.navigation.LocalNavigationManager
+import hu.bbara.purefin.navigation.LocalSharedTransitionScope
 import hu.bbara.purefin.navigation.NavigationCommand
 import hu.bbara.purefin.navigation.NavigationManager
 import hu.bbara.purefin.navigation.Route
@@ -131,6 +134,7 @@ class PurefinActivity : ComponentActivity() {
         return (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     }
 
+    @OptIn(ExperimentalSharedTransitionApi::class)
     @Composable
     fun MainApp(
         userSessionRepository: UserSessionRepository,
@@ -172,45 +176,48 @@ class PurefinActivity : ComponentActivity() {
                 }
             }
 
-            CompositionLocalProvider(
-                LocalNavigationManager provides navigationManager,
-                LocalNavigationBackStack provides backStack.toList()
-            ) {
-                NavDisplay(
-                    backStack = backStack,
-                    onBack = { navigationManager.pop() },
-                    modifier = Modifier.fillMaxSize().background(backgroundDark),
-                    transitionSpec = {
-                        fadeIn(
-                            animationSpec = tween(
-                                durationMillis = 140
-                            )
-                        ) togetherWith
-                            fadeOut(animationSpec = tween(durationMillis = 140))
-                    },
-                    popTransitionSpec = {
-                        fadeIn(
-                            animationSpec = tween(
-                                durationMillis = 140
-                            )
-                        ) togetherWith
-                            fadeOut(animationSpec = tween(durationMillis = 140))
-                    },
-                    predictivePopTransitionSpec = { _ ->
-                        fadeIn(
-                            animationSpec = tween(
-                                durationMillis = 140
-                            )
-                        ) togetherWith
-                            fadeOut(animationSpec = tween(durationMillis = 140))
-                    },
-                    entryDecorators =
-                        listOf(
-                            rememberSaveableStateHolderNavEntryDecorator(),
-                            rememberViewModelStoreNavEntryDecorator(),
-                        ),
-                    entryProvider = appEntryProvider
-                )
+            SharedTransitionLayout {
+                CompositionLocalProvider(
+                    LocalNavigationManager provides navigationManager,
+                    LocalNavigationBackStack provides backStack.toList(),
+                    LocalSharedTransitionScope provides this
+                ) {
+                    NavDisplay(
+                        backStack = backStack,
+                        onBack = { navigationManager.pop() },
+                        modifier = Modifier.fillMaxSize().background(backgroundDark),
+                        transitionSpec = {
+                            fadeIn(
+                                animationSpec = tween(
+                                    durationMillis = 140
+                                )
+                            ) togetherWith
+                                fadeOut(animationSpec = tween(durationMillis = 140))
+                        },
+                        popTransitionSpec = {
+                            fadeIn(
+                                animationSpec = tween(
+                                    durationMillis = 140
+                                )
+                            ) togetherWith
+                                fadeOut(animationSpec = tween(durationMillis = 140))
+                        },
+                        predictivePopTransitionSpec = { _ ->
+                            fadeIn(
+                                animationSpec = tween(
+                                    durationMillis = 140
+                                )
+                            ) togetherWith
+                                fadeOut(animationSpec = tween(durationMillis = 140))
+                        },
+                        entryDecorators =
+                            listOf(
+                                rememberSaveableStateHolderNavEntryDecorator(),
+                                rememberViewModelStoreNavEntryDecorator(),
+                            ),
+                        entryProvider = appEntryProvider
+                    )
+                }
             }
         } else {
             LoginScreen()

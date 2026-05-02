@@ -1,5 +1,9 @@
 package hu.bbara.purefin.ui.screen.home.components
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -21,7 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.navigation.HOME_SEARCH_SHARED_BOUNDS_KEY
+import hu.bbara.purefin.navigation.LocalNavSharedAnimatedVisibilityScope
+import hu.bbara.purefin.navigation.LocalSharedTransitionScope
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeTopBar(
     onSearchClick: () -> Unit,
@@ -30,11 +38,34 @@ fun HomeTopBar(
     onLogoutClick: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val sharedTransitionScope = LocalSharedTransitionScope.current
+    val animatedVisibilityScope = LocalNavSharedAnimatedVisibilityScope.current
 
     var isProfileMenuExpanded by remember { mutableStateOf(false) }
 
     DefaultTopBar()
         {
+            val searchButtonModifier = if (
+                sharedTransitionScope != null &&
+                animatedVisibilityScope != null
+            ) {
+                with(sharedTransitionScope) {
+                    Modifier
+                        .sharedBounds(
+                            sharedContentState = rememberSharedContentState(
+                                key = HOME_SEARCH_SHARED_BOUNDS_KEY
+                            ),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                        )
+                        .size(50.dp)
+                }
+            } else {
+                Modifier.size(50.dp)
+            }
+
             IconButton(
                 onClick = onSearchClick,
                 colors = IconButtonColors(
@@ -43,7 +74,7 @@ fun HomeTopBar(
                     disabledContainerColor = scheme.surface,
                     disabledContentColor = scheme.onSurface
                 ),
-                modifier = Modifier.size(50.dp),
+                modifier = searchButtonModifier,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Search,

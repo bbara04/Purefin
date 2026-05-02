@@ -1,6 +1,8 @@
 package hu.bbara.purefin.navigation
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import hu.bbara.purefin.ui.screen.library.LibraryScreen
 import hu.bbara.purefin.ui.screen.login.LoginScreen
 import hu.bbara.purefin.ui.screen.AppScreen
@@ -11,10 +13,18 @@ import hu.bbara.purefin.ui.screen.series.SeriesScreen
 
 fun EntryProviderScope<Route>.appRouteEntryBuilder() {
     entry<Route.Home> {
-        AppScreen()
+        CompositionLocalProvider(
+            LocalNavSharedAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current
+        ) {
+            AppScreen()
+        }
     }
     entry<Route.HomeSearchRoute> {
-        HomeSearchFullScreen()
+        CompositionLocalProvider(
+            LocalNavSharedAnimatedVisibilityScope provides LocalNavAnimatedContentScope.current
+        ) {
+            HomeSearchFullScreen()
+        }
     }
     entry<Route.MovieRoute> {
         MovieScreen(movie = it.item)

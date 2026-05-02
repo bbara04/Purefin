@@ -1,5 +1,9 @@
 package hu.bbara.purefin.ui.screen.home.components.search
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -51,17 +55,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.image.PurefinLogo
+import hu.bbara.purefin.navigation.HOME_SEARCH_SHARED_BOUNDS_KEY
+import hu.bbara.purefin.navigation.LocalNavSharedAnimatedVisibilityScope
+import hu.bbara.purefin.navigation.LocalSharedTransitionScope
 import hu.bbara.purefin.ui.theme.AppTheme
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeSearchFullScreen(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
+    val sharedTransitionScope = LocalSharedTransitionScope.current
+    val animatedVisibilityScope = LocalNavSharedAnimatedVisibilityScope.current
+    val sharedBoundsModifier = if (
+        sharedTransitionScope != null &&
+        animatedVisibilityScope != null
+    ) {
+        with(sharedTransitionScope) {
+            Modifier.sharedBounds(
+                sharedContentState = rememberSharedContentState(
+                    key = HOME_SEARCH_SHARED_BOUNDS_KEY
+                ),
+                animatedVisibilityScope = animatedVisibilityScope,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+            )
+        }
+    } else {
+        Modifier
+    }
 
     Column(
         modifier = modifier
+            .then(sharedBoundsModifier)
             .fillMaxSize()
             .background(scheme.background)
             .statusBarsPadding()
