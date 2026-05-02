@@ -223,7 +223,7 @@ private fun SearchHeader(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             PurefinLogo(
-                modifier = Modifier.size(38.dp)
+                modifier = Modifier.size(64.dp)
             )
             Text(
                 text = "PureFin",

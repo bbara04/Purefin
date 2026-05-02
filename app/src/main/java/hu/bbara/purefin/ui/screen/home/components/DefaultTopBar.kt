@@ -46,7 +46,7 @@ fun DefaultTopBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 PurefinLogo(
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(84.dp),
                 )
                 Text(
                     text = "PureFin",
