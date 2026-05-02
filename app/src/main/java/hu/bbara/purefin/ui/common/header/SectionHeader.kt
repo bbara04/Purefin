@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +27,8 @@ fun SectionHeader(
     modifier: Modifier = Modifier,
     onActionClick: () -> Unit = {}
 ) {
+    val headerColor = MaterialTheme.colorScheme.onSurface
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -36,10 +39,14 @@ fun SectionHeader(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = headerColor
         )
         if (actionLabel != null) {
-            TextButton(onClick = onActionClick) {
+            TextButton(
+                onClick = onActionClick,
+                colors = ButtonDefaults.textButtonColors(contentColor = headerColor)
+            ) {
                 Text(text = actionLabel)
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
