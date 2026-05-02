@@ -258,21 +258,21 @@ private fun TvPlayerBottomSection(
                     icon = Icons.Outlined.SkipPrevious,
                     contentDescription = "Previous",
                     onClick = onPrevious,
-                    size = 64,
+                    size = 56,
                     modifier = expandPlaylistModifier
                 )
                 TvIconButton(
                     icon = Icons.Outlined.Replay10,
                     contentDescription = "Seek backward 10 seconds",
                     onClick = { onSeekRelative(-10_000) },
-                    size = 64,
+                    size = 56,
                     modifier = expandPlaylistModifier
                 )
                 TvIconButton(
                     icon = if (uiState.isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
                     contentDescription = if (uiState.isPlaying) "Pause" else "Play",
                     onClick = onPlayPause,
-                    size = 72,
+                    size = 64,
                     modifier = expandPlaylistModifier
                         .focusRequester(focusRequester)
                         .testTag(TvPlayerPlayPauseButtonTag)
@@ -281,14 +281,14 @@ private fun TvPlayerBottomSection(
                     icon = Icons.Outlined.Forward30,
                     contentDescription = "Seek forward 30 seconds",
                     onClick = { onSeekRelative(30_000) },
-                    size = 64,
+                    size = 56,
                     modifier = expandPlaylistModifier
                 )
                 TvIconButton(
                     icon = Icons.Outlined.SkipNext,
                     contentDescription = "Next",
                     onClick = onNext,
-                    size = 64,
+                    size = 56,
                     modifier = expandPlaylistModifier
                 )
             }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -55,62 +54,65 @@ internal fun TvIconButton(
         targetValue = if (isFocused) scheme.primary else Color.Transparent,
         label = "border"
     )
+    val shape = RoundedCornerShape(50)
+    val iconSize = (size - 24).coerceAtLeast(0).dp
 
-    Box(
-        modifier = modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
+    val buttonModifier = modifier
+        .graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
+        .alpha(if (enabled) 1f else 0.4f)
+        .border(
+            width = if (isFocused) 2.dp else 0.dp,
+            color = borderColor,
+            shape = shape
+        )
+        .clip(shape)
+        .background(
+            if (isFocused) scheme.primary.copy(alpha = 0.5f)
+            else scheme.background.copy(alpha = 0.65f)
+        )
+        .focusProperties { canFocus = enabled }
+        .semantics {
+            if (!enabled) {
+                disabled()
             }
-            .alpha(if (enabled) 1f else 0.4f)
-            .widthIn(min = if (label == null) size.dp else 104.dp)
-            .height(size.dp)
-            .border(
-                width = if (isFocused) 2.dp else 0.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(50)
-            )
-            .clip(RoundedCornerShape(50))
-            .background(
-                if (isFocused) scheme.primary.copy(alpha = 0.5f)
-                else scheme.background.copy(alpha = 0.65f)
-            )
-            .focusProperties { canFocus = enabled }
-            .semantics {
-                if (!enabled) {
-                    disabled()
-                }
-            }
-            .onFocusChanged { isFocused = it.isFocused }
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        if (label == null) {
+        }
+        .onFocusChanged { isFocused = it.isFocused }
+        .clickable(enabled = enabled) { onClick() }
+
+    if (label == null) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = scheme.onBackground,
+            modifier = buttonModifier
+                .size(size.dp)
+                .padding(12.dp)
+                .size(iconSize)
+        )
+    } else {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = buttonModifier
+                .widthIn(min = 104.dp)
+                .height(size.dp)
+                .padding(horizontal = 16.dp)
+        ) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 tint = scheme.onBackground,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.size(iconSize)
             )
-        } else {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = contentDescription,
-                    tint = scheme.onBackground,
-                    modifier = Modifier.size(28.dp)
-                )
-                Text(
-                    text = label,
-                    color = scheme.onBackground,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+            Text(
+                text = label,
+                color = scheme.onBackground,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
