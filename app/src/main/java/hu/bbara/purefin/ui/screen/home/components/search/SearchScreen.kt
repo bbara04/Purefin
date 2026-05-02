@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -24,15 +25,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -74,7 +78,7 @@ fun SearchScreen(
     val searchResults by viewModel.searchResult.collectAsStateWithLifecycle()
     val genres by viewModel.genres.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
-    var selectedGenreName by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedGenreNames by rememberSaveable { mutableStateOf(emptySet<String>()) }
     val sharedBoundsModifier = if (
         sharedTransitionScope != null &&
         animatedVisibilityScope != null
@@ -98,7 +102,7 @@ fun SearchScreen(
         query = query,
         searchResults = searchResults,
         genres = genres.sortedBy { it.name },
-        selectedGenreName = selectedGenreName,
+        selectedGenreNames = selectedGenreNames,
         onQueryChange = {
             query = it
             viewModel.search(it)
@@ -106,8 +110,16 @@ fun SearchScreen(
         onSearch = { viewModel.search(query) },
         onResultClick = viewModel::onSearchResultSelected,
         onGenreSelected = { genre ->
-            selectedGenreName = genre.name.takeIf { it != selectedGenreName }
-            viewModel.setSelectedGenre(selectedGenreName)
+            selectedGenreNames = if (genre.name in selectedGenreNames) {
+                selectedGenreNames - genre.name
+            } else {
+                selectedGenreNames + genre.name
+            }
+            viewModel.setSelectedGenres(selectedGenreNames)
+        },
+        onClearGenres = {
+            selectedGenreNames = emptySet()
+            viewModel.setSelectedGenres(selectedGenreNames)
         },
         onBack = viewModel::onBack,
         modifier = modifier.then(sharedBoundsModifier)
@@ -120,11 +132,12 @@ private fun SearchFullScreenContent(
     query: String,
     searchResults: List<SearchResult>,
     genres: List<Genre>,
-    selectedGenreName: String?,
+    selectedGenreNames: Set<String>,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onResultClick: (SearchResult) -> Unit,
     onGenreSelected: (Genre) -> Unit,
+    onClearGenres: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -137,6 +150,7 @@ private fun SearchFullScreenContent(
             .fillMaxSize()
             .background(scheme.background)
             .statusBarsPadding()
+            .padding(top = 24.dp)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -154,12 +168,13 @@ private fun SearchFullScreenContent(
             if (query.isBlank()) {
                 SectionTitle(text = "Browse Genres")
                 Spacer(modifier = Modifier.height(18.dp))
-                GenreChips(
+                GenreSelector(
                     genres = genres,
-                    selectedGenreName = selectedGenreName,
-                    onGenreSelected = onGenreSelected
+                    selectedGenreNames = selectedGenreNames,
+                    onGenreSelected = onGenreSelected,
+                    onClearGenres = onClearGenres
                 )
-                if (selectedGenreName != null) {
+                if (selectedGenreNames.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(30.dp))
                     SectionTitle(text = "Search Results")
                     Spacer(modifier = Modifier.height(16.dp))
@@ -256,16 +271,9 @@ private fun SearchField(
                     Icon(
                         imageVector = Icons.Outlined.Close,
                         contentDescription = "Clear search",
-                        tint = scheme.onSurfaceVariant
+                        tint = scheme.onSurface
                     )
                 }
-            } else {
-                Icon(
-                    imageVector = Icons.Outlined.Tune,
-                    contentDescription = "Filter",
-                    tint = scheme.primary,
-                    modifier = Modifier.size(30.dp)
-                )
             }
         },
         shape = RoundedCornerShape(24.dp),
@@ -343,31 +351,128 @@ private fun SectionTitle(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GenreChips(
+private fun GenreSelector(
     genres: List<Genre>,
-    selectedGenreName: String?,
+    selectedGenreNames: Set<String>,
     onGenreSelected: (Genre) -> Unit,
+    onClearGenres: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showGenres by rememberSaveable { mutableStateOf(false) }
+    val visibleGenres = (genres.filter { it.name in selectedGenreNames } + genres)
+        .distinctBy { it.name }
+        .take(19)
+
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .height(260.dp)
     ) {
-        genres.forEach { genre ->
-            FilterChip(
-                selected = genre.name == selectedGenreName,
-                onClick = { onGenreSelected(genre) },
-                label = {
-                    Text(
-                        text = genre.name,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+        FilterChip(
+            selected = false,
+            onClick = { showGenres = true },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Tune,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = if (selectedGenreNames.isEmpty()) {
+                        "All genres"
+                    } else {
+                        "${selectedGenreNames.size} selected"
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        )
+        visibleGenres.forEach { genre ->
+            GenreChip(
+                genre = genre,
+                selected = genre.name in selectedGenreNames,
+                onClick = { onGenreSelected(genre) }
             )
         }
     }
+
+    if (showGenres) {
+        AlertDialog(
+            onDismissRequest = { showGenres = false },
+            title = {
+                Text(text = "Select genres")
+            },
+            text = {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 360.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    genres.forEach { genre ->
+                        GenreChip(
+                            genre = genre,
+                            selected = genre.name in selectedGenreNames,
+                            onClick = { onGenreSelected(genre) }
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showGenres = false }) {
+                    Text(text = "Done")
+                }
+            },
+            dismissButton = {
+                if (selectedGenreNames.isNotEmpty()) {
+                    TextButton(onClick = onClearGenres) {
+                        Text(text = "Clear")
+                    }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun GenreChip(
+    genre: Genre,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        leadingIcon = if (selected) {
+            {
+                Icon(
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        } else {
+            null
+        },
+        label = {
+            Text(
+                text = genre.name,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        modifier = modifier
+    )
 }
 
 @Preview(showBackground = true)
@@ -380,11 +485,12 @@ private fun SearchFullScreenPreview() {
             query = query,
             searchResults = previewSearchResults,
             genres = previewGenres,
-            selectedGenreName = "Action",
+            selectedGenreNames = setOf("Action", "Comedy"),
             onQueryChange = { query = it },
             onSearch = {},
             onResultClick = {},
             onGenreSelected = {},
+            onClearGenres = {},
             onBack = {},
             modifier = Modifier.fillMaxSize()
         )

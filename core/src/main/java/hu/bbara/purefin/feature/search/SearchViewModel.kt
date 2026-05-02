@@ -24,8 +24,8 @@ class SearchViewModel @Inject constructor(
         searchManager.setSearchTerm(query)
     }
 
-    fun setSelectedGenre(genreName: String?) {
-        searchManager.setGenres(genreName?.let { setOf(it) } ?: emptySet())
+    fun setSelectedGenres(genreNames: Set<String>) {
+        searchManager.setGenres(genreNames)
     }
 
     fun onBack() {
