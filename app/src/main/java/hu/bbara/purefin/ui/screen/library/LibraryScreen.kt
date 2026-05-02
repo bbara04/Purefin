@@ -4,15 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -21,11 +16,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.navigation.LibraryDto
-import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.feature.browse.library.LibraryViewModel
-import hu.bbara.purefin.ui.common.button.PurefinIconButton
+import hu.bbara.purefin.navigation.LibraryDto
 import hu.bbara.purefin.ui.common.card.PosterCard
+import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.ui.screen.library.components.LibraryTopBar
 
 @Composable
 fun LibraryScreen(
@@ -49,24 +44,6 @@ fun LibraryScreen(
         Column(modifier = Modifier.padding(innerPadding)) {
             LibraryPosterGrid(libraryItems = libraryItems.value)
         }
-    }
-}
-
-@Composable
-internal fun LibraryTopBar(
-    onBack: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(16.dp)
-    ) {
-        PurefinIconButton(
-            icon = Icons.Outlined.ArrowBack,
-            contentDescription = "Back",
-            onClick = onBack
-        )
     }
 }
 

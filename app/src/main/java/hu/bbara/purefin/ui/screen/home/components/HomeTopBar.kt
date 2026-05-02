@@ -32,8 +32,8 @@ fun HomeTopBar(
 
     var isProfileMenuExpanded by remember { mutableStateOf(false) }
 
-    DefaultTopBar()
-        {
+    DefaultTopBar(
+        rightActions = {
             DefaultTopBarSearchButton(onClick = onSearchClick)
             Spacer(modifier = Modifier.size(12.dp))
             IconButton(
@@ -81,4 +81,5 @@ fun HomeTopBar(
                 )
             }
         }
+    )
 }

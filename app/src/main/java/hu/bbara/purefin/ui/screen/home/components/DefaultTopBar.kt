@@ -34,7 +34,8 @@ import hu.bbara.purefin.ui.common.image.PurefinLogo
 
 @Composable
 fun DefaultTopBar(
-    actions: @Composable RowScope.() -> Unit
+    leftActions: (@Composable RowScope.() -> Unit)? = null,
+    rightActions: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -48,12 +49,23 @@ fun DefaultTopBar(
                 .statusBarsPadding()
                 .height(84.dp)
                 .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            if (leftActions != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = leftActions
+                )
+            }
             Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = when {
+                    leftActions == null && rightActions != null -> Arrangement.Start
+                    leftActions != null && rightActions == null -> Arrangement.Center
+                    else -> Arrangement.Center
+                }
             ) {
                 PurefinLogo(
                     modifier = Modifier.size(84.dp),
@@ -63,13 +75,15 @@ fun DefaultTopBar(
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     fontStyle = FontStyle.Italic,
-                    color = scheme.onSecondary
+                    color = scheme.primary
                 )
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                content = actions
-            )
+            if (rightActions != null) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = rightActions
+                )
+            }
         }
     }
 }

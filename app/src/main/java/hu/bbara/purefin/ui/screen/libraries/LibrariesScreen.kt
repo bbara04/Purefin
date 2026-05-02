@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.libraries.components.LibrariesContent
-import hu.bbara.purefin.ui.screen.library.components.LibraryTopBar
+import hu.bbara.purefin.ui.screen.libraries.components.LibrariesTopBar
 
 @Composable
 fun LibrariesScreen(
@@ -25,7 +25,7 @@ fun LibrariesScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
-            LibraryTopBar(
+            LibrariesTopBar(
                 onSearchClick = onSearchClick,
             )
         },
