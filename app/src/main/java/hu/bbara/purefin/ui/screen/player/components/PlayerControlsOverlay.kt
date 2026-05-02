@@ -174,26 +174,6 @@ private fun BottomSection(
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(modifier = modifier) {
-        if (uiState.activeSkippableSegmentEndMs != null) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                PurefinTextButton(
-                    onClick = onSkipSegment,
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Text(
-                        text = "Skip",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -279,7 +259,7 @@ private fun BottomSection(
                 )
             }
             Row(
-                modifier = Modifier.align(Alignment.CenterEnd),
+                modifier = Modifier.align(Alignment.CenterStart),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -301,6 +281,24 @@ private fun BottomSection(
                     onSelect = onSelectTrack,
                     overlayController = overlayController
                 )
+            }
+            if (uiState.activeSkippableSegmentEndMs != null) {
+                Row(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    PurefinTextButton(
+                        onClick = onSkipSegment,
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text(
+                            text = "Skip",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
