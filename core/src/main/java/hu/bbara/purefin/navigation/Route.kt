@@ -9,6 +9,9 @@ sealed interface Route : NavKey {
     data object Home : Route
 
     @Serializable
+    data object HomeSearchRoute : Route
+
+    @Serializable
     data class MovieRoute(val item: MovieDto) : Route
 
     @Serializable

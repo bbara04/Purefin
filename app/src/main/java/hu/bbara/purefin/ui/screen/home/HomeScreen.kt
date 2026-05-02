@@ -1,26 +1,18 @@
 package hu.bbara.purefin.ui.screen.home
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import hu.bbara.purefin.ui.model.LibraryUiModel
 import hu.bbara.purefin.ui.model.MediaUiModel
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.home.components.HomeContent
 import hu.bbara.purefin.ui.screen.home.components.HomeTopBar
-import hu.bbara.purefin.ui.screen.home.components.search.HomeSearchOverlay
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     libraries: List<LibraryUiModel>,
@@ -35,12 +27,11 @@ fun HomeScreen(
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onSearchClick: () -> Unit,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isSearchVisible by rememberSaveable { mutableStateOf(false) }
-
     Scaffold(
         modifier = modifier
             .fillMaxSize(),
@@ -48,7 +39,7 @@ fun HomeScreen(
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
             HomeTopBar(
-                onSearchClick = { isSearchVisible = true },
+                onSearchClick = onSearchClick,
                 onProfileClick = onProfileClick,
                 onSettingsClick = onSettingsClick,
                 onLogoutClick = onLogoutClick
@@ -61,37 +52,18 @@ fun HomeScreen(
             )
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            HomeContent(
-                libraries = libraries,
-                libraryContent = libraryContent,
-                suggestions = suggestions,
-                continueWatching = continueWatching,
-                nextUp = nextUp,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onMediaSelected = onMediaSelected,
-                onLibrarySelected = onLibrarySelected,
-                onBrowseLibrariesClick = { onTabSelected(1) },
-                modifier = Modifier.padding(innerPadding)
-            )
-            HomeSearchOverlay(
-                visible = isSearchVisible,
-                topPadding = innerPadding.calculateTopPadding(),
-                onDismiss = { isSearchVisible = false },
-                onMovieSelected = {
-                    isSearchVisible = false
-                    //TODO use MediaUiModel as well
-                    //onMovieSelected(it)
-                },
-                onSeriesSelected = {
-                    isSearchVisible = false
-                    //onSeriesSelected(it)
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            )
-        }
+        HomeContent(
+            libraries = libraries,
+            libraryContent = libraryContent,
+            suggestions = suggestions,
+            continueWatching = continueWatching,
+            nextUp = nextUp,
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            onMediaSelected = onMediaSelected,
+            onLibrarySelected = onLibrarySelected,
+            onBrowseLibrariesClick = { onTabSelected(1) },
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 }

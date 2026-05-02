@@ -77,6 +77,7 @@ fun AppScreen(
                 onProfileClick = {},
                 onSettingsClick = {},
                 onLogoutClick = viewModel::logout,
+                onSearchClick = viewModel::openSearch,
                 selectedTab = selectedTab,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()

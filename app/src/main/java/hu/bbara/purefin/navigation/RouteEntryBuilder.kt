@@ -5,12 +5,16 @@ import hu.bbara.purefin.ui.screen.library.LibraryScreen
 import hu.bbara.purefin.ui.screen.login.LoginScreen
 import hu.bbara.purefin.ui.screen.AppScreen
 import hu.bbara.purefin.ui.screen.episode.EpisodeScreen
+import hu.bbara.purefin.ui.screen.home.components.search.HomeSearchFullScreen
 import hu.bbara.purefin.ui.screen.movie.MovieScreen
 import hu.bbara.purefin.ui.screen.series.SeriesScreen
 
 fun EntryProviderScope<Route>.appRouteEntryBuilder() {
     entry<Route.Home> {
         AppScreen()
+    }
+    entry<Route.HomeSearchRoute> {
+        HomeSearchFullScreen()
     }
     entry<Route.MovieRoute> {
         MovieScreen(movie = it.item)
