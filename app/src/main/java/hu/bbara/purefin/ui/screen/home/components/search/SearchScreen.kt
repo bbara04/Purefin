@@ -4,10 +4,8 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -20,15 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.FilterChip
@@ -36,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -49,13 +44,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hu.bbara.purefin.feature.search.SearchResult
@@ -65,8 +58,8 @@ import hu.bbara.purefin.model.MediaKind
 import hu.bbara.purefin.navigation.HOME_SEARCH_SHARED_BOUNDS_KEY
 import hu.bbara.purefin.navigation.LocalNavSharedAnimatedVisibilityScope
 import hu.bbara.purefin.navigation.LocalSharedTransitionScope
-import hu.bbara.purefin.ui.common.image.PurefinLogo
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
+import hu.bbara.purefin.ui.screen.home.components.DefaultTopBarIconButton
 import hu.bbara.purefin.ui.theme.AppTheme
 import java.util.UUID
 
@@ -116,6 +109,7 @@ fun SearchScreen(
             selectedGenreName = genre.name.takeIf { it != selectedGenreName }
             viewModel.setSelectedGenre(selectedGenreName)
         },
+        onBack = viewModel::onBack,
         modifier = modifier.then(sharedBoundsModifier)
     )
 }
@@ -131,36 +125,50 @@ private fun SearchFullScreenContent(
     onSearch: () -> Unit,
     onResultClick: (SearchResult) -> Unit,
     onGenreSelected: (Genre) -> Unit,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-
     Scaffold(
-        topBar = { SearchHeader() },
+        topBar = { SearchHeader(
+            onBack = onBack
+        ) },
         modifier = modifier
             .fillMaxSize()
             .background(scheme.background)
             .statusBarsPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-            .padding(bottom = 28.dp)
     ) { innerPadding ->
-        SearchField(
-            query = query,
-            onQueryChange = onQueryChange,
-            onSearch = onSearch
-        )
-        Spacer(modifier = Modifier.height(30.dp))
-        if (query.isBlank()) {
-            SectionTitle(text = "Browse Genres")
-            Spacer(modifier = Modifier.height(18.dp))
-            GenreChips(
-                genres = genres,
-                selectedGenreName = selectedGenreName,
-                onGenreSelected = onGenreSelected
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 28.dp)
+        ) {
+            SearchField(
+                query = query,
+                onQueryChange = onQueryChange,
+                onSearch = onSearch
             )
-            if (selectedGenreName != null) {
-                Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(30.dp))
+            if (query.isBlank()) {
+                SectionTitle(text = "Browse Genres")
+                Spacer(modifier = Modifier.height(18.dp))
+                GenreChips(
+                    genres = genres,
+                    selectedGenreName = selectedGenreName,
+                    onGenreSelected = onGenreSelected
+                )
+                if (selectedGenreName != null) {
+                    Spacer(modifier = Modifier.height(30.dp))
+                    SectionTitle(text = "Search Results")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    SearchResults(
+                        searchResults = searchResults,
+                        onResultClick = onResultClick
+                    )
+                }
+            } else {
                 SectionTitle(text = "Search Results")
                 Spacer(modifier = Modifier.height(16.dp))
                 SearchResults(
@@ -168,13 +176,6 @@ private fun SearchFullScreenContent(
                     onResultClick = onResultClick
                 )
             }
-        } else {
-            SectionTitle(text = "Search Results")
-            Spacer(modifier = Modifier.height(16.dp))
-            SearchResults(
-                searchResults = searchResults,
-                onResultClick = onResultClick
-            )
         }
     }
 }
@@ -202,13 +203,18 @@ private fun SearchResults(
 
 @Composable
 private fun SearchHeader(
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
 
     DefaultTopBar(
         leftActions = {
-
+            DefaultTopBarIconButton(
+                imageVector = Icons.Outlined.ArrowBack,
+                contentDescription = "Back",
+                onClick = onBack
+            )
         }
     )
 }
@@ -379,6 +385,7 @@ private fun SearchFullScreenPreview() {
             onSearch = {},
             onResultClick = {},
             onGenreSelected = {},
+            onBack = {},
             modifier = Modifier.fillMaxSize()
         )
     }

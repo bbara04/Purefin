@@ -28,6 +28,10 @@ class SearchViewModel @Inject constructor(
         searchManager.setGenres(genreName?.let { setOf(it) } ?: emptySet())
     }
 
+    fun onBack() {
+        navigationManager.pop()
+    }
+
     fun onSearchResultSelected(searchResult: SearchResult) {
         when (searchResult.type) {
             MediaKind.MOVIE -> onMovieSelected(searchResult.id)
