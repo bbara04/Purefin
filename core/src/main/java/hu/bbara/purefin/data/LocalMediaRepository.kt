@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
-interface MediaRepository : MediaProgressWriter {
+interface LocalMediaRepository : MediaProgressWriter {
     val movies: StateFlow<Map<UUID, Movie>>
     val series: StateFlow<Map<UUID, Series>>
     val episodes: StateFlow<Map<UUID, Episode>>

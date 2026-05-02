@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.Offline
-import hu.bbara.purefin.data.MediaRepository
+import hu.bbara.purefin.data.LocalMediaRepository
 import hu.bbara.purefin.download.MediaDownloadController
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DownloadsViewModel @Inject constructor(
-    @Offline private val offlineCatalogReader: MediaRepository,
+    @Offline private val offlineCatalogReader: LocalMediaRepository,
     private val navigationManager: NavigationManager,
     private val downloadManager: MediaDownloadController,
 ) : ViewModel() {

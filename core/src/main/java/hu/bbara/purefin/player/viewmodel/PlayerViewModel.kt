@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.data.MediaRepository
+import hu.bbara.purefin.data.LocalMediaRepository
 import hu.bbara.purefin.image.ArtworkKind
 import hu.bbara.purefin.image.ImageUrlBuilder
 import hu.bbara.purefin.model.PlayableMedia
@@ -31,7 +31,7 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val playerManager: PlayerManager,
-    private val mediaCatalogReader: MediaRepository,
+    private val mediaCatalogReader: LocalMediaRepository,
     private val progressManager: ProgressManager,
 ) : ViewModel() {
     companion object {

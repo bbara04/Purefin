@@ -3,7 +3,7 @@ package hu.bbara.purefin.feature.content.movie
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import hu.bbara.purefin.data.MediaRepository
+import hu.bbara.purefin.data.LocalMediaRepository
 import hu.bbara.purefin.download.DownloadState
 import hu.bbara.purefin.download.MediaDownloadController
 import hu.bbara.purefin.model.Movie
@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MovieScreenViewModel @Inject constructor(
-    private val mediaCatalogReader: MediaRepository,
+    private val mediaCatalogReader: LocalMediaRepository,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
 ): ViewModel() {

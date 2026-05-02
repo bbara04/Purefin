@@ -107,6 +107,36 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
+    suspend fun searchBySearchTerm(searchTerm: String): List<BaseItemDto> = withContext(Dispatchers.IO) {
+        logApiFailure("searchBySearchTerm") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val response = api.itemsApi.getItems(
+                userId = getUserId(),
+                includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+                searchTerm = searchTerm,
+            )
+            Log.d("searchBySearchTerm", response.content.toString())
+            response.content.items
+        }
+    }
+
+    suspend fun searchByGenre(genres: List<String>): List<BaseItemDto> = withContext(Dispatchers.IO) {
+        logApiFailure("searchMovie") {
+            if (!ensureConfigured()) {
+                return@logApiFailure emptyList()
+            }
+            val response = api.itemsApi.getItems(
+                userId = getUserId(),
+                includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+                genres = genres
+            )
+            Log.d("searchByGenre", response.content.toString())
+            response.content.items
+        }
+    }
+
     suspend fun getLibraries(): List<BaseItemDto> = withContext(Dispatchers.IO) {
         logApiFailure("getLibraries") {
             if (!ensureConfigured()) {

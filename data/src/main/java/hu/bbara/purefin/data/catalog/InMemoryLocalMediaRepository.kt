@@ -1,7 +1,7 @@
 package hu.bbara.purefin.data.catalog
 
 import android.util.Log
-import hu.bbara.purefin.data.MediaRepository
+import hu.bbara.purefin.data.LocalMediaRepository
 import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.data.converter.toEpisode
 import hu.bbara.purefin.data.converter.toMovie
@@ -31,10 +31,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class InMemoryMediaRepository @Inject constructor(
+class InMemoryLocalMediaRepository @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val jellyfinApiClient: JellyfinApiClient,
-) : MediaRepository {
+) : LocalMediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

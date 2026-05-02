@@ -22,15 +22,15 @@ import javax.inject.Singleton
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
-class CompositeMediaRepository @Inject constructor(
-    @Offline private val offlineRepository: MediaRepository,
-    @Online private val onlineRepository: MediaRepository,
-) : MediaRepository {
+class CompositeLocalMediaRepository @Inject constructor(
+    @Offline private val offlineRepository: LocalMediaRepository,
+    @Online private val onlineRepository: LocalMediaRepository,
+) : LocalMediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // TODO move this into the domain layer and there you can use NetworkMonitor. Data should be free of android stuff.
-    private val activeRepository: Flow<MediaRepository> = flowOf(onlineRepository)
+    private val activeRepository: Flow<LocalMediaRepository> = flowOf(onlineRepository)
 
     override val movies: StateFlow<Map<UUID, Movie>> = activeRepository
         .flatMapLatest { it.movies }

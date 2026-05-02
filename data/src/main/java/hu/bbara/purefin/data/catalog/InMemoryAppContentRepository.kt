@@ -48,7 +48,7 @@ class InMemoryAppContentRepository @Inject constructor(
     val userSessionRepository: UserSessionRepository,
     val jellyfinApiClient: JellyfinApiClient,
     private val homeCacheDataStore: DataStore<HomeCache>,
-    private val onlineMediaRepository: InMemoryMediaRepository,
+    private val onlineMediaRepository: InMemoryLocalMediaRepository,
     private val networkMonitor: NetworkMonitor,
 ) : HomeRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

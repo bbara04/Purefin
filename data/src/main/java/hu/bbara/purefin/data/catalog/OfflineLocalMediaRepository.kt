@@ -1,6 +1,6 @@
 package hu.bbara.purefin.data.catalog
 
-import hu.bbara.purefin.data.MediaRepository
+import hu.bbara.purefin.data.LocalMediaRepository
 import hu.bbara.purefin.data.offline.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Genre
@@ -20,9 +20,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class OfflineMediaRepository @Inject constructor(
+class OfflineLocalMediaRepository @Inject constructor(
     private val localDataSource: OfflineRoomMediaLocalDataSource,
-) : MediaRepository {
+) : LocalMediaRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override val movies: StateFlow<Map<UUID, Movie>> = localDataSource.moviesFlow
