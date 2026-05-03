@@ -94,7 +94,7 @@ fun AppScreen(
                 onProfileClick = {},
                 onCheckForUpdates = updateViewModel::checkForUpdates,
                 isCheckingForUpdates = isCheckingForUpdates,
-                onSettingsClick = {},
+                onSettingsClick = viewModel::openSettings,
                 onLogoutClick = viewModel::logout,
                 onSearchClick = viewModel::openSearch,
                 snackbarHostState = snackbarHostState,

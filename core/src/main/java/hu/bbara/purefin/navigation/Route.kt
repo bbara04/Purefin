@@ -27,5 +27,8 @@ sealed interface Route : NavKey {
     data object LoginRoute : Route
 
     @Serializable
+    data object SettingsRoute : Route
+
+    @Serializable
     data class PlayerRoute(val mediaId: String) : Route
 }

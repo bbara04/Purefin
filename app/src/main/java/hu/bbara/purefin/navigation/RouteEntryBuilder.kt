@@ -9,6 +9,7 @@ import hu.bbara.purefin.ui.screen.AppScreen
 import hu.bbara.purefin.ui.screen.episode.EpisodeScreen
 import hu.bbara.purefin.ui.screen.home.components.search.SearchScreen
 import hu.bbara.purefin.ui.screen.movie.MovieScreen
+import hu.bbara.purefin.ui.screen.settings.SettingsScreen
 import hu.bbara.purefin.ui.screen.series.SeriesScreen
 
 fun EntryProviderScope<Route>.appRouteEntryBuilder() {
@@ -52,5 +53,8 @@ fun EntryProviderScope<Route>.appRouteEntryBuilder() {
     }
     entry<Route.LoginRoute> {
         LoginScreen()
+    }
+    entry<Route.SettingsRoute> {
+        SettingsScreen()
     }
 }

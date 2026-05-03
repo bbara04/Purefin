@@ -256,6 +256,10 @@ class AppViewModel @Inject constructor(
         navigationManager.navigate(Route.HomeSearchRoute)
     }
 
+    fun openSettings() {
+        navigationManager.navigate(Route.SettingsRoute)
+    }
+
     fun logout() {
         viewModelScope.launch {
             userSessionRepository.setLoggedIn(false)
