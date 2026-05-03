@@ -42,6 +42,7 @@ fun HomeContent(
     onMediaSelected: (MediaUiModel) -> Unit,
     onLibrarySelected: (LibraryUiModel) -> Unit,
     onBrowseLibrariesClick: () -> Unit,
+    onMarkAsWatched: (MediaUiModel, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -105,6 +106,7 @@ fun HomeContent(
                     item(key = "continue-watching") {
                         ContinueWatchingSection(
                             items = continueWatching,
+                            onMarkAsWatched = onMarkAsWatched,
                             onMediaSelected = onMediaSelected
                         )
                     }

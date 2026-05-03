@@ -15,6 +15,7 @@ import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.card.MediaImageCard
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
 import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
+import hu.bbara.purefin.ui.model.MediaAction
 import hu.bbara.purefin.ui.model.MediaUiModel
 
 @Composable
@@ -22,6 +23,7 @@ internal fun ContinueWatchingCard(
     item: MediaUiModel,
     sharedBoundsKey: String,
     onMediaSelected: (MediaUiModel) -> Unit,
+    onMarkAsWatched: (MediaUiModel, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -34,6 +36,16 @@ internal fun ContinueWatchingCard(
         title = item.primaryText,
         subtitle = item.secondaryText,
         onClick = onClick,
+        popupActions = listOf(
+            MediaAction(
+                name = "Mark as watched",
+                onClick = { onMarkAsWatched(item, true) }
+            ),
+            MediaAction(
+                name = "Mark as unwatched",
+                onClick = { onMarkAsWatched(item, false) }
+            )
+        ),
         imageModifier = Modifier.homeMediaSharedBoundsSource(sharedBoundsKey),
         shapeSize = 26.dp,
         imageAspectRatio = 16f / 9f,

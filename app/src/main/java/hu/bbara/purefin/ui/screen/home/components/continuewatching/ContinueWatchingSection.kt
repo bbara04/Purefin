@@ -21,6 +21,7 @@ import hu.bbara.purefin.ui.model.MediaUiModel
 fun ContinueWatchingSection(
     items: List<MediaUiModel>,
     onMediaSelected: (MediaUiModel) -> Unit,
+    onMarkAsWatched: (MediaUiModel, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
@@ -47,7 +48,8 @@ fun ContinueWatchingSection(
                 ContinueWatchingCard(
                     item = item,
                     sharedBoundsKey = homeMediaSharedBoundsKey("continue-$index", item.id),
-                    onMediaSelected = onMediaSelected
+                    onMediaSelected = onMediaSelected,
+                    onMarkAsWatched = onMarkAsWatched
                 )
             }
         }

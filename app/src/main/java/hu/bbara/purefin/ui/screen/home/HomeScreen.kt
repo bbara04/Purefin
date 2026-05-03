@@ -26,6 +26,7 @@ fun HomeScreen(
     onRefresh: () -> Unit,
     onMediaSelected: (MediaUiModel) -> Unit,
     onLibrarySelected: (LibraryUiModel) -> Unit,
+    onMarkWatched: (MediaUiModel, Boolean) -> Unit,
     onProfileClick: () -> Unit,
     onCheckForUpdates: () -> Unit,
     isCheckingForUpdates: Boolean,
@@ -71,6 +72,7 @@ fun HomeScreen(
             onMediaSelected = onMediaSelected,
             onLibrarySelected = onLibrarySelected,
             onBrowseLibrariesClick = { onTabSelected(1) },
+            onMarkAsWatched = onMarkWatched,
             modifier = Modifier.padding(innerPadding)
         )
     }

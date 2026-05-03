@@ -7,6 +7,7 @@ import hu.bbara.purefin.data.HomeRepository
 import hu.bbara.purefin.data.LocalMediaRepository
 import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.download.MediaDownloadController
+import hu.bbara.purefin.jellyfin.JellyfinMediaMetadataUpdater
 import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.Media
 import hu.bbara.purefin.navigation.EpisodeDto
@@ -34,8 +35,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AppViewModel @Inject constructor(
     private val homeRepository: HomeRepository,
-    private val mediaCatalogReader: LocalMediaRepository,
+    private val localMediaRepository: LocalMediaRepository,
     private val userSessionRepository: UserSessionRepository,
+    private val jellyfinMediaMetadataUpdater: JellyfinMediaMetadataUpdater,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
 ) : ViewModel() {
@@ -59,8 +61,8 @@ class AppViewModel @Inject constructor(
                 posterUrl = it.posterUrl,
                 size = it.size,
                 isEmpty = when (it.type) {
-                    LibraryKind.MOVIES -> mediaCatalogReader.movies.value.isEmpty()
-                    LibraryKind.SERIES -> mediaCatalogReader.series.value.isEmpty()
+                    LibraryKind.MOVIES -> localMediaRepository.movies.value.isEmpty()
+                    LibraryKind.SERIES -> localMediaRepository.series.value.isEmpty()
                 }
             )
         }
@@ -68,9 +70,9 @@ class AppViewModel @Inject constructor(
 
     val suggestions = combine(
         homeRepository.suggestions,
-        mediaCatalogReader.movies,
-        mediaCatalogReader.series,
-        mediaCatalogReader.episodes
+        localMediaRepository.movies,
+        localMediaRepository.series,
+        localMediaRepository.episodes
     ) { list, moviesMap, seriesMap, episodesMap ->
         list.mapNotNull { media ->
             when (media) {
@@ -94,8 +96,8 @@ class AppViewModel @Inject constructor(
 
     val continueWatching = combine(
         homeRepository.continueWatching,
-        mediaCatalogReader.movies,
-        mediaCatalogReader.episodes
+        localMediaRepository.movies,
+        localMediaRepository.episodes
     ) { list, moviesMap, episodesMap ->
         list.mapNotNull { media ->
             when (media) {
@@ -116,7 +118,7 @@ class AppViewModel @Inject constructor(
 
     val nextUp = combine(
         homeRepository.nextUp,
-        mediaCatalogReader.episodes
+        localMediaRepository.episodes
     ) { list, episodesMap ->
         list.mapNotNull { media ->
             when (media) {
@@ -134,9 +136,9 @@ class AppViewModel @Inject constructor(
 
     val latestLibraryContent = combine(
         homeRepository.latestLibraryContent,
-        mediaCatalogReader.movies,
-        mediaCatalogReader.series,
-        mediaCatalogReader.episodes
+        localMediaRepository.movies,
+        localMediaRepository.series,
+        localMediaRepository.episodes
     ) { libraryMap, moviesMap, seriesMap, episodesMap ->
         libraryMap.mapValues { (_, items) ->
             items.mapNotNull { media ->
@@ -161,6 +163,12 @@ class AppViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = emptyMap()
     )
+
+    fun markAsWatched(mediaUiModel: MediaUiModel, watched: Boolean) {
+        viewModelScope.launch {
+            jellyfinMediaMetadataUpdater.markAsWatched(mediaUiModel.id, watched)
+        }
+    }
 
     fun onLibrarySelected(id: UUID, name: String) {
         viewModelScope.launch {

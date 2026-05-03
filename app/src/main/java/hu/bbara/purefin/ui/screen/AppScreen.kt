@@ -91,6 +91,7 @@ fun AppScreen(
                         library.name
                     )
                 },
+                onMarkWatched = viewModel::markAsWatched,
                 onProfileClick = {},
                 onCheckForUpdates = { updateViewModel.checkForUpdates() },
                 isCheckingForUpdates = isCheckingForUpdates,
