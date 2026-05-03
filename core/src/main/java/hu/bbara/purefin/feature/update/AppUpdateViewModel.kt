@@ -29,7 +29,7 @@ class AppUpdateViewModel @Inject constructor(
 
     private var isInstallingUpdate = false
 
-    fun checkForUpdates() {
+    fun checkForUpdates(showUpToDateMessage: Boolean = true) {
         if (_isCheckingForUpdates.value) {
             return
         }
@@ -39,7 +39,9 @@ class AppUpdateViewModel @Inject constructor(
             try {
                 val update = appUpdateRepository.checkForUpdate()
                 if (update == null) {
-                    _snackbarMessages.emit("Purefin is up to date")
+                    if (showUpToDateMessage) {
+                        _snackbarMessages.emit("Purefin is up to date")
+                    }
                 } else {
                     _availableUpdate.value = update
                 }

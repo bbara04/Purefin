@@ -15,7 +15,7 @@ class AppUpdateRepository @Inject constructor(
     private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun checkForUpdate(): AppUpdateInfo? {
-        val manifestUrl = "http://purefin.t.bbara.hu/app/update.json"
+        val manifestUrl = appVersionProvider.updateManifestUrl
         if (manifestUrl.isBlank()) {
             throw IllegalStateException("Update manifest URL not configured")
         }

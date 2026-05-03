@@ -35,7 +35,7 @@ class AndroidAppUpdateInstaller @Inject constructor(
 
         val apkFile = withContext(Dispatchers.IO) {
             downloadApk(update)
-                .also { validateApk(it, update.versionCode) }
+                .also { validateApk(it) }
         }
 
         withContext(Dispatchers.IO) {
@@ -43,7 +43,7 @@ class AndroidAppUpdateInstaller @Inject constructor(
         }
 
         val versionLabel = update.versionName?.takeIf { it.isNotBlank() } ?: update.versionCode.toString()
-        return "Downloaded Purefin $versionLabel"
+        return "Downloaded ${appLabel()} $versionLabel"
     }
 
     private fun downloadApk(update: AppUpdateInfo): File {
@@ -72,18 +72,9 @@ class AndroidAppUpdateInstaller @Inject constructor(
         return apkFile
     }
 
-    private fun validateApk(apkFile: File, expectedVersionCode: Long) {
-        val packageInfo = appContext.packageManager.getPackageArchiveInfo(apkFile.absolutePath, 0)
+    private fun validateApk(apkFile: File) {
+        appContext.packageManager.getPackageArchiveInfo(apkFile.absolutePath, 0)
             ?: throw IllegalStateException("Downloaded file is not a valid APK")
-//        if (packageInfo.packageName != appContext.packageName) {
-//            throw IllegalStateException("Downloaded APK package does not match Purefin")
-//        }
-//        if (packageInfo.longVersionCode != expectedVersionCode) {
-//            throw IllegalStateException("Downloaded APK version does not match update manifest")
-//        }
-//        if (packageInfo.longVersionCode <= BuildConfig.VERSION_CODE.toLong()) {
-//            throw IllegalStateException("Downloaded APK is not newer")
-//        }
     }
 
     private fun commitInstallSession(apkFile: File, versionCode: Long) {
@@ -141,4 +132,7 @@ class AndroidAppUpdateInstaller @Inject constructor(
             )
         }
     }
+
+    private fun appLabel(): String =
+        appContext.applicationInfo.loadLabel(appContext.packageManager).toString()
 }

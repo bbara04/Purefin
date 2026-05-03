@@ -15,5 +15,5 @@ abstract class AppUpdateModule {
     abstract fun bindAppUpdateInstaller(impl: AndroidAppUpdateInstaller): AppUpdateInstaller
 
     @Binds
-    abstract fun bindAppVersionProvider(impl: BuildConfigAppVersionProvider): AppVersionProvider
+    abstract fun bindAppVersionProvider(impl: AndroidAppVersionProvider): AppVersionProvider
 }

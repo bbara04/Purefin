@@ -92,7 +92,7 @@ fun AppScreen(
                     )
                 },
                 onProfileClick = {},
-                onCheckForUpdates = updateViewModel::checkForUpdates,
+                onCheckForUpdates = { updateViewModel.checkForUpdates() },
                 isCheckingForUpdates = isCheckingForUpdates,
                 onSettingsClick = viewModel::openSettings,
                 onLogoutClick = viewModel::logout,

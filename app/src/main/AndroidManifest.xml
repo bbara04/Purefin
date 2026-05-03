@@ -20,6 +20,9 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.Purefin">
+        <meta-data
+            android:name="hu.bbara.purefin.UPDATE_MANIFEST_URL"
+            android:value="http://purefin.t.bbara.hu/app/update.json" />
         <activity
             android:name=".PurefinActivity"
             android:exported="true"
@@ -40,7 +43,7 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
         <receiver
-            android:name=".update.AppUpdateInstallReceiver"
+            android:name="hu.bbara.purefin.update.AppUpdateInstallReceiver"
             android:exported="false" />
     </application>
 
