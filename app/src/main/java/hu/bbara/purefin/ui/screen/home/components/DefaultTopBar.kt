@@ -20,16 +20,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.navigation.HOME_SEARCH_SHARED_BOUNDS_KEY
 import hu.bbara.purefin.navigation.LocalNavSharedAnimatedVisibilityScope
 import hu.bbara.purefin.navigation.LocalSharedTransitionScope
@@ -71,14 +67,7 @@ fun DefaultTopBar(
                 }
             ) {
                 PurefinLogo(
-                    modifier = Modifier.size(84.dp),
-                )
-                Text(
-                    text = "PureFin",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    color = scheme.primary
+                    modifier = Modifier.size(56.dp),
                 )
             }
             if (rightActions != null) {
