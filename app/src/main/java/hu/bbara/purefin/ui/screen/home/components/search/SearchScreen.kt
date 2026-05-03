@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -98,7 +97,7 @@ fun SearchScreen(
         Modifier
     }
 
-    SearchFullScreenContent(
+    SearchScreenContent(
         query = query,
         searchResults = searchResults,
         genres = genres.sortedBy { it.name },
@@ -128,7 +127,7 @@ fun SearchScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SearchFullScreenContent(
+private fun SearchScreenContent(
     query: String,
     searchResults: List<SearchResult>,
     genres: List<Genre>,
@@ -149,8 +148,6 @@ private fun SearchFullScreenContent(
         modifier = modifier
             .fillMaxSize()
             .background(scheme.background)
-            .statusBarsPadding()
-            .padding(top = 24.dp)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -219,10 +216,7 @@ private fun SearchResults(
 @Composable
 private fun SearchHeader(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
-
     DefaultTopBar(
         leftActions = {
             DefaultTopBarIconButton(
@@ -477,11 +471,11 @@ private fun GenreChip(
 
 @Preview(showBackground = true)
 @Composable
-private fun SearchFullScreenPreview() {
+private fun SearchScreenPreview() {
     var query by rememberSaveable { mutableStateOf("du") }
 
     AppTheme {
-        SearchFullScreenContent(
+        SearchScreenContent(
             query = query,
             searchResults = previewSearchResults,
             genres = previewGenres,
