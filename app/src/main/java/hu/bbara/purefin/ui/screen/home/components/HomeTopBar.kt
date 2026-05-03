@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 fun HomeTopBar(
     onSearchClick: () -> Unit,
     onProfileClick: () -> Unit,
+    onCheckForUpdates: () -> Unit,
+    isCheckingForUpdates: Boolean,
     onSettingsClick: () -> Unit,
     onLogoutClick: () -> Unit,
 ) {
@@ -42,6 +44,14 @@ fun HomeTopBar(
                     onClick = {
                         isProfileMenuExpanded = false
                         onProfileClick()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(if (isCheckingForUpdates) "Checking updates..." else "Check for updates") },
+                    enabled = !isCheckingForUpdates,
+                    onClick = {
+                        isProfileMenuExpanded = false
+                        onCheckForUpdates()
                     }
                 )
                 DropdownMenuItem(

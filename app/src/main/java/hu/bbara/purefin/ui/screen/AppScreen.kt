@@ -5,11 +5,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation3.runtime.NavBackStack
@@ -20,9 +25,11 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import hu.bbara.purefin.feature.browse.home.AppViewModel
 import hu.bbara.purefin.navigation.LocalNavigationManager
+import hu.bbara.purefin.update.AppUpdateInstaller
 import hu.bbara.purefin.ui.screen.download.DownloadsScreen
 import hu.bbara.purefin.ui.screen.home.HomeScreen
 import hu.bbara.purefin.ui.screen.libraries.LibrariesScreen
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Composable
@@ -37,6 +44,11 @@ fun AppScreen(
     val nextUp by viewModel.nextUp.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val navigationManager = LocalNavigationManager.current
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val appUpdateInstaller = remember(context) { AppUpdateInstaller(context) }
+    var isCheckingForUpdates by remember { mutableStateOf(false) }
 
     @Suppress("UNCHECKED_CAST")
     val backStack = rememberNavBackStack(AppTabRoute.Home) as NavBackStack<AppTabRoute>
@@ -53,6 +65,21 @@ fun AppScreen(
             val route = selectedIndex.toAppTabRoute()
             if (backStack.lastOrNull() != route) {
                 backStack.add(route)
+            }
+        }
+    }
+    val onCheckForUpdates = {
+        if (!isCheckingForUpdates) {
+            coroutineScope.launch {
+                isCheckingForUpdates = true
+                val message = try {
+                    appUpdateInstaller.checkForUpdateAndInstall()
+                } catch (e: Exception) {
+                    e.message ?: "Update check failed"
+                } finally {
+                    isCheckingForUpdates = false
+                }
+                snackbarHostState.showSnackbar(message)
             }
         }
     }
@@ -75,9 +102,12 @@ fun AppScreen(
                     )
                 },
                 onProfileClick = {},
+                onCheckForUpdates = onCheckForUpdates,
+                isCheckingForUpdates = isCheckingForUpdates,
                 onSettingsClick = {},
                 onLogoutClick = viewModel::logout,
                 onSearchClick = viewModel::openSearch,
+                snackbarHostState = snackbarHostState,
                 selectedTab = selectedTab,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()

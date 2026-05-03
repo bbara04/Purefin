@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import hu.bbara.purefin.ui.model.LibraryUiModel
@@ -25,9 +27,12 @@ fun HomeScreen(
     onMediaSelected: (MediaUiModel) -> Unit,
     onLibrarySelected: (LibraryUiModel) -> Unit,
     onProfileClick: () -> Unit,
+    onCheckForUpdates: () -> Unit,
+    isCheckingForUpdates: Boolean,
     onSettingsClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onSearchClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -41,10 +46,13 @@ fun HomeScreen(
             HomeTopBar(
                 onSearchClick = onSearchClick,
                 onProfileClick = onProfileClick,
+                onCheckForUpdates = onCheckForUpdates,
+                isCheckingForUpdates = isCheckingForUpdates,
                 onSettingsClick = onSettingsClick,
                 onLogoutClick = onLogoutClick
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             AppBottomBar(
                 selectedTab = selectedTab,
