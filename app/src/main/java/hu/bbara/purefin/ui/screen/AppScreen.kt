@@ -5,16 +5,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation3.runtime.NavBackStack
@@ -24,17 +24,18 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import hu.bbara.purefin.feature.browse.home.AppViewModel
+import hu.bbara.purefin.feature.update.AppUpdateInfo
+import hu.bbara.purefin.feature.update.AppUpdateViewModel
 import hu.bbara.purefin.navigation.LocalNavigationManager
-import hu.bbara.purefin.update.AppUpdateInstaller
 import hu.bbara.purefin.ui.screen.download.DownloadsScreen
 import hu.bbara.purefin.ui.screen.home.HomeScreen
 import hu.bbara.purefin.ui.screen.libraries.LibrariesScreen
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Composable
 fun AppScreen(
     viewModel: AppViewModel = hiltViewModel(),
+    updateViewModel: AppUpdateViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val libraries by viewModel.libraries.collectAsState()
@@ -43,12 +44,10 @@ fun AppScreen(
     val continueWatching by viewModel.continueWatching.collectAsState()
     val nextUp by viewModel.nextUp.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val isCheckingForUpdates by updateViewModel.isCheckingForUpdates.collectAsState()
+    val availableUpdate by updateViewModel.availableUpdate.collectAsState()
     val navigationManager = LocalNavigationManager.current
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val appUpdateInstaller = remember(context) { AppUpdateInstaller(context) }
-    var isCheckingForUpdates by remember { mutableStateOf(false) }
 
     @Suppress("UNCHECKED_CAST")
     val backStack = rememberNavBackStack(AppTabRoute.Home) as NavBackStack<AppTabRoute>
@@ -60,26 +59,17 @@ fun AppScreen(
         onPauseOrDispose { }
     }
 
+    LaunchedEffect(updateViewModel) {
+        updateViewModel.snackbarMessages.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
     val onTabSelected = remember(backStack) {
         { selectedIndex: Int ->
             val route = selectedIndex.toAppTabRoute()
             if (backStack.lastOrNull() != route) {
                 backStack.add(route)
-            }
-        }
-    }
-    val onCheckForUpdates = {
-        if (!isCheckingForUpdates) {
-            coroutineScope.launch {
-                isCheckingForUpdates = true
-                val message = try {
-                    appUpdateInstaller.checkForUpdateAndInstall()
-                } catch (e: Exception) {
-                    e.message ?: "Update check failed"
-                } finally {
-                    isCheckingForUpdates = false
-                }
-                snackbarHostState.showSnackbar(message)
             }
         }
     }
@@ -102,7 +92,7 @@ fun AppScreen(
                     )
                 },
                 onProfileClick = {},
-                onCheckForUpdates = onCheckForUpdates,
+                onCheckForUpdates = updateViewModel::checkForUpdates,
                 isCheckingForUpdates = isCheckingForUpdates,
                 onSettingsClick = {},
                 onLogoutClick = viewModel::logout,
@@ -150,6 +140,14 @@ fun AppScreen(
         entryProvider = tabEntryProvider,
         modifier = modifier.fillMaxSize()
     )
+
+    availableUpdate?.let { update ->
+        UpdateAvailableDialog(
+            update = update,
+            onAccept = updateViewModel::acceptUpdate,
+            onDecline = updateViewModel::declineUpdate
+        )
+    }
 }
 
 @Serializable
@@ -182,5 +180,36 @@ private fun appTabMetadata(route: AppTabRoute): Map<String, Any> =
 
 private fun Map<String, Any>.appTabIndex(): Int =
     this[APP_TAB_INDEX_METADATA] as? Int ?: 0
+
+@Composable
+private fun UpdateAvailableDialog(
+    update: AppUpdateInfo,
+    onAccept: () -> Unit,
+    onDecline: () -> Unit
+) {
+    val versionLabel = update.versionName?.takeIf { it.isNotBlank() } ?: update.versionCode.toString()
+    val releaseNotes = update.releaseNotes?.takeIf { it.isNotBlank() }
+    val updateText = if (releaseNotes == null) {
+        "Purefin $versionLabel is available.\n\nVersion code: ${update.versionCode}"
+    } else {
+        "Purefin $versionLabel is available.\n\nVersion code: ${update.versionCode}\n\n$releaseNotes"
+    }
+
+    AlertDialog(
+        onDismissRequest = onDecline,
+        title = { Text("Update available") },
+        text = { Text(updateText) },
+        confirmButton = {
+            TextButton(onClick = onAccept) {
+                Text("Install")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDecline) {
+                Text("Not now")
+            }
+        }
+    )
+}
 
 private const val APP_TAB_INDEX_METADATA = "app_tab_index"

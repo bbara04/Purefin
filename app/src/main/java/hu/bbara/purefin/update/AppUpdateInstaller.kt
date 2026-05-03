@@ -10,67 +10,44 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import hu.bbara.purefin.BuildConfig
+import dagger.hilt.android.qualifiers.ApplicationContext
+import hu.bbara.purefin.feature.update.AppUpdateInfo
+import hu.bbara.purefin.feature.update.AppUpdateInstaller
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import javax.inject.Inject
 
-class AppUpdateInstaller(
-    context: Context,
-    private val client: OkHttpClient = OkHttpClient()
-) {
+class AndroidAppUpdateInstaller @Inject constructor(
+    @ApplicationContext context: Context
+) : AppUpdateInstaller {
     private val appContext = context.applicationContext
-    private val json = Json { ignoreUnknownKeys = true }
+    private val client = OkHttpClient()
 
-    suspend fun checkForUpdateAndInstall(): String {
-        val manifestUrl = "http://purefin.t.bbara.hu/app/update.json"
-        if (manifestUrl.isBlank()) {
-            return "Update manifest URL not configured"
-        }
-
-        val manifest = withContext(Dispatchers.IO) { fetchManifest(manifestUrl) }
-        if (manifest.versionCode <= BuildConfig.VERSION_CODE.toLong()) {
-            return "Purefin is up to date"
-        }
-
+    override suspend fun installUpdate(update: AppUpdateInfo): String {
         if (!appContext.packageManager.canRequestPackageInstalls()) {
             openInstallPermissionSettings()
             return "Allow app installs, then check again"
         }
 
         val apkFile = withContext(Dispatchers.IO) {
-            downloadApk(manifestUrl, manifest)
-                .also { validateApk(it, manifest.versionCode) }
+            downloadApk(update)
+                .also { validateApk(it, update.versionCode) }
         }
 
         withContext(Dispatchers.IO) {
-            commitInstallSession(apkFile, manifest.versionCode)
+            commitInstallSession(apkFile, update.versionCode)
         }
 
-        val versionLabel = manifest.versionName?.takeIf { it.isNotBlank() } ?: manifest.versionCode.toString()
+        val versionLabel = update.versionName?.takeIf { it.isNotBlank() } ?: update.versionCode.toString()
         return "Downloaded Purefin $versionLabel"
     }
 
-    private fun fetchManifest(manifestUrl: String): AppUpdateManifest {
-        val request = Request.Builder()
-            .url(manifestUrl)
-            .build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw IllegalStateException("Update check failed: HTTP ${response.code}")
-            }
-            val body = response.body?.string() ?: throw IllegalStateException("Update manifest empty")
-            return json.decodeFromString<AppUpdateManifest>(body)
-        }
-    }
-
-    private fun downloadApk(manifestUrl: String, manifest: AppUpdateManifest): File {
-        val apkUrl = manifestUrl.toHttpUrl().resolve(manifest.apkUrl)
+    private fun downloadApk(update: AppUpdateInfo): File {
+        val apkUrl = update.manifestUrl.toHttpUrl().resolve(update.apkUrl)
             ?: throw IllegalStateException("APK URL invalid")
         val request = Request.Builder()
             .url(apkUrl)
@@ -78,7 +55,7 @@ class AppUpdateInstaller(
         val updateDir = appContext.cacheDir.resolve("updates")
         updateDir.mkdirs()
         updateDir.listFiles()?.forEach { it.delete() }
-        val apkFile = File(updateDir, "purefin-${manifest.versionCode}.apk")
+        val apkFile = File(updateDir, "purefin-${update.versionCode}.apk")
 
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
@@ -165,10 +142,3 @@ class AppUpdateInstaller(
         }
     }
 }
-
-@Serializable
-private data class AppUpdateManifest(
-    val versionCode: Long,
-    val versionName: String? = null,
-    val apkUrl: String
-)
