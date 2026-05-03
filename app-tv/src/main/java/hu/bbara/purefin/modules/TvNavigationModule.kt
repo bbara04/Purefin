@@ -13,6 +13,7 @@ import hu.bbara.purefin.navigation.tvLibrarySection
 import hu.bbara.purefin.navigation.tvLoginSection
 import hu.bbara.purefin.navigation.tvMovieSection
 import hu.bbara.purefin.navigation.tvPlayerSection
+import hu.bbara.purefin.navigation.tvSettingsSection
 import hu.bbara.purefin.navigation.tvSeriesSection
 
 @Module
@@ -59,5 +60,11 @@ object TvNavigationModule {
     @Provides
     fun provideTvLibraryEntryBuilder(): EntryProviderScope<Route>.() -> Unit = {
         tvLibrarySection()
+    }
+
+    @IntoSet
+    @Provides
+    fun provideTvSettingsEntryBuilder(): EntryProviderScope<Route>.() -> Unit = {
+        tvSettingsSection()
     }
 }

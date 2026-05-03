@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,6 +28,7 @@ import hu.bbara.purefin.ui.screen.home.TvHomeScreen
 import hu.bbara.purefin.ui.screen.home.components.TvDrawerDestinationItem
 import hu.bbara.purefin.ui.screen.home.components.TvNavigationDrawer
 import hu.bbara.purefin.ui.screen.library.TvLibraryScreen
+import hu.bbara.purefin.ui.screen.settings.TvSettingsScreen
 
 @Composable
 fun TvAppScreen(
@@ -62,7 +64,11 @@ fun TvAppScreen(
                     LibraryKind.SERIES -> Icons.Outlined.Tv
                 }
             )
-        }
+        } + TvDrawerDestinationItem(
+            destination = Route.SettingsRoute,
+            label = "Settings",
+            icon = Icons.Outlined.Settings
+        )
     }
 
     LifecycleResumeEffect(Unit) {
@@ -88,6 +94,12 @@ fun TvAppScreen(
                 modifier = Modifier.fillMaxSize()
             )
         }
+        entry<Route.SettingsRoute> {
+            TvSettingsScreen(
+                onBack = { backStack.removeLastOrNull() },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 
     TvNavigationDrawer(
@@ -97,7 +109,7 @@ fun TvAppScreen(
             if (selectedDestination != destination) {
                 backStack.clear()
                 backStack.add(Route.Home)
-                if (destination is Route.LibraryRoute) {
+                if (destination != Route.Home) {
                     backStack.add(destination)
                 }
             }

@@ -9,6 +9,7 @@ import hu.bbara.purefin.ui.screen.login.LoginScreen
 import hu.bbara.purefin.ui.screen.TvAppScreen
 import hu.bbara.purefin.ui.screen.library.TvLibraryScreen
 import hu.bbara.purefin.ui.screen.player.TvPlayerScreen
+import hu.bbara.purefin.ui.screen.settings.TvSettingsScreen
 
 fun EntryProviderScope<Route>.tvHomeSection() {
     entry<Route.Home> {
@@ -60,5 +61,11 @@ fun EntryProviderScope<Route>.tvLibrarySection() {
             library = route.library,
             onMediaSelected = viewModel::onMediaSelected
         )
+    }
+}
+
+fun EntryProviderScope<Route>.tvSettingsSection() {
+    entry<Route.SettingsRoute> {
+        TvSettingsScreen()
     }
 }
