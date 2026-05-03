@@ -322,6 +322,30 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
+    suspend fun markAsWatched(mediaId: UUID) = withContext(Dispatchers.IO) {
+        logApiFailure("markAsWatched($mediaId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure
+            }
+            api.playStateApi.markPlayedItem(
+                itemId = mediaId,
+                userId = getUserId(),
+            )
+        }
+    }
+
+    suspend fun markAsUnwatched(mediaId: UUID) = withContext(Dispatchers.IO) {
+        logApiFailure("markAsUnwatched($mediaId)") {
+            if (!ensureConfigured()) {
+                return@logApiFailure
+            }
+            api.playStateApi.markUnplayedItem(
+                itemId = mediaId,
+                userId = getUserId(),
+            )
+        }
+    }
+
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
         logApiFailure("getMediaSources($mediaId)") {
             if (!ensureConfigured()) {
