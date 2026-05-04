@@ -146,6 +146,22 @@ class InMemoryLocalMediaRepository @Inject constructor(
         }
     }
 
+    override suspend fun markAsWatched(mediaId: UUID, watched: Boolean) {
+        if (moviesState.value.containsKey(mediaId)) {
+            moviesState.update { current ->
+                val movie = current[mediaId] ?: return@update current
+                current + (mediaId to movie.copy(watched = watched))
+            }
+            return
+        }
+        if (episodesState.value.containsKey(mediaId)) {
+            episodesState.update { current ->
+                val episode = current[mediaId] ?: return@update current
+                current + (mediaId to episode.copy(watched = watched))
+            }
+        }
+    }
+
     private suspend fun ensureSeriesContentLoaded(seriesId: UUID) {
         seriesState.value[seriesId]?.takeIf { it.seasons.isNotEmpty() }?.let { return }
 

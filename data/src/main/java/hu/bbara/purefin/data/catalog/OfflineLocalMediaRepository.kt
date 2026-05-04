@@ -58,4 +58,8 @@ class OfflineLocalMediaRepository @Inject constructor(
         val watched = progressPercent >= 90.0
         localDataSource.updateWatchProgress(mediaId, progressPercent, watched)
     }
+
+    override suspend fun markAsWatched(mediaId: UUID, watched: Boolean) {
+        // Do nothing
+    }
 }
