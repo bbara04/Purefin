@@ -6,7 +6,6 @@ import hu.bbara.purefin.data.HomeRepository
 import hu.bbara.purefin.data.NetworkMonitor
 import hu.bbara.purefin.data.UserSessionRepository
 import hu.bbara.purefin.data.converter.toEpisode
-import hu.bbara.purefin.data.converter.toGenre
 import hu.bbara.purefin.data.converter.toLibrary
 import hu.bbara.purefin.data.converter.toMovie
 import hu.bbara.purefin.data.converter.toSeason
@@ -101,7 +100,6 @@ class InMemoryAppContentRepository @Inject constructor(
                     loadContinueWatching()
                     loadNextUp()
                     loadLatestLibraryContent()
-                    loadGenres()
                     Log.d(TAG, "Home refresh successful")
                     persistHomeCache()
                 }.onFailure { error ->
@@ -337,12 +335,6 @@ class InMemoryAppContentRepository @Inject constructor(
             }
         }
         latestLibraryContentState.value = latestLibraryContents
-    }
-
-    private suspend fun loadGenres() {
-        val baseItemDtos = jellyfinApiClient.getGenres()
-        val genres = baseItemDtos.map { it.toGenre() }
-        onlineMediaRepository.upsertGenres(genres.toSet())
     }
 
     private suspend fun serverUrl(): String {

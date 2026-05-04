@@ -3,7 +3,6 @@ package hu.bbara.purefin.data
 import hu.bbara.purefin.Offline
 import hu.bbara.purefin.Online
 import hu.bbara.purefin.model.Episode
-import hu.bbara.purefin.model.Genre
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
 import kotlinx.coroutines.CoroutineScope
@@ -43,10 +42,6 @@ class CompositeLocalMediaRepository @Inject constructor(
     override val episodes: StateFlow<Map<UUID, Episode>> = activeRepository
         .flatMapLatest { it.episodes }
         .stateIn(scope, Eagerly, emptyMap())
-
-    override val genres: StateFlow<Set<Genre>> = activeRepository
-        .flatMapLatest { it.genres }
-        .stateIn(scope, Eagerly, emptySet())
 
     override suspend fun getMovie(id: UUID): Flow<Movie?> {
         return activeRepository
