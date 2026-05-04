@@ -89,7 +89,11 @@ fun MediaImageCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.padding(textPadding)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(textPadding)
+                ) {
                     Text(
                         text = title,
                         style = titleStyle,
