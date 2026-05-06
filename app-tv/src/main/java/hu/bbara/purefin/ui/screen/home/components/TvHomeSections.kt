@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.card.PosterCardContent
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
 import java.util.UUID
 import kotlin.math.roundToInt
 

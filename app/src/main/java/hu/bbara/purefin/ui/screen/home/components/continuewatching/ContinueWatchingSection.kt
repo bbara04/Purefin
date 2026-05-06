@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.header.SectionHeader
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsKey
-import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
 
 @Composable
 fun ContinueWatchingSection(

@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.model.LibraryUiModel
+import hu.bbara.purefin.core.model.LibraryUiModel
 
 @Composable
 fun LibrariesContent(

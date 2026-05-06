@@ -9,7 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.login.LoginViewModel
+import hu.bbara.purefin.core.feature.login.LoginViewModel
 import kotlinx.coroutines.launch
 
 @Composable

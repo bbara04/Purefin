@@ -19,10 +19,10 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.ui.model.EpisodeUiModel
-import hu.bbara.purefin.ui.model.MediaUiModel
-import hu.bbara.purefin.ui.model.MovieUiModel
-import hu.bbara.purefin.ui.model.LibraryUiModel
+import hu.bbara.purefin.core.model.EpisodeUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
+import hu.bbara.purefin.core.model.MovieUiModel
+import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.ui.screen.home.TvHomeScreen
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.junit.Assert.assertEquals

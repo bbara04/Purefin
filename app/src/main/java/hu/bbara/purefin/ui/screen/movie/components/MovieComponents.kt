@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.download.DownloadState
+import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.player.PlayerActivity
 import hu.bbara.purefin.ui.common.button.GhostIconButton

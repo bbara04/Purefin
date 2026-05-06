@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.ui.common.card.MediaImageCard
-import hu.bbara.purefin.ui.model.LibraryUiModel
+import hu.bbara.purefin.core.model.LibraryUiModel
 
 @Composable
 fun LibraryListItem(

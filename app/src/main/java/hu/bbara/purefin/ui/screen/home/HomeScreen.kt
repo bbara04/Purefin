@@ -8,8 +8,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import hu.bbara.purefin.ui.model.LibraryUiModel
-import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.core.model.LibraryUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.home.components.HomeContent
 import hu.bbara.purefin.ui.screen.home.components.HomeTopBar

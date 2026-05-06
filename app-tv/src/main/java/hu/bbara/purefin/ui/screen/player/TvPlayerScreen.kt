@@ -51,8 +51,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
-import hu.bbara.purefin.player.viewmodel.ControlsAutoHideBlocker
-import hu.bbara.purefin.player.viewmodel.PlayerViewModel
+import hu.bbara.purefin.core.player.viewmodel.ControlsAutoHideBlocker
+import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.screen.player.components.TvIconButton
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerLoadingErrorEndCard

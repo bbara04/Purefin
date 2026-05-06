@@ -27,7 +27,7 @@ import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
 import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
-import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
 
 @Composable
 internal fun SuggestionCard(

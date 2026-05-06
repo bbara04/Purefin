@@ -2,7 +2,9 @@ package hu.bbara.purefin.navigation
 
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
-import hu.bbara.purefin.feature.browse.home.AppViewModel
+import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.core.navigation.SeriesDto
+import hu.bbara.purefin.core.feature.browse.home.AppViewModel
 import hu.bbara.purefin.ui.screen.movie.TvMovieScreen
 import hu.bbara.purefin.ui.screen.series.TvSeriesScreen
 import hu.bbara.purefin.ui.screen.login.LoginScreen

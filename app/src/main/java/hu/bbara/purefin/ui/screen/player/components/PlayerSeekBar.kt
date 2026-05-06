@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.player.model.TimedMarker
+import hu.bbara.purefin.core.player.model.TimedMarker
 
 @Composable
 fun PlayerSeekBar(

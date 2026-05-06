@@ -1,6 +1,6 @@
 package hu.bbara.purefin.data.catalog
 
-import hu.bbara.purefin.data.LocalMediaRepository
+import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.data.offline.room.offline.OfflineRoomMediaLocalDataSource
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie

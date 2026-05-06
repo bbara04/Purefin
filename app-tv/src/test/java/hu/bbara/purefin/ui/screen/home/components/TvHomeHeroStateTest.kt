@@ -5,7 +5,7 @@ import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.MediaKind
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
-import hu.bbara.purefin.ui.model.LibraryUiModel
+import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.feature.browse.home.NextUpItem
 import hu.bbara.purefin.feature.browse.home.PosterItem
 import org.junit.Assert.assertEquals

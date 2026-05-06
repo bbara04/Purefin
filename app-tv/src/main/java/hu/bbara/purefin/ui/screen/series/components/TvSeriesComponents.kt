@@ -52,8 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Tab
 import androidx.tv.material3.TabDefaults
 import androidx.tv.material3.TabRow
-import hu.bbara.purefin.image.ArtworkKind
-import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season

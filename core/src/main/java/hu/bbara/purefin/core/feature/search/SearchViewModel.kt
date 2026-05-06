@@ -1,0 +1,63 @@
+package hu.bbara.purefin.core.feature.search
+
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.bbara.purefin.core.data.SearchManager
+import hu.bbara.purefin.core.navigation.MovieDto
+import hu.bbara.purefin.core.navigation.NavigationManager
+import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.core.navigation.SeriesDto
+import hu.bbara.purefin.model.MediaKind
+import java.util.UUID
+import javax.inject.Inject
+
+@HiltViewModel
+class SearchViewModel @Inject constructor(
+    private val searchManager: SearchManager,
+    private val navigationManager: NavigationManager,
+) : ViewModel() {
+
+    val genres = searchManager.genres
+    val searchResult = searchManager.searchResult
+
+    fun search(query: String) {
+        searchManager.setSearchTerm(query)
+    }
+
+    fun setSelectedGenres(genreNames: Set<String>) {
+        searchManager.setGenres(genreNames)
+    }
+
+    fun onBack() {
+        navigationManager.pop()
+    }
+
+    fun onSearchResultSelected(searchResult: SearchResult) {
+        when (searchResult.type) {
+            MediaKind.MOVIE -> onMovieSelected(searchResult.id)
+            MediaKind.SERIES -> onSeriesSelected(searchResult.id)
+            else -> Unit
+        }
+    }
+
+    private fun onMovieSelected(movieId: UUID) {
+        navigationManager.navigate(
+            Route.MovieRoute(
+                MovieDto(
+                    id = movieId,
+                )
+            )
+        )
+    }
+
+    private fun onSeriesSelected(seriesId: UUID) {
+        navigationManager.navigate(
+            Route.SeriesRoute(
+                SeriesDto(
+                    id = seriesId,
+                )
+            )
+        )
+    }
+
+}

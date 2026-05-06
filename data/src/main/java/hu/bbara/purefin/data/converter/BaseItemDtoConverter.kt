@@ -1,7 +1,7 @@
 package hu.bbara.purefin.data.converter
 
-import hu.bbara.purefin.image.ArtworkKind
-import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Genre
 import hu.bbara.purefin.model.Library

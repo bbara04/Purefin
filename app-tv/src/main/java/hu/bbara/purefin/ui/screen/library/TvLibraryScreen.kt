@@ -19,10 +19,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.browse.library.LibraryViewModel
-import hu.bbara.purefin.navigation.LibraryDto
+import hu.bbara.purefin.core.feature.browse.library.LibraryViewModel
+import hu.bbara.purefin.core.navigation.LibraryDto
 import hu.bbara.purefin.ui.common.card.PosterCard
-import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
 
 @Composable
 fun TvLibraryScreen(

@@ -1,8 +1,8 @@
 package hu.bbara.purefin.data.catalog
 
 import android.util.Log
-import hu.bbara.purefin.data.LocalMediaRepository
-import hu.bbara.purefin.data.UserSessionRepository
+import hu.bbara.purefin.core.data.LocalMediaRepository
+import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.data.converter.toEpisode
 import hu.bbara.purefin.data.converter.toMovie
 import hu.bbara.purefin.data.converter.toSeason

@@ -1,10 +1,5 @@
 package hu.bbara.purefin.core.navigation
 
-import hu.bbara.purefin.navigation.EpisodeDto
-import hu.bbara.purefin.navigation.LibraryDto
-import hu.bbara.purefin.navigation.MovieDto
-import hu.bbara.purefin.navigation.Route
-import hu.bbara.purefin.navigation.SeriesDto
 import java.util.UUID
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals

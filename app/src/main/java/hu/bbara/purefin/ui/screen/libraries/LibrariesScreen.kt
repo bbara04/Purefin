@@ -6,7 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import hu.bbara.purefin.ui.model.LibraryUiModel
+import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.libraries.components.LibrariesContent
 import hu.bbara.purefin.ui.screen.libraries.components.LibrariesTopBar

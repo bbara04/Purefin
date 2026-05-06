@@ -16,8 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.settings.SettingsViewModel
-import hu.bbara.purefin.settings.SettingsOptions
+import hu.bbara.purefin.core.feature.settings.SettingsViewModel
+import hu.bbara.purefin.core.settings.SettingsOptions
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBarIconButton
 import hu.bbara.purefin.ui.screen.settings.components.BooleanSettingItem

@@ -42,8 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import hu.bbara.purefin.player.model.PlayerUiState
-import hu.bbara.purefin.player.model.PlaylistElementUiModel
+import hu.bbara.purefin.core.player.model.PlayerUiState
+import hu.bbara.purefin.core.player.model.PlaylistElementUiModel
 
 internal const val TvPlayerPlaylistRowTag = "tv_player_playlist_row"
 internal const val TvPlayerPlaylistCurrentItemTag = "tv_player_playlist_current_item"

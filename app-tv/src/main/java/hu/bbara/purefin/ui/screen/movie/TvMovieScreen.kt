@@ -12,9 +12,9 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.content.movie.MovieScreenViewModel
+import hu.bbara.purefin.core.feature.content.movie.MovieScreenViewModel
 import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.navigation.MovieDto
+import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.ui.common.media.MediaDetailHorizontalPadding
 import hu.bbara.purefin.ui.common.media.TvMediaDetailBodyBox
 import hu.bbara.purefin.ui.common.media.TvMediaDetailScaffold

@@ -4,17 +4,17 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import hu.bbara.purefin.Offline
-import hu.bbara.purefin.Online
-import hu.bbara.purefin.data.HomeRepository
-import hu.bbara.purefin.data.LocalMediaRepository
-import hu.bbara.purefin.data.SearchManager
+import hu.bbara.purefin.core.Offline
+import hu.bbara.purefin.core.Online
+import hu.bbara.purefin.core.data.HomeRepository
+import hu.bbara.purefin.core.data.LocalMediaRepository
+import hu.bbara.purefin.core.data.SearchManager
 import hu.bbara.purefin.data.catalog.InMemoryAppContentRepository
 import hu.bbara.purefin.data.catalog.InMemoryLocalMediaRepository
 import hu.bbara.purefin.data.catalog.OfflineLocalMediaRepository
 import hu.bbara.purefin.data.jellyfin.JellyfinMediaMetadataUpdaterImpl
 import hu.bbara.purefin.data.jellyfin.SearchManagerImpl
-import hu.bbara.purefin.jellyfin.JellyfinMediaMetadataUpdater
+import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
 
 @Module
 @InstallIn(SingletonComponent::class)

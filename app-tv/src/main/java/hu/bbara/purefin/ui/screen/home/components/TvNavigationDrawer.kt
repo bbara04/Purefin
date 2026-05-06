@@ -28,7 +28,7 @@ import androidx.tv.material3.NavigationDrawer
 import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.Text
 import androidx.tv.material3.darkColorScheme
-import hu.bbara.purefin.navigation.Route
+import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.tv.R
 import androidx.tv.material3.MaterialTheme as TvMaterialTheme
 

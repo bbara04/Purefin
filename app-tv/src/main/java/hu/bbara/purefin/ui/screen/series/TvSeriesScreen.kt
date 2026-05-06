@@ -18,11 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.core.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
-import hu.bbara.purefin.navigation.SeriesDto
+import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.ui.common.media.MediaDetailHorizontalPadding
 import hu.bbara.purefin.ui.common.media.TvMediaDetailBodyBox
 import hu.bbara.purefin.ui.common.media.TvMediaDetailScaffold

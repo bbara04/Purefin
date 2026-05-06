@@ -16,7 +16,7 @@ import hu.bbara.purefin.ui.common.card.MediaImageCard
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
 import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
 import hu.bbara.purefin.ui.model.MediaAction
-import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
 
 @Composable
 internal fun ContinueWatchingCard(

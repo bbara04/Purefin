@@ -19,14 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.browse.library.LibraryViewModel
-import hu.bbara.purefin.navigation.LibraryDto
+import hu.bbara.purefin.core.feature.browse.library.LibraryViewModel
+import hu.bbara.purefin.core.navigation.LibraryDto
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.card.MediaImageCard
-import hu.bbara.purefin.ui.model.EpisodeUiModel
-import hu.bbara.purefin.ui.model.MediaUiModel
-import hu.bbara.purefin.ui.model.MovieUiModel
-import hu.bbara.purefin.ui.model.SeriesUiModel
+import hu.bbara.purefin.core.model.EpisodeUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
+import hu.bbara.purefin.core.model.MovieUiModel
+import hu.bbara.purefin.core.model.SeriesUiModel
 import hu.bbara.purefin.ui.screen.library.components.LibraryTopBar
 
 @Composable

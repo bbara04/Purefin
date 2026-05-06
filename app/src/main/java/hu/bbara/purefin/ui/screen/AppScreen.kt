@@ -23,9 +23,9 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import hu.bbara.purefin.feature.browse.home.AppViewModel
-import hu.bbara.purefin.feature.update.AppUpdateInfo
-import hu.bbara.purefin.feature.update.AppUpdateViewModel
+import hu.bbara.purefin.core.feature.browse.home.AppViewModel
+import hu.bbara.purefin.core.feature.update.AppUpdateInfo
+import hu.bbara.purefin.core.feature.update.AppUpdateViewModel
 import hu.bbara.purefin.navigation.LocalNavigationManager
 import hu.bbara.purefin.ui.screen.download.DownloadsScreen
 import hu.bbara.purefin.ui.screen.home.HomeScreen

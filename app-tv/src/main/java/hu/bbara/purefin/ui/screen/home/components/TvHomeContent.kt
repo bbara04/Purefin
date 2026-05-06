@@ -24,8 +24,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.ui.model.LibraryUiModel
-import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.core.model.LibraryUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
 import java.util.UUID
 
 internal const val TvHomeInitialFocusTag = "tv-home-initial-focus-item"

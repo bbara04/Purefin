@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.card.MediaImageCard
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
 import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
-import hu.bbara.purefin.ui.model.MediaUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
 
 @Composable
 internal fun NextUpCard(

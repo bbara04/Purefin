@@ -39,10 +39,10 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.player.model.PlayerUiState
-import hu.bbara.purefin.player.model.PlaylistElementUiModel
-import hu.bbara.purefin.player.model.TrackOption
-import hu.bbara.purefin.player.model.TrackType
+import hu.bbara.purefin.core.player.model.PlayerUiState
+import hu.bbara.purefin.core.player.model.PlaylistElementUiModel
+import hu.bbara.purefin.core.player.model.TrackOption
+import hu.bbara.purefin.core.player.model.TrackType
 import hu.bbara.purefin.ui.screen.player.TV_HIDDEN_STOP_FEEDBACK_MS
 import hu.bbara.purefin.ui.screen.player.TvPlayerHiddenStopFeedback
 import hu.bbara.purefin.ui.screen.player.TvPlayerHiddenStopFeedbackTag

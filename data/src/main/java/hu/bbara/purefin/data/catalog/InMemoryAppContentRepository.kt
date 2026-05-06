@@ -2,9 +2,9 @@ package hu.bbara.purefin.data.catalog
 
 import android.util.Log
 import androidx.datastore.core.DataStore
-import hu.bbara.purefin.data.HomeRepository
-import hu.bbara.purefin.data.NetworkMonitor
-import hu.bbara.purefin.data.UserSessionRepository
+import hu.bbara.purefin.core.data.HomeRepository
+import hu.bbara.purefin.core.data.NetworkMonitor
+import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.data.converter.toEpisode
 import hu.bbara.purefin.data.converter.toLibrary
 import hu.bbara.purefin.data.converter.toMovie

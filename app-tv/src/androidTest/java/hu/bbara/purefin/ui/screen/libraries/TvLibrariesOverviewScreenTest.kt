@@ -5,7 +5,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import hu.bbara.purefin.model.LibraryKind
-import hu.bbara.purefin.ui.model.LibraryUiModel
+import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule

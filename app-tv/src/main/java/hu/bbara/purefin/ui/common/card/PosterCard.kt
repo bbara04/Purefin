@@ -31,10 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.ui.model.EpisodeUiModel
-import hu.bbara.purefin.ui.model.MediaUiModel
-import hu.bbara.purefin.ui.model.MovieUiModel
-import hu.bbara.purefin.ui.model.SeriesUiModel
+import hu.bbara.purefin.core.model.EpisodeUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
+import hu.bbara.purefin.core.model.MovieUiModel
+import hu.bbara.purefin.core.model.SeriesUiModel
 import java.util.UUID
 
 @Composable

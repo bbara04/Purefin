@@ -10,9 +10,9 @@ import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.card.MediaImageCard
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
 import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
-import hu.bbara.purefin.ui.model.EpisodeUiModel
-import hu.bbara.purefin.ui.model.MediaUiModel
-import hu.bbara.purefin.ui.model.MovieUiModel
+import hu.bbara.purefin.core.model.EpisodeUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
+import hu.bbara.purefin.core.model.MovieUiModel
 
 @Composable
 internal fun HomeBrowseCard(

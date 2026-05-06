@@ -1,7 +1,7 @@
 package hu.bbara.purefin.data.jellyfin
 
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.jellyfin.JellyfinMediaMetadataUpdater
+import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
 import java.util.UUID
 import javax.inject.Inject
 

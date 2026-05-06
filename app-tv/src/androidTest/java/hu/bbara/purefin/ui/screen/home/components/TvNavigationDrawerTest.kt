@@ -24,8 +24,8 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.unit.dp
-import hu.bbara.purefin.navigation.LibraryDto
-import hu.bbara.purefin.navigation.Route
+import hu.bbara.purefin.core.navigation.LibraryDto
+import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.ui.theme.AppTheme
 import org.junit.Rule
 import org.junit.Test

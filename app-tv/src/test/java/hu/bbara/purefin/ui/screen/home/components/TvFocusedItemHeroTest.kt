@@ -1,6 +1,6 @@
 package hu.bbara.purefin.ui.screen.home.components
 
-import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.MediaKind
 import hu.bbara.purefin.model.Movie
@@ -8,7 +8,7 @@ import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.feature.browse.home.ContinueWatchingItem
 import hu.bbara.purefin.feature.browse.home.NextUpItem
 import hu.bbara.purefin.feature.browse.home.PosterItem
-import hu.bbara.purefin.image.ArtworkKind
+import hu.bbara.purefin.core.image.ArtworkKind
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.util.UUID

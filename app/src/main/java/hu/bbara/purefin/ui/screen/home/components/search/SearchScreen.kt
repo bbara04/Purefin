@@ -54,8 +54,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import hu.bbara.purefin.feature.search.SearchResult
-import hu.bbara.purefin.feature.search.SearchViewModel
+import hu.bbara.purefin.core.feature.search.SearchResult
+import hu.bbara.purefin.core.feature.search.SearchViewModel
 import hu.bbara.purefin.model.Genre
 import hu.bbara.purefin.model.MediaKind
 import hu.bbara.purefin.navigation.HOME_SEARCH_SHARED_BOUNDS_KEY

@@ -39,11 +39,11 @@
             android:exported="false"
             android:theme="@style/Theme.Purefin" />
         <service
-            android:name="hu.bbara.purefin.download.PurefinDownloadService"
+            android:name="hu.bbara.purefin.core.download.PurefinDownloadService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
         <receiver
-            android:name="hu.bbara.purefin.update.AppUpdateInstallReceiver"
+            android:name="hu.bbara.purefin.core.update.AppUpdateInstallReceiver"
             android:exported="false" />
     </application>
 

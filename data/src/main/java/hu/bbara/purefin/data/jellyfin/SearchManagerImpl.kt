@@ -1,11 +1,11 @@
 package hu.bbara.purefin.data.jellyfin
 
-import hu.bbara.purefin.data.SearchManager
-import hu.bbara.purefin.data.UserSessionRepository
+import hu.bbara.purefin.core.data.SearchManager
+import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.feature.search.SearchResult
-import hu.bbara.purefin.image.ArtworkKind
-import hu.bbara.purefin.image.ImageUrlBuilder
+import hu.bbara.purefin.core.feature.search.SearchResult
+import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.model.Genre
 import hu.bbara.purefin.model.MediaKind
 import kotlinx.coroutines.CoroutineScope

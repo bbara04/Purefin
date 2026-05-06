@@ -41,7 +41,7 @@
             </intent-filter>
         </activity>
         <receiver
-            android:name="hu.bbara.purefin.update.AppUpdateInstallReceiver"
+            android:name="hu.bbara.purefin.core.update.AppUpdateInstallReceiver"
             android:exported="false" />
     </application>
 

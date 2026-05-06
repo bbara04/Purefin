@@ -31,8 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.feature.settings.SettingsViewModel
-import hu.bbara.purefin.settings.SettingsOptions
+import hu.bbara.purefin.core.feature.settings.SettingsViewModel
+import hu.bbara.purefin.core.settings.SettingsOptions
 import java.util.Locale
 
 @Composable
