@@ -1,4 +1,4 @@
-package hu.bbara.purefin.core.settings
+package hu.bbara.purefin.data.settings
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer

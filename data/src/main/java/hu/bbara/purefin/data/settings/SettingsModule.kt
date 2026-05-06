@@ -1,17 +1,30 @@
-package hu.bbara.purefin.core.settings
+package hu.bbara.purefin.data.settings
 
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import hu.bbara.purefin.core.settings.SettingsRepository
 import hu.bbara.purefin.model.Settings
 import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class SettingsBindingsModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(
+        settingsRepositoryImpl: SettingsRepositoryImpl
+    ): SettingsRepository
+}
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -29,13 +42,5 @@ class SettingsModule {
                 produceNewData = { SettingsSerializer.defaultValue }
             )
         )
-    }
-
-    @Provides
-    @Singleton
-    fun provideSettingsRepository(
-        settingsDataStore: DataStore<Settings>
-    ): SettingsRepository {
-        return SettingsRepository(settingsDataStore)
     }
 }
