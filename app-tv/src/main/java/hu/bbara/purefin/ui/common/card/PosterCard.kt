@@ -29,12 +29,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.ui.common.badge.WatchStateBadge
-import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.core.model.EpisodeUiModel
 import hu.bbara.purefin.core.model.MediaUiModel
 import hu.bbara.purefin.core.model.MovieUiModel
 import hu.bbara.purefin.core.model.SeriesUiModel
+import hu.bbara.purefin.ui.common.badge.UnwatchedEpisodeBadge
+import hu.bbara.purefin.ui.common.badge.WatchStateBadge
+import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import java.util.UUID
 
 @Composable
@@ -134,10 +135,17 @@ fun PosterCardContent(
                             .align(Alignment.TopEnd)
                             .padding(indicatorPadding),
                         watched = model.watched,
-                        started = (model.progress ?: 0f) > 0f
                     )
                 }
-                else -> Unit
+                is SeriesUiModel -> {
+                    UnwatchedEpisodeBadge(
+                        unwatchedCount = model.unwatchedEpisodeCount,
+                        size = 26,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(indicatorPadding),
+                    )
+                }
             }
         }
         Column(

@@ -6,13 +6,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import hu.bbara.purefin.core.model.EpisodeUiModel
+import hu.bbara.purefin.core.model.MediaUiModel
+import hu.bbara.purefin.core.model.MovieUiModel
+import hu.bbara.purefin.core.model.SeriesUiModel
+import hu.bbara.purefin.ui.common.badge.UnwatchedEpisodeBadge
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.card.MediaImageCard
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsSource
 import hu.bbara.purefin.ui.common.media.rememberHomeMediaSharedBoundsClick
-import hu.bbara.purefin.core.model.EpisodeUiModel
-import hu.bbara.purefin.core.model.MediaUiModel
-import hu.bbara.purefin.core.model.MovieUiModel
 
 @Composable
 internal fun HomeBrowseCard(
@@ -42,10 +44,16 @@ internal fun HomeBrowseCard(
                         .align(Alignment.TopEnd)
                         .padding(8.dp),
                     watched = uiModel.watched,
-                    started = (uiModel.progress ?: 0f) > 0f
                 )
             }
-            else -> Unit
+            is SeriesUiModel -> {
+                UnwatchedEpisodeBadge(
+                    unwatchedCount = uiModel.unwatchedEpisodeCount,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                )
+            }
         }
     }
 }

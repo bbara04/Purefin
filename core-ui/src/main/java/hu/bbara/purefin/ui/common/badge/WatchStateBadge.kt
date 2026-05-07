@@ -22,40 +22,31 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun WatchStateBadge(
     watched: Boolean,
-    started: Boolean,
     watchedColor: Color = MaterialTheme.colorScheme.onPrimary,
     watchedBackgroundColor: Color = MaterialTheme.colorScheme.primary,
-    startedColor: Color = MaterialTheme.colorScheme.onSecondary,
-    startedBackgroundColor: Color = MaterialTheme.colorScheme.secondary,
     size: Int = 24,
     modifier: Modifier = Modifier
 ) {
-    if (!watched && !started) {
+    if (!watched) {
         return
     }
-
-    val foregroundColor = if (watched) watchedColor.copy(alpha = 0.8f) else startedColor.copy(alpha = 0.3f)
-    val backgroundColor = if (watched) watchedBackgroundColor.copy(alpha = 0.8f) else startedBackgroundColor.copy(alpha = 0.3f)
-    val borderColor = if (watched) watchedBackgroundColor.copy(alpha = 0.8f) else startedBackgroundColor.copy(alpha = 0.8f)
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .border(1.dp, borderColor, CircleShape)
-            .background(backgroundColor, CircleShape)
+            .border(1.dp, watchedBackgroundColor, CircleShape)
+            .background(watchedBackgroundColor, CircleShape)
             .size(size.dp)
             .clip(CircleShape)
     ) {
-        if (watched) {
-            Icon(
-                imageVector = Icons.Outlined.Check,
-                contentDescription = "Check",
-                tint = foregroundColor,
-                modifier = Modifier
-                    .padding(1.dp)
-                    .matchParentSize()
-            )
-        }
+        Icon(
+            imageVector = Icons.Outlined.Check,
+            contentDescription = "Check",
+            tint = watchedColor,
+            modifier = Modifier
+                .padding(1.dp)
+                .matchParentSize()
+        )
     }
 }
 
@@ -65,15 +56,12 @@ private fun WatchStateBadgePreview() {
     Column {
         WatchStateBadge(
             watched = false,
-            started = false
         )
         WatchStateBadge(
             watched = true,
-            started = false
         )
         WatchStateBadge(
             watched = false,
-            started = true
         )
     }
 }

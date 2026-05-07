@@ -21,7 +21,7 @@ fun UnwatchedEpisodeBadge(
     unwatchedCount: Int,
     foregroundColor: Color = MaterialTheme.colorScheme.onPrimary,
     backgroundColor: Color = MaterialTheme.colorScheme.primary,
-    size: Int = 24,
+    size: Int = 28,
     modifier: Modifier = Modifier
 ) {
     if (unwatchedCount == 0) {
@@ -31,16 +31,16 @@ fun UnwatchedEpisodeBadge(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .border(1.dp, backgroundColor.copy(alpha = 0.8f), CircleShape)
-            .background(backgroundColor.copy(alpha = 0.8f), CircleShape)
+            .border(1.dp, backgroundColor, CircleShape)
+            .background(backgroundColor, CircleShape)
             .size(size.dp)
             .clip(CircleShape)
     ) {
         Text(
-            text = if (unwatchedCount > 9) "9+" else unwatchedCount.toString(),
-            color = foregroundColor.copy(alpha = 0.8f),
-            fontWeight = FontWeight.W900,
-            fontSize = 15.sp
+            text = if (unwatchedCount > 99) "99+" else unwatchedCount.toString(),
+            color = foregroundColor,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp
         )
     }
 }

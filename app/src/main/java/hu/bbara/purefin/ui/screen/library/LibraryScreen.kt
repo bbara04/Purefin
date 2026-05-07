@@ -20,13 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.core.feature.browse.library.LibraryViewModel
-import hu.bbara.purefin.core.navigation.LibraryDto
-import hu.bbara.purefin.ui.common.badge.WatchStateBadge
-import hu.bbara.purefin.ui.common.card.MediaImageCard
 import hu.bbara.purefin.core.model.EpisodeUiModel
 import hu.bbara.purefin.core.model.MediaUiModel
 import hu.bbara.purefin.core.model.MovieUiModel
 import hu.bbara.purefin.core.model.SeriesUiModel
+import hu.bbara.purefin.core.navigation.LibraryDto
+import hu.bbara.purefin.ui.common.badge.WatchStateBadge
+import hu.bbara.purefin.ui.common.card.MediaImageCard
 import hu.bbara.purefin.ui.screen.library.components.LibraryTopBar
 
 @Composable
@@ -98,7 +98,6 @@ internal fun LibraryPosterGrid(
                                     .align(Alignment.TopEnd)
                                     .padding(8.dp),
                                 watched = item.watched,
-                                started = (item.progress ?: 0f) > 0f
                             )
                         }
                         else -> Unit

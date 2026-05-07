@@ -117,7 +117,6 @@ fun PosterCardContent(
                             .align(Alignment.TopEnd)
                             .padding(indicatorPadding),
                         watched = model.watched,
-                        started = (model.progress ?: 0f) > 0f
                     )
                 }
                 else -> Unit

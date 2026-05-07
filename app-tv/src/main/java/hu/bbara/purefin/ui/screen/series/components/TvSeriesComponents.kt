@@ -304,7 +304,6 @@ private fun TvEpisodeCard(
             } else {
                 WatchStateBadge(
                     watched = episode.watched,
-                    started = (episode.progress ?: 0.0) > 0.0,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
