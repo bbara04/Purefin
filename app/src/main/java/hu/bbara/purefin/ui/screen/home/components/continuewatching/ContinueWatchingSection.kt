@@ -26,11 +26,9 @@ fun ContinueWatchingSection(
 ) {
     if (items.isEmpty()) return
 
-    val filteredItems = items.filter { !it.watched }
-
     val listState = rememberLazyListState()
 
-    LaunchedEffect(filteredItems) {
+    LaunchedEffect(items) {
         listState.scrollToItem(index = 0)
     }
 
@@ -46,7 +44,7 @@ fun ContinueWatchingSection(
             modifier = Modifier.fillMaxWidth(),
             state = listState
         ) {
-            itemsIndexed(items = filteredItems, key = { _, item -> item.id }) { index, item ->
+            itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
                 ContinueWatchingCard(
                     item = item,
                     sharedBoundsKey = homeMediaSharedBoundsKey("continue-$index", item.id),
