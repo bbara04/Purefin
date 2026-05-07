@@ -11,11 +11,18 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.selected
@@ -132,13 +139,18 @@ private fun androidx.tv.material3.NavigationDrawerScope.TvNavigationDrawerRail(
 ) {
     val expanded = drawerValue == DrawerValue.Open
     val scheme = MaterialTheme.colorScheme
+    var hasDrawerFocus by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxHeight()
             .background(scheme.surface.copy(alpha = 0.96f))
             .padding(horizontal = 12.dp, vertical = 24.dp)
-            .selectableGroup(),
+            .selectableGroup()
+            .focusGroup()
+            .onFocusChanged { state ->
+                hasDrawerFocus = state.isFocused
+            },
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         TvDrawerHeader(
@@ -152,7 +164,8 @@ private fun androidx.tv.material3.NavigationDrawerScope.TvNavigationDrawerRail(
                 onClick = { onDestinationSelected(destination.destination) },
                 modifier = Modifier
                     .testTag("$TvDrawerItemTagPrefix$index")
-                    .semantics { selected = isSelected },
+                    .semantics { selected = isSelected }
+                    .focusProperties { canFocus = hasDrawerFocus || isSelected },
                 leadingContent = {
                     Icon(
                         imageVector = destination.icon,
