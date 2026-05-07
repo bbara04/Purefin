@@ -26,6 +26,7 @@ class MovieUiModel: MediaUiModel {
     override val secondaryText: String
     override val description: String
     private val prefixImageUrl: String
+    override val watched: Boolean
     override val primaryImageUrl: String
         get() {
             return ImageUrlBuilder.finishImageUrl(
@@ -49,6 +50,7 @@ class MovieUiModel: MediaUiModel {
         description = movie.synopsis
         prefixImageUrl = movie.imageUrlPrefix
         progress = (movie.progress?.toFloat() ?: 0f) / 100f
+        watched = movie.watched
     }
 
     companion object {
@@ -78,7 +80,9 @@ class SeriesUiModel : MediaUiModel {
     override val primaryText: String
     override val secondaryText: String
     override val description: String
+    override val watched: Boolean
     private val prefixImageUrl: String
+    val unwatchedEpisodeCount: Int
     override val primaryImageUrl: String
         get() {
             return ImageUrlBuilder.finishImageUrl(
@@ -100,6 +104,8 @@ class SeriesUiModel : MediaUiModel {
         secondaryText = "${series.seasonCount} seasons"
         description = series.synopsis
         prefixImageUrl = series.imageUrlPrefix
+        watched = series.unwatchedEpisodeCount == 0
+        unwatchedEpisodeCount = series.unwatchedEpisodeCount
     }
 }
 
@@ -109,6 +115,7 @@ class EpisodeUiModel : MediaUiModel {
     override val secondaryText: String
     override val description: String
     private val prefixImageUrl: String
+    override val watched: Boolean
     override val primaryImageUrl: String
         get() {
             return ImageUrlBuilder.finishImageUrl(
@@ -136,5 +143,6 @@ class EpisodeUiModel : MediaUiModel {
         progress = (episode.progress?.toFloat() ?: 0f) / 100f
         seriesId = episode.seriesId
         seasonId = episode.seasonId
+        watched = episode.watched
     }
 }
