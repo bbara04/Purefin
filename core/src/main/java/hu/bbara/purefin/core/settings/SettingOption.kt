@@ -57,6 +57,12 @@ object SettingsOptions {
         defaultValue = true
     )
 
+    val autoPlayNextMedia = BooleanSetting(
+        key = "auto_play_next_media",
+        title = "Autoplay next media",
+        defaultValue = true
+    )
+
     val preferredAudioLanguage = StringSetting(
         key = "preferred_audio_language",
         title = "Preferred audio language",
@@ -81,6 +87,7 @@ object SettingsOptions {
             options = listOf(
                 defaultPlaybackSpeed,
                 confirmMobileDataPlayback,
+                autoPlayNextMedia,
                 preferredAudioLanguage,
                 resetPlaybackSettings,
                 streamingQuality

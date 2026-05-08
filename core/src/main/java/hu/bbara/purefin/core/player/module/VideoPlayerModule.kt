@@ -61,14 +61,14 @@ object VideoPlayerModule {
         return ExoPlayer.Builder(application, renderersFactory)
             .setMediaSourceFactory(mediaSourceFactory)
             .setTrackSelector(trackSelector)
-            .setPauseAtEndOfMediaItems(true)
+            .setPauseAtEndOfMediaItems(false)
             .setLoadControl(loadControl)
             .setSeekParameters(SeekParameters.PREVIOUS_SYNC)
             .setAudioAttributes(audioAttributes, true)
             .build()
             .apply {
                 playWhenReady = true
-                pauseAtEndOfMediaItems = true
+                pauseAtEndOfMediaItems = false
             }
     }
 }

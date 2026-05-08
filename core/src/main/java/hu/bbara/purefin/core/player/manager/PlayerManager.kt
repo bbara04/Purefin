@@ -20,6 +20,8 @@ import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
 import hu.bbara.purefin.core.player.preference.TrackMatcher
 import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
+import hu.bbara.purefin.core.settings.SettingsOptions
+import hu.bbara.purefin.core.settings.SettingsRepository
 import hu.bbara.purefin.model.AudioTrackProperties
 import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.model.PlayableMedia
@@ -54,7 +56,8 @@ class PlayerManager @Inject constructor(
     private val playableMediaRepository: PlayableMediaRepository,
     private val trackPreferencesRepository: TrackPreferencesRepository,
     private val trackMatcher: TrackMatcher,
-    private val seriesIdLookUpUseCase: SeriesIdLookUpUseCase
+    private val seriesIdLookUpUseCase: SeriesIdLookUpUseCase,
+    private val settingsRepository: SettingsRepository
 ) {
     companion object {
         private const val SEEK_SETTLE_TOLERANCE_MS = 750L
@@ -62,7 +65,8 @@ class PlayerManager @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val mediaSegmentManager = MediaSegmentManager(player as ExoPlayer)
+    private val exoPlayer = player as ExoPlayer
+    private val mediaSegmentManager = MediaSegmentManager(exoPlayer)
 
     private val _currentMediaId = MutableStateFlow<UUID?>(null)
     private val _playlist = MutableStateFlow(emptyList<PlayableMedia>())
@@ -142,7 +146,16 @@ class PlayerManager @Inject constructor(
         mediaSegmentManager.registerListener(mediaSegmentListener)
         player.addListener(listener)
         updateFromPlayer(player)
+        observeAutoPlayNextMedia()
         startProgressLoop()
+    }
+
+    private fun observeAutoPlayNextMedia() {
+        scope.launch {
+            settingsRepository.value(SettingsOptions.autoPlayNextMedia).collect { autoPlayNextMedia ->
+                exoPlayer.pauseAtEndOfMediaItems = !autoPlayNextMedia
+            }
+        }
     }
 
     fun play(mediaId: UUID) {
