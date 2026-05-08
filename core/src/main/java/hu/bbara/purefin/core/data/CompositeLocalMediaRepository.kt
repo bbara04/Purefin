@@ -12,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -58,8 +59,12 @@ class CompositeLocalMediaRepository @Inject constructor(
             .flatMapLatest { it.getEpisode(id) }
     }
 
-    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
-        return activeRepository.flatMapLatest { it.observeSeriesWithContent(seriesId) }
+    override suspend fun loadSeasons(seriesId: UUID) {
+        activeRepository.first().loadSeasons(seriesId)
+    }
+
+    override suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {
+        activeRepository.first().loadSeasonEpisodes(seriesId, seasonId)
     }
 
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {

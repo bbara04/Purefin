@@ -11,16 +11,16 @@ import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Series
-import java.util.UUID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,11 +33,12 @@ class SeriesViewModel @Inject constructor(
     private val _seriesId = MutableStateFlow<UUID?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val series: StateFlow<Series?> = _seriesId
-        .flatMapLatest { id ->
-            if (id != null) mediaCatalogReader.observeSeriesWithContent(id) else flowOf(null)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val series: StateFlow<Series?> = combine(
+        _seriesId,
+        mediaCatalogReader.series
+    ) { seriesId, seriesMap ->
+        seriesId?.let { seriesMap[it] }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _seriesDownloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
     val seriesDownloadState: StateFlow<DownloadState> = _seriesDownloadState
@@ -45,8 +46,12 @@ class SeriesViewModel @Inject constructor(
     private val _seasonDownloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
     val seasonDownloadState: StateFlow<DownloadState> = _seasonDownloadState
 
+    private var seasonDownloadStateJob: Job? = null
+    private var seriesDownloadStateJob: Job? = null
+
     fun observeSeasonDownloadState(episodes: List<Episode>) {
-        viewModelScope.launch {
+        seasonDownloadStateJob?.cancel()
+        seasonDownloadStateJob = viewModelScope.launch {
             if (episodes.isEmpty()) {
                 _seasonDownloadState.value = DownloadState.NotDownloaded
                 return@launch
@@ -58,9 +63,11 @@ class SeriesViewModel @Inject constructor(
     }
 
     fun observeSeriesDownloadState(series: Series) {
-        viewModelScope.launch {
+        seriesDownloadStateJob?.cancel()
+        seriesDownloadStateJob = viewModelScope.launch {
             val allEpisodes = series.seasons.flatMap { it.episodes }
-            if (allEpisodes.isEmpty()) {
+            val hasUnloadedSeasons = series.seasons.any { it.episodes.isEmpty() && it.episodeCount > 0 }
+            if (allEpisodes.isEmpty() || hasUnloadedSeasons) {
                 _seriesDownloadState.value = DownloadState.NotDownloaded
                 return@launch
             }
@@ -70,8 +77,21 @@ class SeriesViewModel @Inject constructor(
         }
     }
 
-    fun downloadSeason(episodes: List<Episode>) {
+    fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {
         viewModelScope.launch {
+            mediaCatalogReader.loadSeasonEpisodes(seriesId, seasonId)
+        }
+    }
+
+    fun downloadSeason(seriesId: UUID, seasonId: UUID) {
+        viewModelScope.launch {
+            mediaCatalogReader.loadSeasonEpisodes(seriesId, seasonId)
+            val episodes = mediaCatalogReader.getSeries(seriesId)
+                .first()
+                ?.seasons
+                ?.firstOrNull { it.id == seasonId }
+                ?.episodes
+                .orEmpty()
             mediaDownloadManager.downloadEpisodes(episodes.map { it.id })
         }
     }
@@ -82,11 +102,16 @@ class SeriesViewModel @Inject constructor(
         }
     }
 
-    fun downloadSeries(series: Series) {
+    fun downloadSeries(seriesData: Series) {
         viewModelScope.launch {
-            val allEpisodeIds = series.seasons.flatMap { season ->
-                season.episodes.map { it.id }
+            seriesData.seasons.forEach { season ->
+                mediaCatalogReader.loadSeasonEpisodes(seriesData.id, season.id)
             }
+            val allEpisodeIds = mediaCatalogReader.getSeries(seriesData.id)
+                .first()
+                ?.seasons
+                .orEmpty()
+                .flatMap { season -> season.episodes.map { it.id } }
             mediaDownloadManager.downloadEpisodes(allEpisodeIds)
         }
     }
@@ -129,5 +154,8 @@ class SeriesViewModel @Inject constructor(
 
     fun selectSeries(seriesId: UUID) {
         _seriesId.value = seriesId
+        viewModelScope.launch {
+            mediaCatalogReader.loadSeasons(seriesId)
+        }
     }
 }

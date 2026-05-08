@@ -141,15 +141,13 @@ internal fun SeriesActionButtons(
         }
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        if (playAction != null && nextUpEpisode != null) {
-            MediaResumeButton(
-                text = mediaPlayButtonText(nextUpEpisode.progress, nextUpEpisode.watched),
-                progress = mediaPlaybackProgress(nextUpEpisode.progress),
-                onClick = playAction,
-                modifier = Modifier.sizeIn(maxWidth = 200.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-        }
+        MediaResumeButton(
+            text = mediaPlayButtonText(nextUpEpisode?.progress, nextUpEpisode?.watched),
+            progress = mediaPlaybackProgress(nextUpEpisode?.progress),
+            onClick = playAction ?: {},
+            modifier = Modifier.sizeIn(maxWidth = 200.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
         MediaActionButton(
             backgroundColor = MaterialTheme.colorScheme.surface,
             iconColor = MaterialTheme.colorScheme.onSurface,

@@ -63,13 +63,11 @@ class JellyfinApiClient @Inject constructor(
 
     private val api = jellyfin.createApi()
 
-    private val itemFields =
+    private val defaultItemFields =
         listOf(
             ItemFields.CHILD_COUNT,
             ItemFields.PARENT_ID,
-            ItemFields.DATE_LAST_REFRESHED,
-            ItemFields.OVERVIEW,
-            ItemFields.SEASON_USER_DATA,
+//            ItemFields.SEASON_USER_DATA,
         )
 
     private suspend fun getUserId(): UUID? = userSessionRepository.userId.first()
@@ -163,7 +161,7 @@ class JellyfinApiClient @Inject constructor(
                 userId = getUserId(),
                 enableImages = true,
                 parentId = libraryId,
-                fields = itemFields,
+                fields = defaultItemFields + ItemFields.OVERVIEW,
                 enableUserData = true,
                 includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
                 recursive = true,
@@ -200,7 +198,7 @@ class JellyfinApiClient @Inject constructor(
             val userId = getUserId() ?: return@logApiFailure emptyList()
             val getResumeItemsRequest = GetResumeItemsRequest(
                 userId = userId,
-                fields = itemFields,
+                fields = defaultItemFields + ItemFields.OVERVIEW,
                 includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
                 enableUserData = true,
                 startIndex = 0,
@@ -218,7 +216,7 @@ class JellyfinApiClient @Inject constructor(
             }
             val getNextUpRequest = GetNextUpRequest(
                 userId = getUserId(),
-                fields = itemFields,
+                fields = defaultItemFields + ItemFields.OVERVIEW,
                 enableResumable = false,
             )
             val result = api.tvShowsApi.getNextUp(getNextUpRequest)
@@ -235,7 +233,7 @@ class JellyfinApiClient @Inject constructor(
             val response = api.userLibraryApi.getLatestMedia(
                 userId = getUserId(),
                 parentId = libraryId,
-                fields = itemFields,
+                fields = defaultItemFields + ItemFields.OVERVIEW,
                 includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
                 limit = 10,
             )
@@ -263,7 +261,7 @@ class JellyfinApiClient @Inject constructor(
             val result = api.tvShowsApi.getSeasons(
                 userId = getUserId(),
                 seriesId = seriesId,
-                fields = itemFields,
+                fields = defaultItemFields,
                 enableUserData = true,
             )
             Log.d("getSeasons", result.content.toString())
@@ -280,7 +278,7 @@ class JellyfinApiClient @Inject constructor(
                 userId = getUserId(),
                 seriesId = seriesId,
                 seasonId = seasonId,
-                fields = itemFields,
+                fields = defaultItemFields + ItemFields.OVERVIEW,
                 enableUserData = true,
             )
             Log.d("getEpisodesInSeason", result.content.toString())

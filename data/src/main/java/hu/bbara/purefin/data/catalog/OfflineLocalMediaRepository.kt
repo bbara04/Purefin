@@ -44,8 +44,12 @@ class OfflineLocalMediaRepository @Inject constructor(
         return episodes.map { it[id] }
     }
 
-    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
-        return localDataSource.observeSeriesWithContent(seriesId)
+    override suspend fun loadSeasons(seriesId: UUID) {
+        // Offline series content is already emitted with its saved seasons.
+    }
+
+    override suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {
+        // Offline series content is already emitted with its saved episodes.
     }
 
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {

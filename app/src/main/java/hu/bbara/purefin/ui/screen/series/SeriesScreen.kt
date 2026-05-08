@@ -78,13 +78,14 @@ fun SeriesScreen(
             onDownloadOptionSelected = { option, selectedSeason ->
                 when (option) {
                     SeriesDownloadOption.SEASON ->
-                        viewModel.downloadSeason(selectedSeason.episodes)
+                        viewModel.downloadSeason(seriesData.id, selectedSeason.id)
                     SeriesDownloadOption.SERIES ->
                         viewModel.downloadSeries(seriesData)
                     SeriesDownloadOption.SMART ->
                         viewModel.enableSmartDownload(seriesData.id)
                 }
             },
+            onLoadSeasonEpisodes = viewModel::loadSeasonEpisodes,
             onObserveSeasonDownloadState = viewModel::observeSeasonDownloadState,
             onBack = viewModel::onGoHome,
             modifier = modifier
@@ -100,6 +101,7 @@ private fun SeriesScreenInternal(
     seriesDownloadState: DownloadState,
     seasonDownloadState: DownloadState,
     onDownloadOptionSelected: (SeriesDownloadOption, Season) -> Unit,
+    onLoadSeasonEpisodes: (UUID, UUID) -> Unit,
     onObserveSeasonDownloadState: (List<Episode>) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -107,23 +109,17 @@ private fun SeriesScreenInternal(
     val scheme = MaterialTheme.colorScheme
     val isHomeMediaTransitionActive = isHomeMediaSharedBoundsTransitionActive()
 
-    fun getDefaultSeason() : Season {
-        for (season in series.seasons) {
-            val firstUnwatchedEpisode = season.episodes.firstOrNull {
-                it.watched.not()
-            }
-            if (firstUnwatchedEpisode != null) {
-                return season
-            }
-        }
-        return series.seasons.first()
+    fun getDefaultSeason(): Season {
+        return series.seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: series.seasons.first()
     }
+
     var selectedSeasonId by remember(series.id) { mutableStateOf(getDefaultSeason().id) }
     val selectedSeason = series.seasons.firstOrNull { it.id == selectedSeasonId } ?: getDefaultSeason()
-    val nextUpEpisode = remember(series) {
-        series.seasons.firstNotNullOfOrNull { season ->
-            season.episodes.firstOrNull { !it.watched }
-        } ?: series.seasons.firstOrNull()?.episodes?.firstOrNull()
+    val nextUpEpisode = selectedSeason.episodes.firstOrNull { !it.watched }
+        ?: selectedSeason.episodes.firstOrNull()
+
+    LaunchedEffect(series.id, selectedSeason.id) {
+        onLoadSeasonEpisodes(series.id, selectedSeason.id)
     }
 
     LaunchedEffect(selectedSeason.id, selectedSeason.episodes) {
@@ -260,6 +256,7 @@ private fun SeriesScreenPreview() {
             seriesDownloadState = DownloadState.Downloading(progressPercent = 0.58f),
             seasonDownloadState = DownloadState.NotDownloaded,
             onDownloadOptionSelected = { _, _ -> },
+            onLoadSeasonEpisodes = { _, _ -> },
             onObserveSeasonDownloadState = {},
             onBack = {}
         )

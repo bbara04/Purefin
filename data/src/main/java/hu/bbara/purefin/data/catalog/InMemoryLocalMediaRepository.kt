@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import org.jellyfin.sdk.model.api.BaseItemKind
 import java.util.UUID
 import javax.inject.Inject
@@ -88,7 +87,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
             }
         }
         val episode = episodesState.value[id] ?: return flowOf(null)
-        observeSeriesWithContent(seriesId = episode.seriesId)
+        loadSeasons(seriesId = episode.seriesId)
         return episodesState.map { it[id] }
     }
 
@@ -104,18 +103,50 @@ class InMemoryLocalMediaRepository @Inject constructor(
         episodesState.update { current -> current + episodes.associateBy { it.id } }
     }
 
-    override fun observeSeriesWithContent(seriesId: UUID): Flow<Series?> {
-        scope.launch {
-            try {
-                ensureSeriesContentLoaded(seriesId)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                Log.e("InMemoryMediaRepository", "Failed to load content for series $seriesId", error)
-                throw error
-            }
+    override suspend fun loadSeasons(seriesId: UUID) {
+        try {
+            seriesState.value[seriesId]?.takeIf { it.seasons.isNotEmpty() }?.let { return }
+
+            val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
+
+            val updatedSeries = series.copy(
+                seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
+            )
+            seriesState.update { it + (updatedSeries.id to updatedSeries) }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.e("InMemoryMediaRepository", "Failed to load content for series $seriesId", error)
+            throw error
         }
-        return seriesState.map { it[seriesId] }
+    }
+
+    override suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {
+        loadSeasons(seriesId)
+
+        val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
+        val season = series.seasons.firstOrNull { it.id == seasonId } ?: return
+        if (season.episodes.isNotEmpty() || season.episodeCount == 0) {
+            return
+        }
+
+        val serverUrl = userSessionRepository.serverUrl.first()
+        val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
+            .map { it.toEpisode(serverUrl) }
+        seriesState.update { current ->
+            val currentSeries = current[seriesId] ?: return@update current
+            val updatedSeries = currentSeries.copy(
+                seasons = currentSeries.seasons.map {
+                    if (it.id == seasonId && it.episodes.isEmpty()) {
+                        it.copy(episodes = episodes)
+                    } else {
+                        it
+                    }
+                }
+            )
+            current + (updatedSeries.id to updatedSeries)
+        }
+        episodesState.update { current -> current + episodes.associateBy { it.id } }
     }
 
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
@@ -152,24 +183,5 @@ class InMemoryLocalMediaRepository @Inject constructor(
                 current + (mediaId to episode.copy(watched = watched))
             }
         }
-    }
-
-    private suspend fun ensureSeriesContentLoaded(seriesId: UUID) {
-        seriesState.value[seriesId]?.takeIf { it.seasons.isNotEmpty() }?.let { return }
-
-        val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
-        val serverUrl = userSessionRepository.serverUrl.first()
-
-        val emptySeasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
-        val filledSeasons = emptySeasons.map { season ->
-            val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, season.id).map { it.toEpisode(serverUrl) }
-            season.copy(episodes = episodes)
-        }
-
-        val updatedSeries = series.copy(seasons = filledSeasons)
-        seriesState.update { it + (updatedSeries.id to updatedSeries) }
-
-        val allEpisodes = filledSeasons.flatMap { it.episodes }
-        episodesState.update { current -> current + allEpisodes.associateBy { it.id } }
     }
 }
