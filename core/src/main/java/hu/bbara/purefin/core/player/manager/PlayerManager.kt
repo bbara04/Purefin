@@ -11,19 +11,20 @@ import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.core.feature.content.episode.SeriesIdLookUpUseCase
 import hu.bbara.purefin.core.player.model.MetadataState
 import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot
 import hu.bbara.purefin.core.player.model.PlaybackStateSnapshot
 import hu.bbara.purefin.core.player.model.SegmentStatus
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.core.player.model.TrackType
+import hu.bbara.purefin.core.player.preference.TrackMatcher
+import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
 import hu.bbara.purefin.model.AudioTrackProperties
 import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.model.PlayableMedia
 import hu.bbara.purefin.model.SegmentType
 import hu.bbara.purefin.model.SubtitleTrackProperties
-import hu.bbara.purefin.core.player.preference.TrackMatcher
-import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -52,7 +53,8 @@ class PlayerManager @Inject constructor(
     private val trackMapper: TrackMapper,
     private val playableMediaRepository: PlayableMediaRepository,
     private val trackPreferencesRepository: TrackPreferencesRepository,
-    private val trackMatcher: TrackMatcher
+    private val trackMatcher: TrackMatcher,
+    private val seriesIdLookUpUseCase: SeriesIdLookUpUseCase
 ) {
     companion object {
         private const val SEEK_SETTLE_TOLERANCE_MS = 750L
@@ -338,6 +340,11 @@ class PlayerManager @Inject constructor(
     }
 
     private suspend fun saveTrackPreference(option: TrackOption, mediaId: UUID) {
+        val preferenceMediaId = when (currentPlayableMedia.firstOrNull()) {
+            is PlayableMedia.Episode -> seriesIdLookUpUseCase(mediaId) ?: mediaId
+            else -> mediaId
+        }.toString()
+
         when (option.type) {
             TrackType.AUDIO -> {
                 val properties = AudioTrackProperties(
@@ -345,7 +352,7 @@ class PlayerManager @Inject constructor(
                     channelCount = option.channelCount,
                     label = option.label
                 )
-                trackPreferencesRepository.saveAudioPreference(mediaId.toString(), properties)
+                trackPreferencesRepository.saveAudioPreference(preferenceMediaId, properties)
             }
 
             TrackType.TEXT -> {
@@ -355,7 +362,7 @@ class PlayerManager @Inject constructor(
                     label = option.label,
                     isOff = option.isOff
                 )
-                trackPreferencesRepository.saveSubtitlePreference(mediaId.toString(), properties)
+                trackPreferencesRepository.saveSubtitlePreference(preferenceMediaId, properties)
             }
 
             TrackType.VIDEO -> {

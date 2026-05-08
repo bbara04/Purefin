@@ -9,16 +9,16 @@ import androidx.media3.common.util.UnstableApi
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.data.UserSessionRepository
+import hu.bbara.purefin.core.image.ArtworkKind
+import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
 import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecision
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
-import hu.bbara.purefin.core.image.ArtworkKind
-import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.model.PlayableMedia
 import hu.bbara.purefin.model.SegmentType
-import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -48,7 +48,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
 
         val mediaItem = getMediaItem(baseItem, playbackDecision)
         val resumePositionMs = calculateResumePosition(baseItem, playbackDecision.mediaSource)
-        val mediaTrackPreferences = trackPreferencesRepository.getMediaPreferences(mediaId.toString()).first()
+        val mediaTrackPreferences = trackPreferencesRepository.getMediaPreferences(baseItem.parentId.toString()).first()
         val mediaSegments = getMediaSegments(mediaId)
         when (baseItem.type) {
             BaseItemKind.MOVIE -> PlayableMedia.Movie(
