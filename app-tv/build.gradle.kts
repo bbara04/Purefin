@@ -19,7 +19,7 @@ android {
         applicationId = "hu.bbara.purefin.tv"
         minSdk = 29
         targetSdk = 36
-        versionCode = 2000004
+        versionCode = 2000005
         versionName = "0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
