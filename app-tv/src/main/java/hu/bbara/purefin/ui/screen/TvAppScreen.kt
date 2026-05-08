@@ -20,10 +20,10 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import hu.bbara.purefin.core.feature.browse.home.AppViewModel
-import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.core.navigation.LibraryDto
-import hu.bbara.purefin.navigation.LocalNavigationManager
 import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.model.LibraryKind
+import hu.bbara.purefin.navigation.LocalNavigationManager
 import hu.bbara.purefin.ui.screen.home.TvHomeScreen
 import hu.bbara.purefin.ui.screen.home.components.TvDrawerDestinationItem
 import hu.bbara.purefin.ui.screen.home.components.TvNavigationDrawer
@@ -106,6 +106,9 @@ fun TvAppScreen(
         destinations = destinations,
         selectedDestination = selectedDestination,
         onDestinationSelected = { destination ->
+            if (selectedDestination == Route.Home) {
+                viewModel.onRefresh()
+            }
             if (selectedDestination != destination) {
                 backStack.clear()
                 backStack.add(Route.Home)
