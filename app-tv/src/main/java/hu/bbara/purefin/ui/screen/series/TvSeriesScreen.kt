@@ -37,6 +37,7 @@ import java.util.UUID
 @Composable
 fun TvSeriesScreen(
     series: SeriesDto,
+    focusedSeasonId: UUID? = null,
     focusedEpisodeId: UUID? = null,
     modifier: Modifier = Modifier,
     viewModel: SeriesViewModel = hiltViewModel()
@@ -52,6 +53,8 @@ fun TvSeriesScreen(
         TvSeriesScreenContent(
             series = seriesData,
             onPlayEpisode = viewModel::onPlayEpisode,
+            onLoadSeasonEpisodes = viewModel::loadSeasonEpisodes,
+            focusedSeasonId = focusedSeasonId,
             focusedEpisodeId = focusedEpisodeId,
             modifier = modifier
         )
@@ -64,25 +67,28 @@ fun TvSeriesScreen(
 internal fun TvSeriesScreenContent(
     series: Series,
     onPlayEpisode: (UUID) -> Unit,
+    onLoadSeasonEpisodes: (UUID, UUID) -> Unit = { _, _ -> },
+    focusedSeasonId: UUID? = null,
     focusedEpisodeId: UUID? = null,
     modifier: Modifier = Modifier,
 ) {
-    val nextUpEpisode = remember(series.id) { series.nextUpEpisode() }
-    val focusedEpisode = remember(series.id, focusedEpisodeId) {
-        focusedEpisodeId?.let { id ->
-            series.seasons
-                .flatMap { it.episodes }
-                .firstOrNull { it.id == id }
-        }
+    val defaultSeason = series.defaultSeason(focusedSeasonId)
+    var selectedSeasonId by remember(series.id, focusedSeasonId) {
+        mutableStateOf(defaultSeason.id)
     }
-    val initialEpisode = focusedEpisode ?: nextUpEpisode
-    var selectedSeason by remember(series.id, initialEpisode?.seasonId) {
-        mutableStateOf(series.defaultSeason(initialEpisode))
+    val selectedSeason = series.seasons.firstOrNull { it.id == selectedSeasonId } ?: defaultSeason
+    val initialFocusedEpisodeId = remember(series.id, focusedSeasonId, focusedEpisodeId) {
+        val focusedEpisode = defaultSeason.episodes.firstOrNull { it.id == focusedEpisodeId }
+        focusedEpisode?.id ?: defaultSeason.nextUpEpisode()?.id
     }
     val firstContentFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(series.id, initialEpisode?.id) {
-        if (initialEpisode != null) return@LaunchedEffect
+    LaunchedEffect(series.id, selectedSeason.id) {
+        onLoadSeasonEpisodes(series.id, selectedSeason.id)
+    }
+
+    LaunchedEffect(series.id, initialFocusedEpisodeId) {
+        if (initialFocusedEpisodeId != null) return@LaunchedEffect
         withFrameNanos { }
         firstContentFocusRequester.requestFocus()
     }
@@ -111,14 +117,14 @@ internal fun TvSeriesScreenContent(
                     selectedSeason = selectedSeason,
                     firstItemFocusRequester = firstContentFocusRequester,
                     firstItemTestTag = SeriesFirstSeasonTabTag,
-                    onSelect = { selectedSeason = it },
+                    onSelect = { selectedSeasonId = it.id },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 TvEpisodeCarousel(
                     episodes = selectedSeason.episodes,
                     onPlayEpisode = { onPlayEpisode(it.id) },
-                    focusedEpisodeId = initialEpisode?.id,
+                    focusedEpisodeId = initialFocusedEpisodeId,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -126,19 +132,14 @@ internal fun TvSeriesScreenContent(
     }
 }
 
-private fun Series.defaultSeason(nextUpEpisode: Episode?): Season {
-    if (nextUpEpisode != null) {
-        seasons.firstOrNull { it.id == nextUpEpisode.seasonId }?.let { return it }
+private fun Series.defaultSeason(focusedSeasonId: UUID?): Season {
+    if (focusedSeasonId != null) {
+        seasons.firstOrNull { it.id == focusedSeasonId }?.let { return it }
     }
 
-    for (season in seasons) {
-        if (season.episodes.any { !it.watched }) {
-            return season
-        }
-    }
-    return seasons.first()
+    return seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: seasons.first()
 }
 
-private fun Series.nextUpEpisode() = seasons.firstNotNullOfOrNull { season ->
-    season.episodes.firstOrNull { !it.watched }
-} ?: seasons.firstOrNull()?.episodes?.firstOrNull()
+private fun Season.nextUpEpisode(): Episode? {
+    return episodes.firstOrNull { !it.watched } ?: episodes.firstOrNull()
+}

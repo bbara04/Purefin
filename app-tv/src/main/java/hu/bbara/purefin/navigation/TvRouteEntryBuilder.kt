@@ -41,6 +41,7 @@ fun EntryProviderScope<Route>.tvEpisodeSection() {
     entry<Route.EpisodeRoute> { route ->
         TvSeriesScreen(
             series = SeriesDto(id = route.item.seriesId),
+            focusedSeasonId = route.item.seasonId,
             focusedEpisodeId = route.item.id
         )
     }
