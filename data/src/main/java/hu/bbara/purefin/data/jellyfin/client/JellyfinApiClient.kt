@@ -1,6 +1,7 @@
 package hu.bbara.purefin.data.jellyfin.client
 
 import android.content.Context
+import android.os.SystemClock
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.core.data.PlaybackMethod
@@ -84,7 +85,7 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun configureFromSession(): Boolean = withContext(Dispatchers.IO) {
-        logApiFailure("configureFromSession") {
+        logRequest("configureFromSession") {
             ensureConfigured()
         }
     }
@@ -94,10 +95,10 @@ class JellyfinApiClient @Inject constructor(
         username: String,
         password: String,
     ): AuthenticationResult? = withContext(Dispatchers.IO) {
-        logApiFailure("authenticate") {
+        logRequest("authenticate") {
             val trimmedUrl = url.trim()
             if (trimmedUrl.isBlank()) {
-                return@logApiFailure null
+                return@logRequest null
             }
 
             api.update(baseUrl = trimmedUrl)
@@ -106,9 +107,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun searchBySearchTerm(searchTerm: String): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("searchBySearchTerm") {
+        logRequest("searchBySearchTerm") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val response = api.itemsApi.getItems(
                 userId = getUserId(),
@@ -122,9 +123,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun searchByGenre(genres: Set<String>): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("searchMovie") {
+        logRequest("searchMovie") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val response = api.itemsApi.getItems(
                 userId = getUserId(),
@@ -138,9 +139,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getLibraries(): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getLibraries") {
+        logRequest("getLibraries") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val response = api.userViewsApi.getUserViews(
                 userId = getUserId(),
@@ -153,9 +154,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getLibraryContent($libraryId)") {
+        logRequest("getLibraryContent($libraryId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val getItemsRequest = GetItemsRequest(
                 userId = getUserId(),
@@ -173,11 +174,11 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getSuggestions(): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getSuggestions") {
+        logRequest("getSuggestions") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
-            val userId = getUserId() ?: return@logApiFailure emptyList()
+            val userId = getUserId() ?: return@logRequest emptyList()
             val response = api.suggestionsApi.getSuggestions(
                 userId = userId,
                 mediaType = listOf(MediaType.VIDEO),
@@ -191,11 +192,11 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getContinueWatching(): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getContinueWatching") {
+        logRequest("getContinueWatching") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
-            val userId = getUserId() ?: return@logApiFailure emptyList()
+            val userId = getUserId() ?: return@logRequest emptyList()
             val getResumeItemsRequest = GetResumeItemsRequest(
                 userId = userId,
                 fields = defaultItemFields + ItemFields.OVERVIEW,
@@ -210,7 +211,7 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getNextUpEpisodes(): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getNextUpEpisodes") {
+        logRequest("getNextUpEpisodes") {
             if (!ensureConfigured()) {
                 throw IllegalStateException("Not configured")
             }
@@ -226,9 +227,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getLatestFromLibrary(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getLatestFromLibrary($libraryId)") {
+        logRequest("getLatestFromLibrary($libraryId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val response = api.userLibraryApi.getLatestMedia(
                 userId = getUserId(),
@@ -243,9 +244,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getItemInfo(mediaId: UUID): BaseItemDto? = withContext(Dispatchers.IO) {
-        logApiFailure("getItemInfo($mediaId)") {
+        logRequest("getItemInfo($mediaId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure null
+                return@logRequest null
             }
             val result = api.userLibraryApi.getItem(itemId = mediaId, userId = getUserId())
             Log.d("getItemInfo", result.content.toString())
@@ -254,9 +255,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getSeasons(seriesId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getSeasons($seriesId)") {
+        logRequest("getSeasons($seriesId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val result = api.tvShowsApi.getSeasons(
                 userId = getUserId(),
@@ -270,9 +271,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getEpisodesInSeason(seriesId: UUID, seasonId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getEpisodesInSeason(series=$seriesId, season=$seasonId)") {
+        logRequest("getEpisodesInSeason(series=$seriesId, season=$seasonId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val result = api.tvShowsApi.getEpisodes(
                 userId = getUserId(),
@@ -287,12 +288,12 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getNextEpisodes(episodeId: UUID, count: Int): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getNextEpisodes($episodeId, count=$count)") {
+        logRequest("getNextEpisodes($episodeId, count=$count)") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
-            val episodeInfo = getItemInfo(episodeId) ?: return@logApiFailure emptyList()
-            val seriesId = episodeInfo.seriesId ?: return@logApiFailure emptyList()
+            val episodeInfo = getItemInfo(episodeId) ?: return@logRequest emptyList()
+            val seriesId = episodeInfo.seriesId ?: return@logRequest emptyList()
             val nextUpEpisodesResult = api.tvShowsApi.getEpisodes(
                 userId = getUserId(),
                 seriesId = seriesId,
@@ -307,9 +308,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getGenres(id: UUID? = null) : List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getGenres($id)") {
+        logRequest("getGenres($id)") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val result = api.genresApi.getGenres(
                 userId = getUserId(),
@@ -321,9 +322,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun markAsWatched(mediaId: UUID) = withContext(Dispatchers.IO) {
-        logApiFailure("markAsWatched($mediaId)") {
+        logRequest("markAsWatched($mediaId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure
+                return@logRequest
             }
             api.playStateApi.markPlayedItem(
                 itemId = mediaId,
@@ -333,9 +334,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun markAsUnwatched(mediaId: UUID) = withContext(Dispatchers.IO) {
-        logApiFailure("markAsUnwatched($mediaId)") {
+        logRequest("markAsUnwatched($mediaId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure
+                return@logRequest
             }
             api.playStateApi.markUnplayedItem(
                 itemId = mediaId,
@@ -345,9 +346,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
-        logApiFailure("getMediaSources($mediaId)") {
+        logRequest("getMediaSources($mediaId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val result = api.mediaInfoApi.getPostedPlaybackInfo(
                 mediaId,
@@ -363,9 +364,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getMediaSegments(mediaId: UUID) : List<MediaSegmentDto> = withContext(Dispatchers.IO) {
-        logApiFailure("getMediaSegments($mediaId)") {
+        logRequest("getMediaSegments($mediaId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure emptyList()
+                return@logRequest emptyList()
             }
             val result = api.mediaSegmentsApi.getItemSegments(
                 itemId = mediaId,
@@ -380,9 +381,9 @@ class JellyfinApiClient @Inject constructor(
         mediaId: UUID,
         deviceProfile: DeviceProfile,
     ): PlaybackInfoResponse? = withContext(Dispatchers.IO) {
-        logApiFailure("getPlaybackInfo($mediaId)") {
+        logRequest("getPlaybackInfo($mediaId)") {
             if (!ensureConfigured()) {
-                return@logApiFailure null
+                return@logRequest null
             }
             api.mediaInfoApi.getPostedPlaybackInfo(
                 mediaId,
@@ -423,9 +424,9 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getPublicSystemInfoVersion(): String? = withContext(Dispatchers.IO) {
-        logApiFailure("getPublicSystemInfoVersion") {
+        logRequest("getPublicSystemInfoVersion") {
             if (!ensureConfigured()) {
-                return@logApiFailure null
+                return@logRequest null
             }
             SystemApi(api).getPublicSystemInfo().content.version
         }
@@ -436,8 +437,8 @@ class JellyfinApiClient @Inject constructor(
         positionTicks: Long = 0L,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        logApiFailure("reportPlaybackStart($itemId)") {
-            if (!ensureConfigured()) return@logApiFailure
+        logRequest("reportPlaybackStart($itemId)") {
+            if (!ensureConfigured()) return@logRequest
             api.playStateApi.reportPlaybackStart(
                 PlaybackStartInfo(
                     itemId = itemId,
@@ -464,8 +465,8 @@ class JellyfinApiClient @Inject constructor(
         isPaused: Boolean,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        logApiFailure("reportPlaybackProgress($itemId)") {
-            if (!ensureConfigured()) return@logApiFailure
+        logRequest("reportPlaybackProgress($itemId)") {
+            if (!ensureConfigured()) return@logRequest
             api.playStateApi.reportPlaybackProgress(
                 PlaybackProgressInfo(
                     itemId = itemId,
@@ -491,8 +492,8 @@ class JellyfinApiClient @Inject constructor(
         positionTicks: Long,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        logApiFailure("reportPlaybackStopped($itemId)") {
-            if (!ensureConfigured()) return@logApiFailure
+        logRequest("reportPlaybackStopped($itemId)") {
+            if (!ensureConfigured()) return@logRequest
             api.playStateApi.reportPlaybackStopped(
                 PlaybackStopInfo(
                     itemId = itemId,
@@ -506,15 +507,38 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
-    private suspend fun <T> logApiFailure(operation: String, block: suspend () -> T): T {
+    private suspend fun <T> logRequest(operation: String, block: suspend () -> T): T {
+        val startedAt = SystemClock.elapsedRealtime()
         return try {
-            block()
+            val result = block()
+            val elapsedMs = SystemClock.elapsedRealtime() - startedAt
+            Log.d(
+                TAG,
+                "$operation finished in ${elapsedMs}ms, " +
+                    "fetched ${result.approximateSizeBytes()} bytes${result.itemCountLogText()}"
+            )
+            result
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Log.e(TAG, "$operation failed", error)
+            val elapsedMs = SystemClock.elapsedRealtime() - startedAt
+            Log.e(TAG, "$operation failed after ${elapsedMs}ms", error)
             throw error
         }
+    }
+
+    private fun Any?.approximateSizeBytes(): Int {
+        return toString().toByteArray(Charsets.UTF_8).size
+    }
+
+    private fun Any?.itemCountLogText(): String {
+        val count = when (this) {
+            is Collection<*> -> size
+            is Map<*, *> -> size
+            is Array<*> -> size
+            else -> null
+        }
+        return count?.let { ", items $it" }.orEmpty()
     }
 
     private fun PlaybackMethod.toJellyfinPlayMethod(): PlayMethod = when (this) {
