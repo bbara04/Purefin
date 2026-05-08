@@ -9,10 +9,14 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,7 +25,6 @@ import hu.bbara.purefin.core.settings.BooleanSetting
 import hu.bbara.purefin.core.settings.DropdownSetting
 import hu.bbara.purefin.core.settings.RangeSetting
 import hu.bbara.purefin.core.settings.SettingOption
-import hu.bbara.purefin.core.settings.SettingsOptions
 import hu.bbara.purefin.core.settings.StringSetting
 import hu.bbara.purefin.core.settings.VoidSetting
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
@@ -37,10 +40,20 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
+    val settingGroups by viewModel.settingGroups.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel) {
+        viewModel.snackbarMessages.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             SettingsTopBar(onBack = viewModel::onBack)
         }
@@ -59,7 +72,7 @@ fun SettingsScreen(
                 )
             }
 
-            SettingsOptions.groups.forEach { group ->
+            settingGroups.forEach { group ->
                 group.title?.let { title ->
                     item {
                         Text(
@@ -122,7 +135,7 @@ private fun SettingOptionItem(
         is VoidSetting -> {
             VoidSettingItem(
                 title = option.title,
-                onClick = {}
+                onClick = { viewModel.onClick(option) }
             )
         }
 

@@ -28,7 +28,8 @@ data class StringSetting(
 data class VoidSetting(
     override val key: String,
     override val title: String,
-    override val defaultValue: Unit = Unit
+    override val defaultValue: Unit = Unit,
+    val onClick: suspend () -> Unit = {}
 ) : SettingOption<Unit>
 
 data class DropdownSetting<T>(
@@ -44,18 +45,6 @@ data class SettingGroup(
 )
 
 object SettingsOptions {
-    val defaultPlaybackSpeed = RangeSetting(
-        key = "default_playback_speed",
-        title = "Default playback speed",
-        defaultValue = 1.0,
-        valueRange = 0.5..2.0
-    )
-
-    val confirmMobileDataPlayback = BooleanSetting(
-        key = "confirm_mobile_data_playback",
-        title = "Confirm mobile data playback",
-        defaultValue = true
-    )
 
     val autoPlayNextMedia = BooleanSetting(
         key = "auto_play_next_media",
@@ -63,34 +52,11 @@ object SettingsOptions {
         defaultValue = true
     )
 
-    val preferredAudioLanguage = StringSetting(
-        key = "preferred_audio_language",
-        title = "Preferred audio language",
-        defaultValue = "English"
-    )
-
-    val resetPlaybackSettings = VoidSetting(
-        key = "reset_playback_settings",
-        title = "Reset playback settings"
-    )
-
-    val streamingQuality = DropdownSetting(
-        key = "streaming_quality",
-        title = "Streaming quality",
-        defaultValue = "Auto",
-        options = listOf("Auto", "Low", "Medium", "High")
-    )
-
     val groups = listOf(
         SettingGroup(
             title = "Playback",
             options = listOf(
-                defaultPlaybackSpeed,
-                confirmMobileDataPlayback,
                 autoPlayNextMedia,
-                preferredAudioLanguage,
-                resetPlaybackSettings,
-                streamingQuality
             )
         )
     )

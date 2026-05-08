@@ -1,5 +1,6 @@
 package hu.bbara.purefin.ui.screen.settings
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,7 +42,6 @@ import hu.bbara.purefin.core.settings.BooleanSetting
 import hu.bbara.purefin.core.settings.DropdownSetting
 import hu.bbara.purefin.core.settings.RangeSetting
 import hu.bbara.purefin.core.settings.SettingOption
-import hu.bbara.purefin.core.settings.SettingsOptions
 import hu.bbara.purefin.core.settings.StringSetting
 import hu.bbara.purefin.core.settings.VoidSetting
 import java.util.Locale
@@ -50,6 +52,15 @@ fun TvSettingsScreen(
     onBack: () -> Unit = viewModel::onBack,
     modifier: Modifier = Modifier
 ) {
+    val settingGroups by viewModel.settingGroups.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel, context) {
+        viewModel.snackbarMessages.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -72,7 +83,7 @@ fun TvSettingsScreen(
                 )
             }
 
-            SettingsOptions.groups.forEach { group ->
+            settingGroups.forEach { group ->
                 group.title?.let { title ->
                     item {
                         Text(
@@ -135,7 +146,7 @@ private fun TvSettingOptionItem(
         is VoidSetting -> {
             TvVoidSettingItem(
                 title = option.title,
-                onClick = {}
+                onClick = { viewModel.onClick(option) }
             )
         }
 
