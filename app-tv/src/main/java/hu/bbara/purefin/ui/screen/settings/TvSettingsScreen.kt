@@ -2,6 +2,7 @@ package hu.bbara.purefin.ui.screen.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,7 +35,13 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.core.feature.settings.SettingsViewModel
+import hu.bbara.purefin.core.settings.BooleanSetting
+import hu.bbara.purefin.core.settings.DropdownSetting
+import hu.bbara.purefin.core.settings.RangeSetting
+import hu.bbara.purefin.core.settings.SettingOption
 import hu.bbara.purefin.core.settings.SettingsOptions
+import hu.bbara.purefin.core.settings.StringSetting
+import hu.bbara.purefin.core.settings.VoidSetting
 import java.util.Locale
 
 @Composable
@@ -63,53 +72,94 @@ fun TvSettingsScreen(
                 )
             }
 
-            item {
-                Text(
-                    text = "Playback",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp)
-                )
-            }
-
-            SettingsOptions.numberSettings.forEach { option ->
-                item(key = option.key) {
-                    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-                    TvNumberSettingItem(
-                        title = option.title,
-                        value = value,
-                        valueRange = option.valueRange,
-                        onValueChange = { viewModel.set(option, it) }
-                    )
-                    HorizontalDivider()
+            SettingsOptions.groups.forEach { group ->
+                group.title?.let { title ->
+                    item {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp)
+                        )
+                    }
                 }
-            }
 
-            SettingsOptions.booleanSettings.forEach { option ->
-                item(key = option.key) {
-                    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-                    TvBooleanSettingItem(
-                        title = option.title,
-                        value = value,
-                        onValueChange = { viewModel.set(option, it) }
-                    )
-                    HorizontalDivider()
-                }
-            }
-
-            SettingsOptions.stringSettings.forEach { option ->
-                item(key = option.key) {
-                    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-                    TvStringSettingItem(
-                        title = option.title,
-                        value = value,
-                        onValueChange = { viewModel.set(option, it) }
-                    )
-                    HorizontalDivider()
+                group.options.forEach { option ->
+                    item(key = option.key) {
+                        TvSettingOptionItem(
+                            option = option,
+                            viewModel = viewModel
+                        )
+                        HorizontalDivider()
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun TvSettingOptionItem(
+    option: SettingOption<*>,
+    viewModel: SettingsViewModel
+) {
+    when (option) {
+        is RangeSetting -> {
+            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
+            TvNumberSettingItem(
+                title = option.title,
+                value = value,
+                valueRange = option.valueRange,
+                onValueChange = { viewModel.set(option, it) }
+            )
+        }
+
+        is BooleanSetting -> {
+            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
+            TvBooleanSettingItem(
+                title = option.title,
+                value = value,
+                onValueChange = { viewModel.set(option, it) }
+            )
+        }
+
+        is StringSetting -> {
+            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
+            TvStringSettingItem(
+                title = option.title,
+                value = value,
+                onValueChange = { viewModel.set(option, it) }
+            )
+        }
+
+        is VoidSetting -> {
+            TvVoidSettingItem(
+                title = option.title,
+                onClick = {}
+            )
+        }
+
+        is DropdownSetting<*> -> {
+            TvDropdownSettingOptionItem(
+                option = option,
+                viewModel = viewModel
+            )
+        }
+    }
+}
+
+@Composable
+private fun <T> TvDropdownSettingOptionItem(
+    option: DropdownSetting<T>,
+    viewModel: SettingsViewModel
+) {
+    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
+    TvDropdownSettingItem(
+        title = option.title,
+        value = value,
+        options = option.options,
+        onValueChange = { viewModel.set(option, it) }
+    )
 }
 
 @Composable
@@ -127,6 +177,72 @@ private fun TvSettingsTopBar(
                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                 contentDescription = "Back"
             )
+        }
+    }
+}
+
+@Composable
+private fun TvVoidSettingItem(
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 28.dp, vertical = 16.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
+}
+
+@Composable
+private fun <T> TvDropdownSettingItem(
+    title: String,
+    value: T,
+    options: List<T>,
+    onValueChange: (T) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true }
+                .padding(horizontal = 28.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = value.toString(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.toString()) },
+                    onClick = {
+                        expanded = false
+                        onValueChange(option)
+                    }
+                )
+            }
         }
     }
 }

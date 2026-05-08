@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import java.util.Locale
 
 @Composable
-fun NumberSettingItem(
+fun RangeSettingItem(
     title: String,
     value: Double,
     valueRange: ClosedFloatingPointRange<Double>,

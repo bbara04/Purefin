@@ -6,7 +6,7 @@ sealed interface SettingOption<T> {
     val defaultValue: T
 }
 
-data class NumberSetting(
+data class RangeSetting(
     override val key: String,
     override val title: String,
     override val defaultValue: Double,
@@ -25,8 +25,26 @@ data class StringSetting(
     override val defaultValue: String
 ) : SettingOption<String>
 
+data class VoidSetting(
+    override val key: String,
+    override val title: String,
+    override val defaultValue: Unit = Unit
+) : SettingOption<Unit>
+
+data class DropdownSetting<T>(
+    override val key: String,
+    override val title: String,
+    override val defaultValue: T,
+    val options: List<T>
+): SettingOption<T>
+
+data class SettingGroup(
+    val title: String?,
+    val options: List<SettingOption<*>>
+)
+
 object SettingsOptions {
-    val defaultPlaybackSpeed = NumberSetting(
+    val defaultPlaybackSpeed = RangeSetting(
         key = "default_playback_speed",
         title = "Default playback speed",
         defaultValue = 1.0,
@@ -45,7 +63,28 @@ object SettingsOptions {
         defaultValue = "English"
     )
 
-    val numberSettings = listOf(defaultPlaybackSpeed)
-    val booleanSettings = listOf(confirmMobileDataPlayback)
-    val stringSettings = listOf(preferredAudioLanguage)
+    val resetPlaybackSettings = VoidSetting(
+        key = "reset_playback_settings",
+        title = "Reset playback settings"
+    )
+
+    val streamingQuality = DropdownSetting(
+        key = "streaming_quality",
+        title = "Streaming quality",
+        defaultValue = "Auto",
+        options = listOf("Auto", "Low", "Medium", "High")
+    )
+
+    val groups = listOf(
+        SettingGroup(
+            title = "Playback",
+            options = listOf(
+                defaultPlaybackSpeed,
+                confirmMobileDataPlayback,
+                preferredAudioLanguage,
+                resetPlaybackSettings,
+                streamingQuality
+            )
+        )
+    )
 }

@@ -17,12 +17,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.core.feature.settings.SettingsViewModel
+import hu.bbara.purefin.core.settings.BooleanSetting
+import hu.bbara.purefin.core.settings.DropdownSetting
+import hu.bbara.purefin.core.settings.RangeSetting
+import hu.bbara.purefin.core.settings.SettingOption
 import hu.bbara.purefin.core.settings.SettingsOptions
+import hu.bbara.purefin.core.settings.StringSetting
+import hu.bbara.purefin.core.settings.VoidSetting
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBarIconButton
 import hu.bbara.purefin.ui.screen.settings.components.BooleanSettingItem
-import hu.bbara.purefin.ui.screen.settings.components.NumberSettingItem
+import hu.bbara.purefin.ui.screen.settings.components.DropdownSettingItem
+import hu.bbara.purefin.ui.screen.settings.components.RangeSettingItem
 import hu.bbara.purefin.ui.screen.settings.components.StringSettingItem
+import hu.bbara.purefin.ui.screen.settings.components.VoidSettingItem
 
 @Composable
 fun SettingsScreen(
@@ -51,53 +59,94 @@ fun SettingsScreen(
                 )
             }
 
-            item {
-                Text(
-                    text = "Playback",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-                )
-            }
-
-            SettingsOptions.numberSettings.forEach { option ->
-                item(key = option.key) {
-                    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-                    NumberSettingItem(
-                        title = option.title,
-                        value = value,
-                        valueRange = option.valueRange,
-                        onValueChange = { viewModel.set(option, it) }
-                    )
-                    HorizontalDivider()
+            SettingsOptions.groups.forEach { group ->
+                group.title?.let { title ->
+                    item {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                        )
+                    }
                 }
-            }
 
-            SettingsOptions.booleanSettings.forEach { option ->
-                item(key = option.key) {
-                    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-                    BooleanSettingItem(
-                        title = option.title,
-                        value = value,
-                        onValueChange = { viewModel.set(option, it) }
-                    )
-                    HorizontalDivider()
-                }
-            }
-
-            SettingsOptions.stringSettings.forEach { option ->
-                item(key = option.key) {
-                    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-                    StringSettingItem(
-                        title = option.title,
-                        value = value,
-                        onValueChange = { viewModel.set(option, it) }
-                    )
-                    HorizontalDivider()
+                group.options.forEach { option ->
+                    item(key = option.key) {
+                        SettingOptionItem(
+                            option = option,
+                            viewModel = viewModel
+                        )
+                        HorizontalDivider()
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun SettingOptionItem(
+    option: SettingOption<*>,
+    viewModel: SettingsViewModel
+) {
+    when (option) {
+        is RangeSetting -> {
+            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
+            RangeSettingItem(
+                title = option.title,
+                value = value,
+                valueRange = option.valueRange,
+                onValueChange = { viewModel.set(option, it) }
+            )
+        }
+
+        is BooleanSetting -> {
+            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
+            BooleanSettingItem(
+                title = option.title,
+                value = value,
+                onValueChange = { viewModel.set(option, it) }
+            )
+        }
+
+        is StringSetting -> {
+            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
+            StringSettingItem(
+                title = option.title,
+                value = value,
+                onValueChange = { viewModel.set(option, it) }
+            )
+        }
+
+        is VoidSetting -> {
+            VoidSettingItem(
+                title = option.title,
+                onClick = {}
+            )
+        }
+
+        is DropdownSetting<*> -> {
+            DropdownSettingOptionItem(
+                option = option,
+                viewModel = viewModel
+            )
+        }
+    }
+}
+
+@Composable
+private fun <T> DropdownSettingOptionItem(
+    option: DropdownSetting<T>,
+    viewModel: SettingsViewModel
+) {
+    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
+    DropdownSettingItem(
+        title = option.title,
+        value = value,
+        options = option.options,
+        onValueChange = { viewModel.set(option, it) }
+    )
 }
 
 @Composable
