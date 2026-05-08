@@ -116,31 +116,37 @@ private fun TvSettingOptionItem(
 ) {
     when (option) {
         is RangeSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-            TvNumberSettingItem(
-                title = option.title,
-                value = value,
-                valueRange = option.valueRange,
-                onValueChange = { viewModel.set(option, it) }
-            )
+            val value by viewModel.value(option).collectAsState(initial = null)
+            value?.let {
+                TvNumberSettingItem(
+                    title = option.title,
+                    value = it,
+                    valueRange = option.valueRange,
+                    onValueChange = { value -> viewModel.set(option, value) }
+                )
+            }
         }
 
         is BooleanSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-            TvBooleanSettingItem(
-                title = option.title,
-                value = value,
-                onValueChange = { viewModel.set(option, it) }
-            )
+            val value by viewModel.value(option).collectAsState(initial = null)
+            value?.let {
+                TvBooleanSettingItem(
+                    title = option.title,
+                    value = it,
+                    onValueChange = { value -> viewModel.set(option, value) }
+                )
+            }
         }
 
         is StringSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-            TvStringSettingItem(
-                title = option.title,
-                value = value,
-                onValueChange = { viewModel.set(option, it) }
-            )
+            val value by viewModel.value(option).collectAsState(initial = null)
+            value?.let {
+                TvStringSettingItem(
+                    title = option.title,
+                    value = it,
+                    onValueChange = { value -> viewModel.set(option, value) }
+                )
+            }
         }
 
         is VoidSetting -> {
@@ -164,13 +170,15 @@ private fun <T> TvDropdownSettingOptionItem(
     option: DropdownSetting<T>,
     viewModel: SettingsViewModel
 ) {
-    val value by viewModel.value(option).collectAsState(initial = option.defaultValue)
-    TvDropdownSettingItem(
-        title = option.title,
-        value = value,
-        options = option.options,
-        onValueChange = { viewModel.set(option, it) }
-    )
+    val value by viewModel.value(option).collectAsState(initial = null)
+    value?.let {
+        TvDropdownSettingItem(
+            title = option.title,
+            value = it,
+            options = option.options,
+            onValueChange = { value -> viewModel.set(option, value) }
+        )
+    }
 }
 
 @Composable

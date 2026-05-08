@@ -9,8 +9,8 @@ import hu.bbara.purefin.core.settings.DropdownSetting
 import hu.bbara.purefin.core.settings.RangeSetting
 import hu.bbara.purefin.core.settings.SettingGroup
 import hu.bbara.purefin.core.settings.SettingsGroupProvider
-import hu.bbara.purefin.core.settings.SettingsRepository
 import hu.bbara.purefin.core.settings.SettingsOptions
+import hu.bbara.purefin.core.settings.SettingsRepository
 import hu.bbara.purefin.core.settings.StringSetting
 import hu.bbara.purefin.core.settings.VoidSetting
 import kotlinx.coroutines.flow.MutableSharedFlow
