@@ -47,6 +47,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -93,6 +95,11 @@ fun TvPlayerScreen(
     val audioButtonFocusRequester = remember { FocusRequester() }
     val subtitlesButtonFocusRequester = remember { FocusRequester() }
     val skipButtonFocusRequester = remember { FocusRequester() }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        viewModel.pausePlayback()
+    }
+
     LaunchedEffect(uiState.isPlaying) {
         val activity = context as? Activity
         if (uiState.isPlaying) {
