@@ -77,20 +77,22 @@ internal fun TvSeriesScreenContent(
         mutableStateOf(defaultSeason.id)
     }
     val selectedSeason = series.seasons.firstOrNull { it.id == selectedSeasonId } ?: defaultSeason
-    val initialFocusedEpisodeId = remember(series.id, focusedSeasonId, focusedEpisodeId) {
-        val focusedEpisode = defaultSeason.episodes.firstOrNull { it.id == focusedEpisodeId }
-        focusedEpisode?.id ?: defaultSeason.nextUpEpisode()?.id
-    }
-    val firstContentFocusRequester = remember { FocusRequester() }
+    val initialFocusSeasonId = remember(series.id, focusedSeasonId) { defaultSeason.id }
+    val initialFocusSeason = series.seasons.firstOrNull { it.id == initialFocusSeasonId } ?: defaultSeason
+    val initialFocusedEpisodeId = initialFocusSeason.focusTargetEpisodeId(focusedEpisodeId)
+    val seasonTabFocusRequester = remember { FocusRequester() }
+    val waitingForInitialEpisodes = initialFocusedEpisodeId == null &&
+        initialFocusSeason.episodes.isEmpty() &&
+        initialFocusSeason.episodeCount > 0
 
     LaunchedEffect(series.id, selectedSeason.id) {
         onLoadSeasonEpisodes(series.id, selectedSeason.id)
     }
 
-    LaunchedEffect(series.id, initialFocusedEpisodeId) {
-        if (initialFocusedEpisodeId != null) return@LaunchedEffect
+    LaunchedEffect(series.id, initialFocusedEpisodeId, waitingForInitialEpisodes) {
+        if (initialFocusedEpisodeId != null || waitingForInitialEpisodes) return@LaunchedEffect
         withFrameNanos { }
-        firstContentFocusRequester.requestFocus()
+        seasonTabFocusRequester.requestFocus()
     }
 
     TvMediaDetailScaffold(
@@ -115,7 +117,7 @@ internal fun TvSeriesScreenContent(
                 TvSeasonTabs(
                     seasons = series.seasons,
                     selectedSeason = selectedSeason,
-                    firstItemFocusRequester = firstContentFocusRequester,
+                    selectedItemFocusRequester = seasonTabFocusRequester,
                     firstItemTestTag = SeriesFirstSeasonTabTag,
                     onSelect = { selectedSeasonId = it.id },
                     modifier = Modifier.fillMaxWidth()
@@ -142,4 +144,9 @@ private fun Series.defaultSeason(focusedSeasonId: UUID?): Season {
 
 private fun Season.nextUpEpisode(): Episode? {
     return episodes.firstOrNull { !it.watched } ?: episodes.firstOrNull()
+}
+
+private fun Season.focusTargetEpisodeId(focusedEpisodeId: UUID?): UUID? {
+    val focusedEpisode = episodes.firstOrNull { it.id == focusedEpisodeId }
+    return focusedEpisode?.id ?: nextUpEpisode()?.id
 }

@@ -82,7 +82,7 @@ internal fun TvSeasonTabs(
     seasons: List<Season>,
     selectedSeason: Season?,
     modifier: Modifier = Modifier,
-    firstItemFocusRequester: FocusRequester? = null,
+    selectedItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
     onSelect: (Season) -> Unit
 ) {
@@ -104,8 +104,8 @@ internal fun TvSeasonTabs(
                 colors = TabDefaults.underlinedIndicatorTabColors(),
                 modifier = Modifier
                     .then(
-                        if (index == 0 && firstItemFocusRequester != null) {
-                            Modifier.focusRequester(firstItemFocusRequester)
+                        if (index == selectedSeasonIndex && selectedItemFocusRequester != null) {
+                            Modifier.focusRequester(selectedItemFocusRequester)
                         } else {
                             Modifier
                         }
@@ -145,6 +145,7 @@ internal fun TvEpisodeCarousel(
 ) {
     val listState = rememberLazyListState()
     val focusedEpisodeFocusRequester = remember { FocusRequester() }
+    var requestedFocusEpisodeId by remember { mutableStateOf<UUID?>(null) }
 
     LaunchedEffect(episodes, focusedEpisodeId) {
         val focusedEpisodeIndex = focusedEpisodeId?.let { id ->
@@ -159,9 +160,10 @@ internal fun TvEpisodeCarousel(
             listState.scrollToItem(0)
         }
 
-        if (focusedEpisodeIndex >= 0) {
+        if (focusedEpisodeIndex >= 0 && requestedFocusEpisodeId != focusedEpisodeId) {
             withFrameNanos { }
             focusedEpisodeFocusRequester.requestFocus()
+            requestedFocusEpisodeId = focusedEpisodeId
         }
     }
 
