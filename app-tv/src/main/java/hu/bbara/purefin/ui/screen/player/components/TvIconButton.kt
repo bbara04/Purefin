@@ -54,6 +54,18 @@ internal fun TvIconButton(
         targetValue = if (isFocused) scheme.primary else Color.Transparent,
         label = "border"
     )
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isFocused) {
+            scheme.primaryContainer
+        } else {
+            scheme.surfaceContainerHigh.copy(alpha = 0.72f)
+        },
+        label = "background"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (isFocused) scheme.onPrimaryContainer else scheme.onSurface,
+        label = "content"
+    )
     val shape = RoundedCornerShape(50)
     val iconSize = (size - 24).coerceAtLeast(0).dp
 
@@ -69,10 +81,7 @@ internal fun TvIconButton(
             shape = shape
         )
         .clip(shape)
-        .background(
-            if (isFocused) scheme.primary.copy(alpha = 0.5f)
-            else scheme.background.copy(alpha = 0.65f)
-        )
+        .background(backgroundColor)
         .focusProperties { canFocus = enabled }
         .semantics {
             if (!enabled) {
@@ -86,7 +95,7 @@ internal fun TvIconButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = scheme.onBackground,
+            tint = contentColor,
             modifier = buttonModifier
                 .size(size.dp)
                 .padding(12.dp)
@@ -104,12 +113,12 @@ internal fun TvIconButton(
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                tint = scheme.onBackground,
+                tint = contentColor,
                 modifier = Modifier.size(iconSize)
             )
             Text(
                 text = label,
-                color = scheme.onBackground,
+                color = contentColor,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold
             )

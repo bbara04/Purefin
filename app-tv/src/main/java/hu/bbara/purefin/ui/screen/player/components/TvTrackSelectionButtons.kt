@@ -1,25 +1,30 @@
 package hu.bbara.purefin.ui.screen.player.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ClosedCaption
 import androidx.compose.material.icons.outlined.HighQuality
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -211,23 +216,42 @@ private fun TvTrackOptionRow(
 ) {
     val scheme = MaterialTheme.colorScheme
     var isFocused by remember { mutableStateOf(false) }
+    val backgroundColor by animateColorAsState(
+        targetValue = when {
+            isFocused -> scheme.primaryContainer
+            selected -> scheme.secondaryContainer.copy(alpha = 0.9f)
+            else -> scheme.surfaceContainerHigh.copy(alpha = 0.72f)
+        },
+        label = "trackOptionBackground"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = when {
+            isFocused -> scheme.onPrimaryContainer
+            selected -> scheme.onSecondaryContainer
+            else -> scheme.onSurface
+        },
+        label = "trackOptionContent"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            isFocused -> scheme.primary
+            selected -> scheme.secondary
+            else -> scheme.outlineVariant.copy(alpha = 0.45f)
+        },
+        label = "trackOptionBorder"
+    )
+    val shape = RoundedCornerShape(12.dp)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .then(
-                if (isFocused) {
-                    Modifier.border(2.dp, scheme.primary, RoundedCornerShape(12.dp))
-                } else {
-                    Modifier
-                }
+            .border(
+                width = if (isFocused) 3.dp else if (selected) 2.dp else 1.dp,
+                color = borderColor,
+                shape = shape
             )
-            .clip(RoundedCornerShape(12.dp))
-            .background(
-                if (isFocused) scheme.primary.copy(alpha = 0.3f)
-                else if (selected) scheme.primary.copy(alpha = 0.15f)
-                else scheme.surfaceVariant.copy(alpha = 0.6f)
-            )
+            .clip(shape)
+            .background(backgroundColor)
             .onFocusChanged { isFocused = it.isFocused }
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) {
@@ -244,11 +268,25 @@ private fun TvTrackOptionRow(
             .clickable { onClick() }
             .padding(horizontal = 20.dp, vertical = 14.dp)
     ) {
-        Text(
-            text = label,
-            color = scheme.onSurface,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                color = contentColor,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (selected || isFocused) FontWeight.SemiBold else FontWeight.Normal
+            )
+            if (selected) {
+                Icon(
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
     }
 }
