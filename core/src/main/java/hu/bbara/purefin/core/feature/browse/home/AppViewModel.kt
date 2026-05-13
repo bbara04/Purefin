@@ -7,7 +7,6 @@ import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.core.download.MediaDownloadController
-import hu.bbara.purefin.core.feature.update.AppUpdateController
 import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
 import hu.bbara.purefin.core.model.EpisodeUiModel
 import hu.bbara.purefin.core.model.LibraryUiModel
@@ -41,7 +40,6 @@ class AppViewModel @Inject constructor(
     private val jellyfinMediaMetadataUpdater: JellyfinMediaMetadataUpdater,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
-    private val appUpdateController: AppUpdateController,
 ) : ViewModel() {
 
     private val _isRefreshing = MutableStateFlow(false)
@@ -241,10 +239,6 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 homeRepository.refreshHomeData()
-                appUpdateController.checkForUpdates(
-                    showUpToDateMessage = false,
-                    showFailureMessage = false
-                )
             } catch (e: Exception) {
                 // Refresh is best-effort; don't crash on failure
             }
@@ -261,10 +255,6 @@ class AppViewModel @Inject constructor(
             _isRefreshing.value = true
             try {
                 homeRepository.refreshHomeData()
-                appUpdateController.checkForUpdates(
-                    showUpToDateMessage = false,
-                    showFailureMessage = false
-                )
             } catch (e: Exception) {
                 // Refresh is best-effort; don't crash on failure
             } finally {

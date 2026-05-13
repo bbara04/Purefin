@@ -158,7 +158,7 @@ class TvActivity : ComponentActivity() {
         }
 
         LaunchedEffect(updateViewModel) {
-            updateViewModel.checkForUpdates(showUpToDateMessage = false)
+            updateViewModel.checkForUpdatesOnAppOpen()
         }
 
         LaunchedEffect(updateViewModel, context) {

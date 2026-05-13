@@ -25,6 +25,12 @@ class AppUpdateViewModel @Inject constructor(
         }
     }
 
+    fun checkForUpdatesOnAppOpen() {
+        viewModelScope.launch {
+            appUpdateController.checkForUpdatesOnAppOpen()
+        }
+    }
+
     fun acceptUpdate() {
         viewModelScope.launch {
             appUpdateController.installAvailableUpdate()

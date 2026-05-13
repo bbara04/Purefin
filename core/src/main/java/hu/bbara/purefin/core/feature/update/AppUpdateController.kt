@@ -34,11 +34,13 @@ class AppUpdateController @Inject constructor(
 
     private val checkMutex = Mutex()
     private val installMutex = Mutex()
+    private var checkedForUpdatesOnAppOpen = false
 
     override val settingGroups: Flow<List<SettingGroup>> = availableUpdate
         .map { update ->
             val options = listOfNotNull<SettingOption<*>>(
                 buildNumberSetting(),
+                checkForUpdatesSetting(),
                 update?.let { installUpdateSetting(it) }
             )
 
@@ -73,6 +75,18 @@ class AppUpdateController @Inject constructor(
             _isCheckingForUpdates.value = false
             checkMutex.unlock()
         }
+    }
+
+    suspend fun checkForUpdatesOnAppOpen() {
+        if (checkedForUpdatesOnAppOpen) {
+            return
+        }
+
+        checkedForUpdatesOnAppOpen = true
+        checkForUpdates(
+            showUpToDateMessage = false,
+            showFailureMessage = false
+        )
     }
 
     suspend fun installAvailableUpdate() {
@@ -110,8 +124,15 @@ class AppUpdateController @Inject constructor(
         value = appVersionProvider.versionCode.toString()
     )
 
+    private fun checkForUpdatesSetting() = VoidSetting(
+        key = CHECK_FOR_UPDATES_KEY,
+        title = "Check for updates",
+        onClick = { checkForUpdates() }
+    )
+
     private companion object {
         const val BUILD_NUMBER_KEY = "build_number"
+        const val CHECK_FOR_UPDATES_KEY = "check_for_updates"
         const val INSTALL_APP_UPDATE_KEY = "install_app_update"
     }
 }

@@ -60,6 +60,10 @@ fun AppScreen(
     }
 
     LaunchedEffect(updateViewModel) {
+        updateViewModel.checkForUpdatesOnAppOpen()
+    }
+
+    LaunchedEffect(updateViewModel) {
         updateViewModel.snackbarMessages.collect { message ->
             snackbarHostState.showSnackbar(message)
         }
