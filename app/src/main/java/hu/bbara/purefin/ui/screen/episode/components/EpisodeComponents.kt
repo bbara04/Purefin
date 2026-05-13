@@ -1,7 +1,6 @@
 package hu.bbara.purefin.ui.screen.episode.components
 
 import android.content.Intent
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -84,6 +83,7 @@ internal fun EpisodeTopBar(
                         )
                     }
                 }
+
                 null -> {}
             }
         },
@@ -103,7 +103,6 @@ internal fun EpisodeDetails(
     episode: Episode,
     downloadState: DownloadState,
     onDownloadClick: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -116,58 +115,56 @@ internal fun EpisodeDetails(
         }
     }
 
-    Column(modifier = modifier) {
-        MediaSynopsis(
-            synopsis = episode.synopsis
+    MediaSynopsis(
+        synopsis = episode.synopsis
+    )
+    Row() {
+        MediaResumeButton(
+            text = mediaPlayButtonText(episode.progress, episode.watched),
+            progress = mediaPlaybackProgress(episode.progress),
+            onClick = playAction,
+            modifier = Modifier.sizeIn(maxWidth = 200.dp)
+        )
+        VerticalDivider(
+            color = MaterialTheme.colorScheme.secondary,
+            thickness = 2.dp,
+            modifier = Modifier
+                .height(48.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         )
         Row() {
-            MediaResumeButton(
-                text = mediaPlayButtonText(episode.progress, episode.watched),
-                progress = mediaPlaybackProgress(episode.progress),
-                onClick = playAction,
-                modifier = Modifier.sizeIn(maxWidth = 200.dp)
+            MediaActionButton(
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                iconColor = MaterialTheme.colorScheme.onSurface,
+                icon = when (downloadState) {
+                    is DownloadState.NotDownloaded -> Icons.Outlined.Download
+                    is DownloadState.Downloading -> Icons.Outlined.Close
+                    is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
+                    is DownloadState.Failed -> Icons.Outlined.Download
+                },
+                height = 48.dp,
+                onClick = onDownloadClick
             )
-            VerticalDivider(
-                color = MaterialTheme.colorScheme.secondary,
-                thickness = 2.dp,
-                modifier = Modifier
-                    .height(48.dp)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-            Row() {
-                MediaActionButton(
-                    backgroundColor = MaterialTheme.colorScheme.surface,
-                    iconColor = MaterialTheme.colorScheme.onSurface,
-                    icon = when (downloadState) {
-                        is DownloadState.NotDownloaded -> Icons.Outlined.Download
-                        is DownloadState.Downloading -> Icons.Outlined.Close
-                        is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
-                        is DownloadState.Failed -> Icons.Outlined.Download
-                    },
-                    height = 48.dp,
-                    onClick = onDownloadClick
-                )
-            }
         }
-        MediaPlaybackSettings(
-            backgroundColor = MaterialTheme.colorScheme.surface,
-            foregroundColor = MaterialTheme.colorScheme.onSurface,
-            //TODO fix it
-            audioTrack = "ENG",
-            subtitles = "ENG"
+    }
+    MediaPlaybackSettings(
+        backgroundColor = MaterialTheme.colorScheme.surface,
+        foregroundColor = MaterialTheme.colorScheme.onSurface,
+        //TODO fix it
+        audioTrack = "ENG",
+        subtitles = "ENG"
+    )
+    if (episode.cast.isNotEmpty()) {
+        Text(
+            text = "Cast",
+            color = scheme.onBackground,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
         )
-        if (episode.cast.isNotEmpty()) {
-            Text(
-                text = "Cast",
-                color = scheme.onBackground,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            //TODO use it
+        Spacer(modifier = Modifier.height(12.dp))
+        //TODO use it
 //            MediaCastRow(
 //                cast = episode.cast
 //            )
-        }
     }
 }
