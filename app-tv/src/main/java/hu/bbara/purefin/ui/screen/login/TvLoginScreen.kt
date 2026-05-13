@@ -12,7 +12,7 @@ import hu.bbara.purefin.core.feature.login.LoginViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(
+fun TvLoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
@@ -90,7 +90,7 @@ fun LoginScreen(
         )
     }
 
-    LoginContent(
+    TvLoginContent(
         state = state,
         callbacks = callbacks,
         modifier = modifier

@@ -6,18 +6,25 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.PlaybackReportContext
+import hu.bbara.purefin.core.data.JellyfinServerCandidate
+import hu.bbara.purefin.core.data.QuickConnectSession
 import hu.bbara.purefin.core.data.UserSessionRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.api.client.Response
+import org.jellyfin.sdk.api.client.extensions.authenticateWithQuickConnect
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.client.extensions.genresApi
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.extensions.mediaInfoApi
 import org.jellyfin.sdk.api.client.extensions.mediaSegmentsApi
 import org.jellyfin.sdk.api.client.extensions.playStateApi
+import org.jellyfin.sdk.api.client.extensions.quickConnectApi
 import org.jellyfin.sdk.api.client.extensions.suggestionsApi
 import org.jellyfin.sdk.api.client.extensions.tvShowsApi
 import org.jellyfin.sdk.api.client.extensions.userApi
@@ -26,6 +33,8 @@ import org.jellyfin.sdk.api.client.extensions.userViewsApi
 import org.jellyfin.sdk.api.client.extensions.videosApi
 import org.jellyfin.sdk.api.operations.SystemApi
 import org.jellyfin.sdk.createJellyfin
+import org.jellyfin.sdk.discovery.RecommendedServerInfo
+import org.jellyfin.sdk.discovery.RecommendedServerInfoScore
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.api.AuthenticationResult
 import org.jellyfin.sdk.model.api.BaseItemDto
@@ -90,6 +99,30 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
+    fun discoverServers(): Flow<JellyfinServerCandidate> =
+        jellyfin.discovery.discoverLocalServers()
+            .map { JellyfinServerCandidate(name = it.name, address = it.address) }
+            .flowOn(Dispatchers.IO)
+
+    suspend fun findServer(input: String): JellyfinServerCandidate? = withContext(Dispatchers.IO) {
+        logRequest("findServer") {
+            val address = input.trim()
+            if (address.isBlank()) {
+                return@logRequest null
+            }
+
+            val recommendedServers = jellyfin.discovery.getRecommendedServers(
+                input = address,
+                minimumScore = RecommendedServerInfoScore.OK
+            )
+            val server = recommendedServers.bestServer() ?: return@logRequest null
+            JellyfinServerCandidate(
+                name = server.systemInfo.getOrNull()?.serverName,
+                address = server.address
+            )
+        }
+    }
+
     suspend fun authenticate(
         url: String,
         username: String,
@@ -103,6 +136,50 @@ class JellyfinApiClient @Inject constructor(
 
             api.update(baseUrl = trimmedUrl)
             api.userApi.authenticateUserByName(username = username, password = password).content
+        }
+    }
+
+    suspend fun isQuickConnectEnabled(url: String): Boolean = withContext(Dispatchers.IO) {
+        logRequest("isQuickConnectEnabled") {
+            val trimmedUrl = url.trim()
+            if (trimmedUrl.isBlank()) {
+                return@logRequest false
+            }
+            api.update(baseUrl = trimmedUrl)
+            api.quickConnectApi.getQuickConnectEnabled().content
+        }
+    }
+
+    suspend fun initiateQuickConnect(url: String): QuickConnectSession? = withContext(Dispatchers.IO) {
+        logRequest("initiateQuickConnect") {
+            val trimmedUrl = url.trim()
+            if (trimmedUrl.isBlank()) {
+                return@logRequest null
+            }
+            api.update(baseUrl = trimmedUrl)
+            api.quickConnectApi.initiateQuickConnect().content.toQuickConnectSession()
+        }
+    }
+
+    suspend fun getQuickConnectState(url: String, secret: String): QuickConnectSession? = withContext(Dispatchers.IO) {
+        logRequest("getQuickConnectState") {
+            val trimmedUrl = url.trim()
+            if (trimmedUrl.isBlank() || secret.isBlank()) {
+                return@logRequest null
+            }
+            api.update(baseUrl = trimmedUrl)
+            api.quickConnectApi.getQuickConnectState(secret).content.toQuickConnectSession()
+        }
+    }
+
+    suspend fun authenticateWithQuickConnect(url: String, secret: String): AuthenticationResult? = withContext(Dispatchers.IO) {
+        logRequest("authenticateWithQuickConnect") {
+            val trimmedUrl = url.trim()
+            if (trimmedUrl.isBlank() || secret.isBlank()) {
+                return@logRequest null
+            }
+            api.update(baseUrl = trimmedUrl)
+            api.userApi.authenticateWithQuickConnect(secret).content
         }
     }
 
@@ -546,6 +623,18 @@ class JellyfinApiClient @Inject constructor(
         PlaybackMethod.DIRECT_STREAM -> PlayMethod.DIRECT_STREAM
         PlaybackMethod.TRANSCODE -> PlayMethod.TRANSCODE
     }
+
+    private fun Collection<RecommendedServerInfo>.bestServer(): RecommendedServerInfo? =
+        firstOrNull { it.score == RecommendedServerInfoScore.GREAT }
+            ?: firstOrNull { it.score == RecommendedServerInfoScore.GOOD }
+            ?: firstOrNull { it.score == RecommendedServerInfoScore.OK }
+
+    private fun org.jellyfin.sdk.model.api.QuickConnectResult.toQuickConnectSession(): QuickConnectSession =
+        QuickConnectSession(
+            code = code,
+            secret = secret,
+            authenticated = authenticated
+        )
 
     companion object {
         private const val TAG = "JellyfinApiClient"

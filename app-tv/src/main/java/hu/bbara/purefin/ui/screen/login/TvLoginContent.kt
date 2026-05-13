@@ -4,12 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,6 +45,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,10 +60,9 @@ import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 fun TvLoginContent(
     state: LoginContentState,
     callbacks: LoginContentCallbacks,
-    isLoggingIn: Boolean,
     modifier: Modifier = Modifier
 ) {
-    if (isLoggingIn) {
+    if (state.isLoggingIn) {
         PurefinWaitingScreen(modifier = modifier)
         return
     }
@@ -120,12 +123,21 @@ private fun TvLoginForm(
 ) {
     val scheme = MaterialTheme.colorScheme
     val serverFocusRequester = remember { FocusRequester() }
+    val findFocusRequester = remember { FocusRequester() }
+    val changeServerFocusRequester = remember { FocusRequester() }
+    val quickConnectFocusRequester = remember { FocusRequester() }
     val usernameFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
     val connectFocusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-        serverFocusRequester.requestFocus()
+    LaunchedEffect(state.phase) {
+        if (state.phase == LoginContentPhase.ServerSearch) {
+            serverFocusRequester.requestFocus()
+        } else if (state.quickConnectAvailable) {
+            quickConnectFocusRequester.requestFocus()
+        } else {
+            usernameFocusRequester.requestFocus()
+        }
     }
 
     Box(
@@ -137,7 +149,7 @@ private fun TvLoginForm(
     ) {
         Column(
             modifier = Modifier
-                .widthIn(max = 480.dp)
+                .widthIn(max = if (state.phase == LoginContentPhase.Login) 1040.dp else 480.dp)
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -153,7 +165,11 @@ private fun TvLoginForm(
                 modifier = Modifier.padding(top = 8.dp)
             )
             Text(
-                text = "Connect to your media server",
+                text = if (state.phase == LoginContentPhase.ServerSearch) {
+                    "Find your Jellyfin server"
+                } else {
+                    "Connect to your media server"
+                },
                 color = scheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -178,21 +194,223 @@ private fun TvLoginForm(
                 Spacer(modifier = Modifier.height(10.dp))
             }
 
-            TvLoginTextField(
-                label = "Server URL",
-                value = state.serverUrl,
-                onValueChange = callbacks.onServerUrlChange,
-                placeholder = "http://192.168.1.100:8096",
-                leadingIcon = Icons.Default.Storage,
-                modifier = Modifier
-                    .focusRequester(serverFocusRequester)
-                    .focusProperties {
-                        down = usernameFocusRequester
-                    }
+            when (state.phase) {
+                LoginContentPhase.ServerSearch -> TvServerSearchFields(
+                    state = state,
+                    callbacks = callbacks,
+                    serverFocusRequester = serverFocusRequester,
+                    findFocusRequester = findFocusRequester
+                )
+                LoginContentPhase.Login -> TvLoginFields(
+                    state = state,
+                    callbacks = callbacks,
+                    changeServerFocusRequester = changeServerFocusRequester,
+                    quickConnectFocusRequester = quickConnectFocusRequester,
+                    usernameFocusRequester = usernameFocusRequester,
+                    passwordFocusRequester = passwordFocusRequester,
+                    connectFocusRequester = connectFocusRequester
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TvServerSearchFields(
+    state: LoginContentState,
+    callbacks: LoginContentCallbacks,
+    serverFocusRequester: FocusRequester,
+    findFocusRequester: FocusRequester
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    TvLoginTextField(
+        label = "Server URL",
+        value = state.serverUrl,
+        onValueChange = callbacks.onServerUrlChange,
+        placeholder = "http://192.168.1.100:8096",
+        leadingIcon = Icons.Default.Storage,
+        modifier = Modifier
+            .focusRequester(serverFocusRequester)
+            .focusProperties {
+                down = findFocusRequester
+            }
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Button(
+        onClick = callbacks.onFindServer,
+        enabled = !state.isSearching,
+        modifier = Modifier
+            .focusRequester(findFocusRequester)
+            .focusProperties {
+                up = serverFocusRequester
+            }
+            .fillMaxWidth()
+            .height(48.dp)
+    ) {
+        TvText(
+            text = if (state.isSearching) "Searching..." else "Find server",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+
+    if (state.discoveredServers.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(14.dp))
+        Text(
+            text = "Nearby servers",
+            color = scheme.onBackground,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        state.discoveredServers.take(3).forEach { server ->
+            Button(
+                onClick = { callbacks.onDiscoveredServerClick(server) },
+                modifier = Modifier.fillMaxWidth().height(54.dp)
+            ) {
+                TvText(
+                    text = server.name ?: server.address,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 15.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun TvLoginFields(
+    state: LoginContentState,
+    callbacks: LoginContentCallbacks,
+    changeServerFocusRequester: FocusRequester,
+    quickConnectFocusRequester: FocusRequester,
+    usernameFocusRequester: FocusRequester,
+    passwordFocusRequester: FocusRequester,
+    connectFocusRequester: FocusRequester
+) {
+    val scheme = MaterialTheme.colorScheme
+    val selectedServer = state.selectedServerName ?: state.selectedServerUrl.orEmpty()
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Selected server",
+                color = scheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
+            Text(
+                text = selectedServer,
+                color = scheme.onBackground,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Button(
+            onClick = callbacks.onChangeServer,
+            modifier = Modifier
+                .focusRequester(changeServerFocusRequester)
+                .focusProperties {
+                    down = if (state.quickConnectAvailable) quickConnectFocusRequester else usernameFocusRequester
+                }
+                .width(176.dp)
+                .height(44.dp)
+        ) {
+            TvText(text = "Change server", fontSize = 15.sp)
+        }
+    }
 
-            Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(18.dp))
 
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        TvLoginOptionPanel(
+            title = "Quick Connect",
+            modifier = Modifier.weight(1f)
+        ) {
+            if (state.quickConnectAvailable) {
+                val quickConnectCode = state.quickConnectCode
+                if (quickConnectCode != null) {
+                    Text(
+                        text = quickConnectCode,
+                        color = scheme.primary,
+                        style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = "Approve this code in another Jellyfin client.",
+                        color = scheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                } else {
+                    Text(
+                        text = "Use another Jellyfin client to approve this TV without entering your password.",
+                        color = scheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                Button(
+                    onClick = if (state.quickConnectCode == null) {
+                        callbacks.onQuickConnect
+                    } else {
+                        callbacks.onCancelQuickConnect
+                    },
+                    enabled = state.quickConnectCode != null || !state.isQuickConnecting,
+                    modifier = Modifier
+                        .focusRequester(quickConnectFocusRequester)
+                        .focusProperties {
+                            up = changeServerFocusRequester
+                            right = usernameFocusRequester
+                            down = usernameFocusRequester
+                        }
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    TvText(
+                        text = if (state.quickConnectCode == null) {
+                            "Quick Connect"
+                        } else {
+                            "Cancel Quick Connect"
+                        },
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                Text(
+                    text = "Quick Connect is not enabled on this server.",
+                    color = scheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        TvLoginOptionPanel(
+            title = "Manual login",
+            modifier = Modifier.weight(1f)
+        ) {
             TvLoginTextField(
                 label = "Username",
                 value = state.username,
@@ -202,7 +420,12 @@ private fun TvLoginForm(
                 modifier = Modifier
                     .focusRequester(usernameFocusRequester)
                     .focusProperties {
-                        up = serverFocusRequester
+                        up = changeServerFocusRequester
+                        left = if (state.quickConnectAvailable) {
+                            quickConnectFocusRequester
+                        } else {
+                            FocusRequester.Default
+                        }
                         down = passwordFocusRequester
                     }
             )
@@ -223,10 +446,11 @@ private fun TvLoginForm(
                     }
             )
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             Button(
                 onClick = callbacks.onConnect,
+                enabled = !state.isQuickConnecting,
                 modifier = Modifier
                     .focusRequester(connectFocusRequester)
                     .focusProperties {
@@ -242,6 +466,37 @@ private fun TvLoginForm(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun TvLoginOptionPanel(
+    title: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(18.dp)
+
+    Column(
+        modifier = modifier
+            .clip(shape)
+            .background(scheme.surface)
+            .border(
+                width = 1.dp,
+                color = scheme.outlineVariant.copy(alpha = 0.45f),
+                shape = shape
+            )
+            .padding(22.dp)
+    ) {
+        Text(
+            text = title,
+            color = scheme.onBackground,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(18.dp))
+        content()
     }
 }
 

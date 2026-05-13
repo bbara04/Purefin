@@ -18,10 +18,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.button.PurefinTextButton
 import hu.bbara.purefin.ui.common.image.PurefinLogo
@@ -33,12 +35,11 @@ import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 fun LoginContent(
     state: LoginContentState,
     callbacks: LoginContentCallbacks,
-    isLoggingIn: Boolean,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    if (isLoggingIn) {
+    if (state.isLoggingIn) {
         PurefinWaitingScreen(modifier = modifier)
         return
     }
@@ -76,21 +77,6 @@ fun LoginContent(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            Text(
-                text = "Connect to server",
-                color = scheme.onBackground,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.align(Alignment.Start)
-            )
-            Text(
-                text = "Enter your server and account details.",
-                color = scheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(top = 2.dp, bottom = 16.dp)
-            )
-
             state.errorMessage?.let { errorMessage ->
                 Text(
                     text = errorMessage,
@@ -107,43 +93,177 @@ fun LoginContent(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            PurefinComplexTextField(
-                label = "Server URL",
-                value = state.serverUrl,
-                onValueChange = callbacks.onServerUrlChange,
-                placeholder = "http://192.168.1.100:8096",
-                leadingIcon = Icons.Default.Storage
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            PurefinComplexTextField(
-                label = "Username",
-                value = state.username,
-                onValueChange = callbacks.onUsernameChange,
-                placeholder = "Enter your username",
-                leadingIcon = Icons.Default.Person
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            PurefinPasswordField(
-                label = "Password",
-                value = state.password,
-                onValueChange = callbacks.onPasswordChange,
-                placeholder = "Enter your password",
-                leadingIcon = Icons.Default.Lock,
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            PurefinTextButton(
-                content = { Text("Connect") },
-                onClick = callbacks.onConnect,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            )
+            when (state.phase) {
+                LoginContentPhase.ServerSearch -> ServerSearchContent(state, callbacks)
+                LoginContentPhase.Login -> LoginPhaseContent(state, callbacks)
+            }
         }
     }
+}
+
+@Composable
+private fun ServerSearchContent(
+    state: LoginContentState,
+    callbacks: LoginContentCallbacks
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    Text(
+        text = "Find your server",
+        color = scheme.onBackground,
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        modifier = Modifier.fillMaxWidth()
+    )
+    Text(
+        text = "Search by address or choose a nearby Jellyfin server.",
+        color = scheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(top = 2.dp, bottom = 16.dp).fillMaxWidth()
+    )
+
+    PurefinComplexTextField(
+        label = "Server URL",
+        value = state.serverUrl,
+        onValueChange = callbacks.onServerUrlChange,
+        placeholder = "http://192.168.1.100:8096",
+        leadingIcon = Icons.Default.Storage
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    PurefinTextButton(
+        content = { Text(if (state.isSearching) "Searching..." else "Find server") },
+        onClick = callbacks.onFindServer,
+        enabled = !state.isSearching,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+    )
+
+    if (state.discoveredServers.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = "Nearby servers",
+            color = scheme.onBackground,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        state.discoveredServers.forEach { server ->
+            TextButton(
+                onClick = { callbacks.onDiscoveredServerClick(server) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = server.name?.let { "$it\n${server.address}" } ?: server.address,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoginPhaseContent(
+    state: LoginContentState,
+    callbacks: LoginContentCallbacks
+) {
+    val scheme = MaterialTheme.colorScheme
+    val selectedServer = state.selectedServerName ?: state.selectedServerUrl.orEmpty()
+
+    Text(
+        text = "Log in",
+        color = scheme.onBackground,
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        modifier = Modifier.fillMaxWidth()
+    )
+    Text(
+        text = selectedServer,
+        color = scheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(top = 2.dp).fillMaxWidth()
+    )
+    TextButton(
+        onClick = callbacks.onChangeServer,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text("Change server")
+    }
+
+    if (state.quickConnectAvailable) {
+        Spacer(modifier = Modifier.height(8.dp))
+        state.quickConnectCode?.let { code ->
+            Text(
+                text = code,
+                color = scheme.primary,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                text = "Approve this code in another Jellyfin client.",
+                color = scheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            TextButton(onClick = callbacks.onCancelQuickConnect) {
+                Text("Cancel Quick Connect")
+            }
+        } ?: PurefinTextButton(
+            content = { Text("Quick Connect") },
+            onClick = callbacks.onQuickConnect,
+            enabled = !state.isQuickConnecting,
+            modifier = Modifier.fillMaxWidth().height(48.dp)
+        )
+    } else {
+        Text(
+            text = "Quick Connect is not enabled on this server.",
+            color = scheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    Text(
+        text = "Manual login",
+        color = scheme.onBackground,
+        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    PurefinComplexTextField(
+        label = "Username",
+        value = state.username,
+        onValueChange = callbacks.onUsernameChange,
+        placeholder = "Enter your username",
+        leadingIcon = Icons.Default.Person
+    )
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    PurefinPasswordField(
+        label = "Password",
+        value = state.password,
+        onValueChange = callbacks.onPasswordChange,
+        placeholder = "Enter your password",
+        leadingIcon = Icons.Default.Lock,
+    )
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    PurefinTextButton(
+        content = { Text("Connect") },
+        onClick = callbacks.onConnect,
+        enabled = !state.isQuickConnecting,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+    )
 }

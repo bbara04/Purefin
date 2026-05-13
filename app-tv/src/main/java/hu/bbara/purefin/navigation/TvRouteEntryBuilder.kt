@@ -7,7 +7,7 @@ import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.core.feature.browse.home.AppViewModel
 import hu.bbara.purefin.ui.screen.movie.TvMovieScreen
 import hu.bbara.purefin.ui.screen.series.TvSeriesScreen
-import hu.bbara.purefin.ui.screen.login.LoginScreen
+import hu.bbara.purefin.ui.screen.login.TvLoginScreen
 import hu.bbara.purefin.ui.screen.TvAppScreen
 import hu.bbara.purefin.ui.screen.library.TvLibraryScreen
 import hu.bbara.purefin.ui.screen.player.TvPlayerScreen
@@ -21,7 +21,7 @@ fun EntryProviderScope<Route>.tvHomeSection() {
 
 fun EntryProviderScope<Route>.tvLoginSection() {
     entry<Route.LoginRoute> {
-        LoginScreen()
+        TvLoginScreen()
     }
 }
 

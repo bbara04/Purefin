@@ -52,7 +52,7 @@ import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.navigation.LocalNavigationManager
-import hu.bbara.purefin.ui.screen.login.LoginScreen
+import hu.bbara.purefin.ui.screen.login.TvLoginScreen
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.theme.AppTheme
 import hu.bbara.purefin.ui.theme.backgroundDark
@@ -229,7 +229,7 @@ class TvActivity : ComponentActivity() {
                 )
             }
         } else {
-            LoginScreen()
+            TvLoginScreen()
         }
 
         availableUpdate?.let { update ->
