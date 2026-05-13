@@ -30,12 +30,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.DrawerState
 import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.Icon
 import androidx.tv.material3.NavigationDrawer
 import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.Text
 import androidx.tv.material3.darkColorScheme
+import androidx.tv.material3.rememberDrawerState
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.tv.R
 import androidx.tv.material3.MaterialTheme as TvMaterialTheme
@@ -52,11 +54,14 @@ fun TvNavigationDrawer(
     content: @Composable () -> Unit
 ) {
     ProvideTvDrawerTheme {
+        val drawerState = rememberDrawerState(DrawerValue.Closed)
+
         NavigationDrawer(
             modifier = modifier.fillMaxSize(),
-            drawerContent = { drawerValue ->
+            drawerState = drawerState,
+            drawerContent = {
                 TvNavigationDrawerRail(
-                    drawerValue = drawerValue,
+                    drawerState = drawerState,
                     destinations = destinations,
                     selectedDestination = selectedDestination,
                     onDestinationSelected = onDestinationSelected
@@ -135,12 +140,12 @@ fun TvDrawerHeader(
 
 @Composable
 private fun androidx.tv.material3.NavigationDrawerScope.TvNavigationDrawerRail(
-    drawerValue: DrawerValue,
+    drawerState: DrawerState,
     destinations: List<TvDrawerDestinationItem>,
     selectedDestination: Route,
     onDestinationSelected: (Route) -> Unit,
 ) {
-    val expanded = drawerValue == DrawerValue.Open
+    val expanded = drawerState.currentValue == DrawerValue.Open
     val scheme = MaterialTheme.colorScheme
     var hasDrawerFocus by remember { mutableStateOf(false) }
 
@@ -164,7 +169,12 @@ private fun androidx.tv.material3.NavigationDrawerScope.TvNavigationDrawerRail(
             val isSelected = destination.destination == selectedDestination
             NavigationDrawerItem(
                 selected = isSelected,
-                onClick = { onDestinationSelected(destination.destination) },
+                onClick = {
+                    onDestinationSelected(destination.destination)
+                    if (isSelected) {
+                        drawerState.setValue(DrawerValue.Closed)
+                    }
+                },
                 modifier = Modifier
                     .testTag("$TvDrawerItemTagPrefix$index")
                     .semantics { selected = isSelected }
