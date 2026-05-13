@@ -1,15 +1,12 @@
 package hu.bbara.purefin.ui.screen.movie.components
 
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
@@ -22,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -38,33 +34,29 @@ import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
 import hu.bbara.purefin.ui.common.media.MediaSynopsis
 import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
 @Composable
 internal fun MovieTopBar(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        GhostIconButton(
-            icon = Icons.Outlined.ArrowBack,
-            contentDescription = "Back",
-            onClick = onBack
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    DefaultTopBar(
+        leftActions = {
+            GhostIconButton(
+                icon = Icons.Outlined.ArrowBack,
+                contentDescription = "Back",
+                onClick = onBack
+            )
+        },
+        rightActions = {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
             GhostIconButton(
                 icon = Icons.Outlined.MoreVert,
                 contentDescription = "More",
                 onClick = { })
-        }
-    }
+        },
+        withIcon = false
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

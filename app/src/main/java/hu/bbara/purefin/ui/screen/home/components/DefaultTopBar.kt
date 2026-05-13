@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.navigation.HOME_SEARCH_SHARED_BOUNDS_KEY
@@ -35,11 +36,12 @@ import hu.bbara.purefin.ui.common.image.PurefinLogo
 fun DefaultTopBar(
     leftActions: (@Composable RowScope.() -> Unit)? = null,
     rightActions: (@Composable RowScope.() -> Unit)? = null,
+    withIcon: Boolean = true
 ) {
     val scheme = MaterialTheme.colorScheme
 
     Surface(
-        color = scheme.background,
+        color = Color.Transparent,
         contentColor = scheme.onSurface,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -54,25 +56,29 @@ fun DefaultTopBar(
             if (leftActions != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     content = leftActions
                 )
             }
-            Row(
-                modifier = Modifier,
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = when {
-                    leftActions == null && rightActions != null -> Arrangement.Start
-                    leftActions != null && rightActions == null -> Arrangement.Center
-                    else -> Arrangement.Center
+            if (withIcon) {
+                Row(
+                    modifier = Modifier,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = when {
+                        leftActions == null && rightActions != null -> Arrangement.Start
+                        leftActions != null && rightActions == null -> Arrangement.Center
+                        else -> Arrangement.Center
+                    }
+                ) {
+                    PurefinLogo(
+                        modifier = Modifier.size(56.dp),
+                    )
                 }
-            ) {
-                PurefinLogo(
-                    modifier = Modifier.size(56.dp),
-                )
             }
             if (rightActions != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     content = rightActions
                 )
             }

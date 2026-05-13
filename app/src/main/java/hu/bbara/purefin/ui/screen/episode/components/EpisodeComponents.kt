@@ -1,18 +1,12 @@
 package hu.bbara.purefin.ui.screen.episode.components
 
 import android.content.Intent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -21,12 +15,13 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -44,6 +39,7 @@ import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
 import hu.bbara.purefin.ui.common.media.MediaSynopsis
 import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
 internal sealed interface EpisodeTopBarShortcut {
     val label: String
@@ -58,55 +54,48 @@ internal sealed interface EpisodeTopBarShortcut {
 internal fun EpisodeTopBar(
     shortcut: EpisodeTopBarShortcut?,
     onBack: () -> Unit,
-    onSeriesClick: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+    DefaultTopBar(
+        leftActions = {
             GhostIconButton(
                 icon = Icons.Outlined.ArrowBack,
                 contentDescription = "Back",
                 onClick = onBack
             )
-            when {
-                shortcut != null -> {
-                    Box(
+            when (shortcut) {
+                is EpisodeTopBarShortcut.Series -> {
+                    TextButton(
+                        onClick = shortcut.onClick,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.65f),
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
                         modifier = Modifier
                             .height(52.dp)
-                            .clickable(onClick = shortcut.onClick),
-                        contentAlignment = Alignment.Center
+                            .clip(CircleShape)
                     ) {
                         Text(
                             text = shortcut.label,
-                            color = scheme.onBackground,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(scheme.background.copy(alpha = 0.65f))
-                                .padding(horizontal = 16.dp, vertical = 10.dp)
                         )
                     }
                 }
+                null -> {}
             }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        },
+        rightActions = {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
-            GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
-        }
-    }
+            GhostIconButton(
+                icon = Icons.Outlined.MoreVert,
+                contentDescription = "More",
+                onClick = { })
+        },
+        withIcon = false
+    )
 }
 
 @Composable

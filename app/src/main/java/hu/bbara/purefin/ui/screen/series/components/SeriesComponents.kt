@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -76,29 +75,28 @@ import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
 import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
+import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
 @Composable
 internal fun SeriesTopBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        GhostIconButton(
-            onClick = onBack,
-            icon = Icons.Outlined.ArrowBack,
-            contentDescription = "Back")
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
-            GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
-        }
-    }
+    DefaultTopBar(
+        leftActions = {
+            GhostIconButton(
+                onClick = onBack,
+                icon = Icons.Outlined.ArrowBack,
+                contentDescription = "Back")
+        },
+        rightActions = {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
+                GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
+            }
+        },
+        withIcon = false
+    )
 }
 
 @Composable

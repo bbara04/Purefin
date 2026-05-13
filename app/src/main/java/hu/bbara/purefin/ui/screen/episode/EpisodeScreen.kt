@@ -88,7 +88,6 @@ fun EpisodeScreen(
         },
         downloadState = downloadState.value,
         onBack = viewModel::onBack,
-        onSeriesClick = viewModel::onSeriesClick,
         onDownloadClick = onDownloadClick,
         modifier = modifier
     )
@@ -100,7 +99,6 @@ private fun EpisodeScreenInternal(
     topBarShortcut: EpisodeTopBarShortcut?,
     downloadState: DownloadState,
     onBack: () -> Unit,
-    onSeriesClick: () -> Unit,
     onDownloadClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -111,7 +109,6 @@ private fun EpisodeScreenInternal(
             EpisodeTopBar(
                 shortcut = topBarShortcut,
                 onBack = onBack,
-                onSeriesClick = onSeriesClick
             )
         },
         heroContent = {
@@ -169,7 +166,6 @@ private fun EpisodeScreenPreview() {
             topBarShortcut = EpisodeTopBarShortcut.Series(onClick = {}),
             downloadState = DownloadState.Downloading(progressPercent = 0.42f),
             onBack = {},
-            onSeriesClick = {},
             onDownloadClick = {}
         )
     }
