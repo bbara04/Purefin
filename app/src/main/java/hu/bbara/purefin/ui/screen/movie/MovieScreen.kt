@@ -4,43 +4,25 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.feature.content.movie.MovieScreenViewModel
 import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.core.navigation.MovieDto
-import hu.bbara.purefin.ui.common.media.MediaHero
+import hu.bbara.purefin.ui.common.media.MediaDetailScaffold
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
-import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsDestination
-import hu.bbara.purefin.ui.common.media.isHomeMediaSharedBoundsTransitionActive
 import hu.bbara.purefin.ui.screen.movie.components.MovieDetails
 import hu.bbara.purefin.ui.screen.movie.components.MovieTopBar
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
@@ -49,7 +31,9 @@ import java.util.UUID
 
 @Composable
 fun MovieScreen(
-    movie: MovieDto, viewModel: MovieScreenViewModel = hiltViewModel(), modifier: Modifier = Modifier
+    movie: MovieDto,
+    viewModel: MovieScreenViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
 ) {
     LaunchedEffect(movie.id) {
         viewModel.selectMovie(movie.id)
@@ -96,93 +80,43 @@ private fun MovieScreenInternal(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isHomeMediaTransitionActive = isHomeMediaSharedBoundsTransitionActive()
-
-    Scaffold(
+    MediaDetailScaffold(
+        imageUrl = ImageUrlBuilder.finishImageUrl(movie.imageUrlPrefix, ArtworkKind.PRIMARY),
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            if (!isHomeMediaTransitionActive) {
-                MovieTopBar(
-                    onBack = onBack,
-                    modifier = Modifier
-                )
-            }
+            MovieTopBar(onBack = onBack)
+        },
+        heroContent = {
+            MovieHeroContent(movie = movie)
         }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            MediaHeroSection(movie = movie)
-            if (!isHomeMediaTransitionActive) {
-                MovieDetails(
-                    movie = movie,
-                    downloadState = downloadState,
-                    onDownloadClick = onDownloadClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = innerPadding.calculateBottomPadding())
-                )
-            }
-        }
+    ) {
+        MovieDetails(
+            movie = movie,
+            downloadState = downloadState,
+            onDownloadClick = onDownloadClick,
+        )
     }
 }
 
 @Composable
-fun MediaHeroSection(
+private fun MovieHeroContent(
     movie: Movie,
-    modifier: Modifier = Modifier) {
-
+    modifier: Modifier = Modifier
+) {
     val scheme = MaterialTheme.colorScheme
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val sectionHeight = screenHeight * 0.4f
 
-    Box (
-        modifier = modifier
-            .homeMediaSharedBoundsDestination()
-            .height(sectionHeight)
-    ) {
-        MediaHero(
-            imageUrl = ImageUrlBuilder.finishImageUrl(movie.imageUrlPrefix, ArtworkKind.PRIMARY),
-            backgroundColor = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Transparent,
-                            scheme.background.copy(alpha = 0.5f),
-                            scheme.background
-                        )
-                    )
-                    )
-        )
-        Column (
-            modifier = Modifier.fillMaxWidth()
-                .align(Alignment.BottomStart)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = movie.title,
-                color = scheme.onBackground,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 38.sp
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            MediaMetadataFlowRow(
-                items = listOf(movie.year, movie.rating, movie.runtime, movie.format),
-                highlightedItem = movie.format
-            )
-        }
-    }
+    Text(
+        text = movie.title,
+        color = scheme.onBackground,
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Bold,
+        lineHeight = 38.sp
+    )
+//    Spacer(modifier = Modifier.height(8.dp))
+    MediaMetadataFlowRow(
+        items = listOf(movie.year, movie.rating, movie.runtime, movie.format),
+        highlightedItem = movie.format
+    )
 }
 
 @Preview(showBackground = true)

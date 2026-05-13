@@ -2,7 +2,6 @@ package hu.bbara.purefin.ui.screen.movie.components
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -60,7 +59,10 @@ internal fun MovieTopBar(
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = { })
-            GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
+            GhostIconButton(
+                icon = Icons.Outlined.MoreVert,
+                contentDescription = "More",
+                onClick = { })
         }
     }
 }
@@ -71,7 +73,6 @@ internal fun MovieDetails(
     movie: Movie,
     downloadState: DownloadState,
     onDownloadClick: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -84,63 +85,56 @@ internal fun MovieDetails(
         }
     }
 
-    Column(modifier = modifier) {
-        MediaSynopsis(
-            synopsis = movie.synopsis
+    MediaSynopsis(
+        synopsis = movie.synopsis
+    )
+    Row() {
+        MediaResumeButton(
+            text = mediaPlayButtonText(movie.progress, movie.watched),
+            progress = mediaPlaybackProgress(movie.progress),
+            onClick = playAction,
+            modifier = Modifier.sizeIn(maxWidth = 200.dp)
         )
-        Spacer(modifier = Modifier.height(24.dp))
-
+        VerticalDivider(
+            color = MaterialTheme.colorScheme.secondary,
+            thickness = 4.dp,
+            modifier = Modifier
+                .height(48.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
         Row() {
-            MediaResumeButton(
-                text = mediaPlayButtonText(movie.progress, movie.watched),
-                progress = mediaPlaybackProgress(movie.progress),
-                onClick = playAction,
-                modifier = Modifier.sizeIn(maxWidth = 200.dp)
+            MediaActionButton(
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                iconColor = MaterialTheme.colorScheme.onSurface,
+                icon = when (downloadState) {
+                    is DownloadState.NotDownloaded -> Icons.Outlined.Download
+                    is DownloadState.Downloading -> Icons.Outlined.Close
+                    is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
+                    is DownloadState.Failed -> Icons.Outlined.Download
+                },
+                height = 48.dp,
+                onClick = onDownloadClick
             )
-            VerticalDivider(
-                color = MaterialTheme.colorScheme.secondary,
-                thickness = 4.dp,
-                modifier = Modifier
-                    .height(48.dp)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-            Row() {
-                MediaActionButton(
-                    backgroundColor = MaterialTheme.colorScheme.surface,
-                    iconColor = MaterialTheme.colorScheme.onSurface,
-                    icon = when (downloadState) {
-                        is DownloadState.NotDownloaded -> Icons.Outlined.Download
-                        is DownloadState.Downloading -> Icons.Outlined.Close
-                        is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
-                        is DownloadState.Failed -> Icons.Outlined.Download
-                    },
-                    height = 48.dp,
-                    onClick = onDownloadClick
-                )
-            }
         }
+    }
+    MediaPlaybackSettings(
+        backgroundColor = MaterialTheme.colorScheme.surface,
+        foregroundColor = MaterialTheme.colorScheme.onSurface,
+        audioTrack = "ENG",
+        subtitles = "ENG"
+    )
+    if (movie.cast.isNotEmpty()) {
         Spacer(modifier = Modifier.height(24.dp))
-
-        MediaPlaybackSettings(
-            backgroundColor = MaterialTheme.colorScheme.surface,
-            foregroundColor = MaterialTheme.colorScheme.onSurface,
-            audioTrack = "ENG",
-            subtitles = "ENG"
+        Text(
+            text = "Cast",
+            color = scheme.onBackground,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
         )
-
-        if (movie.cast.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "Cast",
-                color = scheme.onBackground,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            //TODO fix
+        Spacer(modifier = Modifier.height(12.dp))
+        //TODO fix
 //            MediaCastRow(
 //                cast = movie.cast,
 //            )
-        }
     }
 }

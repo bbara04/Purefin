@@ -131,8 +131,6 @@ internal fun EpisodeDetails(
         MediaSynopsis(
             synopsis = episode.synopsis
         )
-        Spacer(modifier = Modifier.height(24.dp))
-
         Row() {
             MediaResumeButton(
                 text = mediaPlayButtonText(episode.progress, episode.watched),
@@ -162,8 +160,6 @@ internal fun EpisodeDetails(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(24.dp))
-
         MediaPlaybackSettings(
             backgroundColor = MaterialTheme.colorScheme.surface,
             foregroundColor = MaterialTheme.colorScheme.onSurface,
@@ -171,8 +167,6 @@ internal fun EpisodeDetails(
             audioTrack = "ENG",
             subtitles = "ENG"
         )
-        Spacer(modifier = Modifier.height(24.dp))
-
         if (episode.cast.isNotEmpty()) {
             Text(
                 text = "Cast",

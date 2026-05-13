@@ -1,17 +1,8 @@
 package hu.bbara.purefin.ui.screen.series
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,11 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,15 +21,13 @@ import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
-import hu.bbara.purefin.core.navigation.SeriesDto
-import hu.bbara.purefin.ui.common.media.MediaHero
+import hu.bbara.purefin.ui.common.media.MediaDetailScaffold
 import hu.bbara.purefin.ui.common.media.MediaSynopsis
-import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsDestination
-import hu.bbara.purefin.ui.common.media.isHomeMediaSharedBoundsTransitionActive
 import hu.bbara.purefin.ui.screen.series.components.CastRow
 import hu.bbara.purefin.ui.screen.series.components.EpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.SeasonTabs
@@ -79,8 +64,10 @@ fun SeriesScreen(
                 when (option) {
                     SeriesDownloadOption.SEASON ->
                         viewModel.downloadSeason(seriesData.id, selectedSeason.id)
+
                     SeriesDownloadOption.SERIES ->
                         viewModel.downloadSeries(seriesData)
+
                     SeriesDownloadOption.SMART ->
                         viewModel.enableSmartDownload(seriesData.id)
                 }
@@ -107,14 +94,14 @@ private fun SeriesScreenInternal(
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val isHomeMediaTransitionActive = isHomeMediaSharedBoundsTransitionActive()
 
     fun getDefaultSeason(): Season {
         return series.seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: series.seasons.first()
     }
 
     var selectedSeasonId by remember(series.id) { mutableStateOf(getDefaultSeason().id) }
-    val selectedSeason = series.seasons.firstOrNull { it.id == selectedSeasonId } ?: getDefaultSeason()
+    val selectedSeason =
+        series.seasons.firstOrNull { it.id == selectedSeasonId } ?: getDefaultSeason()
     val nextUpEpisode = selectedSeason.episodes.firstOrNull { !it.watched }
         ?: selectedSeason.episodes.firstOrNull()
 
@@ -126,125 +113,68 @@ private fun SeriesScreenInternal(
         onObserveSeasonDownloadState(selectedSeason.episodes)
     }
 
-    Scaffold(
+    MediaDetailScaffold(
+        imageUrl = ImageUrlBuilder.finishImageUrl(series.imageUrlPrefix, ArtworkKind.PRIMARY),
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            if (!isHomeMediaTransitionActive) {
-                SeriesTopBar(
-                    onBack = onBack,
-                    modifier = Modifier
-                )
-            }
+            SeriesTopBar(onBack = onBack)
+        },
+        heroContent = {
+            SeriesHeroContent(series = series)
         }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            SeriesHeroSection(series = series)
-            if (!isHomeMediaTransitionActive) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = innerPadding.calculateBottomPadding())
-                ) {
-                    SeriesActionButtons(
-                        nextUpEpisode = nextUpEpisode,
-                        seriesDownloadState = seriesDownloadState,
-                        selectedSeason = selectedSeason,
-                        seasonDownloadState = seasonDownloadState,
-                        onDownloadOptionSelected = { option ->
-                            onDownloadOptionSelected(option, selectedSeason)
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    MediaSynopsis(
-                        synopsis = series.synopsis,
-                        bodyColor = scheme.onSurface,
-                        bodyFontSize = 13.sp,
-                        bodyLineHeight = null,
-                        titleSpacing = 8.dp
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    SeasonTabs(
-                        seasons = series.seasons,
-                        selectedSeason = selectedSeason,
-                        onSelect = { selectedSeasonId = it.id }
-                    )
-                    EpisodeCarousel(
-                        episodes = selectedSeason.episodes,
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    if(series.cast.isNotEmpty()) {
-                        Text(
-                            text = "Cast",
-                            color = scheme.onBackground,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        CastRow(cast = series.cast)
-                    }
-                }
+    ) {
+        SeriesActionButtons(
+            nextUpEpisode = nextUpEpisode,
+            seriesDownloadState = seriesDownloadState,
+            selectedSeason = selectedSeason,
+            seasonDownloadState = seasonDownloadState,
+            onDownloadOptionSelected = { option ->
+                onDownloadOptionSelected(option, selectedSeason)
             }
+        )
+        MediaSynopsis(
+            synopsis = series.synopsis,
+            bodyColor = scheme.onSurface,
+            bodyFontSize = 13.sp,
+            bodyLineHeight = null,
+            titleSpacing = 8.dp
+        )
+        SeasonTabs(
+            seasons = series.seasons,
+            selectedSeason = selectedSeason,
+            onSelect = { selectedSeasonId = it.id }
+        )
+        EpisodeCarousel(
+            episodes = selectedSeason.episodes,
+        )
+        if (series.cast.isNotEmpty()) {
+            Text(
+                text = "Cast",
+                color = scheme.onBackground,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            CastRow(cast = series.cast)
         }
     }
 }
 
 @Composable
-private fun SeriesHeroSection(
+private fun SeriesHeroContent(
     series: Series,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val sectionHeight = screenHeight * 0.4f
 
-    Box(
-        modifier = modifier
-            .homeMediaSharedBoundsDestination()
-            .fillMaxWidth()
-            .height(sectionHeight)
-    ) {
-        MediaHero(
-            imageUrl = ImageUrlBuilder.finishImageUrl(series.imageUrlPrefix, ArtworkKind.PRIMARY),
-            backgroundColor = scheme.background,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Transparent,
-                            scheme.background.copy(alpha = 0.5f),
-                            scheme.background
-                        )
-                    )
-                )
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomStart)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = series.name,
-                color = scheme.onBackground,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 36.sp
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            SeriesMetaChips(series = series)
-        }
-    }
+    Text(
+        text = series.name,
+        color = scheme.onBackground,
+        fontSize = 30.sp,
+        fontWeight = FontWeight.Bold,
+        lineHeight = 36.sp
+    )
+    SeriesMetaChips(series = series)
 }
 
 @Preview(showBackground = true)
