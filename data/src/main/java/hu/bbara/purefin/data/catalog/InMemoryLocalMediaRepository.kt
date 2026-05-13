@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -58,7 +59,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
                 moviesState.update { current -> current + (movie.id to movie) }
             }
         }
-        return moviesState.map { it[id] }
+        return moviesState.map { it[id] }.distinctUntilChanged()
     }
 
     override suspend fun getSeries(id: UUID): Flow<Series?> {
@@ -72,7 +73,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
                 seriesState.update { current -> current + (series.id to series) }
             }
         }
-        return seriesState.map { it[id] }
+        return seriesState.map { it[id] }.distinctUntilChanged()
     }
 
     override suspend fun getEpisode(id: UUID): Flow<Episode?> {
@@ -88,7 +89,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
         }
         val episode = episodesState.value[id] ?: return flowOf(null)
         loadSeasons(seriesId = episode.seriesId)
-        return episodesState.map { it[id] }
+        return episodesState.map { it[id] }.distinctUntilChanged()
     }
 
     fun upsertMovies(movies: List<Movie>) {
@@ -162,10 +163,14 @@ class InMemoryLocalMediaRepository @Inject constructor(
             return
         }
         if (episodesState.value.containsKey(mediaId)) {
+            var updatedEpisode: Episode? = null
             episodesState.update { current ->
                 val episode = current[mediaId] ?: return@update current
-                current + (mediaId to episode.copy(progress = progressPercent, watched = watched))
+                val updated = episode.copy(progress = progressPercent, watched = watched)
+                updatedEpisode = updated
+                current + (mediaId to updated)
             }
+            updatedEpisode?.let(::updateLoadedSeriesEpisode)
         }
     }
 
@@ -178,9 +183,37 @@ class InMemoryLocalMediaRepository @Inject constructor(
             return
         }
         if (episodesState.value.containsKey(mediaId)) {
+            var updatedEpisode: Episode? = null
             episodesState.update { current ->
                 val episode = current[mediaId] ?: return@update current
-                current + (mediaId to episode.copy(watched = watched))
+                val updated = episode.copy(watched = watched)
+                updatedEpisode = updated
+                current + (mediaId to updated)
+            }
+            updatedEpisode?.let(::updateLoadedSeriesEpisode)
+        }
+    }
+
+    private fun updateLoadedSeriesEpisode(updatedEpisode: Episode) {
+        seriesState.update { current ->
+            val series = current[updatedEpisode.seriesId] ?: return@update current
+            var changed = false
+            val seasons = series.seasons.map { season ->
+                if (season.episodes.none { it.id == updatedEpisode.id }) {
+                    season
+                } else {
+                    changed = true
+                    season.copy(
+                        episodes = season.episodes.map { episode ->
+                            if (episode.id == updatedEpisode.id) updatedEpisode else episode
+                        }
+                    )
+                }
+            }
+            if (changed) {
+                current + (series.id to series.copy(seasons = seasons))
+            } else {
+                current
             }
         }
     }

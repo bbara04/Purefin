@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -33,12 +35,11 @@ class SeriesViewModel @Inject constructor(
     private val _seriesId = MutableStateFlow<UUID?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val series: StateFlow<Series?> = combine(
-        _seriesId,
-        mediaCatalogReader.series
-    ) { seriesId, seriesMap ->
-        seriesId?.let { seriesMap[it] }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    val series: StateFlow<Series?> = _seriesId
+        .flatMapLatest { seriesId ->
+            if (seriesId == null) flowOf(null) else mediaCatalogReader.getSeries(seriesId)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _seriesDownloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
     val seriesDownloadState: StateFlow<DownloadState> = _seriesDownloadState
