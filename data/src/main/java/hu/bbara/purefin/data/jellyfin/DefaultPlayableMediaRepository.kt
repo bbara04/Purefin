@@ -48,11 +48,16 @@ class DefaultPlayableMediaRepository @Inject constructor(
 
         val mediaItem = getMediaItem(baseItem, playbackDecision)
         val resumePositionMs = calculateResumePosition(baseItem, playbackDecision.mediaSource)
-        val mediaTrackPreferences = trackPreferencesRepository.getMediaPreferences(baseItem.parentId.toString()).first()
+        val preferenceMediaId = when (baseItem.type) {
+            BaseItemKind.EPISODE -> baseItem.seriesId ?: mediaId
+            else -> mediaId
+        }
+        val mediaTrackPreferences = trackPreferencesRepository.getMediaPreferences(preferenceMediaId.toString()).first()
         val mediaSegments = getMediaSegments(mediaId)
         when (baseItem.type) {
             BaseItemKind.MOVIE -> PlayableMedia.Movie(
                 id = mediaId,
+                preferenceMediaId = preferenceMediaId,
                 mediaItem = mediaItem,
                 resumePositionMs = resumePositionMs ?: 0L,
                 preferences = mediaTrackPreferences,
@@ -60,6 +65,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
             )
             BaseItemKind.SERIES -> PlayableMedia.Series(
                 id = mediaId,
+                preferenceMediaId = preferenceMediaId,
                 mediaItem = mediaItem,
                 resumePositionMs = resumePositionMs ?: 0L,
                 preferences = mediaTrackPreferences,
@@ -67,6 +73,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
             )
             BaseItemKind.EPISODE -> PlayableMedia.Episode(
                 id = mediaId,
+                preferenceMediaId = preferenceMediaId,
                 mediaItem = mediaItem,
                 resumePositionMs = resumePositionMs ?: 0L,
                 preferences = mediaTrackPreferences,

@@ -11,7 +11,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackReportContext
-import hu.bbara.purefin.core.feature.content.episode.SeriesIdLookUpUseCase
 import hu.bbara.purefin.core.player.model.MetadataState
 import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot
 import hu.bbara.purefin.core.player.model.PlaybackStateSnapshot
@@ -56,7 +55,6 @@ class PlayerManager @Inject constructor(
     private val playableMediaRepository: PlayableMediaRepository,
     private val trackPreferencesRepository: TrackPreferencesRepository,
     private val trackMatcher: TrackMatcher,
-    private val seriesIdLookUpUseCase: SeriesIdLookUpUseCase,
     private val settingsRepository: SettingsRepository
 ) {
     companion object {
@@ -116,7 +114,8 @@ class PlayerManager @Inject constructor(
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             clearActiveSkippableSegment()
-            _currentMediaId.value = mediaItem?.mediaId?.let { UUID.fromString(it) }
+            val mediaId = mediaItem?.mediaId?.let { UUID.fromString(it) }
+            _currentMediaId.value = mediaId
             scope.launch {
                 val currentMedia = _playlist.value.firstOrNull { it.id == _currentMediaId.value }
                 if (currentMedia == null) {
@@ -263,6 +262,15 @@ class PlayerManager @Inject constructor(
     }
 
     fun selectTrack(option: TrackOption) {
+        scope.launch {
+            if (option.type != TrackType.VIDEO) {
+                saveTrackPreference(option)
+            }
+            applyTrackSelection(option)
+        }
+    }
+
+    private fun applyTrackSelection(option: TrackOption) {
         val builder = player.trackSelectionParameters.buildUpon()
         when (option.type) {
             TrackType.TEXT -> {
@@ -296,13 +304,6 @@ class PlayerManager @Inject constructor(
             }
         }
         player.trackSelectionParameters = builder.build()
-
-        // Save track preference if media id is available
-        _currentMediaId.value?.let { mediaId ->
-            scope.launch {
-                saveTrackPreference(option, mediaId)
-            }
-        }
     }
 
     private fun installMediaSegments(mediaSegments: List<MediaSegment>) {
@@ -329,9 +330,14 @@ class PlayerManager @Inject constructor(
     }
 
     private suspend fun applyTrackPreferences() {
-        val preferences = currentPlayableMedia.firstOrNull()?.preferences ?: return
-
+        val currentMedia = currentPlayableMedia.firstOrNull() ?: return
         val currentTrackState = _tracks.value
+        if (currentTrackState.audioTracks.isEmpty() && currentTrackState.textTracks.isEmpty()) return
+
+        val preferences = trackPreferencesRepository
+            .getMediaPreferences(currentMedia.preferenceMediaId.toString())
+            .firstOrNull()
+            ?: return
 
         // Apply audio preference
         preferences.audioPreference?.let { audioPreference ->
@@ -339,7 +345,9 @@ class PlayerManager @Inject constructor(
                 currentTrackState.audioTracks,
                 audioPreference
             )
-            matchedAudio?.let { selectTrack(it) }
+            if (matchedAudio != null && matchedAudio.id != currentTrackState.selectedAudioTrackId) {
+                applyTrackSelection(matchedAudio)
+            }
         }
 
         // Apply subtitle preference
@@ -348,15 +356,17 @@ class PlayerManager @Inject constructor(
                 currentTrackState.textTracks,
                 subtitlePreference
             )
-            matchedSubtitle?.let { selectTrack(it) }
+            if (matchedSubtitle != null && matchedSubtitle.id != currentTrackState.selectedTextTrackId) {
+                applyTrackSelection(matchedSubtitle)
+            }
         }
     }
 
-    private suspend fun saveTrackPreference(option: TrackOption, mediaId: UUID) {
-        val preferenceMediaId = when (currentPlayableMedia.firstOrNull()) {
-            is PlayableMedia.Episode -> seriesIdLookUpUseCase(mediaId) ?: mediaId
-            else -> mediaId
-        }.toString()
+    private suspend fun saveTrackPreference(option: TrackOption) {
+        val preferenceMediaId = currentPlayableMedia.firstOrNull()
+            ?.preferenceMediaId
+            ?.toString()
+            ?: return
 
         when (option.type) {
             TrackType.AUDIO -> {
