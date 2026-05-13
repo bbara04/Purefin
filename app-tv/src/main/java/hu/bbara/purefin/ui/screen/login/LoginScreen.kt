@@ -59,7 +59,7 @@ fun LoginScreen(
         )
     }
 
-    LoginContent(
+    TvLoginContent(
         state = state,
         callbacks = callbacks,
         isLoggingIn = isLoggingIn,

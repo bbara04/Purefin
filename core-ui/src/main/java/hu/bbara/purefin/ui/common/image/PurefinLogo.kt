@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import hu.bbara.purefin.R
+import hu.bbara.purefin.core.ui.R
 
 @Composable
 fun PurefinLogo(
