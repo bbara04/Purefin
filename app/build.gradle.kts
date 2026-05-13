@@ -17,7 +17,7 @@ android {
         applicationId = "hu.bbara.purefin"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1000010
+        versionCode = 1000011
         versionName = "0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
