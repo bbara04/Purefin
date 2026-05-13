@@ -288,7 +288,7 @@ class AppViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
-            userSessionRepository.setLoggedIn(false)
+            userSessionRepository.logout()
         }
     }
 }

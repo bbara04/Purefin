@@ -16,6 +16,7 @@ interface UserSessionRepository {
 
     val isLoggedIn: Flow<Boolean>
     suspend fun setLoggedIn(isLoggedIn: Boolean)
+    suspend fun logout()
 
     val isOfflineMode: Flow<Boolean>
 }

@@ -51,5 +51,15 @@ class DataStoreUserSessionRepository @Inject constructor(
         }
     }
 
+    override suspend fun logout() {
+        userSessionDataStore.updateData {
+            it.copy(
+                accessToken = "",
+                userId = null,
+                loggedIn = false
+            )
+        }
+    }
+
     override val isOfflineMode: Flow<Boolean> = session.map { it.isOfflineMode }.distinctUntilChanged()
 }
