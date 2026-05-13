@@ -25,6 +25,14 @@ data class StringSetting(
     override val defaultValue: String
 ) : SettingOption<String>
 
+data class ReadOnlySetting(
+    override val key: String,
+    override val title: String,
+    val value: String
+) : SettingOption<String> {
+    override val defaultValue: String = value
+}
+
 data class VoidSetting(
     override val key: String,
     override val title: String,

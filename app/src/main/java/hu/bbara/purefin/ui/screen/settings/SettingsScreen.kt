@@ -24,6 +24,7 @@ import hu.bbara.purefin.core.feature.settings.SettingsViewModel
 import hu.bbara.purefin.core.settings.BooleanSetting
 import hu.bbara.purefin.core.settings.DropdownSetting
 import hu.bbara.purefin.core.settings.RangeSetting
+import hu.bbara.purefin.core.settings.ReadOnlySetting
 import hu.bbara.purefin.core.settings.SettingOption
 import hu.bbara.purefin.core.settings.StringSetting
 import hu.bbara.purefin.core.settings.VoidSetting
@@ -32,6 +33,7 @@ import hu.bbara.purefin.ui.screen.home.components.DefaultTopBarIconButton
 import hu.bbara.purefin.ui.screen.settings.components.BooleanSettingItem
 import hu.bbara.purefin.ui.screen.settings.components.DropdownSettingItem
 import hu.bbara.purefin.ui.screen.settings.components.RangeSettingItem
+import hu.bbara.purefin.ui.screen.settings.components.ReadOnlySettingItem
 import hu.bbara.purefin.ui.screen.settings.components.StringSettingItem
 import hu.bbara.purefin.ui.screen.settings.components.VoidSettingItem
 
@@ -136,6 +138,13 @@ private fun SettingOptionItem(
                     onValueChange = { value -> viewModel.set(option, value) }
                 )
             }
+        }
+
+        is ReadOnlySetting -> {
+            ReadOnlySettingItem(
+                title = option.title,
+                value = option.value
+            )
         }
 
         is VoidSetting -> {

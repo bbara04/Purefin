@@ -41,6 +41,7 @@ import hu.bbara.purefin.core.feature.settings.SettingsViewModel
 import hu.bbara.purefin.core.settings.BooleanSetting
 import hu.bbara.purefin.core.settings.DropdownSetting
 import hu.bbara.purefin.core.settings.RangeSetting
+import hu.bbara.purefin.core.settings.ReadOnlySetting
 import hu.bbara.purefin.core.settings.SettingOption
 import hu.bbara.purefin.core.settings.StringSetting
 import hu.bbara.purefin.core.settings.VoidSetting
@@ -149,6 +150,13 @@ private fun TvSettingOptionItem(
             }
         }
 
+        is ReadOnlySetting -> {
+            TvReadOnlySettingItem(
+                title = option.title,
+                value = option.value
+            )
+        }
+
         is VoidSetting -> {
             TvVoidSettingItem(
                 title = option.title,
@@ -197,6 +205,31 @@ private fun TvSettingsTopBar(
                 contentDescription = "Back"
             )
         }
+    }
+}
+
+@Composable
+private fun TvReadOnlySettingItem(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 28.dp, vertical = 16.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

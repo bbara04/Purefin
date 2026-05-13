@@ -1,6 +1,8 @@
 package hu.bbara.purefin.core.feature.update
 
+import hu.bbara.purefin.core.settings.ReadOnlySetting
 import hu.bbara.purefin.core.settings.SettingGroup
+import hu.bbara.purefin.core.settings.SettingOption
 import hu.bbara.purefin.core.settings.SettingsGroupProvider
 import hu.bbara.purefin.core.settings.VoidSetting
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +20,8 @@ import javax.inject.Singleton
 @Singleton
 class AppUpdateController @Inject constructor(
     private val appUpdateRepository: AppUpdateRepository,
-    private val appUpdateInstaller: AppUpdateInstaller
+    private val appUpdateInstaller: AppUpdateInstaller,
+    private val appVersionProvider: AppVersionProvider
 ) : SettingsGroupProvider {
     private val _isCheckingForUpdates = MutableStateFlow(false)
     val isCheckingForUpdates: StateFlow<Boolean> = _isCheckingForUpdates.asStateFlow()
@@ -34,16 +37,17 @@ class AppUpdateController @Inject constructor(
 
     override val settingGroups: Flow<List<SettingGroup>> = availableUpdate
         .map { update ->
-            if (update == null) {
-                emptyList()
-            } else {
-                listOf(
-                    SettingGroup(
-                        title = "App",
-                        options = listOf(installUpdateSetting(update))
-                    )
+            val options = listOfNotNull<SettingOption<*>>(
+                buildNumberSetting(),
+                update?.let { installUpdateSetting(it) }
+            )
+
+            listOf(
+                SettingGroup(
+                    title = "App",
+                    options = options
                 )
-            }
+            )
         }
 
     suspend fun checkForUpdates(
@@ -100,7 +104,14 @@ class AppUpdateController @Inject constructor(
         )
     }
 
+    private fun buildNumberSetting() = ReadOnlySetting(
+        key = BUILD_NUMBER_KEY,
+        title = "Build number",
+        value = appVersionProvider.versionCode.toString()
+    )
+
     private companion object {
+        const val BUILD_NUMBER_KEY = "build_number"
         const val INSTALL_APP_UPDATE_KEY = "install_app_update"
     }
 }
