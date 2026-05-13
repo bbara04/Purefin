@@ -187,7 +187,6 @@ private fun TvPlayerBottomSection(
     subtitlesButtonEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
     val playlistFocusRequester = remember { FocusRequester() }
     var wasPlaylistExpanded by remember { mutableStateOf(isPlaylistExpanded) }
 
@@ -210,24 +209,11 @@ private fun TvPlayerBottomSection(
             .testTag(TvPlayerPlaylistStateTag)
             .semantics { stateDescription = playlistExpandState }
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = formatTime(uiState.positionMs),
-                color = scheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = formatTime(uiState.durationMs),
-                color = scheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        TvPlayerTimeRow(
+            positionMs = uiState.positionMs,
+            durationMs = uiState.durationMs,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
         TvPlayerSeekBar(
             positionMs = uiState.positionMs,
             durationMs = uiState.durationMs,
@@ -352,6 +338,32 @@ private fun TvPlayerBottomSection(
             )
         }
         Spacer(modifier = Modifier.height(if (isPlaylistExpanded) 12.dp else 8.dp))
+    }
+}
+
+@Composable
+internal fun TvPlayerTimeRow(
+    positionMs: Long,
+    durationMs: Long,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = formatTime(positionMs),
+            color = scheme.onSurface,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = formatTime(durationMs),
+            color = scheme.onSurface,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 

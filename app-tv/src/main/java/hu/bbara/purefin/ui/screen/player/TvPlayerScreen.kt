@@ -12,11 +12,15 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.SkipNext
@@ -53,9 +57,12 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
+import hu.bbara.purefin.core.player.model.TimedMarker
 import hu.bbara.purefin.core.player.viewmodel.ControlsAutoHideBlocker
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
+import hu.bbara.purefin.ui.screen.player.components.PlayerSeekBarTrack
 import hu.bbara.purefin.ui.screen.player.components.TvIconButton
+import hu.bbara.purefin.ui.screen.player.components.TvPlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerLoadingErrorEndCard
 import hu.bbara.purefin.ui.screen.player.components.TvTrackPanelType
@@ -85,6 +92,8 @@ fun TvPlayerScreen(
     var pendingTrackButtonFocus by remember { mutableStateOf<TvTrackPanelType?>(null) }
     var stopFeedbackVisible by remember { mutableStateOf(false) }
     var stopFeedbackRequestId by remember { mutableStateOf(0) }
+    var hiddenSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
+    var hiddenSeekRequestId by remember { mutableStateOf(0) }
     val controlsAutoHideBlocked = isPlaylistExpanded || trackPanelType != null
 
     val context = LocalContext.current
@@ -162,6 +171,9 @@ fun TvPlayerScreen(
         showTvControls()
     }
     val seekByWithoutShowingControls: (Long) -> Unit = { deltaMs ->
+        val basePositionMs = hiddenSeekPreviewPositionMs ?: uiState.positionMs
+        hiddenSeekPreviewPositionMs = (basePositionMs + deltaMs).coerceSeekPosition(uiState.durationMs)
+        hiddenSeekRequestId += 1
         viewModel.seekBy(deltaMs)
         stopFeedbackVisible = false
     }
@@ -221,9 +233,16 @@ fun TvPlayerScreen(
         stopFeedbackVisible = false
     }
 
+    LaunchedEffect(hiddenSeekRequestId) {
+        if (hiddenSeekRequestId == 0) return@LaunchedEffect
+        delay(TV_HIDDEN_STOP_FEEDBACK_MS)
+        hiddenSeekPreviewPositionMs = null
+    }
+
     LaunchedEffect(controlsVisible, isPlaylistExpanded, trackPanelType, uiState.isEnded, uiState.error) {
         if (controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null) {
             stopFeedbackVisible = false
+            hiddenSeekPreviewPositionMs = null
         }
     }
 
@@ -330,7 +349,10 @@ fun TvPlayerScreen(
             exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 24.dp)
+                .padding(
+                    end = 24.dp,
+                    bottom = if (hiddenSeekPreviewPositionMs != null) 104.dp else 24.dp
+                )
         ) {
             TvIconButton(
                 icon = Icons.Outlined.SkipNext,
@@ -339,6 +361,23 @@ fun TvPlayerScreen(
                 size = 64,
                 label = "Skip",
                 modifier = Modifier.focusRequester(skipButtonFocusRequester)
+            )
+        }
+
+        AnimatedVisibility(
+            visible = !playerControlsVisible && hiddenSeekPreviewPositionMs != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 32.dp, vertical = 28.dp)
+        ) {
+            HiddenTvSeekTimeline(
+                positionMs = hiddenSeekPreviewPositionMs ?: uiState.positionMs,
+                durationMs = uiState.durationMs,
+                bufferedMs = uiState.bufferedMs,
+                chapterMarkers = uiState.chapters,
+                adMarkers = uiState.ads
             )
         }
 
@@ -383,6 +422,53 @@ fun TvPlayerScreen(
 
     }
 }
+
+@Composable
+private fun HiddenTvSeekTimeline(
+    positionMs: Long,
+    durationMs: Long,
+    bufferedMs: Long,
+    chapterMarkers: List<TimedMarker>,
+    adMarkers: List<TimedMarker>,
+    modifier: Modifier = Modifier
+) {
+    val safeDuration = durationMs.takeIf { it > 0 } ?: 1L
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.Transparent)
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+    ) {
+        TvPlayerTimeRow(
+            positionMs = positionMs,
+            durationMs = durationMs,
+            modifier = Modifier.fillMaxWidth()
+        )
+        PlayerSeekBarTrack(
+            positionMs = positionMs,
+            durationMs = safeDuration,
+            bufferedMs = bufferedMs,
+            chapterMarkers = chapterMarkers,
+            adMarkers = adMarkers,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.dp),
+            isFocused = false,
+            thumbRadius = 7.dp,
+            focusedThumbRadius = 9.dp,
+            focusedThumbHaloRadiusDelta = 0.dp
+        )
+    }
+}
+
+private fun Long.coerceSeekPosition(durationMs: Long): Long =
+    if (durationMs > 0L) {
+        coerceIn(0L, durationMs)
+    } else {
+        coerceAtLeast(0L)
+    }
 
 internal fun handleTvPlayerRootKeyEvent(
     event: androidx.compose.ui.input.key.KeyEvent,

@@ -28,7 +28,7 @@ fun PlayerGesturesLayer(
     onDoubleTapLeft: () -> Unit,
     onVerticalDragLeft: (delta: Float) -> Unit,
     onVerticalDragRight: (delta: Float) -> Unit,
-    onHorizontalDragPreview: (deltaMs: Long?) -> Unit = {},
+    onHorizontalDragPreview: (deltaMs: Long?, previewPositionMs: Long?) -> Unit = { _, _ -> },
     onHorizontalDragSeekTo: (positionMs: Long) -> Unit,
     currentPositionProvider: () -> Long,
 ) {
@@ -95,7 +95,10 @@ fun PlayerGesturesLayer(
                                     val deltaMs = HorizontalSeekGestureHelper.deltaMs(accumulatedHorizontalDrag)
                                     if (deltaMs != 0L && deltaMs != lastPreviewDelta) {
                                         lastPreviewDelta = deltaMs
-                                        onHorizontalDragPreview(deltaMs)
+                                        onHorizontalDragPreview(
+                                            deltaMs,
+                                            (startPositionMs + deltaMs).coerceAtLeast(0L)
+                                        )
                                     }
                                 }
                             }
@@ -117,10 +120,10 @@ fun PlayerGesturesLayer(
                         if (deltaMs != 0L) {
                             val targetMs = (startPositionMs + deltaMs).coerceAtLeast(0L)
                             onHorizontalDragSeekTo(targetMs)
-                            onHorizontalDragPreview(deltaMs)
+                            onHorizontalDragPreview(deltaMs, targetMs)
                         }
                     }
-                    onHorizontalDragPreview(null)
+                    onHorizontalDragPreview(null, null)
                 }
             }
     )

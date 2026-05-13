@@ -11,8 +11,11 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -40,6 +43,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
+import hu.bbara.purefin.core.player.model.TimedMarker
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.common.visual.EmptyValueTimedVisibility
 import hu.bbara.purefin.ui.common.visual.ValueChangeTimedVisibility
@@ -49,6 +53,8 @@ import hu.bbara.purefin.ui.screen.player.components.PlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.PlayerGesturesLayer
 import hu.bbara.purefin.ui.screen.player.components.PlayerLoadingErrorEndCard
 import hu.bbara.purefin.ui.screen.player.components.PlayerQueuePanel
+import hu.bbara.purefin.ui.screen.player.components.PlayerSeekBarTrack
+import hu.bbara.purefin.ui.screen.player.components.PlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.SkipSegmentButton
 import hu.bbara.purefin.ui.screen.player.components.rememberPersistentOverlayController
 import kotlin.math.abs
@@ -73,6 +79,7 @@ fun PlayerScreen(
     var brightness by remember { mutableStateOf(readCurrentBrightness(activity)) }
     var showQueuePanel by remember { mutableStateOf(false) }
     var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
+    var horizontalSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
     val overlayController = rememberPersistentOverlayController()
 
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
@@ -136,8 +143,15 @@ fun PlayerScreen(
                     0
                 )
             },
-            onHorizontalDragPreview = {
-                horizontalSeekFeedback = it
+            onHorizontalDragPreview = { deltaMs, previewPositionMs ->
+                horizontalSeekFeedback = deltaMs
+                horizontalSeekPreviewPositionMs = previewPositionMs?.let {
+                    if (uiState.durationMs > 0L) {
+                        it.coerceIn(0L, uiState.durationMs)
+                    } else {
+                        it.coerceAtLeast(0L)
+                    }
+                }
             },
             onHorizontalDragSeekTo = {
                 viewModel.seekTo(it)
@@ -154,6 +168,25 @@ fun PlayerScreen(
                 modifier = Modifier
                     .align(Alignment.Center)
             )
+        }
+
+        EmptyValueTimedVisibility(
+            value = horizontalSeekPreviewPositionMs,
+            hideAfterMillis = 1_000
+        ) { previewPositionMs ->
+            if (!playerControlsVisible) {
+                HiddenSeekTimeline(
+                    positionMs = previewPositionMs,
+                    durationMs = uiState.durationMs,
+                    bufferedMs = uiState.bufferedMs,
+                    chapterMarkers = uiState.chapters,
+                    adMarkers = uiState.ads,
+                    isLive = uiState.isLive,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 24.dp, vertical = 28.dp)
+                )
+            }
         }
 
         ValueChangeTimedVisibility(
@@ -218,7 +251,10 @@ fun PlayerScreen(
             exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 24.dp)
+                .padding(
+                    end = 24.dp,
+                    bottom = if (horizontalSeekPreviewPositionMs != null) 96.dp else 24.dp
+                )
         ) {
             SkipSegmentButton(onClick = { viewModel.skipActiveSegment() })
         }
@@ -254,6 +290,48 @@ fun PlayerScreen(
         PersistentOverlayContainer(
             controller = overlayController,
             modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Composable
+private fun HiddenSeekTimeline(
+    positionMs: Long,
+    durationMs: Long,
+    bufferedMs: Long,
+    chapterMarkers: List<TimedMarker>,
+    adMarkers: List<TimedMarker>,
+    isLive: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val safeDuration = durationMs.takeIf { it > 0 } ?: 1L
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.Transparent)
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+    ) {
+        PlayerTimeRow(
+            positionMs = positionMs,
+            durationMs = durationMs,
+            isLive = isLive,
+            onSeekLiveEdge = null
+        )
+        PlayerSeekBarTrack(
+            positionMs = positionMs,
+            durationMs = safeDuration,
+            bufferedMs = bufferedMs,
+            chapterMarkers = chapterMarkers,
+            adMarkers = adMarkers,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(28.dp),
+            isFocused = false,
+            focusedTrackHeight = 4.dp,
+            focusedThumbRadius = 6.dp,
+            focusedThumbHaloRadiusDelta = 0.dp
         )
     }
 }

@@ -65,7 +65,6 @@ fun PlayerControlsOverlay(
     onOpenQueue: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
     var scrubbing by remember { mutableStateOf(false) }
 
     Box(
@@ -177,40 +176,14 @@ private fun BottomSection(
     onQueueSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scheme = MaterialTheme.colorScheme
     Column(modifier = modifier) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = formatTime(uiState.positionMs),
-                color = scheme.onSurface,
-                style = MaterialTheme.typography.bodySmall
-            )
-            if (uiState.isLive) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "LIVE", color = scheme.primary, fontWeight = FontWeight.Bold)
-                    Text(
-                        text = "Catch up",
-                        color = scheme.onSurface,
-                        modifier = Modifier.clickable { onSeekLiveEdge() }
-                    )
-                }
-            } else {
-                Text(
-                    text = formatTime(uiState.durationMs),
-                    color = scheme.onSurface,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
+        PlayerTimeRow(
+            positionMs = uiState.positionMs,
+            durationMs = uiState.durationMs,
+            isLive = uiState.isLive,
+            onSeekLiveEdge = onSeekLiveEdge,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
         PlayerSeekBar(
             positionMs = uiState.positionMs,
             durationMs = uiState.durationMs,
@@ -326,6 +299,50 @@ fun SkipSegmentButton(
             contentDescription = null,
             modifier = Modifier.size(18.dp)
         )
+    }
+}
+
+@Composable
+internal fun PlayerTimeRow(
+    positionMs: Long,
+    durationMs: Long,
+    isLive: Boolean,
+    onSeekLiveEdge: (() -> Unit)?,
+    modifier: Modifier = Modifier
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = formatTime(positionMs),
+            color = scheme.onSurface,
+            style = MaterialTheme.typography.bodySmall
+        )
+        if (isLive) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "LIVE", color = scheme.primary, fontWeight = FontWeight.Bold)
+                if (onSeekLiveEdge != null) {
+                    Text(
+                        text = "Catch up",
+                        color = scheme.onSurface,
+                        modifier = Modifier.clickable { onSeekLiveEdge() }
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = formatTime(durationMs),
+                color = scheme.onSurface,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
 }
 
