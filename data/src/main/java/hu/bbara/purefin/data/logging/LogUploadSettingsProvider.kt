@@ -43,12 +43,16 @@ class LogUploadSettingsProvider @Inject constructor(
             }
 
             logFiles.forEach { logFile ->
-                val uploadedName = jellyfinApiClient.uploadLogFile(logFile.data)
+                val uploadedName = jellyfinApiClient.uploadLogFile(logFile.contentForUpload())
                     ?: error("Log upload failed")
                 PurefinLogger.deleteUploadedFile(logFile)
                 Timber.tag(TAG).d("Uploaded log file ${logFile.name} as $uploadedName and deleted it locally")
             }
         }
+    }
+
+    private fun hu.bbara.purefin.core.logging.UploadLogFile.contentForUpload(): String {
+        return "Purefin log upload file: $name\n\n$data"
     }
 
     private companion object {

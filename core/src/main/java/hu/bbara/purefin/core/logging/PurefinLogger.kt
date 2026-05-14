@@ -122,7 +122,7 @@ private class LogFileStore(
     }
 
     private fun buildEntry(priority: Int, tag: String?, message: String, throwable: Throwable?): String {
-        return buildString {
+        val entry = buildString {
             append(timestampFormatter.format(LocalDateTime.now()))
             append(' ')
             append(priorityLabel(priority))
@@ -138,6 +138,7 @@ private class LogFileStore(
                 append('\n')
             }
         }
+        return entry.truncateForLog()
     }
 
     private fun priorityLabel(priority: Int): String = when (priority) {
@@ -174,11 +175,7 @@ private class LogFileStore(
             tempFile
         }
         return tempFiles.mapIndexed { index, file ->
-            val uploadName = if (tempFiles.size == 1) {
-                "$uploadTimestamp.log"
-            } else {
-                "${uploadTimestamp}_${(index + 1).toString().padStart(3, '0')}.log"
-            }
+            val uploadName = "${uploadTimestamp}_${(index + 1).toString().padStart(3, '0')}.log"
             val uploadFile = File(directory, uploadName)
             uploadFile.delete()
             if (!file.renameTo(uploadFile)) {
@@ -186,6 +183,14 @@ private class LogFileStore(
             }
             uploadFile
         }
+    }
+
+    private fun String.truncateForLog(): String {
+        if (length <= MAX_LOG_ENTRY_CHARS) {
+            return this
+        }
+        val omittedChars = length - MAX_LOG_ENTRY_CHARS
+        return take(MAX_LOG_ENTRY_CHARS) + "\n... truncated $omittedChars more chars\n"
     }
 
     private fun uploadFiles(): List<File> {
@@ -207,7 +212,8 @@ private class LogFileStore(
 
     private companion object {
         const val ACTIVE_LOG_FILE = "purefin.log"
-        const val MAX_LOG_BYTES = 512 * 1024
+        const val MAX_LOG_BYTES = 5 * 1024 * 1024
+        const val MAX_LOG_ENTRY_CHARS = 4_000
         const val MAX_LOG_FILES = 4
         val UPLOAD_LOG_FILE_REGEX = Regex("""\d{8}_\d{6}(?:_\d{3})?\.log""")
     }
