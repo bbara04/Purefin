@@ -307,7 +307,7 @@ class JellyfinApiClient @Inject constructor(
                 parentId = libraryId,
                 fields = defaultItemFields + ItemFields.OVERVIEW,
                 includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
-                limit = 10,
+                limit = 15,
             )
             response.content
         }
