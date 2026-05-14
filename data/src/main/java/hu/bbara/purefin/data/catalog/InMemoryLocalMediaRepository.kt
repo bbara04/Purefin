@@ -1,6 +1,5 @@
 package hu.bbara.purefin.data.catalog
 
-import android.util.Log
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.data.converter.toEpisode
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import org.jellyfin.sdk.model.api.BaseItemKind
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,7 +52,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
         if (!moviesState.value.containsKey(id)) {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.MOVIE) {
-                    Log.d("InMemoryMediaRepository", "Item is not an movie: ${item.type}")
+                    Timber.tag(TAG).d("Item is not an movie: ${item.type}")
                     return flowOf(null)
                 }
                 val movie = item.toMovie(serverUrl.first())
@@ -66,7 +66,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
         if (!seriesState.value.containsKey(id)) {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.SERIES) {
-                    Log.d("InMemoryMediaRepository", "Item is not an series: ${item.type}")
+                    Timber.tag(TAG).d("Item is not an series: ${item.type}")
                     return flowOf(null)
                 }
                 val series = item.toSeries(serverUrl.first())
@@ -80,7 +80,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
         if (!episodesState.value.containsKey(id)) {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.EPISODE) {
-                    Log.d("InMemoryMediaRepository", "Item is not an episode: ${item.type}")
+                    Timber.tag(TAG).d("Item is not an episode: ${item.type}")
                     return flowOf(null)
                 }
                 val episode = item.toEpisode(serverUrl.first())
@@ -110,7 +110,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Log.e("InMemoryMediaRepository", "Failed to load content for series $seriesId", error)
+            Timber.tag(TAG).e(error, "Failed to load content for series $seriesId")
             throw error
         }
     }
@@ -121,7 +121,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Log.w("InMemoryMediaRepository", "Unable to preload seasons for episode series $seriesId", error)
+            Timber.tag(TAG).w(error, "Unable to preload seasons for episode series $seriesId")
         }
     }
 
@@ -230,5 +230,9 @@ class InMemoryLocalMediaRepository @Inject constructor(
                 current
             }
         }
+    }
+
+    private companion object {
+        const val TAG = "InMemoryMediaRepository"
     }
 }

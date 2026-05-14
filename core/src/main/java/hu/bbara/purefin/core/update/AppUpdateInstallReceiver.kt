@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Build
-import android.util.Log
+import timber.log.Timber
 
 class AppUpdateInstallReceiver : BroadcastReceiver() {
 
@@ -18,13 +18,13 @@ class AppUpdateInstallReceiver : BroadcastReceiver() {
                 try {
                     context.startActivity(confirmIntent)
                 } catch (e: ActivityNotFoundException) {
-                    Log.e(TAG, "Install confirmation activity missing", e)
+                    Timber.tag(TAG).e(e, "Install confirmation activity missing")
                 }
             }
             PackageInstaller.STATUS_SUCCESS -> Unit
             else -> {
                 val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                Log.e(TAG, "Install failed: $status $message")
+                Timber.tag(TAG).e("Install failed: $status $message")
             }
         }
     }

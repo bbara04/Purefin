@@ -1,7 +1,7 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
 import android.media.MediaCodecList
-import android.util.Log
+import timber.log.Timber
 
 /**
  * Helper to debug available audio/video codecs on the device.
@@ -17,34 +17,34 @@ object CodecDebugHelper {
     fun logAvailableDecoders() {
         try {
             val codecList = MediaCodecList(MediaCodecList.ALL_CODECS)
-            Log.d(TAG, "=== Available Audio Decoders ===")
+            Timber.tag(TAG).d("=== Available Audio Decoders ===")
 
             codecList.codecInfos
                 .filter { !it.isEncoder }
                 .forEach { codecInfo ->
                     codecInfo.supportedTypes.forEach { mimeType ->
                         if (mimeType.startsWith("audio/")) {
-                            Log.d(TAG, "${codecInfo.name}: $mimeType")
+                            Timber.tag(TAG).d("${codecInfo.name}: $mimeType")
                             if (mimeType.contains("dts", ignoreCase = true) ||
                                 mimeType.contains("truehd", ignoreCase = true)) {
-                                Log.w(TAG, "  ^^^ DTS/TrueHD decoder found! ^^^")
+                                Timber.tag(TAG).w("  ^^^ DTS/TrueHD decoder found! ^^^")
                             }
                         }
                     }
                 }
 
-            Log.d(TAG, "=== Available Video Decoders ===")
+            Timber.tag(TAG).d("=== Available Video Decoders ===")
             codecList.codecInfos
                 .filter { !it.isEncoder }
                 .forEach { codecInfo ->
                     codecInfo.supportedTypes.forEach { mimeType ->
                         if (mimeType.startsWith("video/")) {
-                            Log.d(TAG, "${codecInfo.name}: $mimeType")
+                            Timber.tag(TAG).d("${codecInfo.name}: $mimeType")
                         }
                     }
                 }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to list codecs", e)
+            Timber.tag(TAG).e(e, "Failed to list codecs")
         }
     }
 

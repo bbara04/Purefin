@@ -1,6 +1,5 @@
 package hu.bbara.purefin.core.player.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlinx.serialization.InternalSerializationApi
 import java.util.UUID
 import javax.inject.Inject
@@ -36,6 +36,7 @@ class PlayerViewModel @Inject constructor(
 ) : ViewModel() {
     companion object {
         private const val DEFAULT_CONTROLS_AUTO_HIDE_MS = 3_500L
+        private const val TAG = "PlayerViewModel"
     }
 
     val player get() = playerManager.player
@@ -282,7 +283,7 @@ class PlayerViewModel @Inject constructor(
             is PlayableMedia.Movie -> {
                 val movie = mediaCatalogReader.getMovie(id).first()
                 if (movie == null) {
-                    Log.e("PlayerViewModel", "Movie not found for playlist item: $id")
+                    Timber.tag(TAG).e("Movie not found for playlist item: $id")
                     null
                 } else {
                     PlaylistElementUiModel(
@@ -300,7 +301,7 @@ class PlayerViewModel @Inject constructor(
             is PlayableMedia.Series -> {
                 val series = mediaCatalogReader.getSeries(id).first()
                 if (series == null) {
-                    Log.e("PlayerViewModel", "Series not found for playlist item: $id")
+                    Timber.tag(TAG).e("Series not found for playlist item: $id")
                     null
                 } else {
                     PlaylistElementUiModel(
@@ -318,7 +319,7 @@ class PlayerViewModel @Inject constructor(
             is PlayableMedia.Episode -> {
                 val episode = mediaCatalogReader.getEpisode(id).first()
                 if (episode == null) {
-                    Log.e("PlayerViewModel", "Episode not found for playlist item: $id")
+                    Timber.tag(TAG).e("Episode not found for playlist item: $id")
                     null
                 } else {
                     PlaylistElementUiModel(

@@ -1,6 +1,5 @@
 package hu.bbara.purefin.data.catalog
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
@@ -41,6 +40,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import timber.log.Timber
 
 @Singleton
 class InMemoryAppContentRepository @Inject constructor(
@@ -82,7 +82,7 @@ class InMemoryAppContentRepository @Inject constructor(
         if (!initialized.compareAndSet(expectedValue = false, newValue = true)) {
             return
         }
-        Log.d(TAG, "Initializing home repository")
+        Timber.tag(TAG).d("Initializing home repository")
         scope.launch { loadHomeCache() }
         scope.launch { refreshHomeData() }
     }
@@ -91,7 +91,7 @@ class InMemoryAppContentRepository @Inject constructor(
         val job = synchronized(this) {
             refreshJob?.takeIf { it.isActive } ?: scope.launch {
                 runCatching {
-                    Log.d(TAG, "Refreshing home data")
+                    Timber.tag(TAG).d("Refreshing home data")
                     if (!networkMonitor.isOnline.first()) {
                         return@runCatching
                     }
@@ -100,10 +100,10 @@ class InMemoryAppContentRepository @Inject constructor(
                     loadContinueWatching()
                     loadNextUp()
                     loadLatestLibraryContent()
-                    Log.d(TAG, "Home refresh successful")
+                    Timber.tag(TAG).d("Home refresh successful")
                     persistHomeCache()
                 }.onFailure { error ->
-                    Log.w(TAG, "Home refresh failed; keeping cached content", error)
+                    Timber.tag(TAG).w(error, "Home refresh failed; keeping cached content")
                 }
             }.also { refreshJob = it }
         }
@@ -111,7 +111,7 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     private suspend fun loadHomeCache() {
-        Log.d(TAG, "Loading home cache")
+        Timber.tag(TAG).d("Loading home cache")
         val cache = homeCacheDataStore.data.first()
         if (cache.libraries.isNotEmpty()) {
             val libraries = cache.libraries.mapNotNull { it.toLibrary() }
@@ -147,7 +147,7 @@ class InMemoryAppContentRepository @Inject constructor(
         if (cache.episodes.isNotEmpty()) {
             onlineMediaRepository.upsertEpisodes(cache.episodes.mapNotNull { it.toEpisode() })
         }
-        Log.d(TAG, "Home cache loaded")
+        Timber.tag(TAG).d("Home cache loaded")
     }
 
     private suspend fun persistHomeCache() {
@@ -200,7 +200,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadLibraries() {
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
-                Log.w(TAG, "Unable to load libraries", error)
+                Timber.tag(TAG).w(error, "Unable to load libraries")
                 return
             }
         val filteredLibraries = librariesItem.filter {
@@ -222,7 +222,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadLibrary(library: Library): Library {
         val contentItem = runCatching { jellyfinApiClient.getLibraryContent(library.id) }
             .getOrElse { error ->
-                Log.w(TAG, "Unable to load library ${library.id}", error)
+                Timber.tag(TAG).w(error, "Unable to load library ${library.id}")
                 return library
             }
         return when (library.type) {
@@ -240,7 +240,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadSuggestions() {
         val suggestionsItems = runCatching { jellyfinApiClient.getSuggestions() }
             .getOrElse { error ->
-                Log.w(TAG, "Unable to load suggestions", error)
+                Timber.tag(TAG).w(error, "Unable to load suggestions")
                 return
             }
         suggestionsState.value = suggestionsItems.mapNotNull { item ->
@@ -261,7 +261,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadContinueWatching() {
         val continueWatchingItems = runCatching { jellyfinApiClient.getContinueWatching() }
             .getOrElse { error ->
-                Log.w(TAG, "Unable to load continue watching", error)
+                Timber.tag(TAG).w(error, "Unable to load continue watching")
                 return
             }
         continueWatchingState.value = continueWatchingItems.mapNotNull { item ->
@@ -282,7 +282,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadNextUp() {
         val nextUpItems = runCatching { jellyfinApiClient.getNextUpEpisodes() }
             .getOrElse { error ->
-                Log.w(TAG, "Unable to load next up", error)
+                Timber.tag(TAG).w(error, "Unable to load next up")
                 return
             }
         nextUpState.value = nextUpItems.map { item ->
@@ -297,7 +297,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadLatestLibraryContent() {
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
-                Log.w(TAG, "Unable to load latest library content", error)
+                Timber.tag(TAG).w(error, "Unable to load latest library content")
                 return
             }
         val filteredLibraries = librariesItem.filter {
@@ -306,7 +306,7 @@ class InMemoryAppContentRepository @Inject constructor(
         val latestLibraryContents = filteredLibraries.associate { library ->
             val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
                 .getOrElse { error ->
-                    Log.w(TAG, "Unable to load latest items for library ${library.id}", error)
+                    Timber.tag(TAG).w(error, "Unable to load latest items for library ${library.id}")
                     emptyList()
                 }
             library.id to when (library.collectionType) {

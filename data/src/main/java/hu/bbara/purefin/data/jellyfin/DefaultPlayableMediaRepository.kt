@@ -1,6 +1,5 @@
 package hu.bbara.purefin.data.jellyfin
 
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
@@ -36,6 +35,7 @@ import org.jellyfin.sdk.model.api.MediaSegmentType.OUTRO
 import org.jellyfin.sdk.model.api.MediaSegmentType.PREVIEW
 import org.jellyfin.sdk.model.api.MediaSegmentType.RECAP
 import org.jellyfin.sdk.model.api.MediaSourceInfo
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -72,7 +72,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
                 ?: getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
         }.getOrElse { error ->
             if (error is CancellationException) throw error
-            Log.w("PlayableMediaRepo", "Unable to load online metadata for downloaded media $mediaId", error)
+            Timber.tag(TAG).w(error, "Unable to load online metadata for downloaded media $mediaId")
             getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
         }
     }
@@ -232,7 +232,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
                 getPlayableMedia(id)
             }
         }.getOrElse { error ->
-            Log.w("PlayableMediaRepo", "Unable to load next-up items for $episodeId", error)
+            Timber.tag(TAG).w(error, "Unable to load next-up items for $episodeId")
             emptyList()
         }
     }
@@ -324,5 +324,9 @@ class DefaultPlayableMediaRepository @Inject constructor(
             startMs = startTicks / 10_000L,
             endMs = endTicks / 10_000L
         )
+    }
+
+    private companion object {
+        const val TAG = "PlayableMediaRepo"
     }
 }

@@ -2,7 +2,6 @@ package hu.bbara.purefin.data.jellyfin.client
 
 import android.content.Context
 import android.os.SystemClock
-import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.PlaybackReportContext
@@ -19,6 +18,7 @@ import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.api.client.Response
 import org.jellyfin.sdk.api.client.extensions.authenticateWithQuickConnect
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
+import org.jellyfin.sdk.api.client.extensions.clientLogApi
 import org.jellyfin.sdk.api.client.extensions.genresApi
 import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.api.client.extensions.mediaInfoApi
@@ -57,6 +57,7 @@ import org.jellyfin.sdk.model.api.RepeatMode
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
 import org.jellyfin.sdk.model.api.request.GetNextUpRequest
 import org.jellyfin.sdk.model.api.request.GetResumeItemsRequest
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -194,7 +195,7 @@ class JellyfinApiClient @Inject constructor(
                 searchTerm = searchTerm,
                 recursive = true
             )
-            Log.d("searchBySearchTerm", response.content.toString())
+            Timber.tag("searchBySearchTerm").d(response.content.toString())
             response.content.items
         }
     }
@@ -210,7 +211,7 @@ class JellyfinApiClient @Inject constructor(
                 genres = genres,
                 recursive = true
             )
-            Log.d("searchByGenre", response.content.toString())
+            Timber.tag("searchByGenre").d(response.content.toString())
             response.content.items
         }
     }
@@ -225,7 +226,7 @@ class JellyfinApiClient @Inject constructor(
                 presetViews = listOf(CollectionType.MOVIES, CollectionType.TVSHOWS),
                 includeHidden = false,
             )
-            Log.d("getLibraries", response.content.toString())
+            Timber.tag("getLibraries").d(response.content.toString())
             response.content.items
         }
     }
@@ -245,7 +246,7 @@ class JellyfinApiClient @Inject constructor(
                 recursive = true,
             )
             val response = api.itemsApi.getItems(getItemsRequest)
-            Log.d("getLibraryContent", response.content.toString())
+            Timber.tag("getLibraryContent").d(response.content.toString())
             response.content.items
         }
     }
@@ -263,7 +264,7 @@ class JellyfinApiClient @Inject constructor(
                 limit = 8,
                 enableTotalRecordCount = true,
             )
-            Log.d("getSuggestions", response.content.toString())
+            Timber.tag("getSuggestions").d(response.content.toString())
             response.content.items
         }
     }
@@ -282,7 +283,7 @@ class JellyfinApiClient @Inject constructor(
                 startIndex = 0,
             )
             val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
-            Log.d("getContinueWatching", response.content.toString())
+            Timber.tag("getContinueWatching").d(response.content.toString())
             response.content.items
         }
     }
@@ -298,7 +299,7 @@ class JellyfinApiClient @Inject constructor(
                 enableResumable = false,
             )
             val result = api.tvShowsApi.getNextUp(getNextUpRequest)
-            Log.d("getNextUpEpisodes", result.content.toString())
+            Timber.tag("getNextUpEpisodes").d(result.content.toString())
             result.content.items
         }
     }
@@ -315,7 +316,7 @@ class JellyfinApiClient @Inject constructor(
                 includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
                 limit = 10,
             )
-            Log.d("getLatestFromLibrary", response.content.toString())
+            Timber.tag("getLatestFromLibrary").d(response.content.toString())
             response.content
         }
     }
@@ -326,7 +327,7 @@ class JellyfinApiClient @Inject constructor(
                 return@logRequest null
             }
             val result = api.userLibraryApi.getItem(itemId = mediaId, userId = getUserId())
-            Log.d("getItemInfo", result.content.toString())
+            Timber.tag("getItemInfo").d(result.content.toString())
             result.content
         }
     }
@@ -342,7 +343,7 @@ class JellyfinApiClient @Inject constructor(
                 fields = defaultItemFields,
                 enableUserData = true,
             )
-            Log.d("getSeasons", result.content.toString())
+            Timber.tag("getSeasons").d(result.content.toString())
             result.content.items
         }
     }
@@ -359,7 +360,7 @@ class JellyfinApiClient @Inject constructor(
                 fields = defaultItemFields + ItemFields.OVERVIEW,
                 enableUserData = true,
             )
-            Log.d("getEpisodesInSeason", result.content.toString())
+            Timber.tag("getEpisodesInSeason").d(result.content.toString())
             result.content.items
         }
     }
@@ -379,7 +380,7 @@ class JellyfinApiClient @Inject constructor(
                 limit = count,
             )
             val nextUpEpisodes = nextUpEpisodesResult.content.items
-            Log.d("getNextEpisodes", nextUpEpisodes.toString())
+            Timber.tag("getNextEpisodes").d(nextUpEpisodes.toString())
             nextUpEpisodes
         }
     }
@@ -393,7 +394,7 @@ class JellyfinApiClient @Inject constructor(
                 userId = getUserId(),
                 parentId = id,
             )
-            Log.d("getGenres", result.toString())
+            Timber.tag("getGenres").d(result.toString())
             result.content.items
         }
     }
@@ -435,7 +436,7 @@ class JellyfinApiClient @Inject constructor(
                     maxStreamingBitrate = 100_000_000,
                 ),
             )
-            Log.d("getMediaSources", result.toString())
+            Timber.tag("getMediaSources").d(result.toString())
             result.content.mediaSources
         }
     }
@@ -449,7 +450,7 @@ class JellyfinApiClient @Inject constructor(
                 itemId = mediaId,
                 //includeSegmentTypes = listOf(MediaSegmentType.INTRO)
             )
-            Log.d("getMediaSegments", result.toString())
+            Timber.tag("getMediaSegments").d(result.toString())
             result.content.items
         }
     }
@@ -496,8 +497,17 @@ class JellyfinApiClient @Inject constructor(
             liveStreamId = liveStreamId,
         )
     } catch (error: Exception) {
-        Log.e(TAG, "getVideoStreamUrl($itemId) failed", error)
+        Timber.tag(TAG).e(error, "getVideoStreamUrl($itemId) failed")
         throw error
+    }
+
+    suspend fun uploadLogFile(data: String): String? = withContext(Dispatchers.IO) {
+        logRequest("uploadLogFile") {
+            if (!ensureConfigured()) {
+                return@logRequest null
+            }
+            api.clientLogApi.logFile(data).content.fileName
+        }
     }
 
     suspend fun getPublicSystemInfoVersion(): String? = withContext(Dispatchers.IO) {
@@ -589,8 +599,7 @@ class JellyfinApiClient @Inject constructor(
         return try {
             val result = block()
             val elapsedMs = SystemClock.elapsedRealtime() - startedAt
-            Log.d(
-                TAG,
+            Timber.tag(TAG).d(
                 "$operation finished in ${elapsedMs}ms, " +
                     "fetched ${result.approximateSizeBytes()} bytes${result.itemCountLogText()}"
             )
@@ -599,7 +608,7 @@ class JellyfinApiClient @Inject constructor(
             throw error
         } catch (error: Exception) {
             val elapsedMs = SystemClock.elapsedRealtime() - startedAt
-            Log.e(TAG, "$operation failed after ${elapsedMs}ms", error)
+            Timber.tag(TAG).e(error, "$operation failed after ${elapsedMs}ms")
             throw error
         }
     }

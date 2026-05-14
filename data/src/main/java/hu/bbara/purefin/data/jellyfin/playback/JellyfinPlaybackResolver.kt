@@ -1,6 +1,5 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
-import android.util.Log
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import java.util.UUID
@@ -11,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.ServerVersion
+import timber.log.Timber
 
 @Singleton
 class JellyfinPlaybackResolver @Inject constructor(
@@ -33,7 +33,7 @@ class JellyfinPlaybackResolver @Inject constructor(
         ) ?: return@withContext null
 
         if (playbackInfo.errorCode != null) {
-            Log.w(TAG, "Playback info failed for $mediaId with ${playbackInfo.errorCode}")
+            Timber.tag(TAG).w("Playback info failed for $mediaId with ${playbackInfo.errorCode}")
             return@withContext null
         }
 
@@ -54,9 +54,9 @@ class JellyfinPlaybackResolver @Inject constructor(
         )
 
         if (decision == null) {
-            Log.w(TAG, "No compatible playback path for $mediaId")
+            Timber.tag(TAG).w("No compatible playback path for $mediaId")
         } else {
-            Log.d(TAG, "Playback decision for $mediaId resolved as ${decision.reportContext.playMethod}")
+            Timber.tag(TAG).d("Playback decision for $mediaId resolved as ${decision.reportContext.playMethod}")
         }
         decision
     }
@@ -67,7 +67,7 @@ class JellyfinPlaybackResolver @Inject constructor(
         val resolvedVersion = runCatching {
             jellyfinApiClient.getPublicSystemInfoVersion()?.let(ServerVersion::fromString)
         }.onFailure { error ->
-            Log.w(TAG, "Unable to fetch server version for $serverUrl", error)
+            Timber.tag(TAG).w(error, "Unable to fetch server version for $serverUrl")
         }.getOrNull() ?: PlaybackProfileDefaults.fallbackServerVersion
 
         serverVersionCache[serverUrl] = resolvedVersion

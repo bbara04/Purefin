@@ -1,7 +1,6 @@
 package hu.bbara.purefin.core.download
 
 import android.content.Context
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
@@ -24,6 +23,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -52,16 +52,16 @@ class MediaDownloadManager @Inject constructor(
             ) {
                 val contentId = download.request.id
                 val state = download.toDownloadState()
-                Log.d(TAG, "Download changed: $contentId -> $state (${download.percentDownloaded}%)")
+                Timber.tag(TAG).d("Download changed: $contentId -> $state (${download.percentDownloaded}%)")
                 if (finalException != null) {
-                    Log.e(TAG, "Download exception for $contentId", finalException)
+                    Timber.tag(TAG).e(finalException, "Download exception for $contentId")
                 }
                 getOrCreateStateFlow(contentId).value = state
             }
 
             override fun onDownloadRemoved(manager: DownloadManager, download: Download) {
                 val contentId = download.request.id
-                Log.d(TAG, "Download removed: $contentId")
+                Timber.tag(TAG).d("Download removed: $contentId")
                 getOrCreateStateFlow(contentId).value = DownloadState.NotDownloaded
             }
         })
@@ -91,7 +91,7 @@ class MediaDownloadManager @Inject constructor(
                 }
                 emit(result)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to poll active downloads", e)
+                Timber.tag(TAG).e(e, "Failed to poll active downloads")
                 emit(emptyMap())
             }
             delay(500)
@@ -120,13 +120,13 @@ class MediaDownloadManager @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val source = downloadMediaSourceResolver.resolveMovieDownload(movieId) ?: run {
-                    Log.e(TAG, "No downloadable movie source for $movieId")
+                    Timber.tag(TAG).e("No downloadable movie source for $movieId")
                     return@withContext
                 }
 
                 offlineCatalogStore.saveMovies(listOf(source.movie))
 
-                Log.d(TAG, "Starting download for '${source.movie.title}' from: ${source.playbackUrl}")
+                Timber.tag(TAG).d("Starting download for '${source.movie.title}' from: ${source.playbackUrl}")
                 val request = buildDownloadRequest(
                     mediaId = movieId,
                     playbackUrl = source.playbackUrl,
@@ -134,9 +134,9 @@ class MediaDownloadManager @Inject constructor(
                     customCacheKey = source.customCacheKey,
                 )
                 PurefinDownloadService.sendAddDownload(context, request)
-                Log.d(TAG, "Download request sent for $movieId")
+                Timber.tag(TAG).d("Download request sent for $movieId")
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to start download for $movieId", e)
+                Timber.tag(TAG).e(e, "Failed to start download for $movieId")
                 getOrCreateStateFlow(movieId.toString()).value = DownloadState.Failed
             }
         }
@@ -148,7 +148,7 @@ class MediaDownloadManager @Inject constructor(
             try {
                 offlineCatalogStore.deleteMovie(movieId)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to remove movie from offline DB", e)
+                Timber.tag(TAG).e(e, "Failed to remove movie from offline DB")
             }
         }
     }
@@ -157,7 +157,7 @@ class MediaDownloadManager @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val source = downloadMediaSourceResolver.resolveEpisodeDownload(episodeId) ?: run {
-                    Log.e(TAG, "No downloadable episode source for $episodeId")
+                    Timber.tag(TAG).e("No downloadable episode source for $episodeId")
                     return@withContext
                 }
 
@@ -171,7 +171,7 @@ class MediaDownloadManager @Inject constructor(
 
                 offlineCatalogStore.saveEpisode(source.episode)
 
-                Log.d(TAG, "Starting download for episode '${source.episode.title}' from: ${source.playbackUrl}")
+                Timber.tag(TAG).d("Starting download for episode '${source.episode.title}' from: ${source.playbackUrl}")
                 val request = buildDownloadRequest(
                     mediaId = episodeId,
                     playbackUrl = source.playbackUrl,
@@ -179,9 +179,9 @@ class MediaDownloadManager @Inject constructor(
                     customCacheKey = source.customCacheKey,
                 )
                 PurefinDownloadService.sendAddDownload(context, request)
-                Log.d(TAG, "Download request sent for episode $episodeId")
+                Timber.tag(TAG).d("Download request sent for episode $episodeId")
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to start download for episode $episodeId", e)
+                Timber.tag(TAG).e(e, "Failed to start download for episode $episodeId")
                 getOrCreateStateFlow(episodeId.toString()).value = DownloadState.Failed
             }
         }
@@ -201,7 +201,7 @@ class MediaDownloadManager @Inject constructor(
             try {
                 offlineCatalogStore.deleteEpisodeAndCleanup(episodeId)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to remove episode from offline DB", e)
+                Timber.tag(TAG).e(e, "Failed to remove episode from offline DB")
             }
         }
     }
@@ -231,7 +231,7 @@ class MediaDownloadManager @Inject constructor(
                 try {
                     syncSmartDownloadsForSeries(seriesId)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Smart download sync failed for series $seriesId", e)
+                    Timber.tag(TAG).e(e, "Smart download sync failed for series $seriesId")
                 }
             }
         }
@@ -246,7 +246,7 @@ class MediaDownloadManager @Inject constructor(
             val unwatchedDownloaded = mutableListOf<UUID>()
             for (episode in downloadedEpisodes) {
                 if (downloadMediaSourceResolver.isEpisodeWatched(episode.id)) {
-                    Log.d(TAG, "Smart download: removing watched episode ${episode.title}")
+                    Timber.tag(TAG).d("Smart download: removing watched episode ${episode.title}")
                     cancelEpisodeDownload(episode.id)
                 } else {
                     unwatchedDownloaded.add(episode.id)
@@ -264,7 +264,7 @@ class MediaDownloadManager @Inject constructor(
             )
 
             if (toDownload.isNotEmpty()) {
-                Log.d(TAG, "Smart download: queuing ${toDownload.size} episodes for series $seriesId")
+                Timber.tag(TAG).d("Smart download: queuing ${toDownload.size} episodes for series $seriesId")
                 downloadEpisodes(toDownload)
             }
         }

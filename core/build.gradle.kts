@@ -41,5 +41,6 @@ dependencies {
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.datastore)
     implementation(libs.okhttp)
+    implementation(libs.timber)
     testImplementation(libs.junit)
 }

@@ -1,6 +1,5 @@
 package hu.bbara.purefin.core.player.manager
 
-import android.util.Log
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.LocalMediaUpdater
 import hu.bbara.purefin.core.data.PlaybackProgressReporter
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -82,7 +82,7 @@ class ProgressManager @Inject constructor(
                 try {
                     localMediaUpdater.updateWatchProgress(itemId, lastPositionMs, lastDurationMs)
                 } catch (e: Exception) {
-                    Log.e("ProgressManager", "Local cache update failed", e)
+                    Timber.tag(TAG).e(e, "Local cache update failed")
                 }
             }
         }
@@ -109,9 +109,9 @@ class ProgressManager @Inject constructor(
                     isStop -> playbackProgressReporter.reportPlaybackStopped(itemId, ticks, reportContext)
                     else -> playbackProgressReporter.reportPlaybackProgress(itemId, ticks, isPaused, reportContext)
                 }
-                Log.d("ProgressManager", "${if (isStart) "Start" else if (isStop) "Stop" else "Progress"}: $itemId at ${positionMs}ms, paused=$isPaused")
+                Timber.tag(TAG).d("${if (isStart) "Start" else if (isStop) "Stop" else "Progress"}: $itemId at ${positionMs}ms, paused=$isPaused")
             } catch (e: Exception) {
-                Log.e("ProgressManager", "Report failed", e)
+                Timber.tag(TAG).e(e, "Report failed")
             }
         }
     }
@@ -128,12 +128,16 @@ class ProgressManager @Inject constructor(
                         playbackProgressReporter.reportPlaybackStopped(itemId, ticks, reportContext)
                     }
                     localMediaUpdater.updateWatchProgress(itemId, posMs, durMs)
-                    Log.d("ProgressManager", "Stop: $itemId at ${posMs}ms")
+                    Timber.tag(TAG).d("Stop: $itemId at ${posMs}ms")
                 } catch (e: Exception) {
-                    Log.e("ProgressManager", "Report failed", e)
+                    Timber.tag(TAG).e(e, "Report failed")
                 }
             }
         }
         scope.cancel()
+    }
+
+    private companion object {
+        const val TAG = "ProgressManager"
     }
 }
