@@ -13,5 +13,7 @@ interface MediaDownloadController {
     suspend fun downloadEpisodes(episodeIds: List<UUID>)
     suspend fun cancelEpisodeDownload(episodeId: UUID)
     suspend fun enableSmartDownload(seriesId: UUID)
+    suspend fun deleteSmartDownloads(seriesId: UUID)
+    fun isSmartDownloadEnabled(seriesId: UUID): Flow<Boolean>
     suspend fun syncSmartDownloads()
 }

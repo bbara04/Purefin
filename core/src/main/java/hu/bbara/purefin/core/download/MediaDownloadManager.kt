@@ -206,11 +206,16 @@ class MediaDownloadManager @Inject constructor(
         syncSmartDownloadsForSeries(seriesId)
     }
 
-    suspend fun disableSmartDownload(seriesId: UUID) {
-        smartDownloadStore.disable(seriesId)
+    override suspend fun deleteSmartDownloads(seriesId: UUID) {
+        withContext(Dispatchers.IO) {
+            smartDownloadStore.disable(seriesId)
+            offlineCatalogStore.getEpisodesBySeries(seriesId).forEach { episode ->
+                cancelEpisodeDownload(episode.id)
+            }
+        }
     }
 
-    fun isSmartDownloadEnabled(seriesId: UUID): Flow<Boolean> = smartDownloadStore.observe(seriesId)
+    override fun isSmartDownloadEnabled(seriesId: UUID): Flow<Boolean> = smartDownloadStore.observe(seriesId)
 
     override suspend fun syncSmartDownloads() {
         withContext(Dispatchers.IO) {

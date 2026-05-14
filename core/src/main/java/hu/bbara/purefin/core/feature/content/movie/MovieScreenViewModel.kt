@@ -80,6 +80,9 @@ class MovieScreenViewModel @Inject constructor(
                 }
                 is DownloadState.Downloaded -> {
                     mediaDownloadManager.cancelDownload(movieId)
+                    if (_movie.value?.offline == true) {
+                        navigationManager.pop()
+                    }
                 }
             }
         }

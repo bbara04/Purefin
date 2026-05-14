@@ -60,6 +60,7 @@ fun SeriesScreen(
             series = seriesData,
             seriesDownloadState = viewModel.seriesDownloadState.collectAsState().value,
             seasonDownloadState = viewModel.seasonDownloadState.collectAsState().value,
+            isSmartDownloadEnabled = viewModel.isSmartDownloadEnabled.collectAsState().value,
             onDownloadOptionSelected = { option, selectedSeason ->
                 when (option) {
                     SeriesDownloadOption.SEASON ->
@@ -70,6 +71,9 @@ fun SeriesScreen(
 
                     SeriesDownloadOption.SMART ->
                         viewModel.enableSmartDownload(seriesData.id)
+
+                    SeriesDownloadOption.DELETE_SMART ->
+                        viewModel.deleteSmartDownloads(seriesData.id)
                 }
             },
             onLoadSeasonEpisodes = viewModel::loadSeasonEpisodes,
@@ -88,6 +92,7 @@ private fun SeriesScreenInternal(
     series: Series,
     seriesDownloadState: DownloadState,
     seasonDownloadState: DownloadState,
+    isSmartDownloadEnabled: Boolean,
     onDownloadOptionSelected: (SeriesDownloadOption, Season) -> Unit,
     onLoadSeasonEpisodes: (UUID, UUID) -> Unit,
     onObserveSeasonDownloadState: (List<Episode>) -> Unit,
@@ -130,6 +135,7 @@ private fun SeriesScreenInternal(
             seriesDownloadState = seriesDownloadState,
             selectedSeason = selectedSeason,
             seasonDownloadState = seasonDownloadState,
+            isSmartDownloadEnabled = isSmartDownloadEnabled,
             offline = offline,
             onDownloadOptionSelected = { option ->
                 onDownloadOptionSelected(option, selectedSeason)
@@ -188,6 +194,7 @@ private fun SeriesScreenPreview() {
             series = previewSeries(),
             seriesDownloadState = DownloadState.Downloading(progressPercent = 0.58f),
             seasonDownloadState = DownloadState.NotDownloaded,
+            isSmartDownloadEnabled = true,
             onDownloadOptionSelected = { _, _ -> },
             onLoadSeasonEpisodes = { _, _ -> },
             onObserveSeasonDownloadState = {},

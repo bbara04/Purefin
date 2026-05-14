@@ -88,8 +88,14 @@ class EpisodeScreenViewModel @Inject constructor(
                 is DownloadState.NotDownloaded, is DownloadState.Failed -> {
                     mediaDownloadManager.downloadEpisode(episodeId)
                 }
-                is DownloadState.Downloading, is DownloadState.Downloaded -> {
+                is DownloadState.Downloading -> {
                     mediaDownloadManager.cancelEpisodeDownload(episodeId)
+                }
+                is DownloadState.Downloaded -> {
+                    mediaDownloadManager.cancelEpisodeDownload(episodeId)
+                    if (_episode.value?.offline == true) {
+                        navigationManager.pop()
+                    }
                 }
             }
         }

@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -112,6 +113,7 @@ internal fun SeriesActionButtons(
     seriesDownloadState: DownloadState,
     selectedSeason: Season,
     seasonDownloadState: DownloadState,
+    isSmartDownloadEnabled: Boolean,
     offline: Boolean,
     onDownloadOptionSelected: (SeriesDownloadOption) -> Unit,
     modifier: Modifier = Modifier,
@@ -171,6 +173,7 @@ internal fun SeriesActionButtons(
         DownloadOptionsDialog(
             selectedSeasonName = selectedSeason.name,
             seasonDownloadState = seasonDownloadState,
+            isSmartDownloadEnabled = isSmartDownloadEnabled,
             onDownloadOptionSelected = {
                 showDownloadDialog = false
                 onDownloadOptionSelected(it)
@@ -183,13 +186,15 @@ internal fun SeriesActionButtons(
 internal enum class SeriesDownloadOption {
     SEASON,
     SERIES,
-    SMART
+    SMART,
+    DELETE_SMART
 }
 
 @Composable
 private fun DownloadOptionsDialog(
     selectedSeasonName: String,
     seasonDownloadState: DownloadState,
+    isSmartDownloadEnabled: Boolean,
     onDownloadOptionSelected: (SeriesDownloadOption) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -221,8 +226,19 @@ private fun DownloadOptionsDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = { onDownloadOptionSelected(SeriesDownloadOption.SMART) }) {
-                Text("Smart Download")
+            if (isSmartDownloadEnabled) {
+                TextButton(
+                    onClick = { onDownloadOptionSelected(SeriesDownloadOption.DELETE_SMART) },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete Smart Downloads")
+                }
+            } else {
+                TextButton(onClick = { onDownloadOptionSelected(SeriesDownloadOption.SMART) }) {
+                    Text("Smart Download")
+                }
             }
         }
     )
