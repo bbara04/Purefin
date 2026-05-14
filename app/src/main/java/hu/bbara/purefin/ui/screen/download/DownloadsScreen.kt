@@ -12,6 +12,7 @@ import hu.bbara.purefin.ui.screen.AppBottomBar
 @Composable
 fun DownloadsScreen(
     selectedTab: Int,
+    isOnline: Boolean,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -22,6 +23,7 @@ fun DownloadsScreen(
         bottomBar = {
             AppBottomBar(
                 selectedTab = selectedTab,
+                isOnline = isOnline,
                 onTabSelected = onTabSelected
             )
         }

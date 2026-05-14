@@ -35,6 +35,7 @@ fun HomeScreen(
     onSearchClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     selectedTab: Int,
+    isOnline: Boolean,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -57,6 +58,7 @@ fun HomeScreen(
         bottomBar = {
             AppBottomBar(
                 selectedTab = selectedTab,
+                isOnline = isOnline,
                 onTabSelected = onTabSelected
             )
         }

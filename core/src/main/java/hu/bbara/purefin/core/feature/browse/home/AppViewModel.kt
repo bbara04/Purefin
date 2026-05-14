@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.LocalMediaRepository
+import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.core.download.MediaDownloadController
 import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
@@ -40,10 +41,18 @@ class AppViewModel @Inject constructor(
     private val jellyfinMediaMetadataUpdater: JellyfinMediaMetadataUpdater,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
+    networkMonitor: NetworkMonitor,
 ) : ViewModel() {
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    val isOnline: StateFlow<Boolean> = networkMonitor.isOnline
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            false
+        )
 
     val serverUrl: StateFlow<String> = userSessionRepository.serverUrl
         .stateIn(

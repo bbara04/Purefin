@@ -17,6 +17,7 @@ fun LibrariesScreen(
     onLibrarySelected: (LibraryUiModel) -> Unit,
     onSearchClick: () -> Unit,
     selectedTab: Int,
+    isOnline: Boolean,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -32,6 +33,7 @@ fun LibrariesScreen(
         bottomBar = {
             AppBottomBar(
                 selectedTab = selectedTab,
+                isOnline = isOnline,
                 onTabSelected = onTabSelected
             )
         }

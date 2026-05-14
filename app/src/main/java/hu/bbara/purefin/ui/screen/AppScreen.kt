@@ -44,6 +44,7 @@ fun AppScreen(
     val continueWatching by viewModel.continueWatching.collectAsState()
     val nextUp by viewModel.nextUp.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val isOnline by viewModel.isOnline.collectAsState()
     val isCheckingForUpdates by updateViewModel.isCheckingForUpdates.collectAsState()
     val availableUpdate by updateViewModel.availableUpdate.collectAsState()
     val navigationManager = LocalNavigationManager.current
@@ -53,6 +54,13 @@ fun AppScreen(
     val backStack = rememberNavBackStack(AppTabRoute.Home) as NavBackStack<AppTabRoute>
     val currentRoute = backStack.lastOrNull() ?: AppTabRoute.Home
     val selectedTab = currentRoute.toTabIndex()
+
+    LaunchedEffect(isOnline, currentRoute, backStack) {
+        if (!isOnline && currentRoute != AppTabRoute.Downloads) {
+            backStack.clear()
+            backStack.add(AppTabRoute.Downloads)
+        }
+    }
 
     LifecycleResumeEffect(Unit) {
         viewModel.onResumed()
@@ -69,9 +77,9 @@ fun AppScreen(
         }
     }
 
-    val onTabSelected = remember(backStack) {
+    val onTabSelected = remember(backStack, isOnline) {
         { selectedIndex: Int ->
-            val route = selectedIndex.toAppTabRoute()
+            val route = if (isOnline) selectedIndex.toAppTabRoute() else AppTabRoute.Downloads
             if (backStack.lastOrNull() != route) {
                 backStack.add(route)
             }
@@ -104,6 +112,7 @@ fun AppScreen(
                 onSearchClick = viewModel::openSearch,
                 snackbarHostState = snackbarHostState,
                 selectedTab = selectedTab,
+                isOnline = isOnline,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()
             )
@@ -114,6 +123,7 @@ fun AppScreen(
                 onLibrarySelected = { item -> viewModel.onLibrarySelected(item.id, item.name) },
                 onSearchClick = viewModel::openSearch,
                 selectedTab = selectedTab,
+                isOnline = isOnline,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()
             )
@@ -121,6 +131,7 @@ fun AppScreen(
         entry<AppTabRoute.Downloads>(metadata = appTabMetadata(AppTabRoute.Downloads)) {
             DownloadsScreen(
                 selectedTab = selectedTab,
+                isOnline = isOnline,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()
             )
