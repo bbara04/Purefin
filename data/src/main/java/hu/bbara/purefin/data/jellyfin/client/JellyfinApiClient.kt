@@ -3,9 +3,9 @@ package hu.bbara.purefin.data.jellyfin.client
 import android.content.Context
 import android.os.SystemClock
 import dagger.hilt.android.qualifiers.ApplicationContext
+import hu.bbara.purefin.core.data.JellyfinServerCandidate
 import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.PlaybackReportContext
-import hu.bbara.purefin.core.data.JellyfinServerCandidate
 import hu.bbara.purefin.core.data.QuickConnectSession
 import hu.bbara.purefin.core.data.UserSessionRepository
 import kotlinx.coroutines.CancellationException
@@ -16,8 +16,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.api.client.Response
-import org.jellyfin.sdk.api.client.extensions.authenticateWithQuickConnect
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
+import org.jellyfin.sdk.api.client.extensions.authenticateWithQuickConnect
 import org.jellyfin.sdk.api.client.extensions.clientLogApi
 import org.jellyfin.sdk.api.client.extensions.genresApi
 import org.jellyfin.sdk.api.client.extensions.itemsApi
@@ -195,13 +195,12 @@ class JellyfinApiClient @Inject constructor(
                 searchTerm = searchTerm,
                 recursive = true
             )
-            Timber.tag("searchBySearchTerm").d(response.content.toString())
             response.content.items
         }
     }
 
     suspend fun searchByGenre(genres: Set<String>): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logRequest("searchMovie") {
+        logRequest("searchByGenre") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -211,7 +210,6 @@ class JellyfinApiClient @Inject constructor(
                 genres = genres,
                 recursive = true
             )
-            Timber.tag("searchByGenre").d(response.content.toString())
             response.content.items
         }
     }
@@ -226,13 +224,12 @@ class JellyfinApiClient @Inject constructor(
                 presetViews = listOf(CollectionType.MOVIES, CollectionType.TVSHOWS),
                 includeHidden = false,
             )
-            Timber.tag("getLibraries").d(response.content.toString())
             response.content.items
         }
     }
 
     suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logRequest("getLibraryContent($libraryId)") {
+        logRequest("getLibraryContent") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -246,7 +243,6 @@ class JellyfinApiClient @Inject constructor(
                 recursive = true,
             )
             val response = api.itemsApi.getItems(getItemsRequest)
-            Timber.tag("getLibraryContent").d(response.content.toString())
             response.content.items
         }
     }
@@ -264,7 +260,6 @@ class JellyfinApiClient @Inject constructor(
                 limit = 8,
                 enableTotalRecordCount = true,
             )
-            Timber.tag("getSuggestions").d(response.content.toString())
             response.content.items
         }
     }
@@ -283,7 +278,6 @@ class JellyfinApiClient @Inject constructor(
                 startIndex = 0,
             )
             val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
-            Timber.tag("getContinueWatching").d(response.content.toString())
             response.content.items
         }
     }
@@ -299,13 +293,12 @@ class JellyfinApiClient @Inject constructor(
                 enableResumable = false,
             )
             val result = api.tvShowsApi.getNextUp(getNextUpRequest)
-            Timber.tag("getNextUpEpisodes").d(result.content.toString())
             result.content.items
         }
     }
 
     suspend fun getLatestFromLibrary(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logRequest("getLatestFromLibrary($libraryId)") {
+        logRequest("getLatestFromLibrary") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -316,24 +309,22 @@ class JellyfinApiClient @Inject constructor(
                 includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
                 limit = 10,
             )
-            Timber.tag("getLatestFromLibrary").d(response.content.toString())
             response.content
         }
     }
 
     suspend fun getItemInfo(mediaId: UUID): BaseItemDto? = withContext(Dispatchers.IO) {
-        logRequest("getItemInfo($mediaId)") {
+        logRequest("getItemInfo") {
             if (!ensureConfigured()) {
                 return@logRequest null
             }
             val result = api.userLibraryApi.getItem(itemId = mediaId, userId = getUserId())
-            Timber.tag("getItemInfo").d(result.content.toString())
             result.content
         }
     }
 
     suspend fun getSeasons(seriesId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logRequest("getSeasons($seriesId)") {
+        logRequest("getSeasons") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -343,13 +334,12 @@ class JellyfinApiClient @Inject constructor(
                 fields = defaultItemFields,
                 enableUserData = true,
             )
-            Timber.tag("getSeasons").d(result.content.toString())
             result.content.items
         }
     }
 
     suspend fun getEpisodesInSeason(seriesId: UUID, seasonId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logRequest("getEpisodesInSeason(series=$seriesId, season=$seasonId)") {
+        logRequest("getEpisodesInSeason") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -360,13 +350,12 @@ class JellyfinApiClient @Inject constructor(
                 fields = defaultItemFields + ItemFields.OVERVIEW,
                 enableUserData = true,
             )
-            Timber.tag("getEpisodesInSeason").d(result.content.toString())
             result.content.items
         }
     }
 
     suspend fun getNextEpisodes(episodeId: UUID, count: Int): List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logRequest("getNextEpisodes($episodeId, count=$count)") {
+        logRequest("getNextEpisodes") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -380,13 +369,12 @@ class JellyfinApiClient @Inject constructor(
                 limit = count,
             )
             val nextUpEpisodes = nextUpEpisodesResult.content.items
-            Timber.tag("getNextEpisodes").d(nextUpEpisodes.toString())
             nextUpEpisodes
         }
     }
 
     suspend fun getGenres(id: UUID? = null) : List<BaseItemDto> = withContext(Dispatchers.IO) {
-        logRequest("getGenres($id)") {
+        logRequest("getGenres") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -394,13 +382,12 @@ class JellyfinApiClient @Inject constructor(
                 userId = getUserId(),
                 parentId = id,
             )
-            Timber.tag("getGenres").d(result.toString())
             result.content.items
         }
     }
 
     suspend fun markAsWatched(mediaId: UUID) = withContext(Dispatchers.IO) {
-        logRequest("markAsWatched($mediaId)") {
+        logRequest("markAsWatched") {
             if (!ensureConfigured()) {
                 return@logRequest
             }
@@ -412,7 +399,7 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun markAsUnwatched(mediaId: UUID) = withContext(Dispatchers.IO) {
-        logRequest("markAsUnwatched($mediaId)") {
+        logRequest("markAsUnwatched") {
             if (!ensureConfigured()) {
                 return@logRequest
             }
@@ -424,7 +411,7 @@ class JellyfinApiClient @Inject constructor(
     }
 
     suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
-        logRequest("getMediaSources($mediaId)") {
+        logRequest("getMediaSources") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -436,13 +423,12 @@ class JellyfinApiClient @Inject constructor(
                     maxStreamingBitrate = 100_000_000,
                 ),
             )
-            Timber.tag("getMediaSources").d(result.toString())
             result.content.mediaSources
         }
     }
 
     suspend fun getMediaSegments(mediaId: UUID) : List<MediaSegmentDto> = withContext(Dispatchers.IO) {
-        logRequest("getMediaSegments($mediaId)") {
+        logRequest("getMediaSegments") {
             if (!ensureConfigured()) {
                 return@logRequest emptyList()
             }
@@ -450,7 +436,6 @@ class JellyfinApiClient @Inject constructor(
                 itemId = mediaId,
                 //includeSegmentTypes = listOf(MediaSegmentType.INTRO)
             )
-            Timber.tag("getMediaSegments").d(result.toString())
             result.content.items
         }
     }
@@ -459,7 +444,7 @@ class JellyfinApiClient @Inject constructor(
         mediaId: UUID,
         deviceProfile: DeviceProfile,
     ): PlaybackInfoResponse? = withContext(Dispatchers.IO) {
-        logRequest("getPlaybackInfo($mediaId)") {
+        logRequest("getPlaybackInfo") {
             if (!ensureConfigured()) {
                 return@logRequest null
             }
@@ -497,7 +482,7 @@ class JellyfinApiClient @Inject constructor(
             liveStreamId = liveStreamId,
         )
     } catch (error: Exception) {
-        Timber.tag(TAG).e(error, "getVideoStreamUrl($itemId) failed")
+        Timber.tag(TAG).e(error, "getVideoStreamUrl")
         throw error
     }
 
@@ -524,7 +509,7 @@ class JellyfinApiClient @Inject constructor(
         positionTicks: Long = 0L,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        logRequest("reportPlaybackStart($itemId)") {
+        logRequest("reportPlaybackStart") {
             if (!ensureConfigured()) return@logRequest
             api.playStateApi.reportPlaybackStart(
                 PlaybackStartInfo(
@@ -552,7 +537,7 @@ class JellyfinApiClient @Inject constructor(
         isPaused: Boolean,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        logRequest("reportPlaybackProgress($itemId)") {
+        logRequest("reportPlaybackProgress") {
             if (!ensureConfigured()) return@logRequest
             api.playStateApi.reportPlaybackProgress(
                 PlaybackProgressInfo(
@@ -579,7 +564,7 @@ class JellyfinApiClient @Inject constructor(
         positionTicks: Long,
         reportContext: PlaybackReportContext,
     ) = withContext(Dispatchers.IO) {
-        logRequest("reportPlaybackStopped($itemId)") {
+        logRequest("reportPlaybackStopped") {
             if (!ensureConfigured()) return@logRequest
             api.playStateApi.reportPlaybackStopped(
                 PlaybackStopInfo(
@@ -594,37 +579,20 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
-    private suspend fun <T> logRequest(operation: String, block: suspend () -> T): T {
+    private suspend fun <T> logRequest(functionName: String, block: suspend () -> T): T {
         val startedAt = SystemClock.elapsedRealtime()
         return try {
             val result = block()
             val elapsedMs = SystemClock.elapsedRealtime() - startedAt
-            Timber.tag(TAG).d(
-                "$operation finished in ${elapsedMs}ms, " +
-                    "fetched ${result.approximateSizeBytes()} bytes${result.itemCountLogText()}"
-            )
+            Timber.tag(TAG).d("$functionName took ${elapsedMs}ms")
             result
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
             val elapsedMs = SystemClock.elapsedRealtime() - startedAt
-            Timber.tag(TAG).e(error, "$operation failed after ${elapsedMs}ms")
+            Timber.tag(TAG).e(error, "$functionName failed after ${elapsedMs}ms")
             throw error
         }
-    }
-
-    private fun Any?.approximateSizeBytes(): Int {
-        return toString().toByteArray(Charsets.UTF_8).size
-    }
-
-    private fun Any?.itemCountLogText(): String {
-        val count = when (this) {
-            is Collection<*> -> size
-            is Map<*, *> -> size
-            is Array<*> -> size
-            else -> null
-        }
-        return count?.let { ", items $it" }.orEmpty()
     }
 
     private fun PlaybackMethod.toJellyfinPlayMethod(): PlayMethod = when (this) {
