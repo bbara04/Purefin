@@ -28,8 +28,8 @@ fun TvMovieScreen(
     viewModel: MovieScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    LaunchedEffect(movie.id) {
-        viewModel.selectMovie(movie.id)
+    LaunchedEffect(movie) {
+        viewModel.selectMovie(movie)
     }
 
     val movieItem = viewModel.movie.collectAsState()

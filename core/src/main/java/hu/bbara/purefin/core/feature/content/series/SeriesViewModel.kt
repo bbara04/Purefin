@@ -3,12 +3,14 @@ package hu.bbara.purefin.core.feature.content.series
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.download.MediaDownloadController
 import hu.bbara.purefin.core.navigation.EpisodeDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Series
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,17 +29,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SeriesViewModel @Inject constructor(
-    private val mediaCatalogReader: LocalMediaRepository,
+    private val defaultMediaCatalogReader: LocalMediaRepository,
+    @param:Offline private val offlineMediaCatalogReader: LocalMediaRepository,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
 ) : ViewModel() {
 
-    private val _seriesId = MutableStateFlow<UUID?>(null)
+    private val _series = MutableStateFlow<SeriesDto?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val series: StateFlow<Series?> = _seriesId
-        .flatMapLatest { seriesId ->
-            if (seriesId == null) flowOf(null) else mediaCatalogReader.getSeries(seriesId)
+    val series: StateFlow<Series?> = _series
+        .flatMapLatest { series ->
+            if (series == null) {
+                flowOf(null)
+            } else {
+                mediaCatalogReader(series.offline).getSeries(series.id)
+            }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -80,12 +87,13 @@ class SeriesViewModel @Inject constructor(
 
     fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {
         viewModelScope.launch {
-            mediaCatalogReader.loadSeasonEpisodes(seriesId, seasonId)
+            selectedMediaCatalogReader().loadSeasonEpisodes(seriesId, seasonId)
         }
     }
 
     fun downloadSeason(seriesId: UUID, seasonId: UUID) {
         viewModelScope.launch {
+            val mediaCatalogReader = selectedMediaCatalogReader()
             mediaCatalogReader.loadSeasonEpisodes(seriesId, seasonId)
             val episodes = mediaCatalogReader.getSeries(seriesId)
                 .first()
@@ -105,6 +113,7 @@ class SeriesViewModel @Inject constructor(
 
     fun downloadSeries(seriesData: Series) {
         viewModelScope.launch {
+            val mediaCatalogReader = selectedMediaCatalogReader()
             seriesData.seasons.forEach { season ->
                 mediaCatalogReader.loadSeasonEpisodes(seriesData.id, season.id)
             }
@@ -136,7 +145,8 @@ class SeriesViewModel @Inject constructor(
                 EpisodeDto(
                     id = episodeId,
                     seasonId = seasonId,
-                    seriesId = seriesId
+                    seriesId = seriesId,
+                    offline = _series.value?.offline == true,
                 )
         ))
     }
@@ -153,10 +163,18 @@ class SeriesViewModel @Inject constructor(
         navigationManager.replaceAll(Route.Home)
     }
 
-    fun selectSeries(seriesId: UUID) {
-        _seriesId.value = seriesId
+    fun selectSeries(series: SeriesDto) {
+        _series.value = series
         viewModelScope.launch {
-            mediaCatalogReader.loadSeasons(seriesId)
+            mediaCatalogReader(series.offline).loadSeasons(series.id)
         }
+    }
+
+    private fun selectedMediaCatalogReader(): LocalMediaRepository {
+        return mediaCatalogReader(_series.value?.offline == true)
+    }
+
+    private fun mediaCatalogReader(offline: Boolean): LocalMediaRepository {
+        return if (offline) offlineMediaCatalogReader else defaultMediaCatalogReader
     }
 }

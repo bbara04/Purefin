@@ -45,13 +45,13 @@ fun SeriesScreen(
     modifier: Modifier = Modifier,
     viewModel: SeriesViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(series.id) {
-        viewModel.selectSeries(series.id)
+    LaunchedEffect(series) {
+        viewModel.selectSeries(series)
     }
 
-    val series = viewModel.series.collectAsState()
+    val seriesState = viewModel.series.collectAsState()
 
-    val seriesData = series.value
+    val seriesData = seriesState.value
     if (seriesData != null && seriesData.seasons.isNotEmpty()) {
         LaunchedEffect(seriesData) {
             viewModel.observeSeriesDownloadState(seriesData)
@@ -75,6 +75,7 @@ fun SeriesScreen(
             onLoadSeasonEpisodes = viewModel::loadSeasonEpisodes,
             onObserveSeasonDownloadState = viewModel::observeSeasonDownloadState,
             onBack = viewModel::onGoHome,
+            offline = series.offline,
             modifier = modifier
         )
     } else {
@@ -91,6 +92,7 @@ private fun SeriesScreenInternal(
     onLoadSeasonEpisodes: (UUID, UUID) -> Unit,
     onObserveSeasonDownloadState: (List<Episode>) -> Unit,
     onBack: () -> Unit,
+    offline: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -128,6 +130,7 @@ private fun SeriesScreenInternal(
             seriesDownloadState = seriesDownloadState,
             selectedSeason = selectedSeason,
             seasonDownloadState = seasonDownloadState,
+            offline = offline,
             onDownloadOptionSelected = { option ->
                 onDownloadOptionSelected(option, selectedSeason)
             }
@@ -188,7 +191,8 @@ private fun SeriesScreenPreview() {
             onDownloadOptionSelected = { _, _ -> },
             onLoadSeasonEpisodes = { _, _ -> },
             onObserveSeasonDownloadState = {},
-            onBack = {}
+            onBack = {},
+            offline = false,
         )
     }
 }

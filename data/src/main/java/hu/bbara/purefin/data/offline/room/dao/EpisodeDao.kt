@@ -15,10 +15,10 @@ interface EpisodeDao {
     @Upsert
     suspend fun upsertAll(episodes: List<EpisodeEntity>)
 
-    @Query("SELECT * FROM episodes WHERE seriesId = :seriesId")
+    @Query("SELECT * FROM episodes WHERE seriesId = :seriesId ORDER BY seasonIndex ASC, `index` ASC")
     suspend fun getBySeriesId(seriesId: UUID): List<EpisodeEntity>
 
-    @Query("SELECT * FROM episodes WHERE seasonId = :seasonId")
+    @Query("SELECT * FROM episodes WHERE seasonId = :seasonId ORDER BY `index` ASC")
     suspend fun getBySeasonId(seasonId: UUID): List<EpisodeEntity>
 
     @Query("SELECT * FROM episodes")

@@ -37,7 +37,7 @@ class OfflineLocalMediaRepository @Inject constructor(
     }
 
     override suspend fun getSeries(id: UUID): Flow<Series?> {
-        return series.map { it[id] }
+        return localDataSource.observeSeriesWithContent(id)
     }
 
     override suspend fun getEpisode(id: UUID): Flow<Episode?> {

@@ -14,7 +14,7 @@ interface SeasonDao {
     @Upsert
     suspend fun upsertAll(seasons: List<SeasonEntity>)
 
-    @Query("SELECT * FROM seasons WHERE seriesId = :seriesId")
+    @Query("SELECT * FROM seasons WHERE seriesId = :seriesId ORDER BY `index` ASC")
     suspend fun getBySeriesId(seriesId: UUID): List<SeasonEntity>
 
     @Query("SELECT * FROM seasons WHERE id = :id")

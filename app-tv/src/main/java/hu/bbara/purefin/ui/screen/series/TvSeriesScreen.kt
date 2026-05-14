@@ -42,8 +42,8 @@ fun TvSeriesScreen(
     modifier: Modifier = Modifier,
     viewModel: SeriesViewModel = hiltViewModel()
 ) {
-    LaunchedEffect(series.id) {
-        viewModel.selectSeries(series.id)
+    LaunchedEffect(series) {
+        viewModel.selectSeries(series)
     }
 
     val series = viewModel.series.collectAsState()

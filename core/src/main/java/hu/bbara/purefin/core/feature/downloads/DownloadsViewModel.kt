@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DownloadsViewModel @Inject constructor(
-    @Offline private val offlineCatalogReader: LocalMediaRepository,
+    @param:Offline private val offlineCatalogReader: LocalMediaRepository,
     private val navigationManager: NavigationManager,
     private val downloadManager: MediaDownloadController,
 ) : ViewModel() {
@@ -31,7 +31,7 @@ class DownloadsViewModel @Inject constructor(
     fun onMovieSelected(movieId: UUID) {
         navigationManager.navigate(
             Route.MovieRoute(
-                MovieDto(id = movieId)
+                MovieDto(id = movieId, offline = true)
         ))
     }
 
@@ -39,7 +39,7 @@ class DownloadsViewModel @Inject constructor(
         viewModelScope.launch {
             navigationManager.navigate(
                 Route.SeriesRoute(
-                    SeriesDto(id = seriesId)
+                    SeriesDto(id = seriesId, offline = true)
             ))
         }
     }

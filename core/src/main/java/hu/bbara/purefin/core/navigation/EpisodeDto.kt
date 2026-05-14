@@ -11,4 +11,5 @@ data class EpisodeDto(
     val seasonId: UUID,
     @Serializable(with = UuidSerializer::class)
     val seriesId: UUID,
+    val offline: Boolean = false,
 )

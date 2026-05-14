@@ -7,4 +7,5 @@ import kotlinx.serialization.Serializable
 data class SeriesDto(
     @Serializable(with = UuidSerializer::class)
     val id: UUID,
+    val offline: Boolean = false,
 )

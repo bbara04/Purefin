@@ -43,11 +43,12 @@ class OfflineRoomMediaLocalDataSource(
         seriesDao.observeWithContent(seriesId).map { relation ->
             relation?.let {
                 it.series.toDomain(
-                    seasons = it.seasons.map { swe ->
+                    seasons = it.seasons.sortedBy { swe -> swe.season.index }.map { swe ->
                         swe.season.toDomain(
-                            episodes = swe.episodes.map { ep -> ep.toDomain() }
+                            episodes = swe.episodes.sortedBy { ep -> ep.index }.map { ep -> ep.toDomain() }
                         )
-                    }                )
+                    }
+                )
             }
         }
 

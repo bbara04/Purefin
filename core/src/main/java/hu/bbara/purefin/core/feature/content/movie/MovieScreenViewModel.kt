@@ -3,13 +3,14 @@ package hu.bbara.purefin.core.feature.content.movie
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.download.MediaDownloadController
+import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.model.Movie
-import java.util.UUID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,17 +24,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MovieScreenViewModel @Inject constructor(
-    private val mediaCatalogReader: LocalMediaRepository,
+    private val defaultMediaCatalogReader: LocalMediaRepository,
+    @param:Offline private val offlineMediaCatalogReader: LocalMediaRepository,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
 ): ViewModel() {
 
-    private val _movieId = MutableStateFlow<UUID?>(null)
+    private val _movie = MutableStateFlow<MovieDto?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val movie: StateFlow<Movie?> = _movieId
-        .flatMapLatest { movieId ->
-            if (movieId == null) flowOf(null) else mediaCatalogReader.getMovie(movieId)
+    val movie: StateFlow<Movie?> = _movie
+        .flatMapLatest { movie ->
+            if (movie == null) {
+                flowOf(null)
+            } else {
+                mediaCatalogReader(movie.offline).getMovie(movie.id)
+            }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -53,10 +59,10 @@ class MovieScreenViewModel @Inject constructor(
         navigationManager.replaceAll(Route.Home)
     }
 
-    fun selectMovie(movieId: UUID) {
-        _movieId.value = movieId
+    fun selectMovie(movie: MovieDto) {
+        _movie.value = movie
         viewModelScope.launch {
-            mediaDownloadManager.observeDownloadState(movieId.toString()).collect {
+            mediaDownloadManager.observeDownloadState(movie.id.toString()).collect {
                 _downloadState.value = it
             }
         }
@@ -79,4 +85,7 @@ class MovieScreenViewModel @Inject constructor(
         }
     }
 
+    private fun mediaCatalogReader(offline: Boolean): LocalMediaRepository {
+        return if (offline) offlineMediaCatalogReader else defaultMediaCatalogReader
+    }
 }

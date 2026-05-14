@@ -112,6 +112,7 @@ internal fun SeriesActionButtons(
     seriesDownloadState: DownloadState,
     selectedSeason: Season,
     seasonDownloadState: DownloadState,
+    offline: Boolean,
     onDownloadOptionSelected: (SeriesDownloadOption) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -119,8 +120,7 @@ internal fun SeriesActionButtons(
     val navigationManager = LocalNavigationManager.current
     val scheme = MaterialTheme.colorScheme
     var showDownloadDialog by remember { mutableStateOf(false) }
-    val episodeId = nextUpEpisode?.id
-    val playAction = remember(nextUpEpisode) {
+    val playAction = remember(nextUpEpisode, offline) {
         nextUpEpisode?.let { episode ->
             {
                 navigationManager.navigate(
@@ -128,7 +128,8 @@ internal fun SeriesActionButtons(
                         EpisodeDto(
                             id = episode.id,
                             seasonId = episode.seasonId,
-                            seriesId = episode.seriesId
+                            seriesId = episode.seriesId,
+                            offline = offline,
                         )
                     )
                 )

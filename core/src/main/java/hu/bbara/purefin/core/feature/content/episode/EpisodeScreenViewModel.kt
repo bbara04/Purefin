@@ -3,14 +3,15 @@ package hu.bbara.purefin.core.feature.content.episode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.download.MediaDownloadController
+import hu.bbara.purefin.core.navigation.EpisodeDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.model.Episode
-import java.util.UUID
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,28 +26,32 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EpisodeScreenViewModel @Inject constructor(
-    private val mediaCatalogReader: LocalMediaRepository,
+    private val defaultMediaCatalogReader: LocalMediaRepository,
+    @param:Offline private val offlineMediaCatalogReader: LocalMediaRepository,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
 ): ViewModel() {
 
-    private val _episodeId = MutableStateFlow<UUID?>(null)
-    private val _seriesId = MutableStateFlow<UUID?>(null)
+    private val _episode = MutableStateFlow<EpisodeDto?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val episode: StateFlow<Episode?> = _episodeId
-        .flatMapLatest { episodeId ->
-            if (episodeId == null) flowOf(null) else mediaCatalogReader.getEpisode(episodeId)
+    val episode: StateFlow<Episode?> = _episode
+        .flatMapLatest { episode ->
+            if (episode == null) {
+                flowOf(null)
+            } else {
+                mediaCatalogReader(episode.offline).getEpisode(episode.id)
+            }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val seriesTitle: StateFlow<String?> = _seriesId
-        .flatMapLatest { seriesId ->
-            if (seriesId == null) {
+    val seriesTitle: StateFlow<String?> = _episode
+        .flatMapLatest { episode ->
+            if (episode == null) {
                 flowOf(null)
             } else {
-                mediaCatalogReader.getSeries(seriesId).map { it?.name }
+                mediaCatalogReader(episode.offline).getSeries(episode.seriesId).map { it?.name }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -59,22 +64,25 @@ class EpisodeScreenViewModel @Inject constructor(
     }
 
     fun onSeriesClick() {
-        val seriesId = _seriesId.value ?: return
-        navigationManager.navigate(Route.SeriesRoute(SeriesDto(id = seriesId)))
+        val episode = _episode.value ?: return
+        navigationManager.navigate(
+            Route.SeriesRoute(
+                SeriesDto(id = episode.seriesId, offline = episode.offline)
+            )
+        )
     }
 
-    fun selectEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID) {
-        _episodeId.value = episodeId
-        _seriesId.value = seriesId
+    fun selectEpisode(episode: EpisodeDto) {
+        _episode.value = episode
         viewModelScope.launch {
-            mediaDownloadManager.observeDownloadState(episodeId.toString()).collect {
+            mediaDownloadManager.observeDownloadState(episode.id.toString()).collect {
                 _downloadState.value = it
             }
         }
     }
 
     fun onDownloadClick() {
-        val episodeId = _episodeId.value ?: return
+        val episodeId = _episode.value?.id ?: return
         viewModelScope.launch {
             when (_downloadState.value) {
                 is DownloadState.NotDownloaded, is DownloadState.Failed -> {
@@ -87,4 +95,7 @@ class EpisodeScreenViewModel @Inject constructor(
         }
     }
 
+    private fun mediaCatalogReader(offline: Boolean): LocalMediaRepository {
+        return if (offline) offlineMediaCatalogReader else defaultMediaCatalogReader
+    }
 }

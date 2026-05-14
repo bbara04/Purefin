@@ -43,11 +43,7 @@ fun EpisodeScreen(
     val previousRoute = remember(backStack) { backStack.getOrNull(backStack.lastIndex - 1) }
 
     LaunchedEffect(episode) {
-        viewModel.selectEpisode(
-            seriesId = episode.seriesId,
-            seasonId = episode.seasonId,
-            episodeId = episode.id
-        )
+        viewModel.selectEpisode(episode)
     }
 
     val episode = viewModel.episode.collectAsState()
