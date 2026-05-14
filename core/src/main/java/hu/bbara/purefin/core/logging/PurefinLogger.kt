@@ -48,8 +48,9 @@ object PurefinLogger {
         val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             try {
-                Timber.e(throwable, "Uncaught exception in %s", thread.name)
-                store.flush()
+                store.writeCrash(thread, throwable)
+            } catch (logError: Exception) {
+                Log.e("PurefinLogger", "Failed to write uncaught exception to log file", logError)
             } finally {
                 if (previousHandler != null) {
                     previousHandler.uncaughtException(thread, throwable)
@@ -96,6 +97,16 @@ private class LogFileStore(
             output.write(entry)
             output.flush()
         }
+    }
+
+    @Synchronized
+    fun writeCrash(thread: Thread, throwable: Throwable) {
+        write(
+            priority = Log.ERROR,
+            tag = "UncaughtException",
+            message = "Uncaught exception in ${thread.name}",
+            throwable = throwable,
+        )
     }
 
     @Synchronized
