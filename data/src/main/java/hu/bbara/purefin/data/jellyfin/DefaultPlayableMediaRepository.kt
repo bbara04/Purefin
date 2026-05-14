@@ -6,9 +6,13 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import hu.bbara.purefin.core.Offline
+import hu.bbara.purefin.core.data.LocalMediaRepository
+import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.data.UserSessionRepository
+import hu.bbara.purefin.core.download.MediaDownloadController
 import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
@@ -16,9 +20,11 @@ import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
 import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecision
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
+import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.model.PlayableMedia
 import hu.bbara.purefin.model.SegmentType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -40,13 +46,53 @@ class DefaultPlayableMediaRepository @Inject constructor(
     private val jellyfinPlaybackResolver: JellyfinPlaybackResolver,
     private val trackPreferencesRepository: TrackPreferencesRepository,
     private val userSessionRepository: UserSessionRepository,
+    private val mediaDownloadController: MediaDownloadController,
+    private val networkMonitor: NetworkMonitor,
+    @param:Offline private val offlineMediaRepository: LocalMediaRepository,
 ) : PlayableMediaRepository {
 
     override suspend fun getPlayableMedia(mediaId: UUID): PlayableMedia? = withContext(Dispatchers.IO) {
-        val baseItem = jellyfinApiClient.getItemInfo(mediaId) ?: return@withContext null
-        val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(mediaId) ?: return@withContext null
+        val downloadedMediaItem = mediaDownloadController.getCompletedDownloadMediaItem(mediaId.toString())
+        if (downloadedMediaItem != null) {
+            return@withContext getDownloadedPlayableMedia(mediaId, downloadedMediaItem)
+        }
+        getStreamingPlayableMedia(mediaId)
+    }
 
-        val mediaItem = getMediaItem(baseItem, playbackDecision)
+    private suspend fun getDownloadedPlayableMedia(
+        mediaId: UUID,
+        downloadedMediaItem: MediaItem,
+    ): PlayableMedia? {
+        if (!networkMonitor.isOnline.first()) {
+            return getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
+        }
+
+        return runCatching {
+            getOnlinePlayableMedia(mediaId, downloadedMediaItem)
+                ?: getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
+        }.getOrElse { error ->
+            if (error is CancellationException) throw error
+            Log.w("PlayableMediaRepo", "Unable to load online metadata for downloaded media $mediaId", error)
+            getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
+        }
+    }
+
+    private suspend fun getStreamingPlayableMedia(mediaId: UUID): PlayableMedia? {
+        return getOnlinePlayableMedia(mediaId, downloadedMediaItem = null)
+    }
+
+    private suspend fun getOnlinePlayableMedia(
+        mediaId: UUID,
+        downloadedMediaItem: MediaItem?,
+    ): PlayableMedia? {
+        val baseItem = jellyfinApiClient.getItemInfo(mediaId) ?: return null
+        val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(mediaId) ?: return null
+
+        val mediaItem = if (downloadedMediaItem == null) {
+            getMediaItem(baseItem, playbackDecision)
+        } else {
+            getDownloadedMediaItem(baseItem, playbackDecision, downloadedMediaItem)
+        }
         val resumePositionMs = calculateResumePosition(baseItem, playbackDecision.mediaSource)
         val preferenceMediaId = when (baseItem.type) {
             BaseItemKind.EPISODE -> baseItem.seriesId ?: mediaId
@@ -54,7 +100,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
         }
         val mediaTrackPreferences = trackPreferencesRepository.getMediaPreferences(preferenceMediaId.toString()).first()
         val mediaSegments = getMediaSegments(mediaId)
-        when (baseItem.type) {
+        return when (baseItem.type) {
             BaseItemKind.MOVIE -> PlayableMedia.Movie(
                 id = mediaId,
                 preferenceMediaId = preferenceMediaId,
@@ -83,6 +129,49 @@ class DefaultPlayableMediaRepository @Inject constructor(
         }
     }
 
+    private suspend fun getOfflineDownloadedPlayableMedia(
+        mediaId: UUID,
+        downloadedMediaItem: MediaItem,
+    ): PlayableMedia? {
+        offlineMediaRepository.getMovie(mediaId).first()?.let { movie ->
+            val preferences = trackPreferencesRepository.getMediaPreferences(mediaId.toString()).first()
+            return PlayableMedia.Movie(
+                id = mediaId,
+                preferenceMediaId = mediaId,
+                mediaItem = downloadedMediaItem.withMetadata(
+                    mediaId = mediaId.toString(),
+                    title = movie.title,
+                    subtitle = null,
+                    artworkUrl = ImageUrlBuilder.finishImageUrl(movie.imageUrlPrefix, ArtworkKind.PRIMARY),
+                    playbackReportContext = null,
+                ),
+                resumePositionMs = 0L,
+                preferences = preferences,
+                mediaSegments = emptyList()
+            )
+        }
+
+        offlineMediaRepository.getEpisode(mediaId).first()?.let { episode ->
+            val preferences = trackPreferencesRepository.getMediaPreferences(episode.seriesId.toString()).first()
+            return PlayableMedia.Episode(
+                id = mediaId,
+                preferenceMediaId = episode.seriesId,
+                mediaItem = downloadedMediaItem.withMetadata(
+                    mediaId = mediaId.toString(),
+                    title = episode.title,
+                    subtitle = episode.seasonEpisodeLabel(),
+                    artworkUrl = ImageUrlBuilder.finishImageUrl(episode.imageUrlPrefix, ArtworkKind.PRIMARY),
+                    playbackReportContext = null,
+                ),
+                resumePositionMs = 0L,
+                preferences = preferences,
+                mediaSegments = emptyList()
+            )
+        }
+
+        return null
+    }
+
     private suspend fun getMediaItem(baseItem: BaseItemDto, playbackDecision: PlaybackDecision): MediaItem = withContext(Dispatchers.IO) {
         val mediaId = baseItem.id
         val baseItem = jellyfinApiClient.getItemInfo(mediaId)
@@ -100,6 +189,25 @@ class DefaultPlayableMediaRepository @Inject constructor(
         )
 
         return@withContext mediaItem
+    }
+
+    private suspend fun getDownloadedMediaItem(
+        baseItem: BaseItemDto,
+        playbackDecision: PlaybackDecision,
+        downloadedMediaItem: MediaItem,
+    ): MediaItem = withContext(Dispatchers.IO) {
+        val mediaId = baseItem.id
+        val baseItem = jellyfinApiClient.getItemInfo(mediaId)
+        val serverUrl = userSessionRepository.serverUrl.first()
+        val artworkUrl = ImageUrlBuilder.toImageUrl(serverUrl, mediaId, ArtworkKind.PRIMARY)
+
+        return@withContext downloadedMediaItem.withMetadata(
+            mediaId = mediaId.toString(),
+            title = baseItem?.name ?: playbackDecision.mediaSource.name ?: "Unknown",
+            subtitle = seasonEpisodeLabel(baseItem),
+            artworkUrl = artworkUrl,
+            playbackReportContext = playbackDecision.reportContext,
+        )
     }
 
     private suspend fun getMediaSegments(mediaId: UUID): List<MediaSegment> {
@@ -178,6 +286,28 @@ class DefaultPlayableMediaRepository @Inject constructor(
         val seasonNumber = item?.parentIndexNumber ?: return null
         val episodeNumber = item.indexNumber ?: return null
         return "S$seasonNumber:E$episodeNumber"
+    }
+
+    private fun Episode.seasonEpisodeLabel(): String = "S$seasonIndex:E$index"
+
+    private fun MediaItem.withMetadata(
+        mediaId: String,
+        title: String,
+        subtitle: String?,
+        artworkUrl: String,
+        playbackReportContext: PlaybackReportContext?,
+    ): MediaItem {
+        val metadataBuilder = MediaMetadata.Builder()
+            .setTitle(title)
+            .setSubtitle(subtitle)
+        if (artworkUrl.isNotBlank()) {
+            metadataBuilder.setArtworkUri(artworkUrl.toUri())
+        }
+        return buildUpon()
+            .setMediaId(mediaId)
+            .setMediaMetadata(metadataBuilder.build())
+            .setTag(playbackReportContext)
+            .build()
     }
 
     private fun MediaSegmentDto.toMediaSegment(): MediaSegment {

@@ -10,12 +10,12 @@ import hu.bbara.purefin.data.converter.toMovie
 import hu.bbara.purefin.data.converter.toSeason
 import hu.bbara.purefin.data.converter.toSeries
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecisionResolver
+import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
+import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecision
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import org.jellyfin.sdk.model.api.MediaSourceInfo
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,6 +24,7 @@ import javax.inject.Singleton
 class JellyfinDownloadMediaSourceResolver @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val userSessionRepository: UserSessionRepository,
+    private val jellyfinPlaybackResolver: JellyfinPlaybackResolver,
 ) : DownloadMediaSourceResolver {
     override suspend fun resolveMovieDownload(movieId: UUID): MovieDownloadSource? = withContext(Dispatchers.IO) {
         val serverUrl = userSessionRepository.serverUrl.first().trim()
@@ -31,14 +32,13 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
             return@withContext null
         }
 
-        val mediaSource = jellyfinApiClient.getMediaSources(movieId).firstOrNull() ?: return@withContext null
-        val playbackUrl = resolvePlaybackUrl(movieId, mediaSource, serverUrl) ?: return@withContext null
+        val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(movieId) ?: return@withContext null
         val itemInfo = jellyfinApiClient.getItemInfo(movieId) ?: return@withContext null
 
         MovieDownloadSource(
             movie = itemInfo.toMovie(serverUrl),
-            playbackUrl = playbackUrl,
-            customCacheKey = mediaSource.downloadCustomCacheKey(movieId, playbackUrl),
+            playbackUrl = playbackDecision.url,
+            customCacheKey = playbackDecision.downloadCustomCacheKey(movieId),
         )
     }
 
@@ -48,8 +48,7 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
             return@withContext null
         }
 
-        val mediaSource = jellyfinApiClient.getMediaSources(episodeId).firstOrNull() ?: return@withContext null
-        val playbackUrl = resolvePlaybackUrl(episodeId, mediaSource, serverUrl) ?: return@withContext null
+        val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(episodeId) ?: return@withContext null
         val episodeDto = jellyfinApiClient.getItemInfo(episodeId) ?: return@withContext null
         val episode = episodeDto.toEpisode(serverUrl)
         val series = jellyfinApiClient.getItemInfo(episode.seriesId)?.toSeries(serverUrl) ?: return@withContext null
@@ -59,8 +58,8 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
             episode = episode,
             series = series,
             season = season,
-            playbackUrl = playbackUrl,
-            customCacheKey = mediaSource.downloadCustomCacheKey(episodeId, playbackUrl),
+            playbackUrl = playbackDecision.url,
+            customCacheKey = playbackDecision.downloadCustomCacheKey(episodeId),
         )
     }
 
@@ -92,37 +91,14 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
             .map { it.id }
     }
 
-    private fun resolvePlaybackUrl(
-        mediaId: UUID,
-        mediaSource: MediaSourceInfo,
-        serverUrl: String,
-    ): String? {
-        val shouldTranscode = mediaSource.supportsTranscoding == true &&
-            (mediaSource.supportsDirectPlay == false || mediaSource.transcodingUrl != null)
-
-        return if (shouldTranscode && !mediaSource.transcodingUrl.isNullOrBlank()) {
-            PlaybackDecisionResolver.absolutePlaybackUrl(serverUrl, requireNotNull(mediaSource.transcodingUrl))
-        } else {
-            jellyfinApiClient.getVideoStreamUrl(
-                itemId = mediaId,
-                mediaSourceId = mediaSource.id,
-            )
-        }
-    }
-
-    private fun MediaSourceInfo.downloadCustomCacheKey(
-        mediaId: UUID,
-        playbackUrl: String,
-    ): String? {
-        val shouldTranscode = supportsTranscoding == true &&
-            (supportsDirectPlay == false || transcodingUrl != null)
-        if (shouldTranscode) {
+    private fun PlaybackDecision.downloadCustomCacheKey(mediaId: UUID): String? {
+        if (reportContext.playMethod != PlaybackMethod.DIRECT_PLAY) {
             return null
         }
         return playbackCustomCacheKey(
             mediaId = mediaId.toString(),
-            playbackUrl = playbackUrl,
-            playMethod = PlaybackMethod.DIRECT_PLAY,
+            playbackUrl = url,
+            playMethod = reportContext.playMethod,
         )
     }
 }

@@ -68,8 +68,8 @@ class CompositeLocalMediaRepository @Inject constructor(
     }
 
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
-        val repository = onlineRepository
-        repository.updateWatchProgress(mediaId, positionMs, durationMs)
+        onlineRepository.updateWatchProgress(mediaId, positionMs, durationMs)
+        offlineRepository.updateWatchProgress(mediaId, positionMs, durationMs)
     }
 
     override suspend fun markAsWatched(mediaId: UUID, watched: Boolean) {

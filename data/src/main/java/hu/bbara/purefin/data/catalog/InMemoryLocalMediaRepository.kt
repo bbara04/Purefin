@@ -88,7 +88,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
             }
         }
         val episode = episodesState.value[id] ?: return flowOf(null)
-        loadSeasons(seriesId = episode.seriesId)
+        preloadSeasonsForEpisode(episode.seriesId)
         return episodesState.map { it[id] }.distinctUntilChanged()
     }
 
@@ -106,20 +106,34 @@ class InMemoryLocalMediaRepository @Inject constructor(
 
     override suspend fun loadSeasons(seriesId: UUID) {
         try {
-            seriesState.value[seriesId]?.takeIf { it.seasons.isNotEmpty() }?.let { return }
-
-            val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
-
-            val updatedSeries = series.copy(
-                seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
-            )
-            seriesState.update { it + (updatedSeries.id to updatedSeries) }
+            loadSeasonsInternal(seriesId)
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
             Log.e("InMemoryMediaRepository", "Failed to load content for series $seriesId", error)
             throw error
         }
+    }
+
+    private suspend fun preloadSeasonsForEpisode(seriesId: UUID) {
+        try {
+            loadSeasonsInternal(seriesId)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.w("InMemoryMediaRepository", "Unable to preload seasons for episode series $seriesId", error)
+        }
+    }
+
+    private suspend fun loadSeasonsInternal(seriesId: UUID) {
+        seriesState.value[seriesId]?.takeIf { it.seasons.isNotEmpty() }?.let { return }
+
+        val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
+
+        val updatedSeries = series.copy(
+            seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
+        )
+        seriesState.update { it + (updatedSeries.id to updatedSeries) }
     }
 
     override suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {

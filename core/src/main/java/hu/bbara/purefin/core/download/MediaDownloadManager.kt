@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
@@ -107,6 +108,12 @@ class MediaDownloadManager @Inject constructor(
 
     fun isDownloaded(contentId: String): Boolean {
         return downloadManager.downloadIndex.getDownload(contentId)?.state == Download.STATE_COMPLETED
+    }
+
+    override fun getCompletedDownloadMediaItem(contentId: String): MediaItem? {
+        val download = downloadManager.downloadIndex.getDownload(contentId) ?: return null
+        if (download.state != Download.STATE_COMPLETED) return null
+        return download.request.toMediaItem()
     }
 
     override suspend fun downloadMovie(movieId: UUID) {
