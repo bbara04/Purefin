@@ -72,7 +72,6 @@ When asked to prepare a commit:
 3. Inspect the relevant files and nearby code.
 4. Choose the simplest solution aligned with Google’s standards.
 5. Check if the code can be simplified:
-
    * If yes, simplify it.
    * Do not reduce readability.
 6. Summarize the result, including anything not verified.
