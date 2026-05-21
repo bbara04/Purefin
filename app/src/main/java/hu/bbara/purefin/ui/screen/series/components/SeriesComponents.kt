@@ -50,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -146,14 +147,17 @@ internal fun SeriesActionButtons(
             text = mediaPlayButtonText(nextUpEpisode?.progress, nextUpEpisode?.watched),
             progress = mediaPlaybackProgress(nextUpEpisode?.progress),
             onClick = playAction ?: {},
-            modifier = Modifier.sizeIn(maxWidth = 200.dp)
+            modifier = Modifier
+                .sizeIn(maxWidth = 200.dp)
+                .testTag(SeriesPlayButtonTag)
         )
         Spacer(modifier = Modifier.width(12.dp))
         MediaActionButton(
             backgroundColor = MaterialTheme.colorScheme.surface,
             iconColor = MaterialTheme.colorScheme.onSurface,
             icon = Icons.Outlined.Add,
-            height = 48.dp
+            height = 48.dp,
+            modifier = Modifier.testTag(SeriesAddButtonTag)
         )
         Spacer(modifier = Modifier.width(12.dp))
         MediaActionButton(
@@ -165,6 +169,7 @@ internal fun SeriesActionButtons(
                 else -> Icons.Outlined.Download
             },
             height = 48.dp,
+            modifier = Modifier.testTag(SeriesDownloadButtonTag),
             onClick = { showDownloadDialog = true }
         )
     }
@@ -200,6 +205,7 @@ private fun DownloadOptionsDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        modifier = Modifier.testTag(SeriesDownloadDialogTag),
         title = { Text("Download") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -211,7 +217,10 @@ private fun DownloadOptionsDialog(
         },
         confirmButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { onDownloadOptionSelected(SeriesDownloadOption.SEASON) }) {
+                TextButton(
+                    onClick = { onDownloadOptionSelected(SeriesDownloadOption.SEASON) },
+                    modifier = Modifier.testTag(SeriesDownloadSeasonButtonTag)
+                ) {
                     Text(
                         when (seasonDownloadState) {
                             is DownloadState.Downloaded -> "$selectedSeasonName Downloaded"
@@ -220,7 +229,10 @@ private fun DownloadOptionsDialog(
                         }
                     )
                 }
-                TextButton(onClick = { onDownloadOptionSelected(SeriesDownloadOption.SERIES) }) {
+                TextButton(
+                    onClick = { onDownloadOptionSelected(SeriesDownloadOption.SERIES) },
+                    modifier = Modifier.testTag(SeriesDownloadAllButtonTag)
+                ) {
                     Text("Download All")
                 }
             }
@@ -229,6 +241,7 @@ private fun DownloadOptionsDialog(
             if (isSmartDownloadEnabled) {
                 TextButton(
                     onClick = { onDownloadOptionSelected(SeriesDownloadOption.DELETE_SMART) },
+                    modifier = Modifier.testTag(SeriesSmartDownloadButtonTag),
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )
@@ -236,7 +249,10 @@ private fun DownloadOptionsDialog(
                     Text("Delete Smart Downloads")
                 }
             } else {
-                TextButton(onClick = { onDownloadOptionSelected(SeriesDownloadOption.SMART) }) {
+                TextButton(
+                    onClick = { onDownloadOptionSelected(SeriesDownloadOption.SMART) },
+                    modifier = Modifier.testTag(SeriesSmartDownloadButtonTag)
+                ) {
                     Text("Smart Download")
                 }
             }
@@ -258,11 +274,13 @@ internal fun SeasonTabs(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        seasons.forEach { season ->
+        seasons.forEachIndexed { index, season ->
             SeasonTab(
                 name = season.name,
                 isSelected = season == selectedSeason,
-                modifier = Modifier.clickable { onSelect(season) }
+                modifier = Modifier
+                    .testTag("$SeriesSeasonTabTagPrefix$index")
+                    .clickable { onSelect(season) }
             )
         }
     }
@@ -313,7 +331,7 @@ internal fun EpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modif
 
     LazyRow(
         state = listState,
-        modifier = modifier,
+        modifier = modifier.testTag(SeriesEpisodeCarouselTag),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(episodes, key = { episode -> episode.id }) { episode ->
@@ -332,6 +350,7 @@ private fun EpisodeCard(
     Column(
         modifier = Modifier
             .width(260.dp)
+            .testTag("$SeriesEpisodeCardTagPrefix${episode.id}")
             .clickable { viewModel.onSelectEpisode(
                 seriesId = episode.seriesId,
                 seasonId = episode.seasonId,
@@ -415,6 +434,17 @@ private fun EpisodeCard(
         }
     }
 }
+
+internal const val SeriesPlayButtonTag = "series-play-button"
+internal const val SeriesAddButtonTag = "series-add-button"
+internal const val SeriesDownloadButtonTag = "series-download-button"
+internal const val SeriesDownloadDialogTag = "series-download-dialog"
+internal const val SeriesDownloadSeasonButtonTag = "series-download-season-button"
+internal const val SeriesDownloadAllButtonTag = "series-download-all-button"
+internal const val SeriesSmartDownloadButtonTag = "series-smart-download-button"
+internal const val SeriesSeasonTabTagPrefix = "series-season-tab-"
+internal const val SeriesEpisodeCarouselTag = "series-episode-carousel"
+internal const val SeriesEpisodeCardTagPrefix = "series-episode-card-"
 
 @Composable
 internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {

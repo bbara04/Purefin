@@ -22,6 +22,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
@@ -192,7 +194,10 @@ class PurefinActivity : ComponentActivity() {
                     NavDisplay(
                         backStack = backStack,
                         onBack = { navigationManager.pop() },
-                        modifier = Modifier.fillMaxSize().background(backgroundDark),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(backgroundDark)
+                            .semantics { testTagsAsResourceId = true },
                         transitionSpec = {
                             fadeIn(
                                 animationSpec = tween(
@@ -227,7 +232,9 @@ class PurefinActivity : ComponentActivity() {
                 }
             }
         } else {
-            LoginScreen()
+            LoginScreen(
+                modifier = Modifier.semantics { testTagsAsResourceId = true }
+            )
         }
     }
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.player.model.PlayerUiState
@@ -70,6 +71,7 @@ fun PlayerControlsOverlay(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .testTag(PlayerControlsOverlayTag)
             .background(
                 Brush.verticalGradient(
                     listOf(
@@ -149,6 +151,7 @@ private fun TopBar(
             GhostIconButton(
                 icon = Icons.Outlined.PlaylistPlay,
                 contentDescription = "Queue",
+                modifier = Modifier.testTag(PlayerQueueButtonTag),
                 onClick = onOpenQueue
             )
             GhostIconButton(icon = Icons.Outlined.Cast, contentDescription = "Cast", onClick = onCast)
@@ -192,7 +195,8 @@ private fun BottomSection(
             adMarkers = uiState.ads,
             onSeek = onScrub,
             onScrubStarted = onScrubStart,
-            onScrubFinished = onScrubFinished
+            onScrubFinished = onScrubFinished,
+            modifier = Modifier.testTag(PlayerSeekBarTag)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
@@ -209,30 +213,35 @@ private fun BottomSection(
                     icon = Icons.Outlined.SkipPrevious,
                     contentDescription = "Previous",
                     onClick = onPrevious,
+                    modifier = Modifier.testTag(PlayerPreviousButtonTag),
                     size = 64
                 )
                 PurefinIconButton(
                     icon = Icons.Outlined.Replay10,
                     contentDescription = "Seek backward",
                     onClick = onSeekBackward,
+                    modifier = Modifier.testTag(PlayerSeekBackwardButtonTag),
                     size = 64
                 )
                 PurefinIconButton(
                     icon = if (uiState.isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
                     contentDescription = "Play/Pause",
                     onClick = onPlayPause,
+                    modifier = Modifier.testTag(PlayerPlayPauseButtonTag),
                     size = 64
                 )
                 PurefinIconButton(
                     icon = Icons.Outlined.Forward30,
                     contentDescription = "Seek forward",
                     onClick = onSeekForward,
+                    modifier = Modifier.testTag(PlayerSeekForwardButtonTag),
                     size = 64
                 )
                 PurefinIconButton(
                     icon = Icons.Outlined.SkipNext,
                     contentDescription = "Next",
                     onClick = onNext,
+                    modifier = Modifier.testTag(PlayerNextButtonTag),
                     size = 64
                 )
             }
@@ -263,13 +272,25 @@ private fun BottomSection(
             if (uiState.activeSkippableSegmentEndMs != null) {
                 SkipSegmentButton(
                     onClick = onSkipSegment,
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .testTag(PlayerSkipSegmentButtonTag)
                 )
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
     }
 }
+
+internal const val PlayerControlsOverlayTag = "player-controls-overlay"
+internal const val PlayerQueueButtonTag = "player_queue_button"
+internal const val PlayerSeekBarTag = "player_seek_bar"
+internal const val PlayerPreviousButtonTag = "player_previous_button"
+internal const val PlayerSeekBackwardButtonTag = "player_seek_backward_button"
+internal const val PlayerPlayPauseButtonTag = "player_play_pause_button"
+internal const val PlayerSeekForwardButtonTag = "player_seek_forward_button"
+internal const val PlayerNextButtonTag = "player_next_button"
+internal const val PlayerSkipSegmentButtonTag = "player_skip_segment_button"
 
 @Composable
 fun SkipSegmentButton(

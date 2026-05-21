@@ -22,6 +22,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,6 +48,7 @@ fun LoginContent(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .testTag(LoginContentTag)
             .background(scheme.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 20.dp),
@@ -84,6 +86,7 @@ fun LoginContent(
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .testTag(LoginErrorMessageTag)
                         .background(
                             scheme.errorContainer,
                             RoundedCornerShape(12.dp)
@@ -121,13 +124,15 @@ private fun ServerSearchContent(
         modifier = Modifier.padding(top = 2.dp, bottom = 16.dp).fillMaxWidth()
     )
 
-    PurefinComplexTextField(
-        label = "Server URL",
-        value = state.serverUrl,
-        onValueChange = callbacks.onServerUrlChange,
-        placeholder = "http://192.168.1.100:8096",
-        leadingIcon = Icons.Default.Storage
-    )
+    Column(modifier = Modifier.testTag(LoginServerUrlFieldTag)) {
+        PurefinComplexTextField(
+            label = "Server URL",
+            value = state.serverUrl,
+            onValueChange = callbacks.onServerUrlChange,
+            placeholder = "http://192.168.1.100:8096",
+            leadingIcon = Icons.Default.Storage
+        )
+    }
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -137,6 +142,7 @@ private fun ServerSearchContent(
         enabled = !state.isSearching,
         modifier = Modifier
             .fillMaxWidth()
+            .testTag(LoginFindServerButtonTag)
             .height(48.dp)
     )
 
@@ -149,10 +155,12 @@ private fun ServerSearchContent(
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        state.discoveredServers.forEach { server ->
+        state.discoveredServers.forEachIndexed { index, server ->
             TextButton(
                 onClick = { callbacks.onDiscoveredServerClick(server) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("$LoginDiscoveredServerTagPrefix$index")
             ) {
                 Text(
                     text = server.name?.let { "$it\n${server.address}" } ?: server.address,
@@ -186,7 +194,9 @@ private fun LoginPhaseContent(
     )
     TextButton(
         onClick = callbacks.onChangeServer,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(LoginChangeServerButtonTag)
     ) {
         Text("Change server")
     }
@@ -199,7 +209,9 @@ private fun LoginPhaseContent(
                 color = scheme.primary,
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(LoginQuickConnectCodeTag)
             )
             Text(
                 text = "Approve this code in another Jellyfin client.",
@@ -209,14 +221,20 @@ private fun LoginPhaseContent(
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
             )
             Spacer(modifier = Modifier.height(10.dp))
-            TextButton(onClick = callbacks.onCancelQuickConnect) {
+            TextButton(
+                onClick = callbacks.onCancelQuickConnect,
+                modifier = Modifier.testTag(LoginQuickConnectCancelButtonTag)
+            ) {
                 Text("Cancel Quick Connect")
             }
         } ?: PurefinTextButton(
             content = { Text("Quick Connect") },
             onClick = callbacks.onQuickConnect,
             enabled = !state.isQuickConnecting,
-            modifier = Modifier.fillMaxWidth().height(48.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(LoginQuickConnectButtonTag)
+                .height(48.dp)
         )
     } else {
         Text(
@@ -238,23 +256,27 @@ private fun LoginPhaseContent(
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    PurefinComplexTextField(
-        label = "Username",
-        value = state.username,
-        onValueChange = callbacks.onUsernameChange,
-        placeholder = "Enter your username",
-        leadingIcon = Icons.Default.Person
-    )
+    Column(modifier = Modifier.testTag(LoginUsernameFieldTag)) {
+        PurefinComplexTextField(
+            label = "Username",
+            value = state.username,
+            onValueChange = callbacks.onUsernameChange,
+            placeholder = "Enter your username",
+            leadingIcon = Icons.Default.Person
+        )
+    }
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    PurefinPasswordField(
-        label = "Password",
-        value = state.password,
-        onValueChange = callbacks.onPasswordChange,
-        placeholder = "Enter your password",
-        leadingIcon = Icons.Default.Lock,
-    )
+    Column(modifier = Modifier.testTag(LoginPasswordFieldTag)) {
+        PurefinPasswordField(
+            label = "Password",
+            value = state.password,
+            onValueChange = callbacks.onPasswordChange,
+            placeholder = "Enter your password",
+            leadingIcon = Icons.Default.Lock,
+        )
+    }
 
     Spacer(modifier = Modifier.height(24.dp))
 
@@ -264,6 +286,20 @@ private fun LoginPhaseContent(
         enabled = !state.isQuickConnecting,
         modifier = Modifier
             .fillMaxWidth()
+            .testTag(LoginConnectButtonTag)
             .height(48.dp)
     )
 }
+
+internal const val LoginContentTag = "login-content"
+internal const val LoginFindServerButtonTag = "login-find-server-button"
+internal const val LoginServerUrlFieldTag = "login-server-url-field"
+internal const val LoginDiscoveredServerTagPrefix = "login-discovered-server-"
+internal const val LoginChangeServerButtonTag = "login-change-server-button"
+internal const val LoginUsernameFieldTag = "login-username-field"
+internal const val LoginPasswordFieldTag = "login-password-field"
+internal const val LoginQuickConnectButtonTag = "login-quick-connect-button"
+internal const val LoginQuickConnectCodeTag = "login-quick-connect-code"
+internal const val LoginQuickConnectCancelButtonTag = "login-quick-connect-cancel-button"
+internal const val LoginConnectButtonTag = "login-connect-button"
+internal const val LoginErrorMessageTag = "login-error-message"

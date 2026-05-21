@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.header.SectionHeader
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsKey
@@ -40,16 +41,22 @@ fun NextUpSection(
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(HomeNextUpRowTag),
             state = listState
         ) {
             itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
                 NextUpCard(
                     uiModel = item,
                     sharedBoundsKey = homeMediaSharedBoundsKey("next-up-$index", item.id),
-                    onMediaSelected = onMediaSelected
+                    onMediaSelected = onMediaSelected,
+                    modifier = Modifier.testTag("$HomeNextUpItemTagPrefix$index")
                 )
             }
         }
     }
 }
+
+internal const val HomeNextUpRowTag = "home-next-up-row"
+internal const val HomeNextUpItemTagPrefix = "home-next-up-item-"

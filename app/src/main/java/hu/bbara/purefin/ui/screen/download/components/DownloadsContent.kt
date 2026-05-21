@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,7 +39,9 @@ fun DownloadsContent(
 
     if (isEmpty) {
         Column(
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier
+                .fillMaxSize()
+                .testTag(DownloadsEmptyStateTag),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -62,7 +65,9 @@ fun DownloadsContent(
         contentPadding = PaddingValues(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = modifier.background(MaterialTheme.colorScheme.background)
+        modifier = modifier
+            .testTag(DownloadsGridTag)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         if (activeDownloads.value.isNotEmpty()) {
             item(key = "downloading-header", span = { GridItemSpan(maxLineSpan) }) {
@@ -80,7 +85,8 @@ fun DownloadsContent(
             ) { item ->
                 DownloadingItemRow(
                     item = item,
-                    onCancel = { viewModel.cancelDownload(it) }
+                    onCancel = { viewModel.cancelDownload(it) },
+                    modifier = Modifier.testTag("$DownloadsActiveItemTagPrefix${item.contentId}")
                 )
             }
             if (downloads.value.isNotEmpty()) {
@@ -101,7 +107,13 @@ fun DownloadsContent(
                 onMovieSelected = viewModel::onMovieSelected,
                 onSeriesSelected = viewModel::onSeriesSelected,
                 onEpisodeSelected = { _, _, _ -> },
+                modifier = Modifier.testTag("$DownloadsItemTagPrefix${item.id}")
             )
         }
     }
 }
+
+internal const val DownloadsEmptyStateTag = "downloads-empty-state"
+internal const val DownloadsGridTag = "downloads-grid"
+internal const val DownloadsActiveItemTagPrefix = "downloads-active-item-"
+internal const val DownloadsItemTagPrefix = "downloads-item-"

@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,7 +86,9 @@ internal fun MovieDetails(
             text = mediaPlayButtonText(movie.progress, movie.watched),
             progress = mediaPlaybackProgress(movie.progress),
             onClick = playAction,
-            modifier = Modifier.sizeIn(maxWidth = 200.dp)
+            modifier = Modifier
+                .sizeIn(maxWidth = 200.dp)
+                .testTag(MoviePlayButtonTag)
         )
         VerticalDivider(
             color = MaterialTheme.colorScheme.secondary,
@@ -105,6 +108,7 @@ internal fun MovieDetails(
                     is DownloadState.Failed -> Icons.Outlined.Download
                 },
                 height = 48.dp,
+                modifier = Modifier.testTag(MovieDownloadButtonTag),
                 onClick = onDownloadClick
             )
         }
@@ -130,3 +134,6 @@ internal fun MovieDetails(
 //            )
     }
 }
+
+internal const val MoviePlayButtonTag = "movie-play-button"
+internal const val MovieDownloadButtonTag = "movie-download-button"

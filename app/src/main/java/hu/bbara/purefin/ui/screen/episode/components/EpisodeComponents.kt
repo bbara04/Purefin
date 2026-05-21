@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -71,6 +72,7 @@ internal fun EpisodeTopBar(
                         ),
                         modifier = Modifier
                             .height(52.dp)
+                            .testTag(EpisodeSeriesButtonTag)
                             .clip(CircleShape)
                     ) {
                         Text(
@@ -123,7 +125,9 @@ internal fun EpisodeDetails(
             text = mediaPlayButtonText(episode.progress, episode.watched),
             progress = mediaPlaybackProgress(episode.progress),
             onClick = playAction,
-            modifier = Modifier.sizeIn(maxWidth = 200.dp)
+            modifier = Modifier
+                .sizeIn(maxWidth = 200.dp)
+                .testTag(EpisodePlayButtonTag)
         )
         VerticalDivider(
             color = MaterialTheme.colorScheme.secondary,
@@ -143,6 +147,7 @@ internal fun EpisodeDetails(
                     is DownloadState.Failed -> Icons.Outlined.Download
                 },
                 height = 48.dp,
+                modifier = Modifier.testTag(EpisodeDownloadButtonTag),
                 onClick = onDownloadClick
             )
         }
@@ -168,3 +173,7 @@ internal fun EpisodeDetails(
 //            )
     }
 }
+
+internal const val EpisodeSeriesButtonTag = "episode-series-button"
+internal const val EpisodePlayButtonTag = "episode-play-button"
+internal const val EpisodeDownloadButtonTag = "episode-download-button"

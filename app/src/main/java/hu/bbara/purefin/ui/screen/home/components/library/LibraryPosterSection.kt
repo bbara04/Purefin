@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.header.SectionHeader
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsKey
@@ -47,7 +48,9 @@ fun LibraryPosterSection(
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("$HomeLibraryRowTagPrefix${library.id}"),
             state = listState
         ) {
             itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
@@ -57,9 +60,13 @@ fun LibraryPosterSection(
                         origin = "library-${library.id}-$index",
                         mediaId = item.id
                     ),
-                    onMediaSelected = onMediaSelected
+                    onMediaSelected = onMediaSelected,
+                    modifier = Modifier.testTag("$HomeLibraryItemTagPrefix${library.id}-$index")
                 )
             }
         }
     }
 }
+
+internal const val HomeLibraryRowTagPrefix = "home-library-row-"
+internal const val HomeLibraryItemTagPrefix = "home-library-item-"

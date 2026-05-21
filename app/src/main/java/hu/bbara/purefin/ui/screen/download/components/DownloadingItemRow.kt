@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,9 +34,10 @@ import hu.bbara.purefin.core.feature.downloads.ActiveDownloadItem
 internal fun DownloadingItemRow(
     item: ActiveDownloadItem,
     onCancel: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -91,7 +93,10 @@ internal fun DownloadingItemRow(
                     )
                 }
             }
-            IconButton(onClick = { onCancel(item.contentId) }) {
+            IconButton(
+                onClick = { onCancel(item.contentId) },
+                modifier = Modifier.testTag("$DownloadsCancelButtonTagPrefix${item.contentId}")
+            ) {
                 Icon(
                     imageVector = Icons.Outlined.Close,
                     contentDescription = "Cancel download",
@@ -101,3 +106,5 @@ internal fun DownloadingItemRow(
         }
     }
 }
+
+internal const val DownloadsCancelButtonTagPrefix = "downloads-cancel-button-"

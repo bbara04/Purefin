@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,12 @@ fun PlayerQueuePanel(
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
-    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(PlayerPlaylistPanelTag),
+        contentAlignment = Alignment.CenterEnd
+    ) {
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
@@ -78,13 +84,23 @@ fun PlayerQueuePanel(
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.testTag(PlayerPlaylistRowTag)
+                    ) {
                         items(uiState.queue, key = { item -> item.id }) { item ->
                             QueueRow(
                                 title = item.title,
                                 artworkUrl = item.artworkUrl,
                                 isCurrent = item.isCurrent,
-                                onClick = { onSelect(item.id) }
+                                onClick = { onSelect(item.id) },
+                                modifier = Modifier.testTag(
+                                    if (item.isCurrent) {
+                                        PlayerPlaylistCurrentItemTag
+                                    } else {
+                                        "${PlayerPlaylistItemTagPrefix}${item.id}"
+                                    }
+                                )
                             )
                         }
                     }
@@ -106,11 +122,12 @@ private fun QueueRow(
     subtitle: String? = null,
     artworkUrl: String?,
     isCurrent: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(
@@ -160,3 +177,8 @@ private fun QueueRow(
         }
     }
 }
+
+internal const val PlayerPlaylistPanelTag = "player_playlist_panel"
+internal const val PlayerPlaylistRowTag = "player_playlist_row"
+internal const val PlayerPlaylistCurrentItemTag = "player_playlist_current_item"
+internal const val PlayerPlaylistItemTagPrefix = "player_playlist_item_"

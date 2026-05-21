@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.header.SectionHeader
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsKey
@@ -41,7 +42,9 @@ fun ContinueWatchingSection(
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(HomeContinueWatchingRowTag),
             state = listState
         ) {
             itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
@@ -49,9 +52,13 @@ fun ContinueWatchingSection(
                     item = item,
                     sharedBoundsKey = homeMediaSharedBoundsKey("continue-$index", item.id),
                     onMediaSelected = onMediaSelected,
-                    onMarkAsWatched = onMarkAsWatched
+                    onMarkAsWatched = onMarkAsWatched,
+                    modifier = Modifier.testTag("$HomeContinueWatchingItemTagPrefix$index")
                 )
             }
         }
     }
 }
+
+internal const val HomeContinueWatchingRowTag = "home-continue-watching-row"
+internal const val HomeContinueWatchingItemTagPrefix = "home-continue-watching-item-"

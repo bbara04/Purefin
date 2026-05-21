@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.model.LibraryUiModel
 
@@ -17,7 +18,7 @@ fun LibrariesContent(
     onLibrarySelected: (LibraryUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(modifier = modifier) {
+    BoxWithConstraints(modifier = modifier.testTag(LibrariesOverviewGridTag)) {
         val minCellSize = if (maxWidth >= 600.dp) 220.dp else 160.dp
 
         LazyVerticalGrid(
@@ -29,9 +30,13 @@ fun LibrariesContent(
             items(items, key = { it.id }) { item ->
                 LibraryListItem(
                     uiModel = item,
-                    onClick = { onLibrarySelected(item) }
+                    onClick = { onLibrarySelected(item) },
+                    modifier = Modifier.testTag("$LibrariesOverviewItemTagPrefix${item.id}")
                 )
             }
         }
     }
 }
+
+internal const val LibrariesOverviewGridTag = "libraries-overview-grid"
+internal const val LibrariesOverviewItemTagPrefix = "libraries-overview-item-"

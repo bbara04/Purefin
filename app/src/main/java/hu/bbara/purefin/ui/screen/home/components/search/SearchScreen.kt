@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -147,6 +148,7 @@ private fun SearchScreenContent(
         ) },
         modifier = modifier
             .fillMaxSize()
+            .testTag(SearchScreenTag)
             .background(scheme.background)
     ) { innerPadding ->
         Column(
@@ -261,7 +263,10 @@ private fun SearchField(
         },
         trailingIcon = {
             if (query.isNotBlank()) {
-                IconButton(onClick = { onQueryChange("") }) {
+                IconButton(
+                    onClick = { onQueryChange("") },
+                    modifier = Modifier.testTag(SearchClearButtonTag)
+                ) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
                         contentDescription = "Clear search",
@@ -286,6 +291,7 @@ private fun SearchField(
         ),
         modifier = modifier
             .fillMaxWidth()
+            .testTag(SearchQueryFieldTag)
             .height(68.dp)
     )
 }
@@ -298,18 +304,23 @@ private fun SearchResultsGrid(
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(SearchResultsGridTag)
     ) {
-        results.chunked(2).forEach { rowItems ->
+        results.chunked(2).forEachIndexed { rowIndex, rowItems ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                rowItems.forEach { item ->
+                rowItems.forEachIndexed { columnIndex, item ->
+                    val itemIndex = rowIndex * 2 + columnIndex
                     SearchResultCard(
                         item = item,
                         onClick = { onResultClick(item) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("$SearchResultItemTagPrefix$itemIndex")
                     )
                 }
                 if (rowItems.size == 1) {
@@ -367,6 +378,7 @@ private fun GenreSelector(
         FilterChip(
             selected = false,
             onClick = { showGenres = true },
+            modifier = Modifier.testTag(SearchGenreSelectorTag),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Outlined.Tune,
@@ -388,11 +400,12 @@ private fun GenreSelector(
                 )
             }
         )
-        visibleGenres.forEach { genre ->
+        visibleGenres.forEachIndexed { index, genre ->
             GenreChip(
                 genre = genre,
                 selected = genre.name in selectedGenreNames,
-                onClick = { onGenreSelected(genre) }
+                onClick = { onGenreSelected(genre) },
+                modifier = Modifier.testTag("$SearchGenreChipTagPrefix$index")
             )
         }
     }
@@ -400,6 +413,7 @@ private fun GenreSelector(
     if (showGenres) {
         AlertDialog(
             onDismissRequest = { showGenres = false },
+            modifier = Modifier.testTag(SearchGenreDialogTag),
             title = {
                 Text(text = "Select genres")
             },
@@ -412,11 +426,12 @@ private fun GenreSelector(
                         .heightIn(max = 360.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    genres.forEach { genre ->
+                    genres.forEachIndexed { index, genre ->
                         GenreChip(
                             genre = genre,
                             selected = genre.name in selectedGenreNames,
-                            onClick = { onGenreSelected(genre) }
+                            onClick = { onGenreSelected(genre) },
+                            modifier = Modifier.testTag("$SearchGenreDialogChipTagPrefix$index")
                         )
                     }
                 }
@@ -514,3 +529,13 @@ private val previewSearchResults = listOf(
         type = MediaKind.MOVIE
     )
 )
+
+internal const val SearchScreenTag = "search-screen"
+internal const val SearchQueryFieldTag = "search-query-field"
+internal const val SearchClearButtonTag = "search-clear-button"
+internal const val SearchResultsGridTag = "search-results-grid"
+internal const val SearchResultItemTagPrefix = "search-result-item-"
+internal const val SearchGenreSelectorTag = "search-genre-selector"
+internal const val SearchGenreChipTagPrefix = "search-genre-chip-"
+internal const val SearchGenreDialogTag = "search-genre-dialog"
+internal const val SearchGenreDialogChipTagPrefix = "search-genre-dialog-chip-"

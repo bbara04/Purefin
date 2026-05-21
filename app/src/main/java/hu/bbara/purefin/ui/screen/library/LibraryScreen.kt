@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bbara.purefin.core.feature.browse.library.LibraryViewModel
@@ -42,7 +43,7 @@ fun LibraryScreen(
     val libraryItems = viewModel.contents.collectAsState()
 
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.testTag(LibraryScreenTag),
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
@@ -68,7 +69,11 @@ internal fun LibraryPosterGrid(
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
-    BoxWithConstraints(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
+    BoxWithConstraints(
+        modifier = modifier
+            .testTag(LibraryPosterGridTag)
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         val minCellSize = if (maxWidth >= 600.dp) 220.dp else 120.dp
 
         LazyVerticalGrid(
@@ -88,7 +93,8 @@ internal fun LibraryPosterGrid(
                             is SeriesUiModel -> viewModel.onSeriesSelected(item.id)
                             is EpisodeUiModel -> Unit
                         }
-                    }
+                    },
+                    modifier = Modifier.testTag("$LibraryPosterItemTagPrefix${item.id}")
                 ) {
                     when (item) {
                         is MovieUiModel, is EpisodeUiModel -> {
@@ -107,3 +113,7 @@ internal fun LibraryPosterGrid(
         }
     }
 }
+
+internal const val LibraryScreenTag = "library-screen"
+internal const val LibraryPosterGridTag = "library-poster-grid"
+internal const val LibraryPosterItemTagPrefix = "library-poster-item-"

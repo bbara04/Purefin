@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.media.homeMediaSharedBoundsKey
 import hu.bbara.purefin.core.model.MediaUiModel
@@ -48,13 +49,16 @@ fun SuggestionsSection(
             pageSize = PageSize.Fixed(320.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
             pageSpacing = 16.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(HomeFeaturedPagerTag)
         ) { page ->
             val item = items[page]
             SuggestionCard(
                 item = item,
                 sharedBoundsKey = homeMediaSharedBoundsKey("suggestion-$page", item.id),
-                onClick = { onItemOpen(item) }
+                onClick = { onItemOpen(item) },
+                modifier = Modifier.testTag("$HomeFeaturedItemTagPrefix$page")
             )
         }
         if (items.size > 1) {
@@ -86,3 +90,6 @@ fun SuggestionsSection(
         }
     }
 }
+
+internal const val HomeFeaturedPagerTag = "home-featured-pager"
+internal const val HomeFeaturedItemTagPrefix = "home-featured-item-"

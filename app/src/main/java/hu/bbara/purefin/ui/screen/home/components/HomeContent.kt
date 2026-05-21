@@ -20,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.core.model.MediaUiModel
@@ -80,7 +81,9 @@ fun HomeContent(
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
+            .testTag(HomeContentTag)
     ) {
         Box(
             modifier = Modifier
@@ -89,7 +92,9 @@ fun HomeContent(
         ) {
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag(HomeContentViewportTag),
                 contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
@@ -97,7 +102,8 @@ fun HomeContent(
                     item(key = "featured") {
                         SuggestionsSection(
                             items = suggestions,
-                            onItemOpen = { item -> onMediaSelected(item) }
+                            onItemOpen = { item -> onMediaSelected(item) },
+                            modifier = Modifier.testTag(HomeFeaturedSectionTag)
                         )
                     }
                 }
@@ -107,7 +113,8 @@ fun HomeContent(
                         ContinueWatchingSection(
                             items = continueWatching,
                             onMarkAsWatched = onMarkAsWatched,
-                            onMediaSelected = onMediaSelected
+                            onMediaSelected = onMediaSelected,
+                            modifier = Modifier.testTag(HomeContinueWatchingSectionTag)
                         )
                     }
                 }
@@ -116,7 +123,8 @@ fun HomeContent(
                     item(key = "next-up") {
                         NextUpSection(
                             items = nextUp,
-                            onMediaSelected = onMediaSelected
+                            onMediaSelected = onMediaSelected,
+                            modifier = Modifier.testTag(HomeNextUpSectionTag)
                         )
                     }
                 }
@@ -129,7 +137,8 @@ fun HomeContent(
                         library = library,
                         items = libraryContent[library.id].orEmpty(),
                         onLibrarySelected = onLibrarySelected,
-                        onMediaSelected = onMediaSelected
+                        onMediaSelected = onMediaSelected,
+                        modifier = Modifier.testTag("$HomeLibrarySectionTagPrefix${library.id}")
                     )
                 }
 
@@ -137,7 +146,8 @@ fun HomeContent(
                     item(key = "empty-state") {
                         HomeEmptyState(
                             onRefresh = onRefresh,
-                            onBrowseLibrariesClick = onBrowseLibrariesClick
+                            onBrowseLibrariesClick = onBrowseLibrariesClick,
+                            modifier = Modifier.testTag(HomeEmptyStateTag)
                         )
                     }
                 }
@@ -145,3 +155,11 @@ fun HomeContent(
         }
     }
 }
+
+internal const val HomeContentTag = "home-content"
+internal const val HomeContentViewportTag = "home-content-viewport"
+internal const val HomeFeaturedSectionTag = "home-section-featured"
+internal const val HomeContinueWatchingSectionTag = "home-section-continue-watching"
+internal const val HomeNextUpSectionTag = "home-section-next-up"
+internal const val HomeLibrarySectionTagPrefix = "home-section-library-"
+internal const val HomeEmptyStateTag = "home-empty-state"

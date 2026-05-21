@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,7 +64,7 @@ fun QualitySelectionButton(
                 )
             }
         },
-        modifier = modifier
+        modifier = modifier.testTag(PlayerQualityButtonTag)
     )
 }
 
@@ -92,7 +93,7 @@ fun AudioSelectionButton(
                 )
             }
         },
-        modifier = modifier
+        modifier = modifier.testTag(PlayerAudioButtonTag)
     )
 }
 
@@ -121,7 +122,7 @@ fun SubtitlesSelectionButton(
                 )
             }
         },
-        modifier = modifier
+        modifier = modifier.testTag(PlayerSubtitlesButtonTag)
     )
 }
 
@@ -139,6 +140,7 @@ private fun TrackSelectionPanel(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .testTag(PlayerTrackPanelTag)
             .fillMaxHeight()
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .navigationBarsPadding()
@@ -199,12 +201,20 @@ private fun TrackSelectionPanel(
                         .heightIn(max = 292.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    options.forEach { option ->
+                    options.forEachIndexed { index, option ->
                         val selected = option.id == selectedId
                         TrackOptionItem(
                             label = option.label,
                             selected = selected,
-                            onClick = { onSelect(option) }
+                            onClick = { onSelect(option) },
+                            modifier = Modifier.testTag(
+                                when {
+                                    selected -> PlayerTrackSelectedItemTag
+                                    index == 0 -> PlayerTrackFirstItemTag
+                                    index == options.lastIndex -> PlayerTrackLastItemTag
+                                    else -> "$PlayerTrackItemTagPrefix$index"
+                                }
+                            )
                         )
                     }
                 }
@@ -212,6 +222,15 @@ private fun TrackSelectionPanel(
         }
     }
 }
+
+internal const val PlayerQualityButtonTag = "player_quality_button"
+internal const val PlayerAudioButtonTag = "player_audio_button"
+internal const val PlayerSubtitlesButtonTag = "player_subtitles_button"
+internal const val PlayerTrackPanelTag = "player_track_panel"
+internal const val PlayerTrackSelectedItemTag = "player_track_selected_item"
+internal const val PlayerTrackFirstItemTag = "player_track_first_item"
+internal const val PlayerTrackLastItemTag = "player_track_last_item"
+internal const val PlayerTrackItemTagPrefix = "player_track_item_"
 
 @Composable
 private fun TrackOptionItem(
