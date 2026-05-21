@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
@@ -32,7 +32,7 @@ fun TvMovieScreen(
         viewModel.selectMovie(movie)
     }
 
-    val movieItem = viewModel.movie.collectAsState()
+    val movieItem = viewModel.movie.collectAsStateWithLifecycle()
 
     if (movieItem.value != null) {
         TvMovieScreenContent(

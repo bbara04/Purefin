@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -146,7 +146,7 @@ class PurefinActivity : ComponentActivity() {
         navigationManager: NavigationManager
     ) {
         var sessionLoaded by remember { mutableStateOf(false) }
-        val isLoggedIn by userSessionRepository.isLoggedIn.collectAsState(initial = false)
+        val isLoggedIn by userSessionRepository.isLoggedIn.collectAsStateWithLifecycle(initialValue = false)
 
         LaunchedEffect(Unit) {
             userSessionRepository.isLoggedIn.collect {

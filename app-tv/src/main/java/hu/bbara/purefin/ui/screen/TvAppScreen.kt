@@ -7,8 +7,8 @@ import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,10 +35,10 @@ fun TvAppScreen(
     viewModel: AppViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val libraries by viewModel.libraries.collectAsState()
-    val continueWatching by viewModel.continueWatching.collectAsState()
-    val nextUp by viewModel.nextUp.collectAsState()
-    val latestLibraryContent by viewModel.latestLibraryContent.collectAsState()
+    val libraries by viewModel.libraries.collectAsStateWithLifecycle()
+    val continueWatching by viewModel.continueWatching.collectAsStateWithLifecycle()
+    val nextUp by viewModel.nextUp.collectAsStateWithLifecycle()
+    val latestLibraryContent by viewModel.latestLibraryContent.collectAsStateWithLifecycle()
     val navigationManager = LocalNavigationManager.current
 
     @Suppress("UNCHECKED_CAST")

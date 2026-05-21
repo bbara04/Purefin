@@ -24,8 +24,8 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -55,7 +55,7 @@ fun SearchOverlay(
     BackHandler(onBack = onDismiss)
 
     var query by rememberSaveable { mutableStateOf("") }
-    val searchResults by searchViewModel.searchResult.collectAsState()
+    val searchResults by searchViewModel.searchResult.collectAsStateWithLifecycle()
     val dismissInteractionSource = remember { MutableInteractionSource() }
 
     Box(

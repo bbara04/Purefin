@@ -11,8 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,15 +38,15 @@ fun AppScreen(
     updateViewModel: AppUpdateViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val libraries by viewModel.libraries.collectAsState()
-    val libraryContent by viewModel.latestLibraryContent.collectAsState()
-    val suggestions by viewModel.suggestions.collectAsState()
-    val continueWatching by viewModel.continueWatching.collectAsState()
-    val nextUp by viewModel.nextUp.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
-    val isOnline by viewModel.isOnline.collectAsState()
-    val isCheckingForUpdates by updateViewModel.isCheckingForUpdates.collectAsState()
-    val availableUpdate by updateViewModel.availableUpdate.collectAsState()
+    val libraries by viewModel.libraries.collectAsStateWithLifecycle()
+    val libraryContent by viewModel.latestLibraryContent.collectAsStateWithLifecycle()
+    val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
+    val continueWatching by viewModel.continueWatching.collectAsStateWithLifecycle()
+    val nextUp by viewModel.nextUp.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
+    val isCheckingForUpdates by updateViewModel.isCheckingForUpdates.collectAsStateWithLifecycle()
+    val availableUpdate by updateViewModel.availableUpdate.collectAsStateWithLifecycle()
     val navigationManager = LocalNavigationManager.current
     val snackbarHostState = remember { SnackbarHostState() }
 

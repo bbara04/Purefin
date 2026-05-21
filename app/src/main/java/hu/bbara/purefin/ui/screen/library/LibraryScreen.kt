@@ -14,7 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -40,7 +40,7 @@ fun LibraryScreen(
         viewModel.selectLibrary(libraryId = library.id)
     }
 
-    val libraryItems = viewModel.contents.collectAsState()
+    val libraryItems = viewModel.contents.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = modifier.testTag(LibraryScreenTag),

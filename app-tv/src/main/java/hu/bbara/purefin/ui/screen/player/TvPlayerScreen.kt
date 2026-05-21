@@ -29,8 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -85,8 +85,8 @@ fun TvPlayerScreen(
         viewModel.loadMedia(mediaId)
     }
 
-    val uiState by viewModel.uiState.collectAsState()
-    val controlsVisible by viewModel.controlsVisible.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val controlsVisible by viewModel.controlsVisible.collectAsStateWithLifecycle()
     var isPlaylistExpanded by remember { mutableStateOf(false) }
     var trackPanelType by remember { mutableStateOf<TvTrackPanelType?>(null) }
     var pendingTrackButtonFocus by remember { mutableStateOf<TvTrackPanelType?>(null) }

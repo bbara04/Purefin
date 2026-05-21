@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
@@ -40,8 +40,8 @@ fun TvEpisodeScreen(
         viewModel.selectEpisode(episode)
     }
 
-    val episode = viewModel.episode.collectAsState()
-    val seriesTitle = viewModel.seriesTitle.collectAsState()
+    val episode = viewModel.episode.collectAsStateWithLifecycle()
+    val seriesTitle = viewModel.seriesTitle.collectAsStateWithLifecycle()
     val selectedEpisode = episode.value
 
     if (selectedEpisode == null) {
