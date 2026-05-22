@@ -23,6 +23,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             // Enables code-related app optimization.
             isMinifyEnabled = true
