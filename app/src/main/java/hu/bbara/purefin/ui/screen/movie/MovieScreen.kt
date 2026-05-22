@@ -8,7 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,8 +39,8 @@ fun MovieScreen(
         viewModel.selectMovie(movie)
     }
 
-    val movieItem = viewModel.movie.collectAsState()
-    val downloadState = viewModel.downloadState.collectAsState()
+    val movieItem = viewModel.movie.collectAsStateWithLifecycle()
+    val downloadState = viewModel.downloadState.collectAsStateWithLifecycle()
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()

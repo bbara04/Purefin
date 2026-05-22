@@ -18,8 +18,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -147,8 +147,8 @@ class TvActivity : ComponentActivity() {
         updateViewModel: AppUpdateViewModel = hiltViewModel()
     ) {
         var sessionLoaded by remember { mutableStateOf(false) }
-        val isLoggedIn by userSessionRepository.isLoggedIn.collectAsState(initial = false)
-        val availableUpdate by updateViewModel.availableUpdate.collectAsState()
+        val isLoggedIn by userSessionRepository.isLoggedIn.collectAsStateWithLifecycle(initialValue = false)
+        val availableUpdate by updateViewModel.availableUpdate.collectAsStateWithLifecycle()
         val context = LocalContext.current
 
         LaunchedEffect(Unit) {

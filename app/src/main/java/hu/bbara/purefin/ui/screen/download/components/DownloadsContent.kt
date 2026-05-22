@@ -17,7 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -32,8 +32,8 @@ fun DownloadsContent(
     modifier: Modifier = Modifier,
     viewModel: DownloadsViewModel = hiltViewModel(),
 ) {
-    val downloads = viewModel.downloads.collectAsState(emptyList())
-    val activeDownloads = viewModel.activeDownloads.collectAsState()
+    val downloads = viewModel.downloads.collectAsStateWithLifecycle(initialValue = emptyList())
+    val activeDownloads = viewModel.activeDownloads.collectAsStateWithLifecycle()
 
     val isEmpty = downloads.value.isEmpty() && activeDownloads.value.isEmpty()
 

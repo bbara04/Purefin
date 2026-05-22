@@ -9,6 +9,7 @@ import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.core.download.MediaDownloadController
 import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
+import hu.bbara.purefin.core.settings.SettingsRepository
 import hu.bbara.purefin.core.model.EpisodeUiModel
 import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.core.model.MediaUiModel
@@ -41,6 +42,7 @@ class AppViewModel @Inject constructor(
     private val jellyfinMediaMetadataUpdater: JellyfinMediaMetadataUpdater,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
+    private val settingsRepository: SettingsRepository,
     networkMonitor: NetworkMonitor,
 ) : ViewModel() {
 
@@ -147,26 +149,31 @@ class AppViewModel @Inject constructor(
         homeRepository.latestLibraryContent,
         localMediaRepository.movies,
         localMediaRepository.series,
-        localMediaRepository.episodes
-    ) { libraryMap, moviesMap, seriesMap, episodesMap ->
-        libraryMap.mapValues { (_, items) ->
-            items.mapNotNull { media ->
-                when (media) {
-                    is Media.MovieMedia -> moviesMap[media.movieId]?.let {
-                        MovieUiModel(movie = it)
+        localMediaRepository.episodes,
+        settingsRepository.settings,
+    ) { libraryMap, moviesMap, seriesMap, episodesMap, settings ->
+        libraryMap
+            .filter { (libraryId, _) ->
+                settings.booleanSettings["home_library_visible_$libraryId"] ?: true
+            }
+            .mapValues { (_, items) ->
+                items.mapNotNull { media ->
+                    when (media) {
+                        is Media.MovieMedia -> moviesMap[media.movieId]?.let {
+                            MovieUiModel(movie = it)
+                        }
+                        is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
+                            EpisodeUiModel(episode = it)
+                        }
+                        is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
+                            SeriesUiModel(series = it)
+                        }
+                        is Media.SeasonMedia -> seriesMap[media.seriesId]?.let {
+                            SeriesUiModel(series = it)
+                        }
                     }
-                    is Media.EpisodeMedia -> episodesMap[media.episodeId]?.let {
-                        EpisodeUiModel(episode = it)
-                    }
-                    is Media.SeriesMedia -> seriesMap[media.seriesId]?.let {
-                        SeriesUiModel(series = it)
-                    }
-                    is Media.SeasonMedia -> seriesMap[media.seriesId]?.let {
-                        SeriesUiModel(series = it)
-                    }
-                }
-            }.distinctBy { it.id }
-        }
+                }.distinctBy { it.id }
+            }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

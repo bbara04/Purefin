@@ -8,7 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -46,8 +46,8 @@ fun EpisodeScreen(
         viewModel.selectEpisode(episode)
     }
 
-    val episode = viewModel.episode.collectAsState()
-    val downloadState = viewModel.downloadState.collectAsState()
+    val episode = viewModel.episode.collectAsStateWithLifecycle()
+    val downloadState = viewModel.downloadState.collectAsStateWithLifecycle()
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()

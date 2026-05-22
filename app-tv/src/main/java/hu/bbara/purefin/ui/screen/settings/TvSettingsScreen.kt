@@ -26,8 +26,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,7 +53,7 @@ fun TvSettingsScreen(
     onBack: () -> Unit = viewModel::onBack,
     modifier: Modifier = Modifier
 ) {
-    val settingGroups by viewModel.settingGroups.collectAsState()
+    val settingGroups by viewModel.settingGroups.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(viewModel, context) {
@@ -117,7 +117,7 @@ private fun TvSettingOptionItem(
 ) {
     when (option) {
         is RangeSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = null)
+            val value by viewModel.value(option).collectAsStateWithLifecycle(initialValue = null)
             value?.let {
                 TvNumberSettingItem(
                     title = option.title,
@@ -129,7 +129,7 @@ private fun TvSettingOptionItem(
         }
 
         is BooleanSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = null)
+            val value by viewModel.value(option).collectAsStateWithLifecycle(initialValue = null)
             value?.let {
                 TvBooleanSettingItem(
                     title = option.title,
@@ -140,7 +140,7 @@ private fun TvSettingOptionItem(
         }
 
         is StringSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = null)
+            val value by viewModel.value(option).collectAsStateWithLifecycle(initialValue = null)
             value?.let {
                 TvStringSettingItem(
                     title = option.title,
@@ -178,7 +178,7 @@ private fun <T> TvDropdownSettingOptionItem(
     option: DropdownSetting<T>,
     viewModel: SettingsViewModel
 ) {
-    val value by viewModel.value(option).collectAsState(initial = null)
+    val value by viewModel.value(option).collectAsStateWithLifecycle(initialValue = null)
     value?.let {
         TvDropdownSettingItem(
             title = option.title,

@@ -14,8 +14,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -42,7 +42,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val settingGroups by viewModel.settingGroups.collectAsState()
+    val settingGroups by viewModel.settingGroups.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel) {
@@ -107,7 +107,7 @@ private fun SettingOptionItem(
 ) {
     when (option) {
         is RangeSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = null)
+            val value by viewModel.value(option).collectAsStateWithLifecycle(initialValue = null)
             value?.let {
                 RangeSettingItem(
                     title = option.title,
@@ -119,7 +119,7 @@ private fun SettingOptionItem(
         }
 
         is BooleanSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = null)
+            val value by viewModel.value(option).collectAsStateWithLifecycle(initialValue = null)
             value?.let {
                 BooleanSettingItem(
                     title = option.title,
@@ -130,7 +130,7 @@ private fun SettingOptionItem(
         }
 
         is StringSetting -> {
-            val value by viewModel.value(option).collectAsState(initial = null)
+            val value by viewModel.value(option).collectAsStateWithLifecycle(initialValue = null)
             value?.let {
                 StringSettingItem(
                     title = option.title,
@@ -168,7 +168,7 @@ private fun <T> DropdownSettingOptionItem(
     option: DropdownSetting<T>,
     viewModel: SettingsViewModel
 ) {
-    val value by viewModel.value(option).collectAsState(initial = null)
+    val value by viewModel.value(option).collectAsStateWithLifecycle(initialValue = null)
     value?.let {
         DropdownSettingItem(
             title = option.title,

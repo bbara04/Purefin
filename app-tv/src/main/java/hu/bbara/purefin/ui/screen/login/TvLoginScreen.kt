@@ -1,8 +1,8 @@
 package hu.bbara.purefin.ui.screen.login
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -16,18 +16,18 @@ fun TvLoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    val serverUrl by viewModel.url.collectAsState()
-    val phase by viewModel.phase.collectAsState()
-    val selectedServer by viewModel.selectedServer.collectAsState()
-    val discoveredServers by viewModel.discoveredServers.collectAsState()
-    val username by viewModel.username.collectAsState()
-    val password by viewModel.password.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
-    val isLoggingIn by viewModel.isLoggingIn.collectAsState()
-    val quickConnectAvailable by viewModel.quickConnectAvailable.collectAsState()
-    val quickConnectCode by viewModel.quickConnectCode.collectAsState()
-    val isQuickConnecting by viewModel.isQuickConnecting.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val serverUrl by viewModel.url.collectAsStateWithLifecycle()
+    val phase by viewModel.phase.collectAsStateWithLifecycle()
+    val selectedServer by viewModel.selectedServer.collectAsStateWithLifecycle()
+    val discoveredServers by viewModel.discoveredServers.collectAsStateWithLifecycle()
+    val username by viewModel.username.collectAsStateWithLifecycle()
+    val password by viewModel.password.collectAsStateWithLifecycle()
+    val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
+    val isLoggingIn by viewModel.isLoggingIn.collectAsStateWithLifecycle()
+    val quickConnectAvailable by viewModel.quickConnectAvailable.collectAsStateWithLifecycle()
+    val quickConnectCode by viewModel.quickConnectCode.collectAsStateWithLifecycle()
+    val isQuickConnecting by viewModel.isQuickConnecting.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
 
     val state = remember(
