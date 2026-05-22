@@ -148,7 +148,7 @@ fun PlayerScreen(
             onDoubleTapCenter = { viewModel.togglePlayPause() },
             onVerticalDragLeft = { delta ->
                 val diff = (-delta / 800f)
-                brightness = (brightness + diff).coerceIn(0f, 1f)
+                brightness = (brightness + diff).coerceIn(-1f, 1f)
                 applyBrightness(activity, brightness)
             },
             onVerticalDragRight = { delta ->
@@ -400,12 +400,12 @@ private fun formatSeekDelta(deltaMs: Long): String {
 
 private fun readCurrentBrightness(activity: Activity?): Float {
     val current = activity?.window?.attributes?.screenBrightness
-    return if (current != null && current >= 0) current else 0.5f
+    return if (current != null && current >= 0) current else -1f
 }
 
 private fun applyBrightness(activity: Activity?, value: Float) {
     activity ?: return
     val params = activity.window.attributes
-    params.screenBrightness = value
+    params.screenBrightness = if (value < 0f) -1f else value
     activity.window.attributes = params
 }

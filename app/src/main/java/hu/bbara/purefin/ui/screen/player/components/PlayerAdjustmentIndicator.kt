@@ -31,7 +31,8 @@ fun PlayerAdjustmentIndicator(
     sliderHeight: Dp = 140.dp,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val percent = (value.coerceIn(0f, 1f) * 100).roundToInt()
+    val isAuto = value < 0f
+    val percent = if (isAuto) 0 else (value * 100).roundToInt()
     val clamped = value.coerceIn(0f, 1f)
 
     Box(
@@ -68,9 +69,10 @@ fun PlayerAdjustmentIndicator(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
+            val label = if (isAuto) "Auto" else "$percent%"
             Text(
-                text = "$percent%",
-                color = scheme.onSurface,
+                text = label,
+                color = if (isAuto) scheme.tertiary else scheme.onSurface,
                 style = MaterialTheme.typography.titleMedium
             )
         }
