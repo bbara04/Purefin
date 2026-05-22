@@ -64,6 +64,8 @@ import kotlin.math.roundToInt
 
 private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.32f
 private const val WIDE_VIDEO_ASPECT_RATIO = 16f / 9f
+/** Small negative band below zero that represents adaptive/auto brightness mode. */
+private const val AUTO_BRIGHTNESS_SENTINEL = -0.1f
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -148,7 +150,7 @@ fun PlayerScreen(
             onDoubleTapCenter = { viewModel.togglePlayPause() },
             onVerticalDragLeft = { delta ->
                 val diff = (-delta / 800f)
-                brightness = (brightness + diff).coerceIn(0f, 1f)
+                brightness = (brightness + diff).coerceIn(AUTO_BRIGHTNESS_SENTINEL, 1f)
                 applyBrightness(activity, brightness)
             },
             onVerticalDragRight = { delta ->
@@ -400,12 +402,12 @@ private fun formatSeekDelta(deltaMs: Long): String {
 
 private fun readCurrentBrightness(activity: Activity?): Float {
     val current = activity?.window?.attributes?.screenBrightness
-    return if (current != null && current >= 0) current else 0.5f
+    return if (current != null && current >= 0) current else AUTO_BRIGHTNESS_SENTINEL
 }
 
 private fun applyBrightness(activity: Activity?, value: Float) {
     activity ?: return
     val params = activity.window.attributes
-    params.screenBrightness = value
+    params.screenBrightness = if (value < 0f) -1f else value
     activity.window.attributes = params
 }
