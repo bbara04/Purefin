@@ -22,7 +22,7 @@
         android:theme="@style/Theme.Purefin">
         <meta-data
             android:name="hu.bbara.purefin.UPDATE_MANIFEST_URL"
-            android:value="http://purefin.t.bbara.hu/app/update.json" />
+            android:value="${updateManifestUrl}" />
         <activity
             android:name=".PurefinActivity"
             android:exported="true"

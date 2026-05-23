@@ -17,7 +17,6 @@ android {
         applicationId = "hu.bbara.purefin"
         minSdk = 29
         targetSdk = 36
-        versionCode = providers.gradleProperty("purefinVersionCode").get().toInt()
         versionName = "0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -25,14 +24,18 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
+            versionCode = providers.gradleProperty("purefinDebugVersionCode").get().toInt()
             versionNameSuffix = "-debug"
+            manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apps/purefin-app-debug/update.json"
         }
         release {
+            versionCode = providers.gradleProperty("purefinReleaseVersionCode").get().toInt()
             // Enables code-related app optimization.
             isMinifyEnabled = true
 
             // Enables resource shrinking.
             isShrinkResources = true
+            manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apps/purefin-app/update.json"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
