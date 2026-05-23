@@ -86,11 +86,11 @@ Upload via the API at `POST /api/apps/{app_name}/upload`:
 ```bash
 curl -X POST "https://apks.t.bbara.hu/api/apps/purefin-app-debug/upload" \
   -F "apk_file=@app/build/outputs/apk/debug/app-debug.apk" \
-  -F "version_code=$(grep purefinVersionCode gradle.properties | cut -d= -f2)" \
+  -F "version_code=$(grep purefinDebugVersionCode gradle.properties | cut -d= -f2)" \
   -F "version_name=0.1-debug"
 ```
 
-The `version_code` is defined in `gradle.properties` (`purefinVersionCode` for phone, `purefinTvVersionCode` for TV). The `version_name` is `0.1` for release or `0.1-debug` for debug. Both fields are required — the server cannot auto-extract them from the APK.
+The `version_code` is defined in `gradle.properties` (`purefinReleaseVersionCode` for phone release, `purefinDebugVersionCode` for phone debug, `purefinTvVersionCode` for TV). The `version_name` is `0.1` for release or `0.1-debug` for debug. Both fields are required — the server cannot auto-extract them from the APK.
 
 ## Usage
 
