@@ -26,7 +26,7 @@ android {
             applicationIdSuffix = ".debug"
             versionCode = providers.gradleProperty("purefinDebugVersionCode").get().toInt()
             versionNameSuffix = "-debug"
-            manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apks/purefin-app-debug/update.json"
+            manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apps/purefin-app-debug/update.json"
         }
         release {
             versionCode = providers.gradleProperty("purefinReleaseVersionCode").get().toInt()
@@ -35,7 +35,7 @@ android {
 
             // Enables resource shrinking.
             isShrinkResources = true
-            manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apks/purefin-app/update.json"
+            manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apps/purefin-app/update.json"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )

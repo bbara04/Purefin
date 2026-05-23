@@ -59,11 +59,11 @@ APKs are distributed via the [APK Version Manager](https://apks.t.bbara.hu/docs)
 
 #### App names
 
-| Variant | App name | Update URL |
-|---------|----------|------------|
-| Release (phone) | `purefin-app` | `https://apks.t.bbara.hu/apks/purefin-app/update.json` |
-| Debug (phone) | `purefin-app-debug` | `https://apks.t.bbara.hu/apks/purefin-app-debug/update.json` |
-| Release (TV) | `purefin-tv` | `https://apks.t.bbara.hu/apks/purefin-tv/update.json` |
+| Variant | App name | Update URL                                                   |
+|---------|----------|--------------------------------------------------------------|
+| Release (phone) | `purefin-app` | `https://apks.t.bbara.hu/apps/purefin-app/update.json`       |
+| Debug (phone) | `purefin-app-debug` | `https://apks.t.bbara.hu/apps/purefin-app-debug/update.json` |
+| Release (TV) | `purefin-tv` | `https://apks.t.bbara.hu/apps/purefin-tv/update.json`        |
 
 #### Building
 
