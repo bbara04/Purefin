@@ -26,18 +26,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Cast
-import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PlayCircle
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -111,8 +113,8 @@ internal fun SeriesMetaChips(series: Series) {
 @Composable
 internal fun SeriesActionButtons(
     nextUpEpisode: Episode?,
-    seriesDownloadState: DownloadState,
     selectedSeason: Season,
+    seriesDownloadState: DownloadState,
     seasonDownloadState: DownloadState,
     isSmartDownloadEnabled: Boolean,
     offline: Boolean,
@@ -121,7 +123,6 @@ internal fun SeriesActionButtons(
 ) {
     val context = LocalContext.current
     val navigationManager = LocalNavigationManager.current
-    val scheme = MaterialTheme.colorScheme
     var showDownloadDialog by remember { mutableStateOf(false) }
     val playAction = remember(nextUpEpisode, offline) {
         nextUpEpisode?.let { episode ->
@@ -163,11 +164,7 @@ internal fun SeriesActionButtons(
         MediaActionButton(
             backgroundColor = MaterialTheme.colorScheme.surface,
             iconColor = MaterialTheme.colorScheme.onSurface,
-            icon = when {
-                seriesDownloadState is DownloadState.Downloading -> Icons.Outlined.Close
-                seriesDownloadState is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
-                else -> Icons.Outlined.Download
-            },
+            icon = Icons.Outlined.Download,
             height = 48.dp,
             modifier = Modifier.testTag(SeriesDownloadButtonTag),
             onClick = { showDownloadDialog = true }
@@ -175,8 +172,9 @@ internal fun SeriesActionButtons(
     }
 
     if (showDownloadDialog) {
-        DownloadOptionsDialog(
+        DownloadOptionsBottomSheet(
             selectedSeasonName = selectedSeason.name,
+            seriesDownloadState = seriesDownloadState,
             seasonDownloadState = seasonDownloadState,
             isSmartDownloadEnabled = isSmartDownloadEnabled,
             onDownloadOptionSelected = {
@@ -195,68 +193,136 @@ internal enum class SeriesDownloadOption {
     DELETE_SMART
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DownloadOptionsDialog(
+private fun DownloadOptionsBottomSheet(
     selectedSeasonName: String,
+    seriesDownloadState: DownloadState,
     seasonDownloadState: DownloadState,
     isSmartDownloadEnabled: Boolean,
     onDownloadOptionSelected: (SeriesDownloadOption) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
         modifier = Modifier.testTag(SeriesDownloadDialogTag),
-        title = { Text("Download") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Download options",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Text(
                     text = "Choose how to download this series.",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        },
-        confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(
-                    onClick = { onDownloadOptionSelected(SeriesDownloadOption.SEASON) },
-                    modifier = Modifier.testTag(SeriesDownloadSeasonButtonTag)
-                ) {
-                    Text(
-                        when (seasonDownloadState) {
-                            is DownloadState.Downloaded -> "$selectedSeasonName Downloaded"
-                            is DownloadState.Downloading -> "Downloading $selectedSeasonName"
-                            else -> "Download $selectedSeasonName"
-                        }
-                    )
-                }
-                TextButton(
-                    onClick = { onDownloadOptionSelected(SeriesDownloadOption.SERIES) },
-                    modifier = Modifier.testTag(SeriesDownloadAllButtonTag)
-                ) {
-                    Text("Download All")
-                }
-            }
-        },
-        dismissButton = {
+
+            DownloadOptionRow(
+                title = "Download selected season",
+                supportingText = when (seasonDownloadState) {
+                    is DownloadState.Downloaded -> "$selectedSeasonName is already downloaded."
+                    is DownloadState.Downloading -> "$selectedSeasonName is downloading."
+                    else -> "Save episodes from $selectedSeasonName for offline viewing."
+                },
+                icon = Icons.Outlined.Download,
+                onClick = { onDownloadOptionSelected(SeriesDownloadOption.SEASON) },
+                enabled = seasonDownloadState is DownloadState.NotDownloaded,
+                modifier = Modifier.testTag(SeriesDownloadSeasonButtonTag)
+            )
+            DownloadOptionRow(
+                title = "Download all episodes",
+                supportingText = when (seriesDownloadState) {
+                    is DownloadState.Downloaded -> "All episodes in this series are already downloaded."
+                    is DownloadState.Downloading -> "All episodes in this series are downloading."
+                    else -> "Save every available episode in this series."
+                },
+                icon = Icons.Outlined.Download,
+                onClick = { onDownloadOptionSelected(SeriesDownloadOption.SERIES) },
+                enabled = seriesDownloadState is DownloadState.NotDownloaded,
+                modifier = Modifier.testTag(SeriesDownloadAllButtonTag)
+            )
             if (isSmartDownloadEnabled) {
-                TextButton(
+                DownloadOptionRow(
+                    title = "Delete series downloads",
+                    supportingText = "Turns off Smart Downloads and removes offline episodes for this series.",
+                    icon = Icons.Outlined.Delete,
                     onClick = { onDownloadOptionSelected(SeriesDownloadOption.DELETE_SMART) },
                     modifier = Modifier.testTag(SeriesSmartDownloadButtonTag),
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Delete Smart Downloads")
-                }
+                    destructive = true
+                )
             } else {
-                TextButton(
+                DownloadOptionRow(
+                    title = "Smart Downloads",
+                    supportingText = "Automatically keep the next unwatched episodes available offline.",
+                    icon = Icons.Outlined.AutoAwesome,
                     onClick = { onDownloadOptionSelected(SeriesDownloadOption.SMART) },
                     modifier = Modifier.testTag(SeriesSmartDownloadButtonTag)
-                ) {
-                    Text("Smart Download")
-                }
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun DownloadOptionRow(
+    title: String,
+    supportingText: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    destructive: Boolean = false,
+    enabled: Boolean = true,
+) {
+    val contentColor = if (!enabled) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else if (destructive) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    val supportingColor = if (!enabled) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else if (destructive) {
+        MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    ListItem(
+        headlineContent = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = contentColor
+            )
+        },
+        supportingContent = {
+            Text(
+                text = supportingText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = supportingColor
+            )
+        },
+        leadingContent = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor
+            )
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        modifier = modifier.clickable(enabled = enabled, onClick = onClick)
     )
 }
 

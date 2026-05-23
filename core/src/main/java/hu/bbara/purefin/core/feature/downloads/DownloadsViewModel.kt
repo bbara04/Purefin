@@ -48,16 +48,25 @@ class DownloadsViewModel @Inject constructor(
     private val activeDownloadsMap = downloadManager.observeActiveDownloads()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
-    /** Items that are fully downloaded and not currently in progress. */
+    /** Offline items with saved content available, excluding items that are only currently in progress. */
     val downloads = combine(
         offlineCatalogReader.movies,
         offlineCatalogReader.series,
-        activeDownloadsMap
-    ) { movies, series, inProgress ->
+        offlineCatalogReader.episodes,
+        activeDownloadsMap,
+    ) { movies, series, episodes, inProgress ->
         movies.values
             .filter { it.id.toString() !in inProgress }
-            .map { MovieUiModel(it) } +
-        series.values.map { SeriesUiModel(it) }
+            .map { DownloadedItem(media = MovieUiModel(it)) } +
+        series.values.filter { series ->
+            episodes.values.any { episode ->
+                episode.seriesId == series.id && episode.id.toString() !in inProgress
+            }
+        }.map {
+            DownloadedItem(
+                media = SeriesUiModel(it),
+            )
+        }
     }
 
     /** Items currently being downloaded with their progress. */
