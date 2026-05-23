@@ -24,12 +24,10 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
-            versionCode = providers.gradleProperty("purefinDebugVersionCode").get().toInt()
             versionNameSuffix = "-debug"
             manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apps/purefin-app-debug/update.json"
         }
         release {
-            versionCode = providers.gradleProperty("purefinReleaseVersionCode").get().toInt()
             // Enables code-related app optimization.
             isMinifyEnabled = true
 
@@ -48,6 +46,19 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("debug")) { variant ->
+        variant.outputs.forEach { output ->
+            output.versionCode.set(providers.gradleProperty("purefinDebugVersionCode").map { it.toInt() })
+        }
+    }
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.outputs.forEach { output ->
+            output.versionCode.set(providers.gradleProperty("purefinReleaseVersionCode").map { it.toInt() })
+        }
     }
 }
 

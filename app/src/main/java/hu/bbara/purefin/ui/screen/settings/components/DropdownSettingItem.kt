@@ -23,7 +23,7 @@ fun <T> DropdownSettingItem(
     value: T,
     options: List<T>,
     onValueChange: (T) -> Unit,
-    modifier: Modifier = Modifier.Companion
+    modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -32,7 +32,7 @@ fun <T> DropdownSettingItem(
         onExpandedChange = { expanded = it },
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         OutlinedTextField(
             value = value.toString(),

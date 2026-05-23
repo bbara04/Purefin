@@ -15,7 +15,7 @@ fun StringSettingItem(
     title: String,
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier.Companion
+    modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
         value = value,
@@ -23,10 +23,10 @@ fun StringSettingItem(
         label = { Text(title) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Companion.Words
+            capitalization = KeyboardCapitalization.Words
         ),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     )
 }

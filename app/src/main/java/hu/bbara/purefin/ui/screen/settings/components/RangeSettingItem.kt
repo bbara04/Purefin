@@ -22,7 +22,7 @@ fun RangeSettingItem(
     value: Double,
     valueRange: ClosedFloatingPointRange<Double>,
     onValueChange: (Double) -> Unit,
-    modifier: Modifier = Modifier.Companion
+    modifier: Modifier = Modifier
 ) {
     var sliderValue by remember(value) { mutableStateOf(value.toFloat()) }
 
@@ -30,14 +30,14 @@ fun RangeSettingItem(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge
         )
         Text(
-            text = String.Companion.format(Locale.US, "%.1f", sliderValue),
+            text = String.format(Locale.US, "%.1f", sliderValue),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -46,7 +46,7 @@ fun RangeSettingItem(
             onValueChange = { sliderValue = it },
             onValueChangeFinished = { onValueChange(sliderValue.toDouble()) },
             valueRange = valueRange.start.toFloat()..valueRange.endInclusive.toFloat(),
-            modifier = Modifier.Companion.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

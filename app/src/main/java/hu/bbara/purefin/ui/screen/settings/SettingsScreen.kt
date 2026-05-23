@@ -1,12 +1,18 @@
 package hu.bbara.purefin.ui.screen.settings
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -61,34 +67,81 @@ fun SettingsScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            settingGroups.forEach { group ->
+            settingGroups.forEachIndexed { groupIndex, group ->
                 group.title?.let { title ->
-                    item {
+                    item(key = "${groupIndex}-title") {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                top = 8.dp,
+                                end = 16.dp,
+                                bottom = 4.dp
+                            )
                         )
                     }
                 }
 
-                group.options.forEach { option ->
-                    item(key = option.key) {
+                itemsIndexed(
+                    items = group.options,
+                    key = { _, option -> option.key }
+                ) { index, option ->
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        shape = groupedSettingItemShape(
+                            index = index,
+                            itemCount = group.options.size
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         SettingOptionItem(
                             option = option,
                             viewModel = viewModel
                         )
-                        HorizontalDivider()
+                    }
+                }
+
+                if (groupIndex < settingGroups.lastIndex) {
+                    item(key = "${groupIndex}-spacer") {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
         }
+    }
+}
+
+private fun groupedSettingItemShape(
+    index: Int,
+    itemCount: Int
+): RoundedCornerShape {
+    val cornerRadius = 12.dp
+    return when {
+        itemCount == 1 -> RoundedCornerShape(cornerRadius)
+        index == 0 -> RoundedCornerShape(
+            topStart = cornerRadius,
+            topEnd = cornerRadius,
+            bottomStart = 0.dp,
+            bottomEnd = 0.dp
+        )
+
+        index == itemCount - 1 -> RoundedCornerShape(
+            topStart = 0.dp,
+            topEnd = 0.dp,
+            bottomStart = cornerRadius,
+            bottomEnd = cornerRadius
+        )
+
+        else -> RoundedCornerShape(0.dp)
     }
 }
 

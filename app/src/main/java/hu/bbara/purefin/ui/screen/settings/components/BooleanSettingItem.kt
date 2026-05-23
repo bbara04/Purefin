@@ -1,19 +1,22 @@
 package hu.bbara.purefin.ui.screen.settings.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 
 @Composable
 fun BooleanSettingItem(
     title: String,
     value: Boolean,
     onValueChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier.Companion
+    modifier: Modifier = Modifier
 ) {
     ListItem(
         headlineContent = {
@@ -25,9 +28,14 @@ fun BooleanSettingItem(
         trailingContent = {
             Switch(
                 checked = value,
-                onCheckedChange = onValueChange
+                onCheckedChange = null
             )
         },
-        modifier = modifier.clickable { onValueChange(!value) }
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        modifier = modifier.toggleable(
+            value = value,
+            role = Role.Switch,
+            onValueChange = onValueChange
+        )
     )
 }
