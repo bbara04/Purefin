@@ -53,9 +53,44 @@ cd purefin
    - For Android devices: Select your device/emulator and click Run
    - For Android TV: Select an Android TV emulator or device
 
-### Download APK
+### APK Repository
 
-_Release builds coming soon_
+APKs are distributed via the [APK Version Manager](https://apks.t.bbara.hu/docs) at `https://apks.t.bbara.hu`.
+
+#### App names
+
+| Variant | App name | Update URL |
+|---------|----------|------------|
+| Release (phone) | `purefin-app` | `https://apks.t.bbara.hu/apks/purefin-app/update.json` |
+| Debug (phone) | `purefin-app-debug` | `https://apks.t.bbara.hu/apks/purefin-app-debug/update.json` |
+| Release (TV) | `purefin-tv` | `https://apks.t.bbara.hu/apks/purefin-tv/update.json` |
+
+#### Building
+
+```bash
+# Phone
+./gradlew :app:assembleDebug           # debug APK
+./gradlew :app:assembleRelease         # release APK (unsigned)
+
+# Android TV
+./gradlew :app-tv:assembleDebug        # debug APK
+./gradlew :app-tv:assembleRelease      # release APK (unsigned)
+```
+
+APK outputs go to `app/build/outputs/apk/<variant>/` and `app-tv/build/outputs/apk/<variant>/`.
+
+#### Uploading
+
+Upload via the API at `POST /api/apps/{app_name}/upload`:
+
+```bash
+curl -X POST "https://apks.t.bbara.hu/api/apps/purefin-app-debug/upload" \
+  -F "apk_file=@app/build/outputs/apk/debug/app-debug.apk" \
+  -F "version_code=$(grep purefinVersionCode gradle.properties | cut -d= -f2)" \
+  -F "version_name=0.1-debug"
+```
+
+The `version_code` is defined in `gradle.properties` (`purefinVersionCode` for phone, `purefinTvVersionCode` for TV). The `version_name` is `0.1` for release or `0.1-debug` for debug. Both fields are required — the server cannot auto-extract them from the APK.
 
 ## Usage
 

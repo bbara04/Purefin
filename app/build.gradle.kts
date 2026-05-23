@@ -26,6 +26,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apks/purefin-app-debug/update.json"
         }
         release {
             // Enables code-related app optimization.
@@ -33,6 +34,7 @@ android {
 
             // Enables resource shrinking.
             isShrinkResources = true
+            manifestPlaceholders["updateManifestUrl"] = "https://apks.t.bbara.hu/apks/purefin-app/update.json"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
