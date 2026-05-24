@@ -24,8 +24,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import hu.bbara.purefin.ui.common.card.PosterCard
 import hu.bbara.purefin.core.feature.downloads.DownloadsViewModel
+import hu.bbara.purefin.ui.common.card.PosterCard
 
 @Composable
 fun DownloadsContent(
@@ -101,14 +101,17 @@ fun DownloadsContent(
                 }
             }
         }
-        items(downloads.value, key = { item -> item.id }) { item ->
-            PosterCard(
-                item = item,
-                onMovieSelected = viewModel::onMovieSelected,
-                onSeriesSelected = viewModel::onSeriesSelected,
-                onEpisodeSelected = { _, _, _ -> },
-                modifier = Modifier.testTag("$DownloadsItemTagPrefix${item.id}")
-            )
+        items(downloads.value, key = { item -> item.media.id }) { item ->
+            Column(
+                modifier = Modifier.testTag("$DownloadsItemTagPrefix${item.media.id}")
+            ) {
+                PosterCard(
+                    item = item.media,
+                    onMovieSelected = viewModel::onMovieSelected,
+                    onSeriesSelected = viewModel::onSeriesSelected,
+                    onEpisodeSelected = { _, _, _ -> },
+                )
+            }
         }
     }
 }
