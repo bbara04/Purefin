@@ -77,7 +77,7 @@ fun SettingsScreen(
                     item(key = "${groupIndex}-title") {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(
                                 start = 16.dp,
