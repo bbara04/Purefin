@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.SystemClock
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.core.data.JellyfinServerCandidate
-import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.data.QuickConnectSession
@@ -65,9 +64,8 @@ import javax.inject.Singleton
 
 @Singleton
 class JellyfinApiClient @Inject constructor(
-    @param:ApplicationContext private val applicationContext: Context,
+    @ApplicationContext private val applicationContext: Context,
     private val userSessionRepository: UserSessionRepository,
-    private val networkMonitor: NetworkMonitor,
 ) {
     private val jellyfin = createJellyfin {
         context = applicationContext
@@ -585,14 +583,12 @@ class JellyfinApiClient @Inject constructor(
         val startedAt = SystemClock.elapsedRealtime()
         return try {
             val result = block()
-            networkMonitor.reportRequestSucceeded()
             val elapsedMs = SystemClock.elapsedRealtime() - startedAt
             Timber.tag(TAG).d("$functionName took ${elapsedMs}ms")
             result
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            networkMonitor.reportRequestFailed(error)
             val elapsedMs = SystemClock.elapsedRealtime() - startedAt
             Timber.tag(TAG).e(error, "$functionName failed after ${elapsedMs}ms")
             throw error
