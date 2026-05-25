@@ -87,7 +87,7 @@ fun SeriesScreen(
     }
 
     val seriesData = seriesState.value
-    if (seriesData != null && seriesData.seasons.isNotEmpty()) {
+    if (seriesData != null) {
         LaunchedEffect(seriesData) {
             viewModel.observeSeriesDownloadState(seriesData)
         }
@@ -170,22 +170,22 @@ private fun SeriesScreenInternal(
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    fun getDefaultSeason(): Season {
-        return series.seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: series.seasons.first()
+    fun getDefaultSeason(): Season? {
+        return series.seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: series.seasons.firstOrNull()
     }
 
-    var selectedSeasonId by remember(series.id) { mutableStateOf(getDefaultSeason().id) }
+    var selectedSeasonId by remember(series.id) { mutableStateOf(getDefaultSeason()?.id) }
     val selectedSeason =
         series.seasons.firstOrNull { it.id == selectedSeasonId } ?: getDefaultSeason()
-    val nextUpEpisode = selectedSeason.episodes.firstOrNull { !it.watched }
-        ?: selectedSeason.episodes.firstOrNull()
+    val nextUpEpisode = selectedSeason?.episodes?.firstOrNull { !it.watched }
+        ?: selectedSeason?.episodes?.firstOrNull()
 
-    LaunchedEffect(series.id, selectedSeason.id) {
-        onLoadSeasonEpisodes(series.id, selectedSeason.id)
+    LaunchedEffect(series.id, selectedSeason?.id) {
+        selectedSeason?.let { onLoadSeasonEpisodes(series.id, it.id) }
     }
 
-    LaunchedEffect(selectedSeason.id, selectedSeason.episodes) {
-        onObserveSeasonDownloadState(selectedSeason.episodes)
+    LaunchedEffect(selectedSeason?.id, selectedSeason?.episodes) {
+        selectedSeason?.let { onObserveSeasonDownloadState(it.episodes) }
     }
 
     MediaDetailScaffold(
@@ -198,17 +198,19 @@ private fun SeriesScreenInternal(
             SeriesHeroContent(series = series)
         }
     ) {
-        SeriesActionButtons(
-            nextUpEpisode = nextUpEpisode,
-            selectedSeason = selectedSeason,
-            seriesDownloadState = seriesDownloadState,
-            seasonDownloadState = seasonDownloadState,
-            isSmartDownloadEnabled = isSmartDownloadEnabled,
-            offline = offline,
-            onDownloadOptionSelected = { option ->
-                onDownloadOptionSelected(option, selectedSeason)
-            }
-        )
+        if (selectedSeason != null) {
+            SeriesActionButtons(
+                nextUpEpisode = nextUpEpisode,
+                selectedSeason = selectedSeason,
+                seriesDownloadState = seriesDownloadState,
+                seasonDownloadState = seasonDownloadState,
+                isSmartDownloadEnabled = isSmartDownloadEnabled,
+                offline = offline,
+                onDownloadOptionSelected = { option ->
+                    onDownloadOptionSelected(option, selectedSeason)
+                }
+            )
+        }
         MediaSynopsis(
             synopsis = series.synopsis,
             bodyColor = scheme.onSurface,
@@ -216,14 +218,22 @@ private fun SeriesScreenInternal(
             bodyLineHeight = null,
             titleSpacing = 8.dp
         )
-        SeasonTabs(
-            seasons = series.seasons,
-            selectedSeason = selectedSeason,
-            onSelect = { selectedSeasonId = it.id }
-        )
-        EpisodeCarousel(
-            episodes = selectedSeason.episodes,
-        )
+        if (selectedSeason != null) {
+            SeasonTabs(
+                seasons = series.seasons,
+                selectedSeason = selectedSeason,
+                onSelect = { selectedSeasonId = it.id }
+            )
+            EpisodeCarousel(
+                episodes = selectedSeason.episodes,
+            )
+        } else {
+            Text(
+                text = "Loading seasons...",
+                color = scheme.onSurfaceVariant,
+                fontSize = 13.sp
+            )
+        }
         if (series.cast.isNotEmpty()) {
             Text(
                 text = "Cast",

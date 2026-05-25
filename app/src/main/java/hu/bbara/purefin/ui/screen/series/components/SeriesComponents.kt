@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +19,8 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -333,14 +332,23 @@ internal fun SeasonTabs(
     modifier: Modifier = Modifier,
     onSelect: (Season) -> Unit
 ) {
-    Row(
+    val selectedSeasonIndex = seasons.indexOf(selectedSeason).coerceAtLeast(0)
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(selectedSeasonIndex, seasons.size) {
+        if (seasons.isNotEmpty()) {
+            listState.scrollToItem(selectedSeasonIndex)
+        }
+    }
+
+    LazyRow(
+        state = listState,
         modifier = modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        seasons.forEachIndexed { index, season ->
+        itemsIndexed(seasons, key = { _, season -> season.id }) { index, season ->
             SeasonTab(
                 name = season.name,
                 isSelected = season == selectedSeason,

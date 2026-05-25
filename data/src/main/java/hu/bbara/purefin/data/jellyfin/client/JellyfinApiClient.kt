@@ -332,7 +332,7 @@ class JellyfinApiClient @Inject constructor(
                 userId = getUserId(),
                 seriesId = seriesId,
                 fields = defaultItemFields,
-                enableUserData = true,
+                enableUserData = false,
             )
             result.content.items
         }

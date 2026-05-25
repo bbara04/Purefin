@@ -19,9 +19,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,6 +45,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
@@ -52,9 +53,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.tv.material3.Tab
-import androidx.tv.material3.TabDefaults
-import androidx.tv.material3.TabRow
 import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.model.CastMember
@@ -80,18 +78,32 @@ internal fun TvSeriesMetaChips(series: Series) {
 }
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 internal fun TvSeasonTabs(
     seasons: List<Season>,
     selectedSeason: Season?,
     modifier: Modifier = Modifier,
     selectedItemFocusRequester: FocusRequester? = null,
     firstItemTestTag: String? = null,
+    requestSelectedItemFocus: Boolean = false,
+    onSelectedItemFocusRequested: () -> Unit = {},
     onSelect: (Season) -> Unit
 ) {
     val selectedSeasonIndex = seasons.indexOf(selectedSeason).coerceAtLeast(0)
+    val listState = rememberLazyListState()
 
-    TabRow(
-        selectedTabIndex = selectedSeasonIndex,
+    LaunchedEffect(selectedSeasonIndex, requestSelectedItemFocus, seasons.size) {
+        if (seasons.isEmpty()) return@LaunchedEffect
+        listState.scrollToItem(selectedSeasonIndex)
+        if (requestSelectedItemFocus && selectedItemFocusRequester != null) {
+            withFrameNanos { }
+            selectedItemFocusRequester.requestFocus()
+            onSelectedItemFocusRequested()
+        }
+    }
+
+    LazyRow(
+        state = listState,
         modifier = modifier
             .then(
                 if (selectedItemFocusRequester != null) {
@@ -101,16 +113,16 @@ internal fun TvSeasonTabs(
                 }
             )
             .focusGroup()
-            .fillMaxWidth()
-            .wrapContentWidth(Alignment.Start),
-        contentColor = MaterialTheme.colorScheme.onSurface
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        seasons.forEachIndexed { index, season ->
-            Tab(
-                selected = index == selectedSeasonIndex,
-                onFocus = { onSelect(season) },
+        itemsIndexed(seasons, key = { _, season -> season.id }) { index, season ->
+            TvSeasonTab(
+                name = season.name,
+                isSelected = index == selectedSeasonIndex,
+                onFocused = { onSelect(season) },
                 onClick = { onSelect(season) },
-                colors = TabDefaults.underlinedIndicatorTabColors(),
                 modifier = Modifier
                     .then(
                         if (index == selectedSeasonIndex && selectedItemFocusRequester != null) {
@@ -126,21 +138,45 @@ internal fun TvSeasonTabs(
                             Modifier
                         }
                     )
-            ) {
-                TvText(
-                    text = season.name,
-                    fontSize = 13.sp,
-                    fontWeight = if (index == selectedSeasonIndex) {
-                        FontWeight.Bold
-                    } else {
-                        FontWeight.Medium
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
+            )
         }
+    }
+}
+
+@Composable
+private fun TvSeasonTab(
+    name: String,
+    isSelected: Boolean,
+    onFocused: () -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scheme = MaterialTheme.colorScheme
+    val color = if (isSelected) scheme.primary else scheme.onSurface
+    val indicatorColor = if (isSelected) scheme.primary else Color.Transparent
+
+    Column(
+        modifier = modifier
+            .onFocusChanged { state ->
+                if (state.isFocused) onFocused()
+            }
+            .clickable(onClick = onClick)
+    ) {
+        TvText(
+            text = name,
+            color = color,
+            fontSize = 13.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(indicatorColor)
+        )
     }
 }
 
