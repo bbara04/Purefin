@@ -81,6 +81,9 @@ internal fun TvSeriesScreenContent(
     val initialFocusSeason = series.seasons.firstOrNull { it.id == initialFocusSeasonId } ?: defaultSeason
     val initialFocusedEpisodeId = initialFocusSeason.focusTargetEpisodeId(focusedEpisodeId)
     val seasonTabFocusRequester = remember { FocusRequester() }
+    var requestedInitialEpisodeFocus by remember(series.id, focusedSeasonId, focusedEpisodeId) {
+        mutableStateOf(false)
+    }
     val waitingForInitialEpisodes = initialFocusedEpisodeId == null &&
         initialFocusSeason.episodes.isEmpty() &&
         initialFocusSeason.episodeCount > 0
@@ -127,6 +130,9 @@ internal fun TvSeriesScreenContent(
                     episodes = selectedSeason.episodes,
                     onPlayEpisode = { onPlayEpisode(it.id) },
                     focusedEpisodeId = initialFocusedEpisodeId,
+                    requestFocus = selectedSeason.id == initialFocusSeasonId && !requestedInitialEpisodeFocus,
+                    onFocusRequested = { requestedInitialEpisodeFocus = true },
+                    upFocusRequester = seasonTabFocusRequester,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
@@ -91,7 +93,14 @@ internal fun TvSeasonTabs(
     TabRow(
         selectedTabIndex = selectedSeasonIndex,
         modifier = modifier
-            .focusRestorer()
+            .then(
+                if (selectedItemFocusRequester != null) {
+                    Modifier.focusRestorer(selectedItemFocusRequester)
+                } else {
+                    Modifier.focusRestorer()
+                }
+            )
+            .focusGroup()
             .fillMaxWidth()
             .wrapContentWidth(Alignment.Start),
         contentColor = MaterialTheme.colorScheme.onSurface
@@ -141,36 +150,60 @@ internal fun TvEpisodeCarousel(
     episodes: List<Episode>,
     onPlayEpisode: (Episode) -> Unit,
     modifier: Modifier = Modifier,
-    focusedEpisodeId: UUID? = null
+    focusedEpisodeId: UUID? = null,
+    requestFocus: Boolean = false,
+    onFocusRequested: () -> Unit = {},
+    upFocusRequester: FocusRequester? = null
 ) {
     val listState = rememberLazyListState()
-    val focusedEpisodeFocusRequester = remember { FocusRequester() }
+    val rowScopedFocusRequester = remember { FocusRequester() }
+    var rowFocusedEpisodeId by remember { mutableStateOf<UUID?>(null) }
     var requestedFocusEpisodeId by remember { mutableStateOf<UUID?>(null) }
+    val focusedEpisodeIndex = focusedEpisodeId?.let { id ->
+        episodes.indexOfFirst { it.id == id }
+    } ?: -1
+    val firstUnwatchedIndex = episodes.indexOfFirst { !it.watched }
+    val targetEpisodeIndex = when {
+        focusedEpisodeIndex >= 0 -> focusedEpisodeIndex
+        firstUnwatchedIndex >= 0 -> firstUnwatchedIndex
+        episodes.isNotEmpty() -> 0
+        else -> -1
+    }
+    val targetEpisodeId = episodes.getOrNull(targetEpisodeIndex)?.id
 
-    LaunchedEffect(episodes, focusedEpisodeId) {
-        val focusedEpisodeIndex = focusedEpisodeId?.let { id ->
-            episodes.indexOfFirst { it.id == id }
-        } ?: -1
-        val firstUnwatchedIndex = episodes.indexOfFirst { !it.watched }.let { if (it == -1) 0 else it }
-        val targetIndex = focusedEpisodeIndex.takeIf { it >= 0 } ?: firstUnwatchedIndex
+    LaunchedEffect(episodes, targetEpisodeId) {
+        if (episodes.none { it.id == rowFocusedEpisodeId }) {
+            rowFocusedEpisodeId = targetEpisodeId
+        }
 
-        if (targetIndex != 0) {
-            listState.scrollToItem(targetIndex)
+        if (targetEpisodeIndex > 0) {
+            listState.scrollToItem(targetEpisodeIndex)
         } else {
             listState.scrollToItem(0)
         }
+    }
 
-        if (focusedEpisodeIndex >= 0 && requestedFocusEpisodeId != focusedEpisodeId) {
+    LaunchedEffect(requestFocus, targetEpisodeId) {
+        if (requestFocus && targetEpisodeId != null && requestedFocusEpisodeId != targetEpisodeId) {
+            rowFocusedEpisodeId = targetEpisodeId
+            if (targetEpisodeIndex > 0) {
+                listState.scrollToItem(targetEpisodeIndex)
+            } else {
+                listState.scrollToItem(0)
+            }
             withFrameNanos { }
-            focusedEpisodeFocusRequester.requestFocus()
-            requestedFocusEpisodeId = focusedEpisodeId
+            rowScopedFocusRequester.requestFocus()
+            requestedFocusEpisodeId = targetEpisodeId
+            onFocusRequested()
         }
     }
 
     CompositionLocalProvider(LocalBringIntoViewSpec provides TvHomeRowBringIntoViewSpec) {
         LazyRow(
             state = listState,
-            modifier = modifier,
+            modifier = modifier
+                .focusRestorer(rowScopedFocusRequester)
+                .focusGroup(),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -178,13 +211,27 @@ internal fun TvEpisodeCarousel(
                 TvEpisodeCard(
                     episode = episode,
                     onPlayEpisode = { onPlayEpisode(episode) },
-                    modifier = if (episode.id == focusedEpisodeId) {
-                        Modifier
-                            .focusRequester(focusedEpisodeFocusRequester)
-                            .testTag(SeriesNextUpEpisodeCardTag)
-                    } else {
-                        Modifier
-                    }
+                    onFocused = { rowFocusedEpisodeId = episode.id },
+                    modifier = Modifier
+                        .then(
+                            if (episode.id == rowFocusedEpisodeId) {
+                                Modifier.focusRequester(rowScopedFocusRequester)
+                            } else {
+                                Modifier
+                            }
+                        )
+                        .then(
+                            upFocusRequester?.let { requester ->
+                                Modifier.focusProperties { up = requester }
+                            } ?: Modifier
+                        )
+                        .then(
+                            if (episode.id == targetEpisodeId) {
+                                Modifier.testTag(SeriesNextUpEpisodeCardTag)
+                            } else {
+                                Modifier
+                            }
+                        )
                 )
             }
         }
@@ -239,6 +286,7 @@ internal fun TvSeriesHeroSection(
 private fun TvEpisodeCard(
     episode: Episode,
     onPlayEpisode: () -> Unit,
+    onFocused: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -250,7 +298,10 @@ private fun TvEpisodeCard(
         modifier = modifier
             .width(260.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .onFocusChanged { isFocused = it.isFocused }
+            .onFocusChanged {
+                isFocused = it.isFocused
+                if (it.isFocused) onFocused()
+            }
             .clickable { onPlayEpisode() },
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
