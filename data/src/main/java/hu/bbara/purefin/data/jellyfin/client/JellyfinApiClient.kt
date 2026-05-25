@@ -332,7 +332,7 @@ class JellyfinApiClient @Inject constructor(
                 userId = getUserId(),
                 seriesId = seriesId,
                 fields = defaultItemFields,
-                enableUserData = false,
+                enableUserData = true,
             )
             result.content.items
         }
@@ -584,7 +584,32 @@ class JellyfinApiClient @Inject constructor(
         return try {
             val result = block()
             val elapsedMs = SystemClock.elapsedRealtime() - startedAt
-            Timber.tag(TAG).d("$functionName took ${elapsedMs}ms")
+            val sizeLog = when (result) {
+                is List<*> -> {
+                    val items = result.size
+                    if (items == 0) {
+                        " (empty)"
+                    } else {
+                        val bytes = result.toString().toByteArray().size
+                        val sizeStr = when {
+                            bytes < 1024 -> "$bytes B"
+                            bytes < 1024 * 1024 -> "${bytes / 1024} KB"
+                            else -> "%.1f MB".format(bytes.toFloat() / (1024 * 1024))
+                        }
+                        " ($items items, $sizeStr)"
+                    }
+                }
+                is Unit -> ""
+                else -> {
+                    val bytes = result.toString().toByteArray().size
+                    when {
+                        bytes < 1024 -> " ($bytes B)"
+                        bytes < 1024 * 1024 -> " (${bytes / 1024} KB)"
+                        else -> " (%.1f MB)".format(bytes.toFloat() / (1024 * 1024))
+                    }
+                }
+            }
+            Timber.tag(TAG).d("$functionName took ${elapsedMs}ms$sizeLog")
             result
         } catch (error: CancellationException) {
             throw error
