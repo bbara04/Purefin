@@ -12,6 +12,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +24,6 @@ import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,8 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.media3.common.Player
-import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -63,7 +61,6 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.32f
-private const val WIDE_VIDEO_ASPECT_RATIO = 16f / 9f
 /** Small negative band below zero that represents adaptive/auto brightness mode. */
 private const val AUTO_BRIGHTNESS_SENTINEL = -0.1f
 
@@ -85,23 +82,10 @@ fun PlayerScreen(
     var showQueuePanel by remember { mutableStateOf(false) }
     var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
     var horizontalSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
-    var videoAspectRatio by remember { mutableStateOf(calculateVideoAspectRatio(viewModel.player.videoSize)) }
     val overlayController = rememberPersistentOverlayController()
 
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         viewModel.pausePlayback()
-    }
-
-    DisposableEffect(viewModel.player) {
-        val listener = object : Player.Listener {
-            override fun onVideoSizeChanged(videoSize: VideoSize) {
-                videoAspectRatio = calculateVideoAspectRatio(videoSize)
-            }
-        }
-        viewModel.player.addListener(listener)
-        onDispose {
-            viewModel.player.removeListener(listener)
-        }
     }
 
     LaunchedEffect(uiState.isPlaying) {
@@ -111,7 +95,6 @@ fun PlayerScreen(
     }
 
     val playerControlsVisible = controlsVisible || uiState.isEnded || uiState.error != null
-    val playerResizeMode = playerResizeMode(videoAspectRatio)
     val subtitleBottomPaddingFraction =
         if (playerControlsVisible) {
             CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION
@@ -128,18 +111,18 @@ fun PlayerScreen(
             factory = { ctx ->
                 PlayerView(ctx).apply {
                     useController = false
-                    resizeMode = playerResizeMode
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                     player = viewModel.player
                     subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
                 }
             },
             update = {
                 it.player = viewModel.player
-                it.resizeMode = playerResizeMode
                 it.subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
             },
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxHeight()
+                .align(Alignment.Center)
         )
 
         PlayerGesturesLayer(
@@ -311,21 +294,6 @@ fun PlayerScreen(
             modifier = Modifier.fillMaxSize()
         )
     }
-}
-
-@OptIn(UnstableApi::class)
-private fun playerResizeMode(videoAspectRatio: Float): Int =
-    if (videoAspectRatio >= WIDE_VIDEO_ASPECT_RATIO) {
-        AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-    } else {
-        AspectRatioFrameLayout.RESIZE_MODE_FIT
-    }
-
-private fun calculateVideoAspectRatio(videoSize: VideoSize): Float {
-    if (videoSize.width <= 0 || videoSize.height <= 0) {
-        return 0f
-    }
-    return videoSize.width * videoSize.pixelWidthHeightRatio / videoSize.height
 }
 
 @Composable
