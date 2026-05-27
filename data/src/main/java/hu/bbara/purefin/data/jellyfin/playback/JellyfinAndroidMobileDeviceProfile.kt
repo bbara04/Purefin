@@ -15,7 +15,7 @@ import org.jellyfin.sdk.model.api.SubtitleProfile
 import org.jellyfin.sdk.model.api.TranscodingProfile
 
 internal data class JellyfinAndroidMobileProfileConfig(
-    val assDirectPlay: Boolean = false,
+    val assDirectPlay: Boolean = true,
 )
 
 internal object JellyfinAndroidMobileDeviceProfile {
