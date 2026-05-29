@@ -2,15 +2,15 @@ package hu.bbara.purefin.data.jellyfin.playback
 
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.jellyfin.sdk.model.ServerVersion
 import timber.log.Timber
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class JellyfinPlaybackResolver @Inject constructor(
@@ -37,20 +37,19 @@ class JellyfinPlaybackResolver @Inject constructor(
             return@withContext null
         }
 
+        val directPlayUrl = jellyfinApiClient.getVideoStreamUrl(
+            itemId = mediaId,
+        )
+        if (directPlayUrl.isBlank()) {
+            Timber.tag(TAG).e("Direct play URL is blank for $mediaId")
+            return@withContext null
+        }
+
         val decision = PlaybackDecisionResolver.resolve(
             mediaSources = playbackInfo.mediaSources,
             playSessionId = playbackInfo.playSessionId,
             serverUrl = serverUrl,
-            directPlayUrl = { mediaSource ->
-                jellyfinApiClient.getVideoStreamUrl(
-                    itemId = mediaId,
-                    container = mediaSource.container,
-                    mediaSourceId = mediaSource.id,
-                    tag = mediaSource.eTag,
-                    playSessionId = playbackInfo.playSessionId,
-                    liveStreamId = mediaSource.liveStreamId,
-                )
-            },
+            directPlayUrl = directPlayUrl
         )
 
         if (decision == null) {

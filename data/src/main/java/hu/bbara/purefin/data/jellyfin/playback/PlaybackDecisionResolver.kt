@@ -10,7 +10,7 @@ internal object PlaybackDecisionResolver {
         mediaSources: List<MediaSourceInfo>,
         playSessionId: String?,
         serverUrl: String,
-        directPlayUrl: (MediaSourceInfo) -> String,
+        directPlayUrl: String,
     ): PlaybackDecision? {
         val mediaSource = mediaSources.firstOrNull { it.protocol == MediaProtocol.FILE && !it.isRemote }
             ?: return null
@@ -23,7 +23,7 @@ internal object PlaybackDecisionResolver {
         }
 
         val url = when (playMethod) {
-            PlaybackMethod.DIRECT_PLAY -> directPlayUrl(mediaSource)
+            PlaybackMethod.DIRECT_PLAY -> directPlayUrl
             PlaybackMethod.DIRECT_STREAM,
             PlaybackMethod.TRANSCODE,
             -> absolutePlaybackUrl(serverUrl, requireNotNull(mediaSource.transcodingUrl))

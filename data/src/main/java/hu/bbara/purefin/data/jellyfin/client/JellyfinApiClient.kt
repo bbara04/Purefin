@@ -465,21 +465,11 @@ class JellyfinApiClient @Inject constructor(
     }
 
     fun getVideoStreamUrl(
-        itemId: UUID,
-        mediaSourceId: String?,
-        container: String? = null,
-        tag: String? = null,
-        playSessionId: String? = null,
-        liveStreamId: String? = null,
+        itemId: UUID
     ): String = try {
         api.videosApi.getVideoStreamUrl(
             itemId = itemId,
-            container = container,
-            mediaSourceId = mediaSourceId,
             static = true,
-            tag = tag,
-            playSessionId = playSessionId,
-            liveStreamId = liveStreamId,
         )
     } catch (error: Exception) {
         Timber.tag(TAG).e(error, "getVideoStreamUrl")
