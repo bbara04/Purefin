@@ -10,6 +10,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.PlayableMediaRepository
+import hu.bbara.purefin.core.data.PlaybackMediaItemTag
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.player.model.MetadataState
 import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot
@@ -76,6 +77,7 @@ class PlayerManager @Inject constructor(
         }
 
     private var pendingSeekPositionMs: Long? = null
+    private var pendingFallbackSeek: PendingFallbackSeek? = null
     private val _playbackState = MutableStateFlow(PlaybackStateSnapshot())
 
     val playbackState: StateFlow<PlaybackStateSnapshot> = _playbackState.asStateFlow()
@@ -107,6 +109,9 @@ class PlayerManager @Inject constructor(
         }
 
         override fun onPlayerError(error: PlaybackException) {
+            if (switchToTranscodingFallback()) {
+                return
+            }
             _playbackState.update {
                 it.copy(error = mapPlayerError(error))
             }
@@ -122,10 +127,15 @@ class PlayerManager @Inject constructor(
                     _playbackState.update { it.copy(error = "Media not found in playlist") }
                     return@launch
                 }
-                seekTo(currentMedia.resumePositionMs)
+                val fallbackSeek = pendingFallbackSeek
+                pendingFallbackSeek = null
+                val fallbackSeekPositionMs = fallbackSeek
+                    ?.takeIf { it.mediaId == mediaItem?.mediaId }
+                    ?.positionMs
+                seekTo(fallbackSeekPositionMs ?: currentMedia.resumePositionMs)
                 installMediaSegments(currentMedia.mediaSegments)
                 // Only updatePlaylist when episodes are being played. First item is handled when playMedia is being called first time.
-                if (currentMedia is PlayableMedia.Episode) {
+                if (fallbackSeekPositionMs == null && currentMedia is PlayableMedia.Episode) {
                     updatePlaylist()
                 }
             }
@@ -424,7 +434,7 @@ class PlayerManager @Inject constructor(
     private fun updateFromPlayer(player: Player) {
         val currentMediaItem = player.currentMediaItem
         val playbackState = player.playbackState
-        val playbackReportContext = currentMediaItem?.localConfiguration?.tag as? PlaybackReportContext
+        val playbackReportContext = currentMediaItem?.playbackReportContext()
         val currentMetadata = player.mediaMetadata
         val playerError = player.playerError
 
@@ -486,6 +496,96 @@ class PlayerManager @Inject constructor(
     private fun mapPlayerError(error: PlaybackException?): String? {
         return error?.errorCodeName ?: error?.localizedMessage ?: error?.message
     }
+
+    private fun switchToTranscodingFallback(): Boolean {
+        val currentMediaItem = player.currentMediaItem ?: return false
+        val playbackTag = currentMediaItem.localConfiguration?.tag as? PlaybackMediaItemTag
+            ?: return false
+        val fallbackUrl = playbackTag.transcodingFallbackUrl?.takeIf { it.isNotBlank() } ?: return false
+        val currentMediaItemIndex = player.currentMediaItemIndex
+        if (currentMediaItemIndex == C.INDEX_UNSET) return false
+
+        val fallbackMediaItem = currentMediaItem.buildUpon()
+            .setUri(fallbackUrl)
+            .setTag(
+                playbackTag.copy(
+                    playbackReportContext = playbackTag.transcodingFallbackReportContext
+                        ?: playbackTag.playbackReportContext,
+                    transcodingFallbackUrl = null,
+                    transcodingFallbackReportContext = null,
+                )
+            )
+            .build()
+        val fallbackPositionMs = fallbackPositionMs()
+        val playWhenReady = player.playWhenReady
+
+        pendingFallbackSeek = PendingFallbackSeek(
+            mediaId = currentMediaItem.mediaId,
+            positionMs = fallbackPositionMs,
+        )
+        clearStalePendingFallbackSeek(currentMediaItem.mediaId)
+        player.replaceMediaItem(currentMediaItemIndex, fallbackMediaItem)
+        replacePlaylistMediaItem(fallbackMediaItem)
+        clearActiveSkippableSegment()
+        player.seekTo(currentMediaItemIndex, fallbackPositionMs)
+        player.prepare()
+        player.playWhenReady = playWhenReady
+        _playbackState.update { it.copy(error = null) }
+
+        return true
+    }
+
+    private fun fallbackPositionMs(): Long {
+        val positionMs = pendingSeekPositionMs ?: player.currentPosition
+        return if (positionMs > 0L) {
+            positionMs
+        } else {
+            _progress.value.positionMs.coerceAtLeast(0L)
+        }
+    }
+
+    private fun replacePlaylistMediaItem(mediaItem: MediaItem) {
+        val mediaId = runCatching { UUID.fromString(mediaItem.mediaId) }.getOrNull() ?: return
+        _playlist.update { playlist ->
+            playlist.map { playableMedia ->
+                if (playableMedia.id == mediaId) {
+                    playableMedia.withMediaItem(mediaItem)
+                } else {
+                    playableMedia
+                }
+            }
+        }
+    }
+
+    private fun PlayableMedia.withMediaItem(mediaItem: MediaItem): PlayableMedia {
+        return when (this) {
+            is PlayableMedia.Episode -> copy(mediaItem = mediaItem)
+            is PlayableMedia.Movie -> copy(mediaItem = mediaItem)
+            is PlayableMedia.Series -> copy(mediaItem = mediaItem)
+        }
+    }
+
+    private fun MediaItem.playbackReportContext(): PlaybackReportContext? {
+        return when (val tag = localConfiguration?.tag) {
+            is PlaybackMediaItemTag -> tag.playbackReportContext
+            is PlaybackReportContext -> tag
+            else -> null
+        }
+    }
+
+    private fun clearStalePendingFallbackSeek(mediaId: String) {
+        scope.launch {
+            delay(1_000)
+            if (pendingFallbackSeek?.mediaId == mediaId) {
+                pendingFallbackSeek = null
+            }
+        }
+    }
+
+    private data class PendingFallbackSeek(
+        val mediaId: String,
+        val positionMs: Long,
+    )
 
     private fun syncPendingSeek(positionMs: Long) {
         val pendingPosition = pendingSeekPositionMs ?: return

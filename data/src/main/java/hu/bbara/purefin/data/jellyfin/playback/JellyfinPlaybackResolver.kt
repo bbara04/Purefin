@@ -48,18 +48,34 @@ class JellyfinPlaybackResolver @Inject constructor(
             return@withContext null
         }
 
+        val mediaSource = playbackInfo.mediaSources.first()
+        val transcodingUrl = mediaSource.transcodingUrl
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { url -> resolveUrl(serverUrl, url) }
+
         PlaybackSource(
-            mediaSource = playbackInfo.mediaSources.first(),
+            mediaSource = mediaSource,
             directPlayUrl = directPlayUrl,
-            transcodingUrl = playbackInfo.mediaSources.firstOrNull()?.transcodingUrl,
+            transcodingUrl = transcodingUrl,
             playbackReportContext = PlaybackReportContext(
                 playMethod = PlaybackMethod.DIRECT_PLAY,
-                mediaSourceId = playbackInfo.mediaSources.firstOrNull()?.id,
-                audioStreamIndex = playbackInfo.mediaSources.firstOrNull()?.defaultAudioStreamIndex,
-                subtitleStreamIndex = playbackInfo.mediaSources.firstOrNull()?.defaultSubtitleStreamIndex,
+                mediaSourceId = mediaSource.id,
+                audioStreamIndex = mediaSource.defaultAudioStreamIndex,
+                subtitleStreamIndex = mediaSource.defaultSubtitleStreamIndex,
                 playSessionId = playbackInfo.playSessionId,
             ),
         )
+    }
+
+    private fun resolveUrl(serverUrl: String, url: String): String {
+        if (
+            url.startsWith("http://", ignoreCase = true) ||
+            url.startsWith("https://", ignoreCase = true)
+        ) {
+            return url
+        }
+        return "${serverUrl.trimEnd('/')}/${url.trimStart('/')}"
     }
 
     private companion object {

@@ -9,6 +9,8 @@ import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.PlayableMediaRepository
+import hu.bbara.purefin.core.data.PlaybackMediaItemTag
+import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.core.download.MediaDownloadController
@@ -17,6 +19,7 @@ import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
+import hu.bbara.purefin.data.jellyfin.playback.PlaybackSource
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.model.PlayableMedia
@@ -87,7 +90,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
         val playbackSource = jellyfinPlaybackResolver.getPlaybackSource(mediaId) ?: return null
 
         val mediaItem = if (downloadedMediaItem == null) {
-            getMediaItem(baseItem, playbackSource.directPlayUrl)
+            getMediaItem(baseItem, playbackSource)
         } else {
             getDownloadedMediaItem(baseItem, downloadedMediaItem)
         }
@@ -170,7 +173,10 @@ class DefaultPlayableMediaRepository @Inject constructor(
         return null
     }
 
-    private suspend fun getMediaItem(baseItem: BaseItemDto, url: String): MediaItem = withContext(Dispatchers.IO) {
+    private suspend fun getMediaItem(
+        baseItem: BaseItemDto,
+        playbackSource: PlaybackSource,
+    ): MediaItem = withContext(Dispatchers.IO) {
         val mediaId = baseItem.id
         val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
@@ -179,12 +185,11 @@ class DefaultPlayableMediaRepository @Inject constructor(
 
         val mediaItem = createMediaItem(
             mediaId = mediaId.toString(),
-            url = url,
+            url = playbackSource.directPlayUrl,
             title = baseItem?.name ?: "Unknown",
             subtitle = seasonEpisodeLabel(baseItem),
             artworkUrl = artworkUrl,
-            // TODO
-            playbackReportContext = null,
+            playbackTag = playbackSource.toPlaybackMediaItemTag(),
         )
 
         return@withContext mediaItem
@@ -243,7 +248,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
         title: String,
         subtitle: String?,
         artworkUrl: String,
-        playbackReportContext: PlaybackReportContext?,
+        playbackTag: Any?,
     ): MediaItem {
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
@@ -254,8 +259,18 @@ class DefaultPlayableMediaRepository @Inject constructor(
             .setUri(url.toUri())
             .setMediaId(mediaId)
             .setMediaMetadata(metadata)
-            .setTag(playbackReportContext)
+            .setTag(playbackTag)
         return builder.build()
+    }
+
+    private fun PlaybackSource.toPlaybackMediaItemTag(): PlaybackMediaItemTag {
+        return PlaybackMediaItemTag(
+            playbackReportContext = playbackReportContext,
+            transcodingFallbackUrl = transcodingUrl,
+            transcodingFallbackReportContext = transcodingUrl?.let {
+                playbackReportContext.copy(playMethod = PlaybackMethod.TRANSCODE)
+            },
+        )
     }
 
     private fun calculateResumePosition(
