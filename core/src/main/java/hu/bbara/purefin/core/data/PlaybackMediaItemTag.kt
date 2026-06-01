@@ -7,7 +7,6 @@ package hu.bbara.purefin.core.data
  * transcoding fallback fields once when direct playback fails.
  */
 data class PlaybackMediaItemTag(
-    val playbackReportContext: PlaybackReportContext?,
+    val playbackReportContext: PlaybackReportContext,
     val transcodingFallbackUrl: String?,
-    val transcodingFallbackReportContext: PlaybackReportContext?,
 )

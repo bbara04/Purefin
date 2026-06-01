@@ -10,7 +10,6 @@ import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackMediaItemTag
-import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.core.download.MediaDownloadController
@@ -267,9 +266,6 @@ class DefaultPlayableMediaRepository @Inject constructor(
         return PlaybackMediaItemTag(
             playbackReportContext = playbackReportContext,
             transcodingFallbackUrl = transcodingUrl,
-            transcodingFallbackReportContext = transcodingUrl?.let {
-                playbackReportContext.copy(playMethod = PlaybackMethod.TRANSCODE)
-            },
         )
     }
 

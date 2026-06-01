@@ -11,6 +11,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.scopes.ViewModelScoped
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackMediaItemTag
+import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.player.model.MetadataState
 import hu.bbara.purefin.core.player.model.PlaybackProgressSnapshot
@@ -509,10 +510,10 @@ class PlayerManager @Inject constructor(
             .setUri(fallbackUrl)
             .setTag(
                 playbackTag.copy(
-                    playbackReportContext = playbackTag.transcodingFallbackReportContext
-                        ?: playbackTag.playbackReportContext,
+                    playbackReportContext = playbackTag.playbackReportContext.copy(
+                        playMethod = PlaybackMethod.TRANSCODE
+                    ),
                     transcodingFallbackUrl = null,
-                    transcodingFallbackReportContext = null,
                 )
             )
             .build()
