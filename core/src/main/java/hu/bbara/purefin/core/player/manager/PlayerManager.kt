@@ -177,7 +177,7 @@ class PlayerManager @Inject constructor(
     }
 
     private suspend fun playNewMedia(mediaId: UUID) {
-        var playableMedia = playableMediaRepository.getPlayableMedia(mediaId)
+        val playableMedia = playableMediaRepository.getPlayableMedia(mediaId)
         if (playableMedia == null) {
             _playbackState.update { it.copy(error = "Media not found") }
             return
