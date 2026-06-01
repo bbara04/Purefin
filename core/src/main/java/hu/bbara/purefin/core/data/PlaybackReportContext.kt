@@ -5,6 +5,5 @@ data class PlaybackReportContext(
     val mediaSourceId: String?,
     val audioStreamIndex: Int?,
     val subtitleStreamIndex: Int?,
-    val liveStreamId: String?,
     val playSessionId: String?,
 )

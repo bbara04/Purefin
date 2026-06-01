@@ -17,8 +17,6 @@ import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
-import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecision
-import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.model.PlayableMedia
@@ -86,14 +84,14 @@ class DefaultPlayableMediaRepository @Inject constructor(
         downloadedMediaItem: MediaItem?,
     ): PlayableMedia? {
         val baseItem = jellyfinApiClient.getItemInfo(mediaId) ?: return null
-        val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(mediaId) ?: return null
+        val playbackSource = jellyfinPlaybackResolver.getPlaybackSource(mediaId) ?: return null
 
         val mediaItem = if (downloadedMediaItem == null) {
-            getMediaItem(baseItem, playbackDecision)
+            getMediaItem(baseItem, playbackSource.directPlayUrl)
         } else {
-            getDownloadedMediaItem(baseItem, playbackDecision, downloadedMediaItem)
+            getDownloadedMediaItem(baseItem, downloadedMediaItem)
         }
-        val resumePositionMs = calculateResumePosition(baseItem, playbackDecision.mediaSource)
+        val resumePositionMs = calculateResumePosition(baseItem, playbackSource.mediaSource)
         val preferenceMediaId = when (baseItem.type) {
             BaseItemKind.EPISODE -> baseItem.seriesId ?: mediaId
             else -> mediaId
@@ -172,7 +170,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
         return null
     }
 
-    private suspend fun getMediaItem(baseItem: BaseItemDto, playbackDecision: PlaybackDecision): MediaItem = withContext(Dispatchers.IO) {
+    private suspend fun getMediaItem(baseItem: BaseItemDto, url: String): MediaItem = withContext(Dispatchers.IO) {
         val mediaId = baseItem.id
         val baseItem = jellyfinApiClient.getItemInfo(mediaId)
 
@@ -181,11 +179,12 @@ class DefaultPlayableMediaRepository @Inject constructor(
 
         val mediaItem = createMediaItem(
             mediaId = mediaId.toString(),
-            playbackDecision = playbackDecision,
-            title = baseItem?.name ?: playbackDecision.mediaSource.name ?: "Unknown",
+            url = url,
+            title = baseItem?.name ?: "Unknown",
             subtitle = seasonEpisodeLabel(baseItem),
             artworkUrl = artworkUrl,
-            playbackReportContext = playbackDecision.reportContext,
+            // TODO
+            playbackReportContext = null,
         )
 
         return@withContext mediaItem
@@ -193,7 +192,6 @@ class DefaultPlayableMediaRepository @Inject constructor(
 
     private suspend fun getDownloadedMediaItem(
         baseItem: BaseItemDto,
-        playbackDecision: PlaybackDecision,
         downloadedMediaItem: MediaItem,
     ): MediaItem = withContext(Dispatchers.IO) {
         val mediaId = baseItem.id
@@ -203,10 +201,11 @@ class DefaultPlayableMediaRepository @Inject constructor(
 
         return@withContext downloadedMediaItem.withMetadata(
             mediaId = mediaId.toString(),
-            title = baseItem?.name ?: playbackDecision.mediaSource.name ?: "Unknown",
+            title = baseItem?.name ?: "Unknown",
             subtitle = seasonEpisodeLabel(baseItem),
             artworkUrl = artworkUrl,
-            playbackReportContext = playbackDecision.reportContext,
+            // TODO
+            playbackReportContext = null,
         )
     }
 
@@ -240,7 +239,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
     @OptIn(UnstableApi::class)
     private fun createMediaItem(
         mediaId: String,
-        playbackDecision: PlaybackDecision,
+        url: String,
         title: String,
         subtitle: String?,
         artworkUrl: String,
@@ -252,17 +251,10 @@ class DefaultPlayableMediaRepository @Inject constructor(
             .setArtworkUri(artworkUrl.toUri())
             .build()
         val builder = MediaItem.Builder()
-            .setUri(playbackDecision.url.toUri())
+            .setUri(url.toUri())
             .setMediaId(mediaId)
             .setMediaMetadata(metadata)
             .setTag(playbackReportContext)
-
-        playbackCustomCacheKey(
-            mediaId = mediaId,
-            playbackUrl = playbackDecision.url,
-            playMethod = playbackDecision.reportContext.playMethod,
-        )?.let(builder::setCustomCacheKey)
-
         return builder.build()
     }
 

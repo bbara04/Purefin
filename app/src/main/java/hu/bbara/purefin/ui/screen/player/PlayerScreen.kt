@@ -26,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -115,10 +115,6 @@ fun PlayerScreen(
                     player = viewModel.player
                     subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
                 }
-            },
-            update = {
-                it.player = viewModel.player
-                it.subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
             },
             modifier = Modifier
                 .fillMaxHeight()

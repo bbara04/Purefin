@@ -1,5 +1,7 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
+import hu.bbara.purefin.core.data.PlaybackMethod
+import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +19,7 @@ class JellyfinPlaybackResolver @Inject constructor(
     private val playbackProfilePolicy: PlaybackProfilePolicy,
 ) {
 
-    suspend fun getPlaybackDecision(mediaId: UUID): PlaybackDecision? = withContext(Dispatchers.IO) {
+    suspend fun getPlaybackSource(mediaId: UUID): PlaybackSource? = withContext(Dispatchers.IO) {
         val serverUrl = userSessionRepository.serverUrl.first().trim()
         if (serverUrl.isBlank()) {
             return@withContext null
@@ -33,6 +35,11 @@ class JellyfinPlaybackResolver @Inject constructor(
             return@withContext null
         }
 
+        if (playbackInfo.mediaSources.isEmpty()) {
+            Timber.tag(TAG).w("No media sources available for $mediaId")
+            return@withContext null
+        }
+
         val directPlayUrl = jellyfinApiClient.getVideoStreamUrl(
             itemId = mediaId,
         )
@@ -41,19 +48,18 @@ class JellyfinPlaybackResolver @Inject constructor(
             return@withContext null
         }
 
-        val decision = PlaybackDecisionResolver.resolve(
-            mediaSources = playbackInfo.mediaSources,
-            playSessionId = playbackInfo.playSessionId,
-            serverUrl = serverUrl,
-            directPlayUrl = directPlayUrl
+        PlaybackSource(
+            mediaSource = playbackInfo.mediaSources.first(),
+            directPlayUrl = directPlayUrl,
+            transcodingUrl = playbackInfo.mediaSources.firstOrNull()?.transcodingUrl,
+            playbackReportContext = PlaybackReportContext(
+                playMethod = PlaybackMethod.DIRECT_PLAY,
+                mediaSourceId = playbackInfo.mediaSources.firstOrNull()?.id,
+                audioStreamIndex = playbackInfo.mediaSources.firstOrNull()?.defaultAudioStreamIndex,
+                subtitleStreamIndex = playbackInfo.mediaSources.firstOrNull()?.defaultSubtitleStreamIndex,
+                playSessionId = playbackInfo.playSessionId,
+            ),
         )
-
-        if (decision == null) {
-            Timber.tag(TAG).w("No compatible playback path for $mediaId")
-        } else {
-            Timber.tag(TAG).d("Playback decision for $mediaId resolved as ${decision.reportContext.playMethod}")
-        }
-        decision
     }
 
     private companion object {

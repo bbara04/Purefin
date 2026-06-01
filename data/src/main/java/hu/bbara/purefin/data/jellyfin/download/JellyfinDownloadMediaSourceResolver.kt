@@ -3,7 +3,6 @@ package hu.bbara.purefin.data.jellyfin.download
 import hu.bbara.purefin.core.data.DownloadMediaSourceResolver
 import hu.bbara.purefin.core.data.EpisodeDownloadSource
 import hu.bbara.purefin.core.data.MovieDownloadSource
-import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.data.converter.toEpisode
 import hu.bbara.purefin.data.converter.toMovie
@@ -11,7 +10,7 @@ import hu.bbara.purefin.data.converter.toSeason
 import hu.bbara.purefin.data.converter.toSeries
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
-import hu.bbara.purefin.data.jellyfin.playback.PlaybackDecision
+import hu.bbara.purefin.data.jellyfin.playback.PlaybackSource
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -32,13 +31,13 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
             return@withContext null
         }
 
-        val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(movieId) ?: return@withContext null
+        val playbackSource = jellyfinPlaybackResolver.getPlaybackSource(movieId) ?: return@withContext null
         val itemInfo = jellyfinApiClient.getItemInfo(movieId) ?: return@withContext null
 
         MovieDownloadSource(
             movie = itemInfo.toMovie(serverUrl),
-            playbackUrl = playbackDecision.url,
-            customCacheKey = playbackDecision.downloadCustomCacheKey(movieId),
+            playbackUrl = playbackSource.directPlayUrl,
+            customCacheKey = playbackSource.downloadCustomCacheKey(movieId),
         )
     }
 
@@ -48,7 +47,7 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
             return@withContext null
         }
 
-        val playbackDecision = jellyfinPlaybackResolver.getPlaybackDecision(episodeId) ?: return@withContext null
+        val playbackSource = jellyfinPlaybackResolver.getPlaybackSource(episodeId) ?: return@withContext null
         val episodeDto = jellyfinApiClient.getItemInfo(episodeId) ?: return@withContext null
         val episode = episodeDto.toEpisode(serverUrl)
         val series = jellyfinApiClient.getItemInfo(episode.seriesId)?.toSeries(serverUrl) ?: return@withContext null
@@ -58,8 +57,8 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
             episode = episode,
             series = series,
             season = season,
-            playbackUrl = playbackDecision.url,
-            customCacheKey = playbackDecision.downloadCustomCacheKey(episodeId),
+            playbackUrl = playbackSource.directPlayUrl,
+            customCacheKey = playbackSource.downloadCustomCacheKey(episodeId),
         )
     }
 
@@ -91,14 +90,11 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
             .map { it.id }
     }
 
-    private fun PlaybackDecision.downloadCustomCacheKey(mediaId: UUID): String? {
-        if (reportContext.playMethod != PlaybackMethod.DIRECT_PLAY) {
-            return null
-        }
+    private fun PlaybackSource.downloadCustomCacheKey(mediaId: UUID): String? {
         return playbackCustomCacheKey(
             mediaId = mediaId.toString(),
-            playbackUrl = url,
-            playMethod = reportContext.playMethod,
+            playbackUrl = directPlayUrl,
+            playMethod = playbackReportContext.playMethod,
         )
     }
 }
