@@ -74,7 +74,6 @@ internal object JellyfinAndroidTvDeviceProfile {
 
     fun create(
         capabilities: DeviceProfileCapabilities,
-        serverVersion: ServerVersion,
         config: JellyfinAndroidTvProfileConfig = fixedConfig,
     ): DeviceProfile = buildDeviceProfile {
         val allowedAudioCodecs = when {
@@ -108,7 +107,7 @@ internal object JellyfinAndroidTvDeviceProfile {
         val supportsHevcDolbyVisionEl = capabilities.supportsHevcDolbyVisionEl()
         val supportsHevcHdr10 = capabilities.supportsHevcHdr10()
         val supportsHevcHdr10Plus = capabilities.supportsHevcHdr10Plus()
-        val supportsExtendedRangeTypes = serverVersion >= extendedRangeTypesServerVersion
+        val supportsExtendedRangeTypes = true
 
         name = "AndroidTV-Default"
         maxStaticBitrate = config.maxBitrate

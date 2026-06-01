@@ -5,10 +5,8 @@ import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import org.jellyfin.sdk.model.ServerVersion
 import timber.log.Timber
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,7 +16,6 @@ class JellyfinPlaybackResolver @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val playbackProfilePolicy: PlaybackProfilePolicy,
 ) {
-    private val serverVersionCache = ConcurrentHashMap<String, ServerVersion>()
 
     suspend fun getPlaybackDecision(mediaId: UUID): PlaybackDecision? = withContext(Dispatchers.IO) {
         val serverUrl = userSessionRepository.serverUrl.first().trim()
@@ -26,10 +23,9 @@ class JellyfinPlaybackResolver @Inject constructor(
             return@withContext null
         }
 
-        val serverVersion = getServerVersion(serverUrl)
         val playbackInfo = jellyfinApiClient.getPlaybackInfo(
             mediaId = mediaId,
-            deviceProfile = playbackProfilePolicy.create(serverVersion),
+            deviceProfile = playbackProfilePolicy.create(),
         ) ?: return@withContext null
 
         if (playbackInfo.errorCode != null) {
@@ -58,19 +54,6 @@ class JellyfinPlaybackResolver @Inject constructor(
             Timber.tag(TAG).d("Playback decision for $mediaId resolved as ${decision.reportContext.playMethod}")
         }
         decision
-    }
-
-    private suspend fun getServerVersion(serverUrl: String): ServerVersion {
-        serverVersionCache[serverUrl]?.let { return it }
-
-        val resolvedVersion = runCatching {
-            jellyfinApiClient.getPublicSystemInfoVersion()?.let(ServerVersion::fromString)
-        }.onFailure { error ->
-            Timber.tag(TAG).w(error, "Unable to fetch server version for $serverUrl")
-        }.getOrNull() ?: PlaybackProfileDefaults.fallbackServerVersion
-
-        serverVersionCache[serverUrl] = resolvedVersion
-        return resolvedVersion
     }
 
     private companion object {
