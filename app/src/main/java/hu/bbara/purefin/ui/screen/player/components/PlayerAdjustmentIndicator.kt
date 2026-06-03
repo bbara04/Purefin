@@ -13,6 +13,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 
 @Composable
 fun PlayerAdjustmentIndicator(
@@ -28,12 +29,15 @@ fun PlayerAdjustmentIndicator(
     icon: ImageVector,
     contentDescription: String?,
     value: Float,
+    bottomText: String? = null,
     sliderHeight: Dp = 140.dp,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val isAuto = value < 0f
-    val percent = if (isAuto) 0 else (value * 100).roundToInt()
     val clamped = value.coerceIn(0f, 1f)
+    val previousBottomText = remember { mutableStateOf("-") }
+    if (bottomText != null) {
+        previousBottomText.value = bottomText
+    }
 
     Box(
         modifier = modifier
@@ -69,10 +73,9 @@ fun PlayerAdjustmentIndicator(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            val label = if (isAuto) "Auto" else "$percent%"
             Text(
-                text = label,
-                color = if (isAuto) scheme.tertiary else scheme.onSurface,
+                text = previousBottomText.value,
+                color = scheme.onSurface,
                 style = MaterialTheme.typography.titleMedium
             )
         }

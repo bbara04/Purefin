@@ -62,7 +62,7 @@ import kotlin.math.roundToInt
 
 private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.32f
 /** Small negative band below zero that represents adaptive/auto brightness mode. */
-private const val AUTO_BRIGHTNESS_SENTINEL = -0.1f
+private const val AUTO_BRIGHTNESS_THRESHOLD = -0.15f
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -129,7 +129,7 @@ fun PlayerScreen(
             onDoubleTapCenter = { viewModel.togglePlayPause() },
             onVerticalDragLeft = { delta ->
                 val diff = (-delta / 800f)
-                brightness = (brightness + diff).coerceIn(AUTO_BRIGHTNESS_SENTINEL, 1f)
+                brightness = (brightness + diff).coerceIn(AUTO_BRIGHTNESS_THRESHOLD, 1f)
                 applyBrightness(activity, brightness)
             },
             onVerticalDragRight = { delta ->
@@ -195,11 +195,17 @@ fun PlayerScreen(
                 .padding(start = 20.dp)
         ) { currentBrightness ->
             PlayerAdjustmentIndicator(
-                modifier = Modifier
-                    .align(Alignment.Center),
+                modifier = Modifier.align(Alignment.Center),
                 icon = Icons.Outlined.BrightnessMedium,
                 contentDescription = "Brightness",
-                value = currentBrightness
+                value = currentBrightness,
+                bottomText = if (currentBrightness <= AUTO_BRIGHTNESS_THRESHOLD) {
+                    "Auto"
+                } else if (currentBrightness >= 0f) {
+                    "${(currentBrightness * 100).roundToInt()}%"
+                } else {
+                    null
+                }
             )
         }
 
@@ -215,7 +221,8 @@ fun PlayerScreen(
                     .align(Alignment.Center),
                 icon = Icons.Outlined.VolumeUp,
                 contentDescription = "Volume",
-                value = currentVolume
+                value = currentVolume,
+                bottomText = "${(currentVolume.coerceIn(0f, 1f) * 100).roundToInt()}%"
             )
         }
 
@@ -366,12 +373,12 @@ private fun formatSeekDelta(deltaMs: Long): String {
 
 private fun readCurrentBrightness(activity: Activity?): Float {
     val current = activity?.window?.attributes?.screenBrightness
-    return if (current != null && current >= 0) current else AUTO_BRIGHTNESS_SENTINEL
+    return if (current != null && current >= 0) current else -1f
 }
 
 private fun applyBrightness(activity: Activity?, value: Float) {
     activity ?: return
     val params = activity.window.attributes
-    params.screenBrightness = if (value < 0f) -1f else value
+    params.screenBrightness = if (value <= AUTO_BRIGHTNESS_THRESHOLD) -1f else value
     activity.window.attributes = params
 }
