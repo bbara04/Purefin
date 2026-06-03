@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -17,6 +18,8 @@ import hu.bbara.purefin.ui.theme.AppTheme
 
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
+    private val viewModel: PlayerViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -41,6 +44,16 @@ class PlayerActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.pausePlayback()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        enterImmersiveMode()
     }
 
     private fun enterImmersiveMode() {

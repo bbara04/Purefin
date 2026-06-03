@@ -36,8 +36,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -84,10 +82,6 @@ fun PlayerScreen(
     var horizontalSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
     val overlayController = rememberPersistentOverlayController()
 
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
-        viewModel.pausePlayback()
-    }
-
     LaunchedEffect(uiState.isPlaying) {
         if (uiState.isPlaying) {
             showQueuePanel = false
@@ -115,6 +109,9 @@ fun PlayerScreen(
                     player = viewModel.player
                     subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
                 }
+            },
+            onRelease = { playerView ->
+                playerView.player = null
             },
             modifier = Modifier
                 .fillMaxHeight()
