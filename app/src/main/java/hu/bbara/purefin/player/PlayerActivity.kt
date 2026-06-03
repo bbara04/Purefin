@@ -48,7 +48,9 @@ class PlayerActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        viewModel.pausePlayback()
+        if (!isChangingConfigurations) {
+            viewModel.pausePlayback()
+        }
     }
 
     override fun onResume() {
