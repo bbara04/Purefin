@@ -7,7 +7,7 @@ import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.UserSessionRepository
-import hu.bbara.purefin.core.download.MediaDownloadController
+import hu.bbara.purefin.core.feature.browse.home.refresh.HomeRefreshCoordinator
 import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
 import hu.bbara.purefin.core.settings.SettingsRepository
 import hu.bbara.purefin.core.model.EpisodeUiModel
@@ -41,7 +41,7 @@ class AppViewModel @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val jellyfinMediaMetadataUpdater: JellyfinMediaMetadataUpdater,
     private val navigationManager: NavigationManager,
-    private val mediaDownloadManager: MediaDownloadController,
+    private val homeRefreshCoordinator: HomeRefreshCoordinator,
     private val settingsRepository: SettingsRepository,
     networkMonitor: NetworkMonitor,
 ) : ViewModel() {
@@ -253,34 +253,15 @@ class AppViewModel @Inject constructor(
 
     fun onResumed() {
         viewModelScope.launch {
-            try {
-                homeRepository.refreshHomeData()
-            } catch (e: Exception) {
-                // Refresh is best-effort; don't crash on failure
-            }
-        }
-        viewModelScope.launch {
-            try {
-                mediaDownloadManager.syncSmartDownloads()
-            } catch (_: Exception) { }
+            homeRefreshCoordinator.onResumed()
         }
     }
 
     fun onRefresh() {
         viewModelScope.launch {
-            _isRefreshing.value = true
-            try {
-                homeRepository.refreshHomeData()
-            } catch (e: Exception) {
-                // Refresh is best-effort; don't crash on failure
-            } finally {
-                _isRefreshing.value = false
+            homeRefreshCoordinator.onRefresh { isRefreshing ->
+                _isRefreshing.value = isRefreshing
             }
-        }
-        viewModelScope.launch {
-            try {
-                mediaDownloadManager.syncSmartDownloads()
-            } catch (_: Exception) { }
         }
     }
 

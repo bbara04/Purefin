@@ -12,6 +12,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.core.data.DownloadMediaSourceResolver
 import hu.bbara.purefin.core.data.OfflineCatalogStore
 import hu.bbara.purefin.core.data.SmartDownloadStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -230,6 +231,8 @@ class MediaDownloadManager @Inject constructor(
             for (seriesId in enabledSeriesIds) {
                 try {
                     syncSmartDownloadsForSeries(seriesId)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Smart download sync failed for series $seriesId")
                 }
