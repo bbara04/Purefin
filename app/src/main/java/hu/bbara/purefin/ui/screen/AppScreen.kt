@@ -1,5 +1,6 @@
 package hu.bbara.purefin.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -136,6 +137,10 @@ fun AppScreen(
                 modifier = Modifier.fillMaxSize()
             )
         }
+    }
+
+    BackHandler(enabled = backStack.size == 1) {
+        navigationManager.pop()
     }
 
     NavDisplay(

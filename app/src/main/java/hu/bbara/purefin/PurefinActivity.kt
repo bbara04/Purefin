@@ -2,6 +2,7 @@ package hu.bbara.purefin
 
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -51,6 +52,7 @@ import hu.bbara.purefin.navigation.LocalSharedTransitionScope
 import hu.bbara.purefin.core.navigation.NavigationCommand
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.ui.common.dialog.ExitAppDialog
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import hu.bbara.purefin.ui.screen.login.LoginScreen
 import hu.bbara.purefin.ui.theme.AppTheme
@@ -146,6 +148,7 @@ class PurefinActivity : ComponentActivity() {
         navigationManager: NavigationManager
     ) {
         var sessionLoaded by remember { mutableStateOf(false) }
+        var showExitDialog by remember { mutableStateOf(false) }
         val isLoggedIn by userSessionRepository.isLoggedIn.collectAsStateWithLifecycle(initialValue = false)
 
         LaunchedEffect(Unit) {
@@ -155,11 +158,11 @@ class PurefinActivity : ComponentActivity() {
         }
 
         if (!sessionLoaded) {
+            BackHandler {
+                showExitDialog = true
+            }
             PurefinWaitingScreen(modifier = Modifier.fillMaxSize())
-            return
-        }
-
-        if (isLoggedIn) {
+        } else if (isLoggedIn) {
             @Suppress("UNCHECKED_CAST")
             val backStack = rememberNavBackStack(Route.Home) as NavBackStack<Route>
             var homeMediaSharedBoundsKey by remember { mutableStateOf<String?>(null) }
@@ -171,7 +174,13 @@ class PurefinActivity : ComponentActivity() {
             LaunchedEffect(navigationManager, backStack) {
                 navigationManager.commands.collect { command ->
                     when (command) {
-                        NavigationCommand.Pop -> if (backStack.size > 1) backStack.removeLastOrNull()
+                        NavigationCommand.Pop -> {
+                            if (backStack.size > 1) {
+                                backStack.removeLastOrNull()
+                            } else {
+                                showExitDialog = true
+                            }
+                        }
                         is NavigationCommand.Navigate -> backStack.add(command.route)
                         is NavigationCommand.ReplaceAll -> {
                             backStack.clear()
@@ -179,6 +188,10 @@ class PurefinActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+
+            BackHandler(enabled = backStack.size == 1) {
+                showExitDialog = true
             }
 
             SharedTransitionLayout {
@@ -193,7 +206,13 @@ class PurefinActivity : ComponentActivity() {
                 ) {
                     NavDisplay(
                         backStack = backStack,
-                        onBack = { navigationManager.pop() },
+                        onBack = {
+                            if (backStack.size > 1) {
+                                navigationManager.pop()
+                            } else {
+                                showExitDialog = true
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxSize()
                             .background(backgroundDark)
@@ -232,8 +251,18 @@ class PurefinActivity : ComponentActivity() {
                 }
             }
         } else {
+            BackHandler {
+                showExitDialog = true
+            }
             LoginScreen(
                 modifier = Modifier.semantics { testTagsAsResourceId = true }
+            )
+        }
+
+        if (showExitDialog) {
+            ExitAppDialog(
+                onCloseConfirmed = { finishAndRemoveTask() },
+                onDismiss = { showExitDialog = false }
             )
         }
     }

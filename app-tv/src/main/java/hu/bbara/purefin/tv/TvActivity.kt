@@ -3,6 +3,7 @@ package hu.bbara.purefin.tv
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -50,6 +51,7 @@ import hu.bbara.purefin.core.jellyfin.JellyfinAuthInterceptor
 import hu.bbara.purefin.core.navigation.NavigationCommand
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
+import hu.bbara.purefin.ui.common.dialog.ExitAppDialog
 import hu.bbara.purefin.navigation.LocalNavigationBackStack
 import hu.bbara.purefin.navigation.LocalNavigationManager
 import hu.bbara.purefin.ui.screen.login.TvLoginScreen
@@ -147,6 +149,7 @@ class TvActivity : ComponentActivity() {
         updateViewModel: AppUpdateViewModel = hiltViewModel()
     ) {
         var sessionLoaded by remember { mutableStateOf(false) }
+        var showExitDialog by remember { mutableStateOf(false) }
         val isLoggedIn by userSessionRepository.isLoggedIn.collectAsStateWithLifecycle(initialValue = false)
         val availableUpdate by updateViewModel.availableUpdate.collectAsStateWithLifecycle()
         val context = LocalContext.current
@@ -168,6 +171,9 @@ class TvActivity : ComponentActivity() {
         }
 
         if (!sessionLoaded) {
+            BackHandler {
+                showExitDialog = true
+            }
             PurefinWaitingScreen(modifier = Modifier.fillMaxSize())
         } else if (isLoggedIn) {
             @Suppress("UNCHECKED_CAST")
@@ -179,7 +185,13 @@ class TvActivity : ComponentActivity() {
             LaunchedEffect(navigationManager, backStack) {
                 navigationManager.commands.collect { command ->
                     when (command) {
-                        NavigationCommand.Pop -> if (backStack.size > 1) backStack.removeLastOrNull()
+                        NavigationCommand.Pop -> {
+                            if (backStack.size > 1) {
+                                backStack.removeLastOrNull()
+                            } else {
+                                showExitDialog = true
+                            }
+                        }
                         is NavigationCommand.Navigate -> backStack.add(command.route)
                         is NavigationCommand.ReplaceAll -> {
                             backStack.clear()
@@ -189,13 +201,23 @@ class TvActivity : ComponentActivity() {
                 }
             }
 
+            BackHandler(enabled = backStack.size == 1) {
+                showExitDialog = true
+            }
+
             CompositionLocalProvider(
                 LocalNavigationManager provides navigationManager,
                 LocalNavigationBackStack provides backStack.toList()
             ) {
                 NavDisplay(
                     backStack = backStack,
-                    onBack = { navigationManager.pop() },
+                    onBack = {
+                        if (backStack.size > 1) {
+                            navigationManager.pop()
+                        } else {
+                            showExitDialog = true
+                        }
+                    },
                     modifier = Modifier.fillMaxSize().background(backgroundDark),
                     transitionSpec = {
                         fadeIn(
@@ -229,6 +251,9 @@ class TvActivity : ComponentActivity() {
                 )
             }
         } else {
+            BackHandler {
+                showExitDialog = true
+            }
             TvLoginScreen()
         }
 
@@ -237,6 +262,13 @@ class TvActivity : ComponentActivity() {
                 update = update,
                 onAccept = updateViewModel::acceptUpdate,
                 onDecline = updateViewModel::declineUpdate
+            )
+        }
+
+        if (showExitDialog) {
+            ExitAppDialog(
+                onCloseConfirmed = { finishAndRemoveTask() },
+                onDismiss = { showExitDialog = false }
             )
         }
     }

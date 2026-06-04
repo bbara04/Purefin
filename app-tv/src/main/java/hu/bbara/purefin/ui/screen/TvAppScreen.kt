@@ -1,5 +1,6 @@
 package hu.bbara.purefin.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
@@ -100,6 +101,10 @@ fun TvAppScreen(
                 modifier = Modifier.fillMaxSize()
             )
         }
+    }
+
+    BackHandler(enabled = backStack.size == 1) {
+        navigationManager.pop()
     }
 
     TvNavigationDrawer(
