@@ -31,7 +31,6 @@ import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.api.client.extensions.userViewsApi
 import org.jellyfin.sdk.api.client.extensions.videosApi
-import org.jellyfin.sdk.api.operations.SystemApi
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.discovery.RecommendedServerInfo
 import org.jellyfin.sdk.discovery.RecommendedServerInfoScore
@@ -44,7 +43,6 @@ import org.jellyfin.sdk.model.api.CollectionType
 import org.jellyfin.sdk.model.api.DeviceProfile
 import org.jellyfin.sdk.model.api.ItemFields
 import org.jellyfin.sdk.model.api.MediaSegmentDto
-import org.jellyfin.sdk.model.api.MediaSourceInfo
 import org.jellyfin.sdk.model.api.MediaType
 import org.jellyfin.sdk.model.api.PlayMethod
 import org.jellyfin.sdk.model.api.PlaybackInfoDto
@@ -410,23 +408,6 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
-    suspend fun getMediaSources(mediaId: UUID): List<MediaSourceInfo> = withContext(Dispatchers.IO) {
-        logRequest("getMediaSources") {
-            if (!ensureConfigured()) {
-                return@logRequest emptyList()
-            }
-            val result = api.mediaInfoApi.getPostedPlaybackInfo(
-                mediaId,
-                PlaybackInfoDto(
-                    userId = getUserId(),
-                    deviceProfile = null,
-                    maxStreamingBitrate = 100_000_000,
-                ),
-            )
-            result.content.mediaSources
-        }
-    }
-
     suspend fun getMediaSegments(mediaId: UUID) : List<MediaSegmentDto> = withContext(Dispatchers.IO) {
         logRequest("getMediaSegments") {
             if (!ensureConfigured()) {
@@ -482,15 +463,6 @@ class JellyfinApiClient @Inject constructor(
                 return@logRequest null
             }
             api.clientLogApi.logFile(data).content.fileName
-        }
-    }
-
-    suspend fun getPublicSystemInfoVersion(): String? = withContext(Dispatchers.IO) {
-        logRequest("getPublicSystemInfoVersion") {
-            if (!ensureConfigured()) {
-                return@logRequest null
-            }
-            SystemApi(api).getPublicSystemInfo().content.version
         }
     }
 
