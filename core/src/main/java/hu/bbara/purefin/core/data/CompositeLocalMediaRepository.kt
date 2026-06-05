@@ -72,6 +72,11 @@ class CompositeLocalMediaRepository @Inject constructor(
         offlineRepository.updateWatchProgress(mediaId, positionMs, durationMs)
     }
 
+    override suspend fun updateWatchProgressPercent(mediaId: UUID, progressPercent: Double) {
+        onlineRepository.updateWatchProgressPercent(mediaId, progressPercent)
+        offlineRepository.updateWatchProgressPercent(mediaId, progressPercent)
+    }
+
     override suspend fun markAsWatched(mediaId: UUID, watched: Boolean) {
         val repository = onlineRepository
         repository.markAsWatched(mediaId, watched)

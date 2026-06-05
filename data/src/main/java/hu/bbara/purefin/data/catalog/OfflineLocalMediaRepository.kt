@@ -55,8 +55,14 @@ class OfflineLocalMediaRepository @Inject constructor(
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
         if (durationMs <= 0) return
         val progressPercent = (positionMs.toDouble() / durationMs.toDouble()) * 100.0
-        val watched = progressPercent >= 90.0
-        localDataSource.updateWatchProgress(mediaId, progressPercent, watched)
+        updateWatchProgressPercent(mediaId, progressPercent)
+    }
+
+    override suspend fun updateWatchProgressPercent(mediaId: UUID, progressPercent: Double) {
+        if (progressPercent.isNaN()) return
+        val normalizedProgressPercent = progressPercent.coerceIn(0.0, 100.0)
+        val watched = normalizedProgressPercent >= 90.0
+        localDataSource.updateWatchProgress(mediaId, normalizedProgressPercent, watched)
     }
 
     override suspend fun markAsWatched(mediaId: UUID, watched: Boolean) {

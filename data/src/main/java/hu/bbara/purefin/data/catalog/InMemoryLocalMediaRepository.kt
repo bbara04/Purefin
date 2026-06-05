@@ -167,12 +167,18 @@ class InMemoryLocalMediaRepository @Inject constructor(
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
         if (durationMs <= 0) return
         val progressPercent = (positionMs.toDouble() / durationMs.toDouble()) * 100.0
-        val watched = progressPercent >= 90.0
+        updateWatchProgressPercent(mediaId, progressPercent)
+    }
+
+    override suspend fun updateWatchProgressPercent(mediaId: UUID, progressPercent: Double) {
+        if (progressPercent.isNaN()) return
+        val normalizedProgressPercent = progressPercent.coerceIn(0.0, 100.0)
+        val watched = normalizedProgressPercent >= 90.0
 
         if (moviesState.value.containsKey(mediaId)) {
             moviesState.update { current ->
                 val movie = current[mediaId] ?: return@update current
-                current + (mediaId to movie.copy(progress = progressPercent, watched = watched))
+                current + (mediaId to movie.copy(progress = normalizedProgressPercent, watched = watched))
             }
             return
         }
@@ -180,7 +186,7 @@ class InMemoryLocalMediaRepository @Inject constructor(
             var updatedEpisode: Episode? = null
             episodesState.update { current ->
                 val episode = current[mediaId] ?: return@update current
-                val updated = episode.copy(progress = progressPercent, watched = watched)
+                val updated = episode.copy(progress = normalizedProgressPercent, watched = watched)
                 updatedEpisode = updated
                 current + (mediaId to updated)
             }

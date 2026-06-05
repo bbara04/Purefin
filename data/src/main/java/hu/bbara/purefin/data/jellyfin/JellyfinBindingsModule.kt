@@ -4,13 +4,16 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
 import hu.bbara.purefin.core.data.AuthenticationRepository
 import hu.bbara.purefin.core.data.DownloadMediaSourceResolver
 import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackProgressReporter
 import hu.bbara.purefin.core.data.SessionBootstrapper
+import hu.bbara.purefin.core.feature.browse.home.refresh.HomeRefreshSideEffect
 import hu.bbara.purefin.data.jellyfin.download.JellyfinDownloadMediaSourceResolver
+import hu.bbara.purefin.data.jellyfin.playback.SyncPlaybackPositionsHomeRefreshSideEffect
 import hu.bbara.purefin.data.jellyfin.session.JellyfinAuthenticationRepository
 import hu.bbara.purefin.data.jellyfin.session.JellyfinSessionBootstrapper
 import javax.inject.Singleton
@@ -36,6 +39,12 @@ abstract class JellyfinBindingsModule {
 
     @Binds
     abstract fun bindPlaybackProgressReporter(impl: JellyfinPlaybackProgressReporter): PlaybackProgressReporter
+
+    @Binds
+    @IntoSet
+    abstract fun bindSyncPlaybackPositionsHomeRefreshSideEffect(
+        impl: SyncPlaybackPositionsHomeRefreshSideEffect
+    ): HomeRefreshSideEffect
 
     @Binds
     @Singleton

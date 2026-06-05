@@ -52,6 +52,7 @@ import org.jellyfin.sdk.model.api.PlaybackProgressInfo
 import org.jellyfin.sdk.model.api.PlaybackStartInfo
 import org.jellyfin.sdk.model.api.PlaybackStopInfo
 import org.jellyfin.sdk.model.api.RepeatMode
+import org.jellyfin.sdk.model.api.UpdateUserItemDataDto
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
 import org.jellyfin.sdk.model.api.request.GetNextUpRequest
 import org.jellyfin.sdk.model.api.request.GetResumeItemsRequest
@@ -381,6 +382,29 @@ class JellyfinApiClient @Inject constructor(
                 parentId = id,
             )
             result.content.items
+        }
+    }
+
+    suspend fun updatePlaybackPosition(
+        mediaId: UUID,
+        playbackPositionTicks: Long,
+        runtimeTicks: Long,
+    ) = withContext(Dispatchers.IO) {
+        if (runtimeTicks <= 0L) return@withContext
+        val normalizedPlaybackPositionTicks = playbackPositionTicks.coerceIn(0L, runtimeTicks)
+        logRequest("updatePlaybackPosition") {
+            if (!ensureConfigured()) {
+                return@logRequest
+            }
+            val result = api.itemsApi.updateItemUserData(
+                itemId = mediaId,
+                userId = getUserId(),
+                data = UpdateUserItemDataDto(
+                    playbackPositionTicks = normalizedPlaybackPositionTicks,
+                    played = normalizedPlaybackPositionTicks.toDouble() / runtimeTicks.toDouble() >= 0.9,
+                )
+            )
+            result.content
         }
     }
 
