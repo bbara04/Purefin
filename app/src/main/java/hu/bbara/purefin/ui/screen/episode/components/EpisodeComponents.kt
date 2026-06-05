@@ -10,9 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -32,8 +29,8 @@ import androidx.compose.ui.unit.sp
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.player.PlayerActivity
+import hu.bbara.purefin.ui.common.button.DownloadActionButton
 import hu.bbara.purefin.ui.common.button.GhostIconButton
-import hu.bbara.purefin.ui.common.button.MediaActionButton
 import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
 import hu.bbara.purefin.ui.common.media.MediaSynopsis
@@ -137,16 +134,8 @@ internal fun EpisodeDetails(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         )
         Row() {
-            MediaActionButton(
-                backgroundColor = MaterialTheme.colorScheme.surface,
-                iconColor = MaterialTheme.colorScheme.onSurface,
-                icon = when (downloadState) {
-                    is DownloadState.NotDownloaded -> Icons.Outlined.Download
-                    is DownloadState.Downloading -> Icons.Outlined.Close
-                    is DownloadState.Downloaded -> Icons.Outlined.DownloadDone
-                    is DownloadState.Failed -> Icons.Outlined.Download
-                },
-                height = 48.dp,
+            DownloadActionButton(
+                downloadState = downloadState,
                 modifier = Modifier.testTag(EpisodeDownloadButtonTag),
                 onClick = onDownloadClick
             )

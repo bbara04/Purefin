@@ -1,9 +1,5 @@
 package hu.bbara.purefin.ui.screen.series
 
-import android.Manifest
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +28,7 @@ import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
 import hu.bbara.purefin.ui.common.media.MediaDetailScaffold
 import hu.bbara.purefin.ui.common.media.MediaSynopsis
+import hu.bbara.purefin.ui.common.permission.rememberNotificationPermissionGate
 import hu.bbara.purefin.ui.screen.series.components.CastRow
 import hu.bbara.purefin.ui.screen.series.components.EpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.SeasonTabs
@@ -54,37 +51,7 @@ fun SeriesScreen(
     }
 
     val seriesState = viewModel.series.collectAsStateWithLifecycle()
-    var pendingDownloadOption by remember { mutableStateOf<Pair<SeriesDownloadOption, Season>?>(null) }
-
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { _ ->
-        // Proceed with download regardless — notification is nice-to-have
-        val pendingOption = pendingDownloadOption
-        pendingDownloadOption = null
-        val (option, selectedSeason) = pendingOption ?: return@rememberLauncherForActivityResult
-        val seriesData = seriesState.value ?: return@rememberLauncherForActivityResult
-        val canPerformOption = when (option) {
-            SeriesDownloadOption.SEASON -> viewModel.seasonDownloadState.value is DownloadState.NotDownloaded
-            SeriesDownloadOption.SERIES -> viewModel.seriesDownloadState.value is DownloadState.NotDownloaded
-            SeriesDownloadOption.SMART -> !viewModel.isSmartDownloadEnabled.value
-            SeriesDownloadOption.DELETE_SMART -> true
-        }
-        if (!canPerformOption) return@rememberLauncherForActivityResult
-        when (option) {
-            SeriesDownloadOption.SEASON ->
-                viewModel.downloadSeason(seriesData.id, selectedSeason.id)
-
-            SeriesDownloadOption.SERIES ->
-                viewModel.downloadSeries(seriesData)
-
-            SeriesDownloadOption.SMART ->
-                viewModel.enableSmartDownload(seriesData.id)
-
-            SeriesDownloadOption.DELETE_SMART ->
-                viewModel.deleteSmartDownloads(seriesData.id)
-        }
-    }
+    val requestNotificationPermission = rememberNotificationPermissionGate()
 
     val seriesData = seriesState.value
     if (seriesData != null) {
@@ -95,15 +62,14 @@ fun SeriesScreen(
         val seasonDownloadState = viewModel.seasonDownloadState.collectAsStateWithLifecycle().value
         val isSmartDownloadEnabled = viewModel.isSmartDownloadEnabled.collectAsStateWithLifecycle().value
 
-        fun canPerformDownloadOption(option: SeriesDownloadOption): Boolean = when (option) {
-            SeriesDownloadOption.SEASON -> seasonDownloadState is DownloadState.NotDownloaded
-            SeriesDownloadOption.SERIES -> seriesDownloadState is DownloadState.NotDownloaded
-            SeriesDownloadOption.SMART -> !isSmartDownloadEnabled
-            SeriesDownloadOption.DELETE_SMART -> true
-        }
+        fun canPerformDownloadOption(option: SeriesDownloadOption): Boolean =
+            option.canPerform(
+                seriesDownloadState = seriesDownloadState,
+                seasonDownloadState = seasonDownloadState,
+                isSmartDownloadEnabled = isSmartDownloadEnabled
+            )
 
         fun performDownloadOption(option: SeriesDownloadOption, selectedSeason: Season) {
-            if (!canPerformDownloadOption(option)) return
             when (option) {
                 SeriesDownloadOption.SEASON ->
                     viewModel.downloadSeason(seriesData.id, selectedSeason.id)
@@ -119,16 +85,6 @@ fun SeriesScreen(
             }
         }
 
-        fun shouldRequestNotificationPermission(option: SeriesDownloadOption): Boolean {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
-            return when (option) {
-                SeriesDownloadOption.SEASON,
-                SeriesDownloadOption.SERIES,
-                SeriesDownloadOption.SMART -> canPerformDownloadOption(option)
-                SeriesDownloadOption.DELETE_SMART -> false
-            }
-        }
-
         SeriesScreenInternal(
             series = seriesData,
             seriesDownloadState = seriesDownloadState,
@@ -136,9 +92,10 @@ fun SeriesScreen(
             isSmartDownloadEnabled = isSmartDownloadEnabled,
             onDownloadOptionSelected = { option, selectedSeason ->
                 if (canPerformDownloadOption(option)) {
-                    if (shouldRequestNotificationPermission(option)) {
-                        pendingDownloadOption = option to selectedSeason
-                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    if (option.requiresNotificationPermission()) {
+                        requestNotificationPermission {
+                            performDownloadOption(option, selectedSeason)
+                        }
                     } else {
                         performDownloadOption(option, selectedSeason)
                     }
@@ -262,6 +219,24 @@ private fun SeriesHeroContent(
         lineHeight = 36.sp
     )
     SeriesMetaChips(series = series)
+}
+
+private fun SeriesDownloadOption.canPerform(
+    seriesDownloadState: DownloadState,
+    seasonDownloadState: DownloadState,
+    isSmartDownloadEnabled: Boolean,
+): Boolean = when (this) {
+    SeriesDownloadOption.SEASON -> seasonDownloadState is DownloadState.NotDownloaded
+    SeriesDownloadOption.SERIES -> seriesDownloadState is DownloadState.NotDownloaded
+    SeriesDownloadOption.SMART -> !isSmartDownloadEnabled
+    SeriesDownloadOption.DELETE_SMART -> true
+}
+
+private fun SeriesDownloadOption.requiresNotificationPermission(): Boolean = when (this) {
+    SeriesDownloadOption.SEASON,
+    SeriesDownloadOption.SERIES,
+    SeriesDownloadOption.SMART -> true
+    SeriesDownloadOption.DELETE_SMART -> false
 }
 
 @Preview(showBackground = true)

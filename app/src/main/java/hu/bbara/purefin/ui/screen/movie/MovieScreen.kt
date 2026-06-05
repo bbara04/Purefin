@@ -1,19 +1,15 @@
 package hu.bbara.purefin.ui.screen.movie
 
-import android.Manifest
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.feature.content.movie.MovieScreenViewModel
 import hu.bbara.purefin.core.image.ArtworkKind
@@ -23,6 +19,7 @@ import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.ui.common.media.MediaDetailScaffold
 import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
+import hu.bbara.purefin.ui.common.permission.rememberNotificationPermissionGate
 import hu.bbara.purefin.ui.screen.movie.components.MovieDetails
 import hu.bbara.purefin.ui.screen.movie.components.MovieTopBar
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
@@ -41,19 +38,13 @@ fun MovieScreen(
 
     val movieItem = viewModel.movie.collectAsStateWithLifecycle()
     val downloadState = viewModel.downloadState.collectAsStateWithLifecycle()
-
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        // Proceed with download regardless — notification is nice-to-have
-        viewModel.onDownloadClick()
-    }
+    val requestNotificationPermission = rememberNotificationPermissionGate()
 
     val onDownloadClick = {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-            && downloadState.value is DownloadState.NotDownloaded
-        ) {
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        if (downloadState.value is DownloadState.NotDownloaded) {
+            requestNotificationPermission {
+                viewModel.onDownloadClick()
+            }
         } else {
             viewModel.onDownloadClick()
         }
