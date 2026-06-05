@@ -29,7 +29,7 @@
         android:theme="@style/Theme.Purefin">
         <meta-data
             android:name="hu.bbara.purefin.UPDATE_MANIFEST_URL"
-            android:value="http://purefin.t.bbara.hu/app-tv/update.json" />
+            android:value="https://apks.t.bbara.hu/apps/purefin-app-tv/update.json" />
         <activity
             android:name="hu.bbara.purefin.tv.TvActivity"
             android:exported="true"
