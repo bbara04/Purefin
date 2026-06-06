@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -399,23 +398,13 @@ private fun SeasonTab(
 
 @Composable
 internal fun EpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modifier) {
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(episodes) {
-        val firstUnwatchedIndex = episodes.indexOfFirst { !it.watched }.let { if (it == -1) 0 else it }
-        if (firstUnwatchedIndex != 0) {
-            listState.animateScrollToItem(firstUnwatchedIndex)
-        } else {
-            listState.scrollToItem(0)
-        }
-    }
-
-    LazyRow(
-        state = listState,
-        modifier = modifier.testTag(SeriesEpisodeCarouselTag),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(SeriesEpisodeCarouselTag),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(episodes, key = { episode -> episode.id }) { episode ->
+        episodes.forEach { episode ->
             EpisodeCard(episode = episode)
         }
     }
@@ -428,20 +417,21 @@ private fun EpisodeCard(
 ) {
     val scheme = MaterialTheme.colorScheme
     val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
-    Column(
+    Row(
         modifier = Modifier
-            .width(260.dp)
+            .fillMaxWidth()
             .testTag("$SeriesEpisodeCardTagPrefix${episode.id}")
             .clickable { viewModel.onSelectEpisode(
                 seriesId = episode.seriesId,
                 seasonId = episode.seasonId,
                 episodeId = episode.id
             ) },
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .width(132.dp)
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(12.dp))
                 .background(scheme.surface)
@@ -466,20 +456,6 @@ private fun EpisodeCard(
                     .align(Alignment.Center)
                     .size(32.dp)
             )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(6.dp)
-                    .background(scheme.background.copy(alpha = 0.8f), RoundedCornerShape(6.dp))
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = episode.runtime,
-                    color = scheme.onBackground,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
             if (episode.watched.not() && (episode.progress ?: 0.0) > 0) {
                 MediaProgressBar(
                     progress = (episode.progress ?: 0.0).toFloat().div(100),
@@ -496,17 +472,19 @@ private fun EpisodeCard(
             }
         }
         Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
                 text = episode.title,
                 color = scheme.onBackground,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "Episode ${episode.index}",
+                text = "Episode ${episode.index} • ${episode.runtime}",
                 color = mutedStrong,
                 fontSize = 12.sp,
                 maxLines = 1,
