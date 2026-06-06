@@ -12,19 +12,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Cast
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
@@ -37,7 +35,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -333,6 +330,7 @@ private fun DownloadOptionRow(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SeasonTabs(
     seasons: List<Season>,
@@ -340,61 +338,66 @@ internal fun SeasonTabs(
     modifier: Modifier = Modifier,
     onSelect: (Season) -> Unit
 ) {
-    val selectedSeasonIndex = seasons.indexOf(selectedSeason).coerceAtLeast(0)
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(selectedSeasonIndex, seasons.size) {
-        if (seasons.isNotEmpty()) {
-            listState.scrollToItem(selectedSeasonIndex)
-        }
-    }
-
-    LazyRow(
-        state = listState,
-        modifier = modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        itemsIndexed(seasons, key = { _, season -> season.id }) { index, season ->
-            SeasonTab(
-                name = season.name,
-                isSelected = season == selectedSeason,
-                modifier = Modifier
-                    .testTag("$SeriesSeasonTabTagPrefix$index")
-                    .clickable { onSelect(season) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun SeasonTab(
-    name: String,
-    isSelected: Boolean,
-    modifier: Modifier = Modifier
-) {
+    var showBottomSheet by remember { mutableStateOf(false) }
     val scheme = MaterialTheme.colorScheme
-    val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
-    val color = if (isSelected) scheme.primary else mutedStrong
-    val borderColor = if (isSelected) scheme.primary else Color.Transparent
-    Column(
+
+    Row(
         modifier = modifier
-            .padding(bottom = 8.dp)
+            .clickable { showBottomSheet = true }
+            .testTag(SeriesSeasonSelectorTag),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = name,
-            color = color,
-            fontSize = 13.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+            text = selectedSeason?.name ?: "Select Season",
+            style = MaterialTheme.typography.titleMedium,
+            color = scheme.onSurface
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .height(2.dp)
-                .width(52.dp)
-                .background(borderColor)
+        Icon(
+            imageVector = Icons.Outlined.ArrowDropDown,
+            contentDescription = "Select season",
+            tint = scheme.onSurfaceVariant
         )
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+            ) {
+                Text(
+                    text = "Select Season",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = scheme.onSurface,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                )
+                seasons.forEach { season ->
+                    ListItem(
+                        headlineContent = {
+                            Text(text = season.name)
+                        },
+                        leadingContent = if (season == selectedSeason) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Outlined.Check,
+                                    contentDescription = null,
+                                    tint = scheme.primary
+                                )
+                            }
+                        } else null,
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            onSelect(season)
+                            showBottomSheet = false
+                        }
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -495,7 +498,7 @@ internal const val SeriesDownloadDialogTag = "series-download-dialog"
 internal const val SeriesDownloadSeasonButtonTag = "series-download-season-button"
 internal const val SeriesDownloadAllButtonTag = "series-download-all-button"
 internal const val SeriesSmartDownloadButtonTag = "series-smart-download-button"
-internal const val SeriesSeasonTabTagPrefix = "series-season-tab-"
+internal const val SeriesSeasonSelectorTag = "series-season-selector"
 internal const val SeriesEpisodeCarouselTag = "series-episode-carousel"
 internal const val SeriesEpisodeCardTagPrefix = "series-episode-card-"
 
