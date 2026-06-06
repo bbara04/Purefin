@@ -1,5 +1,6 @@
 package hu.bbara.purefin.ui.screen.movie
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,6 +64,7 @@ fun MovieScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MovieScreenInternal(
     movie: Movie,
@@ -74,8 +76,11 @@ private fun MovieScreenInternal(
     MediaDetailScaffold(
         imageUrl = ImageUrlBuilder.finishImageUrl(movie.imageUrlPrefix, ArtworkKind.PRIMARY),
         modifier = modifier,
-        topBar = {
-            MovieTopBar(onBack = onBack)
+        topBar = { scrollBehavior ->
+            MovieTopBar(
+                onBack = onBack,
+                scrollBehavior = scrollBehavior
+            )
         },
         heroContent = { _modifier ->
             MovieHeroContent(

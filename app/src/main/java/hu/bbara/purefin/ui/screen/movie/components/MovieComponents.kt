@@ -11,8 +11,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -34,9 +36,11 @@ import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MovieTopBar(
     onBack: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     DefaultTopBar(
         leftActions = {
@@ -53,7 +57,8 @@ internal fun MovieTopBar(
                 contentDescription = "More",
                 onClick = { })
         },
-        withIcon = false
+        withIcon = false,
+        scrollBehavior = scrollBehavior
     )
 }
 

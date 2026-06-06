@@ -3,15 +3,20 @@ package hu.bbara.purefin.ui.screen.library.components
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBarIconButton
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryTopBar(
     onBack: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     DefaultTopBar(
+        scrollBehavior = scrollBehavior,
         leftActions = {
             DefaultTopBarIconButton(
                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,

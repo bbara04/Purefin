@@ -2,19 +2,23 @@ package hu.bbara.purefin.ui.screen.home
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.core.model.MediaUiModel
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.home.components.HomeContent
 import hu.bbara.purefin.ui.screen.home.components.HomeTopBar
+import hu.bbara.purefin.ui.screen.home.components.rememberDefaultTopBarScrollBehavior
 import java.util.UUID
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     libraries: List<LibraryUiModel>,
@@ -39,9 +43,12 @@ fun HomeScreen(
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val topBarScrollBehavior = rememberDefaultTopBarScrollBehavior()
+
     Scaffold(
         modifier = modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
@@ -51,7 +58,8 @@ fun HomeScreen(
                 onCheckForUpdates = onCheckForUpdates,
                 isCheckingForUpdates = isCheckingForUpdates,
                 onSettingsClick = onSettingsClick,
-                onLogoutClick = onLogoutClick
+                onLogoutClick = onLogoutClick,
+                scrollBehavior = topBarScrollBehavior
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

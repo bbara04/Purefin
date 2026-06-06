@@ -2,6 +2,7 @@ package hu.bbara.purefin.ui.screen.series
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -112,6 +113,7 @@ fun SeriesScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SeriesScreenInternal(
     series: Series,
@@ -148,8 +150,11 @@ private fun SeriesScreenInternal(
     MediaDetailScaffold(
         imageUrl = ImageUrlBuilder.finishImageUrl(series.imageUrlPrefix, ArtworkKind.PRIMARY),
         modifier = modifier,
-        topBar = {
-            SeriesTopBar(onBack = onBack)
+        topBar = { scrollBehavior ->
+            SeriesTopBar(
+                onBack = onBack,
+                scrollBehavior = scrollBehavior
+            )
         },
         heroContent = { _modifier ->
             SeriesHeroContent(

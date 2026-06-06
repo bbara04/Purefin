@@ -1,5 +1,6 @@
 package hu.bbara.purefin.ui.screen.episode
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,6 +78,7 @@ fun EpisodeScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EpisodeScreenInternal(
     episode: Episode,
@@ -89,10 +91,11 @@ private fun EpisodeScreenInternal(
     MediaDetailScaffold(
         imageUrl = ImageUrlBuilder.finishImageUrl(episode.imageUrlPrefix, ArtworkKind.PRIMARY),
         modifier = modifier,
-        topBar = {
+        topBar = { scrollBehavior ->
             EpisodeTopBar(
                 shortcut = topBarShortcut,
                 onBack = onBack,
+                scrollBehavior = scrollBehavior
             )
         },
         heroContent = { _modifier ->

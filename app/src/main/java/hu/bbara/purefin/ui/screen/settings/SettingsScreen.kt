@@ -13,16 +13,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,6 +39,7 @@ import hu.bbara.purefin.core.settings.StringSetting
 import hu.bbara.purefin.core.settings.VoidSetting
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBarIconButton
+import hu.bbara.purefin.ui.screen.home.components.rememberDefaultTopBarScrollBehavior
 import hu.bbara.purefin.ui.screen.settings.components.BooleanSettingItem
 import hu.bbara.purefin.ui.screen.settings.components.DropdownSettingItem
 import hu.bbara.purefin.ui.screen.settings.components.RangeSettingItem
@@ -43,6 +47,7 @@ import hu.bbara.purefin.ui.screen.settings.components.ReadOnlySettingItem
 import hu.bbara.purefin.ui.screen.settings.components.StringSettingItem
 import hu.bbara.purefin.ui.screen.settings.components.VoidSettingItem
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -50,6 +55,7 @@ fun SettingsScreen(
 ) {
     val settingGroups by viewModel.settingGroups.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val topBarScrollBehavior = rememberDefaultTopBarScrollBehavior()
 
     LaunchedEffect(viewModel) {
         viewModel.snackbarMessages.collect { message ->
@@ -58,12 +64,17 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            SettingsTopBar(onBack = viewModel::onBack)
+            SettingsTopBar(
+                onBack = viewModel::onBack,
+                scrollBehavior = topBarScrollBehavior
+            )
         }
     ) { innerPadding ->
         LazyColumn(
@@ -224,11 +235,14 @@ private fun <T> DropdownSettingOptionItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsTopBar(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     DefaultTopBar(
+        scrollBehavior = scrollBehavior,
         leftActions = {
             DefaultTopBarIconButton(
                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,

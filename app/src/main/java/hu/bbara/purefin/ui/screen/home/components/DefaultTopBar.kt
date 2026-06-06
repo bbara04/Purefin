@@ -7,19 +7,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,58 +32,58 @@ import hu.bbara.purefin.navigation.LocalNavSharedAnimatedVisibilityScope
 import hu.bbara.purefin.navigation.LocalSharedTransitionScope
 import hu.bbara.purefin.ui.common.image.PurefinLogo
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun rememberDefaultTopBarScrollBehavior(): TopAppBarScrollBehavior =
+    TopAppBarDefaults.pinnedScrollBehavior()
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DefaultTopBar(
     leftActions: (@Composable RowScope.() -> Unit)? = null,
     rightActions: (@Composable RowScope.() -> Unit)? = null,
-    withIcon: Boolean = true
+    withIcon: Boolean = true,
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    Surface(
-        color = Color.Transparent,
-        contentColor = scheme.onSurface,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .statusBarsPadding()
-                .height(84.dp)
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+    TopAppBar(
+        title = {
+            if (withIcon) {
+                PurefinLogo(
+                    modifier = Modifier.size(56.dp),
+                )
+            }
+        },
+        navigationIcon = {
             if (leftActions != null) {
                 Row(
+                    modifier = Modifier.padding(start = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     content = leftActions
                 )
             }
-            if (withIcon) {
-                Row(
-                    modifier = Modifier,
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = when {
-                        leftActions == null && rightActions != null -> Arrangement.Start
-                        leftActions != null && rightActions == null -> Arrangement.Center
-                        else -> Arrangement.Center
-                    }
-                ) {
-                    PurefinLogo(
-                        modifier = Modifier.size(56.dp),
-                    )
-                }
-            }
+        },
+        actions = {
             if (rightActions != null) {
                 Row(
+                    modifier = Modifier.padding(end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     content = rightActions
                 )
             }
-        }
-    }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            scrolledContainerColor = scheme.background,
+            navigationIconContentColor = scheme.onSurface,
+            titleContentColor = scheme.onSurface,
+            actionIconContentColor = scheme.onSurface
+        ),
+        scrollBehavior = scrollBehavior
+    )
 }
 
 @Composable

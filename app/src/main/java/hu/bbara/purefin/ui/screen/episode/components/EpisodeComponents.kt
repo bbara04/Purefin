@@ -12,9 +12,11 @@ import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -47,10 +49,12 @@ internal sealed interface EpisodeTopBarShortcut {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun EpisodeTopBar(
     shortcut: EpisodeTopBarShortcut?,
     onBack: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     DefaultTopBar(
         leftActions = {
@@ -93,7 +97,8 @@ internal fun EpisodeTopBar(
                 contentDescription = "More",
                 onClick = { })
         },
-        withIcon = false
+        withIcon = false,
+        scrollBehavior = scrollBehavior
     )
 }
 

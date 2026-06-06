@@ -11,17 +11,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaDetailScaffold(
     imageUrl: String,
@@ -29,19 +34,22 @@ fun MediaDetailScaffold(
     imageHeight: Dp = 320.dp,
     contentOverlap: Dp = 24.dp,
     contentSpacing: Dp = 16.dp,
-    topBar: @Composable () -> Unit = {},
+    topBar: @Composable (scrollBehavior: TopAppBarScrollBehavior) -> Unit = {},
     heroContent: @Composable ColumnScope.(Modifier) -> Unit,
     content: @Composable ColumnScope.(Modifier) -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
     val isHomeMediaTransitionActive = isHomeMediaSharedBoundsTransitionActive()
+    val topBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         containerColor = scheme.background,
         topBar = {
             if (!isHomeMediaTransitionActive) {
-                topBar()
+                topBar(topBarScrollBehavior)
             }
         }
     ) { innerPadding ->
@@ -86,4 +94,3 @@ fun MediaDetailScaffold(
         }
     }
 }
-

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,8 +30,10 @@ import hu.bbara.purefin.core.model.SeriesUiModel
 import hu.bbara.purefin.core.navigation.LibraryDto
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.card.MediaImageCard
+import hu.bbara.purefin.ui.screen.home.components.rememberDefaultTopBarScrollBehavior
 import hu.bbara.purefin.ui.screen.library.components.LibraryTopBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
     library: LibraryDto,
@@ -41,14 +45,18 @@ fun LibraryScreen(
     }
 
     val libraryItems = viewModel.contents.collectAsStateWithLifecycle()
+    val topBarScrollBehavior = rememberDefaultTopBarScrollBehavior()
 
     Scaffold(
-        modifier = modifier.testTag(LibraryScreenTag),
+        modifier = modifier
+            .testTag(LibraryScreenTag)
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
             LibraryTopBar(
-                onBack = { viewModel.onBack() }
+                onBack = { viewModel.onBack() },
+                scrollBehavior = topBarScrollBehavior
             )
         }
     ) { innerPadding ->

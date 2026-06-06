@@ -35,6 +35,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -77,10 +78,12 @@ import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
 import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SeriesTopBar(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     DefaultTopBar(
         leftActions = {
@@ -95,7 +98,8 @@ internal fun SeriesTopBar(
                 GhostIconButton(icon = Icons.Outlined.MoreVert, contentDescription = "More", onClick = { })
             }
         },
-        withIcon = false
+        withIcon = false,
+        scrollBehavior = scrollBehavior
     )
 }
 
