@@ -35,7 +35,6 @@ fun MediaDetailScaffold(
     contentOverlap: Dp = 24.dp,
     contentSpacing: Dp = 16.dp,
     topBar: @Composable (scrollBehavior: TopAppBarScrollBehavior) -> Unit = {},
-    heroContent: @Composable ColumnScope.(Modifier) -> Unit,
     content: @Composable ColumnScope.(Modifier) -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
@@ -88,7 +87,6 @@ fun MediaDetailScaffold(
                 )
             }
             if (!isHomeMediaTransitionActive) {
-                heroContent(Modifier.padding(horizontal = 16.dp))
                 content(Modifier.padding(horizontal = 16.dp))
             }
         }

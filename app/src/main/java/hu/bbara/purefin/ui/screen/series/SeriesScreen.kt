@@ -153,13 +153,11 @@ private fun SeriesScreenInternal(
                 scrollBehavior = scrollBehavior
             )
         },
-        heroContent = { _modifier ->
-            SeriesHeroContent(
-                series = series,
-                modifier = _modifier
-            )
-        }
     ) { _modifier ->
+        SeriesHeroContent(
+            series = series,
+            modifier = _modifier
+        )
         if (selectedSeason != null) {
             SeriesActionButtons(
                 nextUpEpisode = nextUpEpisode,

@@ -98,13 +98,11 @@ private fun EpisodeScreenInternal(
                 scrollBehavior = scrollBehavior
             )
         },
-        heroContent = { _modifier ->
-            EpisodeHeroContent(
-                episode = episode,
-                modifier = _modifier
-            )
-        }
     ) { _modifier ->
+        EpisodeHeroContent(
+            episode = episode,
+            modifier = _modifier
+        )
         EpisodeDetails(
             episode = episode,
             downloadState = downloadState,

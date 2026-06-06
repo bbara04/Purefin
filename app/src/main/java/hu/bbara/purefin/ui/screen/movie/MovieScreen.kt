@@ -82,13 +82,11 @@ private fun MovieScreenInternal(
                 scrollBehavior = scrollBehavior
             )
         },
-        heroContent = { _modifier ->
-            MovieHeroContent(
-                movie = movie,
-                modifier = _modifier
-            )
-        }
     ) { _modifier ->
+        MovieHeroContent(
+            movie = movie,
+            modifier = _modifier
+        )
         MovieDetails(
             movie = movie,
             downloadState = downloadState,
