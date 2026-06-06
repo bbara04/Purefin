@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -29,7 +28,6 @@ import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -447,14 +445,6 @@ private fun EpisodeCard(
                 modifier = Modifier
                     .matchParentSize()
                     .background(scheme.background.copy(alpha = 0.2f))
-            )
-            Icon(
-                imageVector = Icons.Outlined.PlayCircle,
-                contentDescription = null,
-                tint = scheme.onBackground,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(32.dp)
             )
             if (episode.watched.not() && (episode.progress ?: 0.0) > 0) {
                 MediaProgressBar(
