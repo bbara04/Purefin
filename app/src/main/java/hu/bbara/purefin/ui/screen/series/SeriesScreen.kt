@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,7 +22,6 @@ import hu.bbara.purefin.core.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
 import hu.bbara.purefin.core.navigation.SeriesDto
-import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
@@ -38,7 +36,6 @@ import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadOption
 import hu.bbara.purefin.ui.screen.series.components.SeriesMetaChips
 import hu.bbara.purefin.ui.screen.series.components.SeriesTopBar
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
-import hu.bbara.purefin.ui.theme.AppTheme
 import java.util.UUID
 
 @Composable
@@ -255,124 +252,4 @@ private fun SeriesDownloadOption.requiresNotificationPermission(): Boolean = whe
     SeriesDownloadOption.SERIES,
     SeriesDownloadOption.SMART -> true
     SeriesDownloadOption.DELETE_SMART -> false
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SeriesScreenPreview() {
-    AppTheme {
-        SeriesScreenInternal(
-            series = previewSeries(),
-            seriesDownloadState = DownloadState.NotDownloaded,
-            seasonDownloadState = DownloadState.NotDownloaded,
-            isSmartDownloadEnabled = true,
-            onDownloadOptionSelected = { _, _ -> },
-            onLoadSeasonEpisodes = { _, _ -> },
-            onObserveSeasonDownloadState = {},
-            onBack = {},
-            offline = false,
-        )
-    }
-}
-
-private fun previewSeries(): Series {
-    val libraryId = UUID.fromString("66666666-6666-6666-6666-666666666666")
-    val seriesId = UUID.fromString("77777777-7777-7777-7777-777777777777")
-    val seasonOneId = UUID.fromString("88888888-8888-8888-8888-888888888888")
-    val seasonTwoId = UUID.fromString("99999999-9999-9999-9999-999999999999")
-
-    val seasonOneEpisodes = listOf(
-        Episode(
-            id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"),
-            seriesId = seriesId,
-            seriesName = "Constellation",
-            seasonId = seasonOneId,
-            seasonIndex = 1,
-            index = 1,
-            title = "A Fresh Start",
-            synopsis = "A fractured crew tries to reassemble after a year apart.",
-            releaseDate = "2024",
-            rating = "16+",
-            runtime = "51m",
-            progress = 100.0,
-            watched = true,
-            format = "4K",
-            imageUrlPrefix = "https://images.unsplash.com/photo-1497032205916-ac775f0649ae",
-            cast = emptyList()
-        ),
-        Episode(
-            id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2"),
-            seriesId = seriesId,
-            seriesName = "Constellation",
-            seasonId = seasonOneId,
-            seasonIndex = 1,
-            index = 2,
-            title = "Signals",
-            synopsis = "Anomalies around the station point to a cover-up.",
-            releaseDate = "2024",
-            rating = "16+",
-            runtime = "48m",
-            progress = 34.0,
-            watched = false,
-            format = "4K",
-            imageUrlPrefix = "https://images.unsplash.com/photo-1520034475321-cbe63696469a",
-            cast = emptyList()
-        )
-    )
-    val seasonTwoEpisodes = listOf(
-        Episode(
-            id = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3"),
-            seriesId = seriesId,
-            seriesName = "Constellation",
-            seasonId = seasonTwoId,
-            seasonIndex = 2,
-            index = 1,
-            title = "Return Window",
-            synopsis = "A high-risk jump changes the rules of the mission.",
-            releaseDate = "2025",
-            rating = "16+",
-            runtime = "54m",
-            progress = null,
-            watched = false,
-            format = "4K",
-            imageUrlPrefix = "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429",
-            cast = emptyList()
-        )
-    )
-
-    return Series(
-        id = seriesId,
-        libraryId = libraryId,
-        name = "Constellation",
-        synopsis = "When an experiment in orbit goes wrong, the survivors return home to a world that no longer fits their memories.",
-        year = "2024",
-        imageUrlPrefix = "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa",
-        unwatchedEpisodeCount = 2,
-        seasonCount = 2,
-        seasons = listOf(
-            Season(
-                id = seasonOneId,
-                seriesId = seriesId,
-                name = "Season 1",
-                index = 1,
-                unwatchedEpisodeCount = 1,
-                episodeCount = seasonOneEpisodes.size,
-                episodes = seasonOneEpisodes
-            ),
-            Season(
-                id = seasonTwoId,
-                seriesId = seriesId,
-                name = "Season 2",
-                index = 2,
-                unwatchedEpisodeCount = 1,
-                episodeCount = seasonTwoEpisodes.size,
-                episodes = seasonTwoEpisodes
-            )
-        ),
-        cast = listOf(
-            CastMember("Noomi Rapace", "Jo", null),
-            CastMember("Jonathan Banks", "Henry", null),
-            CastMember("James D'Arcy", "Magnus", null)
-        )
-    )
 }
