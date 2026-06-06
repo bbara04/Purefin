@@ -1,7 +1,9 @@
 package hu.bbara.purefin.ui.screen.series
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import android.content.Intent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,7 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,19 +24,31 @@ import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
+import hu.bbara.purefin.core.navigation.EpisodeDto
+import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
+import hu.bbara.purefin.navigation.LocalNavigationManager
+import hu.bbara.purefin.player.PlayerActivity
+import hu.bbara.purefin.ui.common.media.MediaDetailActionsUiModel
+import hu.bbara.purefin.ui.common.media.MediaDetailCastUiModel
+import hu.bbara.purefin.ui.common.media.MediaDetailPrimaryActionUiModel
 import hu.bbara.purefin.ui.common.media.MediaDetailScaffold
-import hu.bbara.purefin.ui.common.media.MediaSynopsis
+import hu.bbara.purefin.ui.common.media.MediaDetailScaffoldUiModel
+import hu.bbara.purefin.ui.common.media.MediaDetailSecondaryActionUiModel
+import hu.bbara.purefin.ui.common.media.MediaDetailSynopsisUiModel
+import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
+import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.common.permission.rememberNotificationPermissionGate
-import hu.bbara.purefin.ui.screen.series.components.CastRow
+import hu.bbara.purefin.ui.screen.series.components.DownloadOptionsBottomSheet
 import hu.bbara.purefin.ui.screen.series.components.EpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.SeasonTabs
-import hu.bbara.purefin.ui.screen.series.components.SeriesActionButtons
+import hu.bbara.purefin.ui.screen.series.components.SeriesAddButtonTag
+import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadOption
-import hu.bbara.purefin.ui.screen.series.components.SeriesMetaChips
+import hu.bbara.purefin.ui.screen.series.components.SeriesPlayButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesTopBar
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import java.util.UUID
@@ -125,6 +140,9 @@ private fun SeriesScreenInternal(
     modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val navigationManager = LocalNavigationManager.current
+    var showDownloadDialog by remember { mutableStateOf(false) }
 
     fun getDefaultSeason(): Season? {
         return series.seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: series.seasons.firstOrNull()
@@ -135,6 +153,25 @@ private fun SeriesScreenInternal(
         series.seasons.firstOrNull { it.id == selectedSeasonId } ?: getDefaultSeason()
     val nextUpEpisode = selectedSeason?.episodes?.firstOrNull { !it.watched }
         ?: selectedSeason?.episodes?.firstOrNull()
+    val playAction = remember(nextUpEpisode, offline) {
+        nextUpEpisode?.let { episode ->
+            {
+                navigationManager.navigate(
+                    Route.EpisodeRoute(
+                        EpisodeDto(
+                            id = episode.id,
+                            seasonId = episode.seasonId,
+                            seriesId = episode.seriesId,
+                            offline = offline,
+                        )
+                    )
+                )
+                val intent = Intent(context, PlayerActivity::class.java)
+                intent.putExtra("MEDIA_ID", episode.id.toString())
+                context.startActivity(intent)
+            }
+        }
+    }
 
     LaunchedEffect(series.id, selectedSeason?.id) {
         selectedSeason?.let { onLoadSeasonEpisodes(series.id, it.id) }
@@ -145,7 +182,13 @@ private fun SeriesScreenInternal(
     }
 
     MediaDetailScaffold(
-        imageUrl = ImageUrlBuilder.finishImageUrl(series.imageUrlPrefix, ArtworkKind.PRIMARY),
+        uiModel = series.toMediaDetailScaffoldUiModel(
+            selectedSeason = selectedSeason,
+            nextUpEpisode = nextUpEpisode,
+            onPlayClick = playAction ?: {},
+            onDownloadClick = { showDownloadDialog = true },
+            bodyColor = scheme.onSurface
+        ),
         modifier = modifier,
         topBar = { scrollBehavior ->
             SeriesTopBar(
@@ -154,32 +197,6 @@ private fun SeriesScreenInternal(
             )
         },
     ) { _modifier ->
-        SeriesHeroContent(
-            series = series,
-            modifier = _modifier
-        )
-        if (selectedSeason != null) {
-            SeriesActionButtons(
-                nextUpEpisode = nextUpEpisode,
-                selectedSeason = selectedSeason,
-                seriesDownloadState = seriesDownloadState,
-                seasonDownloadState = seasonDownloadState,
-                isSmartDownloadEnabled = isSmartDownloadEnabled,
-                offline = offline,
-                onDownloadOptionSelected = { option ->
-                    onDownloadOptionSelected(option, selectedSeason)
-                },
-                modifier = _modifier
-            )
-        }
-        MediaSynopsis(
-            synopsis = series.synopsis,
-            bodyColor = scheme.onSurface,
-            bodyFontSize = 13.sp,
-            bodyLineHeight = null,
-            titleSpacing = 8.dp,
-            modifier = _modifier
-        )
         if (selectedSeason != null) {
             SeasonTabs(
                 seasons = series.seasons,
@@ -199,40 +216,74 @@ private fun SeriesScreenInternal(
                 modifier = _modifier
             )
         }
-        if (series.cast.isNotEmpty()) {
-            Text(
-                text = "Cast",
-                color = scheme.onBackground,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = _modifier
-            )
-            Spacer(modifier = _modifier.height(12.dp))
-            CastRow(cast = series.cast)
-        }
+    }
+
+    if (showDownloadDialog && selectedSeason != null) {
+        DownloadOptionsBottomSheet(
+            selectedSeasonName = selectedSeason.name,
+            seriesDownloadState = seriesDownloadState,
+            seasonDownloadState = seasonDownloadState,
+            isSmartDownloadEnabled = isSmartDownloadEnabled,
+            onDownloadOptionSelected = {
+                showDownloadDialog = false
+                onDownloadOptionSelected(it, selectedSeason)
+            },
+            onDismiss = { showDownloadDialog = false }
+        )
     }
 }
 
-@Composable
-private fun SeriesHeroContent(
-    series: Series,
-    modifier: Modifier = Modifier,
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    Text(
-        text = series.name,
-        color = scheme.onBackground,
-        fontSize = 30.sp,
-        fontWeight = FontWeight.Bold,
-        lineHeight = 36.sp,
-        modifier = modifier
-    )
-    SeriesMetaChips(
-        series = series,
-        modifier = modifier
-    )
-}
+private fun Series.toMediaDetailScaffoldUiModel(
+    selectedSeason: Season?,
+    nextUpEpisode: Episode?,
+    onPlayClick: () -> Unit,
+    onDownloadClick: () -> Unit,
+    bodyColor: Color,
+): MediaDetailScaffoldUiModel = MediaDetailScaffoldUiModel(
+    imageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.PRIMARY),
+    title = name,
+    titleFontSize = 30.sp,
+    titleLineHeight = 36.sp,
+    metadataItems = listOf(year, "$seasonCount Seasons"),
+    actions = selectedSeason?.let {
+        MediaDetailActionsUiModel(
+            primaryAction = MediaDetailPrimaryActionUiModel(
+                text = mediaPlayButtonText(nextUpEpisode?.progress, nextUpEpisode?.watched),
+                progress = mediaPlaybackProgress(nextUpEpisode?.progress),
+                onClick = onPlayClick,
+                testTag = SeriesPlayButtonTag
+            ),
+            secondaryActions = listOf(
+                MediaDetailSecondaryActionUiModel.Icon(
+                    icon = Icons.Outlined.Add,
+                    testTag = SeriesAddButtonTag
+                ),
+                MediaDetailSecondaryActionUiModel.Icon(
+                    icon = Icons.Outlined.Download,
+                    onClick = onDownloadClick,
+                    testTag = SeriesDownloadButtonTag
+                )
+            )
+        )
+    },
+    synopsis = MediaDetailSynopsisUiModel(
+        text = synopsis,
+        bodyColor = bodyColor,
+        bodyFontSize = 13.sp,
+        bodyLineHeight = null,
+        titleSpacing = 8.dp
+    ),
+    cast = if (cast.isNotEmpty()) {
+        MediaDetailCastUiModel(
+            members = cast,
+            cardWidth = 84.dp,
+            nameFontSize = 11.sp,
+            roleFontSize = 10.sp
+        )
+    } else {
+        null
+    }
+)
 
 private fun SeriesDownloadOption.canPerform(
     seriesDownloadState: DownloadState,

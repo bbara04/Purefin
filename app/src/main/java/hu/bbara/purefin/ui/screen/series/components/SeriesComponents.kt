@@ -1,6 +1,5 @@
 package hu.bbara.purefin.ui.screen.series.components
 
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,16 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -45,7 +41,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,23 +51,13 @@ import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.core.image.ArtworkKind
 import hu.bbara.purefin.core.image.ImageUrlBuilder
-import hu.bbara.purefin.core.navigation.EpisodeDto
-import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.model.CastMember
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
-import hu.bbara.purefin.model.Series
-import hu.bbara.purefin.navigation.LocalNavigationManager
-import hu.bbara.purefin.player.PlayerActivity
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.button.GhostIconButton
-import hu.bbara.purefin.ui.common.button.MediaActionButton
-import hu.bbara.purefin.ui.common.button.MediaResumeButton
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
-import hu.bbara.purefin.ui.common.media.MediaMetadataFlowRow
-import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
-import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,96 +85,6 @@ internal fun SeriesTopBar(
     )
 }
 
-@Composable
-internal fun SeriesMetaChips(
-    series: Series,
-    modifier: Modifier = Modifier
-) {
-    MediaMetadataFlowRow(
-        items = listOf(series.year, "${series.seasonCount} Seasons"),
-        modifier = modifier
-    )
-}
-
-@Composable
-internal fun SeriesActionButtons(
-    nextUpEpisode: Episode?,
-    selectedSeason: Season,
-    seriesDownloadState: DownloadState,
-    seasonDownloadState: DownloadState,
-    isSmartDownloadEnabled: Boolean,
-    offline: Boolean,
-    onDownloadOptionSelected: (SeriesDownloadOption) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val context = LocalContext.current
-    val navigationManager = LocalNavigationManager.current
-    var showDownloadDialog by remember { mutableStateOf(false) }
-    val playAction = remember(nextUpEpisode, offline) {
-        nextUpEpisode?.let { episode ->
-            {
-                navigationManager.navigate(
-                    Route.EpisodeRoute(
-                        EpisodeDto(
-                            id = episode.id,
-                            seasonId = episode.seasonId,
-                            seriesId = episode.seriesId,
-                            offline = offline,
-                        )
-                    )
-                )
-                val intent = Intent(context, PlayerActivity::class.java)
-                intent.putExtra("MEDIA_ID", episode.id.toString())
-                context.startActivity(intent)
-            }
-        }
-    }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-    ) {
-        MediaResumeButton(
-            text = mediaPlayButtonText(nextUpEpisode?.progress, nextUpEpisode?.watched),
-            progress = mediaPlaybackProgress(nextUpEpisode?.progress),
-            onClick = playAction ?: {},
-            modifier = Modifier
-                .sizeIn(maxWidth = 200.dp)
-                .testTag(SeriesPlayButtonTag)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        MediaActionButton(
-            backgroundColor = MaterialTheme.colorScheme.surface,
-            iconColor = MaterialTheme.colorScheme.onSurface,
-            icon = Icons.Outlined.Add,
-            height = 48.dp,
-            modifier = Modifier.testTag(SeriesAddButtonTag)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        MediaActionButton(
-            backgroundColor = MaterialTheme.colorScheme.surface,
-            iconColor = MaterialTheme.colorScheme.onSurface,
-            icon = Icons.Outlined.Download,
-            height = 48.dp,
-            modifier = Modifier.testTag(SeriesDownloadButtonTag),
-            onClick = { showDownloadDialog = true }
-        )
-    }
-
-    if (showDownloadDialog) {
-        DownloadOptionsBottomSheet(
-            selectedSeasonName = selectedSeason.name,
-            seriesDownloadState = seriesDownloadState,
-            seasonDownloadState = seasonDownloadState,
-            isSmartDownloadEnabled = isSmartDownloadEnabled,
-            onDownloadOptionSelected = {
-                showDownloadDialog = false
-                onDownloadOptionSelected(it)
-            },
-            onDismiss = { showDownloadDialog = false }
-        )
-    }
-}
-
 internal enum class SeriesDownloadOption {
     SEASON,
     SERIES,
@@ -199,7 +94,7 @@ internal enum class SeriesDownloadOption {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DownloadOptionsBottomSheet(
+internal fun DownloadOptionsBottomSheet(
     selectedSeasonName: String,
     seriesDownloadState: DownloadState,
     seasonDownloadState: DownloadState,

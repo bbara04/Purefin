@@ -1,11 +1,6 @@
 package hu.bbara.purefin.ui.screen.episode.components
 
-import android.content.Intent
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -17,27 +12,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.core.download.DownloadState
-import hu.bbara.purefin.model.Episode
-import hu.bbara.purefin.player.PlayerActivity
-import hu.bbara.purefin.ui.common.button.DownloadActionButton
 import hu.bbara.purefin.ui.common.button.GhostIconButton
-import hu.bbara.purefin.ui.common.button.MediaResumeButton
-import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
-import hu.bbara.purefin.ui.common.media.MediaSynopsis
-import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
-import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
 internal sealed interface EpisodeTopBarShortcut {
@@ -100,76 +83,6 @@ internal fun EpisodeTopBar(
         withIcon = false,
         scrollBehavior = scrollBehavior
     )
-}
-
-@Composable
-internal fun EpisodeDetails(
-    episode: Episode,
-    downloadState: DownloadState,
-    onDownloadClick: () -> Unit,
-    modifier: Modifier
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    val context = LocalContext.current
-    val playAction = remember(episode.id) {
-        {
-            val intent = Intent(context, PlayerActivity::class.java)
-            intent.putExtra("MEDIA_ID", episode.id.toString())
-            context.startActivity(intent)
-        }
-    }
-
-    MediaSynopsis(
-        synopsis = episode.synopsis,
-        modifier = modifier
-    )
-    Row(modifier = modifier) {
-        MediaResumeButton(
-            text = mediaPlayButtonText(episode.progress, episode.watched),
-            progress = mediaPlaybackProgress(episode.progress),
-            onClick = playAction,
-            modifier = Modifier
-                .sizeIn(maxWidth = 200.dp)
-                .testTag(EpisodePlayButtonTag)
-        )
-        VerticalDivider(
-            color = MaterialTheme.colorScheme.secondary,
-            thickness = 2.dp,
-            modifier = Modifier
-                .height(48.dp)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        Row() {
-            DownloadActionButton(
-                downloadState = downloadState,
-                modifier = Modifier.testTag(EpisodeDownloadButtonTag),
-                onClick = onDownloadClick
-            )
-        }
-    }
-    MediaPlaybackSettings(
-        backgroundColor = MaterialTheme.colorScheme.surface,
-        foregroundColor = MaterialTheme.colorScheme.onSurface,
-        //TODO fix it
-        audioTrack = "ENG",
-        subtitles = "ENG",
-        modifier = modifier
-    )
-    if (episode.cast.isNotEmpty()) {
-        Text(
-            text = "Cast",
-            color = scheme.onBackground,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = modifier
-        )
-        Spacer(modifier = modifier.height(12.dp))
-        //TODO use it
-//            MediaCastRow(
-//                cast = episode.cast
-//            )
-    }
 }
 
 internal const val EpisodeSeriesButtonTag = "episode-series-button"

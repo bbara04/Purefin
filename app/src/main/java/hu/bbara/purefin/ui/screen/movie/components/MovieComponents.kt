@@ -1,39 +1,13 @@
 package hu.bbara.purefin.ui.screen.movie.components
 
-import android.content.Intent
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import hu.bbara.purefin.core.download.DownloadState
-import hu.bbara.purefin.model.Movie
-import hu.bbara.purefin.player.PlayerActivity
-import hu.bbara.purefin.ui.common.button.DownloadActionButton
 import hu.bbara.purefin.ui.common.button.GhostIconButton
-import hu.bbara.purefin.ui.common.button.MediaResumeButton
-import hu.bbara.purefin.ui.common.media.MediaPlaybackSettings
-import hu.bbara.purefin.ui.common.media.MediaSynopsis
-import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
-import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,77 +34,6 @@ internal fun MovieTopBar(
         withIcon = false,
         scrollBehavior = scrollBehavior
     )
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-internal fun MovieDetails(
-    movie: Movie,
-    downloadState: DownloadState,
-    onDownloadClick: () -> Unit,
-    modifier: Modifier
-) {
-    val scheme = MaterialTheme.colorScheme
-
-    val context = LocalContext.current
-    val playAction = remember(movie.id) {
-        {
-            val intent = Intent(context, PlayerActivity::class.java)
-            intent.putExtra("MEDIA_ID", movie.id.toString())
-            context.startActivity(intent)
-        }
-    }
-
-    MediaSynopsis(
-        synopsis = movie.synopsis,
-        modifier = modifier
-    )
-    Row(modifier = modifier) {
-        MediaResumeButton(
-            text = mediaPlayButtonText(movie.progress, movie.watched),
-            progress = mediaPlaybackProgress(movie.progress),
-            onClick = playAction,
-            modifier = Modifier
-                .sizeIn(maxWidth = 200.dp)
-                .testTag(MoviePlayButtonTag)
-        )
-        VerticalDivider(
-            color = MaterialTheme.colorScheme.secondary,
-            thickness = 4.dp,
-            modifier = Modifier
-                .height(48.dp)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        Row() {
-            DownloadActionButton(
-                downloadState = downloadState,
-                modifier = Modifier.testTag(MovieDownloadButtonTag),
-                onClick = onDownloadClick
-            )
-        }
-    }
-    MediaPlaybackSettings(
-        backgroundColor = MaterialTheme.colorScheme.surface,
-        foregroundColor = MaterialTheme.colorScheme.onSurface,
-        audioTrack = "ENG",
-        subtitles = "ENG",
-        modifier = modifier
-    )
-    if (movie.cast.isNotEmpty()) {
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = "Cast",
-            color = scheme.onBackground,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = modifier
-        )
-        Spacer(modifier = modifier.height(12.dp))
-        //TODO fix
-//            MediaCastRow(
-//                cast = movie.cast,
-//            )
-    }
 }
 
 internal const val MoviePlayButtonTag = "movie-play-button"
