@@ -102,6 +102,7 @@ internal fun EpisodeDetails(
     episode: Episode,
     downloadState: DownloadState,
     onDownloadClick: () -> Unit,
+    modifier: Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -115,9 +116,10 @@ internal fun EpisodeDetails(
     }
 
     MediaSynopsis(
-        synopsis = episode.synopsis
+        synopsis = episode.synopsis,
+        modifier = modifier
     )
-    Row() {
+    Row(modifier = modifier) {
         MediaResumeButton(
             text = mediaPlayButtonText(episode.progress, episode.watched),
             progress = mediaPlaybackProgress(episode.progress),
@@ -146,16 +148,18 @@ internal fun EpisodeDetails(
         foregroundColor = MaterialTheme.colorScheme.onSurface,
         //TODO fix it
         audioTrack = "ENG",
-        subtitles = "ENG"
+        subtitles = "ENG",
+        modifier = modifier
     )
     if (episode.cast.isNotEmpty()) {
         Text(
             text = "Cast",
             color = scheme.onBackground,
             fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = modifier
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = modifier.height(12.dp))
         //TODO use it
 //            MediaCastRow(
 //                cast = episode.cast

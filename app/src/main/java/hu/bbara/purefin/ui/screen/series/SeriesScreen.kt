@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -17,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.core.image.ArtworkKind
@@ -151,10 +151,13 @@ private fun SeriesScreenInternal(
         topBar = {
             SeriesTopBar(onBack = onBack)
         },
-        heroContent = {
-            SeriesHeroContent(series = series)
+        heroContent = { _modifier ->
+            SeriesHeroContent(
+                series = series,
+                modifier = _modifier
+            )
         }
-    ) {
+    ) { _modifier ->
         if (selectedSeason != null) {
             SeriesActionButtons(
                 nextUpEpisode = nextUpEpisode,
@@ -165,7 +168,8 @@ private fun SeriesScreenInternal(
                 offline = offline,
                 onDownloadOptionSelected = { option ->
                     onDownloadOptionSelected(option, selectedSeason)
-                }
+                },
+                modifier = _modifier
             )
         }
         MediaSynopsis(
@@ -173,22 +177,26 @@ private fun SeriesScreenInternal(
             bodyColor = scheme.onSurface,
             bodyFontSize = 13.sp,
             bodyLineHeight = null,
-            titleSpacing = 8.dp
+            titleSpacing = 8.dp,
+            modifier = _modifier
         )
         if (selectedSeason != null) {
             SeasonTabs(
                 seasons = series.seasons,
                 selectedSeason = selectedSeason,
-                onSelect = { selectedSeasonId = it.id }
+                onSelect = { selectedSeasonId = it.id },
+                modifier = _modifier
             )
             EpisodeCarousel(
                 episodes = selectedSeason.episodes,
+                modifier = _modifier
             )
         } else {
             Text(
                 text = "Loading seasons...",
                 color = scheme.onSurfaceVariant,
-                fontSize = 13.sp
+                fontSize = 13.sp,
+                modifier = _modifier
             )
         }
         if (series.cast.isNotEmpty()) {
@@ -196,9 +204,10 @@ private fun SeriesScreenInternal(
                 text = "Cast",
                 color = scheme.onBackground,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = _modifier
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = _modifier.height(12.dp))
             CastRow(cast = series.cast)
         }
     }
@@ -216,9 +225,13 @@ private fun SeriesHeroContent(
         color = scheme.onBackground,
         fontSize = 30.sp,
         fontWeight = FontWeight.Bold,
-        lineHeight = 36.sp
+        lineHeight = 36.sp,
+        modifier = modifier
     )
-    SeriesMetaChips(series = series)
+    SeriesMetaChips(
+        series = series,
+        modifier = modifier
+    )
 }
 
 private fun SeriesDownloadOption.canPerform(

@@ -77,14 +77,18 @@ private fun MovieScreenInternal(
         topBar = {
             MovieTopBar(onBack = onBack)
         },
-        heroContent = {
-            MovieHeroContent(movie = movie)
+        heroContent = { _modifier ->
+            MovieHeroContent(
+                movie = movie,
+                modifier = _modifier
+            )
         }
-    ) {
+    ) { _modifier ->
         MovieDetails(
             movie = movie,
             downloadState = downloadState,
             onDownloadClick = onDownloadClick,
+            modifier = _modifier
         )
     }
 }
@@ -101,12 +105,14 @@ private fun MovieHeroContent(
         color = scheme.onBackground,
         fontSize = 32.sp,
         fontWeight = FontWeight.Bold,
-        lineHeight = 38.sp
+        lineHeight = 38.sp,
+        modifier = modifier
     )
 //    Spacer(modifier = Modifier.height(8.dp))
     MediaMetadataFlowRow(
         items = listOf(movie.year, movie.rating, movie.runtime, movie.format),
-        highlightedItem = movie.format
+        highlightedItem = movie.format,
+        modifier = modifier
     )
 }
 

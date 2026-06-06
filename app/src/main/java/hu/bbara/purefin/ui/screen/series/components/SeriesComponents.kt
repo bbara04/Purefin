@@ -103,9 +103,13 @@ internal fun SeriesTopBar(
 }
 
 @Composable
-internal fun SeriesMetaChips(series: Series) {
+internal fun SeriesMetaChips(
+    series: Series,
+    modifier: Modifier = Modifier
+) {
     MediaMetadataFlowRow(
-        items = listOf(series.year, "${series.seasonCount} Seasons")
+        items = listOf(series.year, "${series.seasonCount} Seasons"),
+        modifier = modifier
     )
 }
 
@@ -142,7 +146,10 @@ internal fun SeriesActionButtons(
             }
         }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
         MediaResumeButton(
             text = mediaPlayButtonText(nextUpEpisode?.progress, nextUpEpisode?.watched),
             progress = mediaPlaybackProgress(nextUpEpisode?.progress),

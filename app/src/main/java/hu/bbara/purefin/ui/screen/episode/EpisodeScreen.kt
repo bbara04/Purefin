@@ -95,14 +95,18 @@ private fun EpisodeScreenInternal(
                 onBack = onBack,
             )
         },
-        heroContent = {
-            EpisodeHeroContent(episode = episode)
+        heroContent = { _modifier ->
+            EpisodeHeroContent(
+                episode = episode,
+                modifier = _modifier
+            )
         }
-    ) {
+    ) { _modifier ->
         EpisodeDetails(
             episode = episode,
             downloadState = downloadState,
             onDownloadClick = onDownloadClick,
+            modifier = _modifier
         )
     }
 }
@@ -119,22 +123,31 @@ private fun EpisodeHeroContent(
         color = scheme.onBackground,
         fontSize = 32.sp,
         fontWeight = FontWeight.Bold,
-        lineHeight = 38.sp
+        lineHeight = 38.sp,
+        modifier = modifier
     )
     Text(
         text = "Episode ${episode.index}",
         color = scheme.onBackground,
         fontSize = 14.sp,
-        fontWeight = FontWeight.Medium
+        fontWeight = FontWeight.Medium,
+        modifier = modifier
     )
-    EpisodeMetaChips(episode = episode)
+    EpisodeMetaChips(
+        episode = episode,
+        modifier = modifier
+    )
 }
 
 @Composable
-private fun EpisodeMetaChips(episode: Episode) {
+private fun EpisodeMetaChips(
+    episode: Episode,
+    modifier: Modifier
+) {
     MediaMetadataFlowRow(
         items = listOf(episode.releaseDate, episode.rating, episode.runtime, episode.format),
-        highlightedItem = episode.format
+        highlightedItem = episode.format,
+        modifier = modifier
     )
 }
 

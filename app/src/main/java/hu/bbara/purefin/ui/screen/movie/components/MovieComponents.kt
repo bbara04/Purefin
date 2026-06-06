@@ -63,6 +63,7 @@ internal fun MovieDetails(
     movie: Movie,
     downloadState: DownloadState,
     onDownloadClick: () -> Unit,
+    modifier: Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
 
@@ -76,9 +77,10 @@ internal fun MovieDetails(
     }
 
     MediaSynopsis(
-        synopsis = movie.synopsis
+        synopsis = movie.synopsis,
+        modifier = modifier
     )
-    Row() {
+    Row(modifier = modifier) {
         MediaResumeButton(
             text = mediaPlayButtonText(movie.progress, movie.watched),
             progress = mediaPlaybackProgress(movie.progress),
@@ -106,7 +108,8 @@ internal fun MovieDetails(
         backgroundColor = MaterialTheme.colorScheme.surface,
         foregroundColor = MaterialTheme.colorScheme.onSurface,
         audioTrack = "ENG",
-        subtitles = "ENG"
+        subtitles = "ENG",
+        modifier = modifier
     )
     if (movie.cast.isNotEmpty()) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -114,9 +117,10 @@ internal fun MovieDetails(
             text = "Cast",
             color = scheme.onBackground,
             fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = modifier
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = modifier.height(12.dp))
         //TODO fix
 //            MediaCastRow(
 //                cast = movie.cast,
