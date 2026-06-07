@@ -1,6 +1,9 @@
 package hu.bbara.purefin.ui.common.card
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -18,11 +21,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
 import hu.bbara.purefin.ui.model.MediaAction
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MediaImageCard(
     imageUrl: String?,
@@ -60,13 +67,19 @@ fun MediaImageCard(
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(shapeSize)
 
-    var expanded by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     Card(
-        onClick = onClick,
         shape = shape,
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = if (popupActions.isNotEmpty()) {
+                    { showBottomSheet = true }
+                } else null
+            )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Box(
@@ -115,27 +128,37 @@ fun MediaImageCard(
                         }
                 }
                 if (popupActions.isNotEmpty()) {
-                    Box() {
-                        IconButton(
-                            onClick = { expanded = !expanded },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.MoreVert,
-                                contentDescription = "More actions"
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                        ) {
-                            popupActions.forEach { action ->
-                                DropdownMenuItem(
-                                    text = { Text(text = action.name) },
-                                    onClick = action.onClick
-                                )
-                            }
-                        }
+                    IconButton(
+                        onClick = { showBottomSheet = true },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.MoreVert,
+                            contentDescription = "More actions"
+                        )
                     }
+                }
+            }
+        }
+    }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+            ) {
+                popupActions.forEach { action ->
+                    ListItem(
+                        headlineContent = { Text(text = action.name) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            action.onClick()
+                            showBottomSheet = false
+                        }
+                    )
                 }
             }
         }
