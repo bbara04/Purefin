@@ -403,6 +403,7 @@ class JellyfinApiClient @Inject constructor(
     ) = withContext(Dispatchers.IO) {
         if (runtimeTicks <= 0L) return@withContext
         val normalizedPlaybackPositionTicks = playbackPositionTicks.coerceIn(0L, runtimeTicks)
+        val isPastThreshold = normalizedPlaybackPositionTicks.toDouble() / runtimeTicks.toDouble() >= 0.8
         logRequest("updatePlaybackPosition") {
             if (!ensureConfigured()) {
                 return@logRequest
@@ -411,8 +412,8 @@ class JellyfinApiClient @Inject constructor(
                 itemId = mediaId,
                 userId = getUserId(),
                 data = UpdateUserItemDataDto(
-                    playbackPositionTicks = normalizedPlaybackPositionTicks,
-                    played = normalizedPlaybackPositionTicks.toDouble() / runtimeTicks.toDouble() >= 0.9,
+                    playbackPositionTicks = if (isPastThreshold) runtimeTicks else normalizedPlaybackPositionTicks,
+                    played = isPastThreshold,
                 )
             )
             result.content
