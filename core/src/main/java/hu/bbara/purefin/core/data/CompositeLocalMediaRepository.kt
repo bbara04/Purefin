@@ -9,12 +9,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.util.UUID
 import javax.inject.Inject
@@ -25,12 +26,13 @@ import javax.inject.Singleton
 class CompositeLocalMediaRepository @Inject constructor(
     @Offline private val offlineRepository: LocalMediaRepository,
     @Online private val onlineRepository: LocalMediaRepository,
+    private val networkMonitor: NetworkMonitor,
 ) : LocalMediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    // TODO move this into the domain layer and there you can use NetworkMonitor. Data should be free of android stuff.
-    private val activeRepository: Flow<LocalMediaRepository> = flowOf(onlineRepository)
+    private val activeRepository: Flow<LocalMediaRepository> = networkMonitor.isOnline
+        .map { isOnline -> if (isOnline) onlineRepository else offlineRepository }
 
     override val movies: StateFlow<Map<UUID, Movie>> = activeRepository
         .flatMapLatest { it.movies }
@@ -45,40 +47,111 @@ class CompositeLocalMediaRepository @Inject constructor(
         .stateIn(scope, Eagerly, emptyMap())
 
     override suspend fun getMovie(id: UUID): Flow<Movie?> {
-        return activeRepository
-            .flatMapLatest { it.getMovie(id) }
+        return getFromActiveRepository(
+            onlineRead = { onlineRepository.getMovie(id) },
+            offlineRead = { offlineRepository.getMovie(id) },
+        )
     }
 
     override suspend fun getSeries(id: UUID): Flow<Series?> {
-        return activeRepository
-            .flatMapLatest { it.getSeries(id) }
+        return getFromActiveRepository(
+            onlineRead = { onlineRepository.getSeries(id) },
+            offlineRead = { offlineRepository.getSeries(id) },
+        )
     }
 
     override suspend fun getEpisode(id: UUID): Flow<Episode?> {
-        return activeRepository
-            .flatMapLatest { it.getEpisode(id) }
+        return getFromActiveRepository(
+            onlineRead = { onlineRepository.getEpisode(id) },
+            offlineRead = { offlineRepository.getEpisode(id) },
+        )
     }
 
     override suspend fun loadSeasons(seriesId: UUID) {
-        activeRepository.first().loadSeasons(seriesId)
+        runOnlineOrOfflineNoOp(
+            onlineAction = { onlineRepository.loadSeasons(seriesId) },
+            offlineAction = { offlineRepository.loadSeasons(seriesId) },
+        )
     }
 
     override suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {
-        activeRepository.first().loadSeasonEpisodes(seriesId, seasonId)
+        runOnlineOrOfflineNoOp(
+            onlineAction = { onlineRepository.loadSeasonEpisodes(seriesId, seasonId) },
+            offlineAction = { offlineRepository.loadSeasonEpisodes(seriesId, seasonId) },
+        )
     }
 
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
-        onlineRepository.updateWatchProgress(mediaId, positionMs, durationMs)
+        if (networkMonitor.isOnline.first()) {
+            runOnlineAction { onlineRepository.updateWatchProgress(mediaId, positionMs, durationMs) }
+        }
         offlineRepository.updateWatchProgress(mediaId, positionMs, durationMs)
     }
 
     override suspend fun updateWatchProgressPercent(mediaId: UUID, progressPercent: Double) {
-        onlineRepository.updateWatchProgressPercent(mediaId, progressPercent)
+        if (networkMonitor.isOnline.first()) {
+            runOnlineAction { onlineRepository.updateWatchProgressPercent(mediaId, progressPercent) }
+        }
         offlineRepository.updateWatchProgressPercent(mediaId, progressPercent)
     }
 
     override suspend fun markAsWatched(mediaId: UUID, watched: Boolean) {
-        val repository = onlineRepository
-        repository.markAsWatched(mediaId, watched)
+        runOnlineOrOfflineNoOp(
+            onlineAction = { onlineRepository.markAsWatched(mediaId, watched) },
+            offlineAction = { offlineRepository.markAsWatched(mediaId, watched) },
+        )
+    }
+
+    private suspend fun <T> getFromActiveRepository(
+        onlineRead: suspend () -> Flow<T>,
+        offlineRead: suspend () -> Flow<T>,
+    ): Flow<T> {
+        if (!networkMonitor.isOnline.first()) {
+            return offlineRead()
+        }
+        return try {
+            onlineRead()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            if (!networkMonitor.checkConnection()) {
+                offlineRead()
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun runOnlineOrOfflineNoOp(
+        onlineAction: suspend () -> Unit,
+        offlineAction: suspend () -> Unit,
+    ) {
+        if (!networkMonitor.isOnline.first()) {
+            offlineAction()
+            return
+        }
+        try {
+            onlineAction()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            if (!networkMonitor.checkConnection()) {
+                offlineAction()
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun runOnlineAction(action: suspend () -> Unit) {
+        try {
+            action()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            if (networkMonitor.checkConnection()) {
+                throw error
+            }
+        }
     }
 }

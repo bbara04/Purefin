@@ -13,11 +13,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -46,6 +46,7 @@ fun AppScreen(
     val nextUp by viewModel.nextUp.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
+    val isCheckingConnection by viewModel.isCheckingConnection.collectAsStateWithLifecycle()
     val isCheckingForUpdates by updateViewModel.isCheckingForUpdates.collectAsStateWithLifecycle()
     val availableUpdate by updateViewModel.availableUpdate.collectAsStateWithLifecycle()
     val navigationManager = LocalNavigationManager.current
@@ -133,6 +134,8 @@ fun AppScreen(
             DownloadsScreen(
                 selectedTab = selectedTab,
                 isOnline = isOnline,
+                isCheckingConnection = isCheckingConnection,
+                onCheckConnection = viewModel::checkConnection,
                 onTabSelected = onTabSelected,
                 modifier = Modifier.fillMaxSize()
             )

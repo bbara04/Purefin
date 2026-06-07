@@ -24,6 +24,7 @@ import hu.bbara.purefin.data.offline.cache.toSeries
 import hu.bbara.purefin.model.Library
 import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.Media
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -51,6 +52,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private val networkMonitor: NetworkMonitor,
 ) : HomeRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var cacheLoadJob: Job? = null
     private var refreshJob: Job? = null
 
     @OptIn(ExperimentalAtomicApi::class)
@@ -72,9 +74,7 @@ class InMemoryAppContentRepository @Inject constructor(
     override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = latestLibraryContentState.asStateFlow()
 
     init {
-        scope.launch {
-            ensureReady()
-        }
+        ensureReady()
     }
 
     @OptIn(ExperimentalAtomicApi::class)
@@ -83,17 +83,23 @@ class InMemoryAppContentRepository @Inject constructor(
             return
         }
         Timber.tag(TAG).d("Initializing home repository")
-        scope.launch { loadHomeCache() }
-        scope.launch { refreshHomeData() }
+        val loadJob = scope.launch { loadHomeCache() }
+        cacheLoadJob = loadJob
+        scope.launch {
+            loadJob.join()
+            refreshHomeData()
+        }
     }
 
     override suspend fun refreshHomeData() {
+        cacheLoadJob?.join()
         val job = synchronized(this) {
             refreshJob?.takeIf { it.isActive } ?: scope.launch {
-                runCatching {
+                val snapshot = snapshotHomeContent()
+                try {
                     Timber.tag(TAG).d("Refreshing home data")
                     if (!networkMonitor.isOnline.first()) {
-                        return@runCatching
+                        return@launch
                     }
                     loadLibraries()
                     loadSuggestions()
@@ -102,8 +108,15 @@ class InMemoryAppContentRepository @Inject constructor(
                     loadLatestLibraryContent()
                     Timber.tag(TAG).d("Home refresh successful")
                     persistHomeCache()
-                }.onFailure { error ->
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: HomeRefreshFailedException) {
+                    restoreHomeContent(snapshot)
+                    Timber.tag(TAG).w(error.cause, "Home refresh failed; keeping cached content")
+                } catch (error: Exception) {
+                    restoreHomeContent(snapshot)
                     Timber.tag(TAG).w(error, "Home refresh failed; keeping cached content")
+                    networkMonitor.checkConnection()
                 }
             }.also { refreshJob = it }
         }
@@ -200,8 +213,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadLibraries() {
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
-                Timber.tag(TAG).w(error, "Unable to load libraries")
-                return
+                handleRefreshFailure(error, "Unable to load libraries")
             }
         val filteredLibraries = librariesItem.filter {
             it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS
@@ -222,8 +234,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadLibrary(library: Library): Library {
         val contentItem = runCatching { jellyfinApiClient.getLibraryContent(library.id) }
             .getOrElse { error ->
-                Timber.tag(TAG).w(error, "Unable to load library ${library.id}")
-                return library
+                handleRefreshFailure(error, "Unable to load library ${library.id}")
             }
         return when (library.type) {
             LibraryKind.MOVIES -> library.copy(
@@ -240,8 +251,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadSuggestions() {
         val suggestionsItems = runCatching { jellyfinApiClient.getSuggestions() }
             .getOrElse { error ->
-                Timber.tag(TAG).w(error, "Unable to load suggestions")
-                return
+                handleRefreshFailure(error, "Unable to load suggestions")
             }
         suggestionsState.value = suggestionsItems.mapNotNull { item ->
             when (item.type) {
@@ -261,8 +271,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadContinueWatching() {
         val continueWatchingItems = runCatching { jellyfinApiClient.getContinueWatching() }
             .getOrElse { error ->
-                Timber.tag(TAG).w(error, "Unable to load continue watching")
-                return
+                handleRefreshFailure(error, "Unable to load continue watching")
             }
         continueWatchingState.value = continueWatchingItems.mapNotNull { item ->
             when (item.type) {
@@ -282,8 +291,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadNextUp() {
         val nextUpItems = runCatching { jellyfinApiClient.getNextUpEpisodes() }
             .getOrElse { error ->
-                Timber.tag(TAG).w(error, "Unable to load next up")
-                return
+                handleRefreshFailure(error, "Unable to load next up")
             }
         nextUpState.value = nextUpItems.map { item ->
             Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
@@ -297,8 +305,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadLatestLibraryContent() {
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
-                Timber.tag(TAG).w(error, "Unable to load latest library content")
-                return
+                handleRefreshFailure(error, "Unable to load latest library content")
             }
         val filteredLibraries = librariesItem.filter {
             it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS
@@ -306,8 +313,7 @@ class InMemoryAppContentRepository @Inject constructor(
         val latestLibraryContents = filteredLibraries.associate { library ->
             val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
                 .getOrElse { error ->
-                    Timber.tag(TAG).w(error, "Unable to load latest items for library ${library.id}")
-                    emptyList()
+                    handleRefreshFailure(error, "Unable to load latest items for library ${library.id}")
                 }
             library.id to when (library.collectionType) {
                 CollectionType.MOVIES -> latestFromLibrary.map {
@@ -341,6 +347,31 @@ class InMemoryAppContentRepository @Inject constructor(
         return userSessionRepository.serverUrl.first()
     }
 
+    private fun snapshotHomeContent(): HomeContentSnapshot = HomeContentSnapshot(
+        libraries = librariesState.value,
+        suggestions = suggestionsState.value,
+        continueWatching = continueWatchingState.value,
+        nextUp = nextUpState.value,
+        latestLibraryContent = latestLibraryContentState.value,
+    )
+
+    private fun restoreHomeContent(snapshot: HomeContentSnapshot) {
+        librariesState.value = snapshot.libraries
+        suggestionsState.value = snapshot.suggestions
+        continueWatchingState.value = snapshot.continueWatching
+        nextUpState.value = snapshot.nextUp
+        latestLibraryContentState.value = snapshot.latestLibraryContent
+    }
+
+    private suspend fun handleRefreshFailure(error: Throwable, message: String): Nothing {
+        if (error is CancellationException) {
+            throw error
+        }
+        Timber.tag(TAG).w(error, message)
+        networkMonitor.checkConnection()
+        throw HomeRefreshFailedException(error)
+    }
+
     companion object {
         private const val TAG = "InMemoryAppContentRepo"
     }
@@ -351,3 +382,13 @@ private data class ReferencedHomeMediaIds(
     val seriesIds: Set<UUID>,
     val episodeIds: Set<UUID>,
 )
+
+private data class HomeContentSnapshot(
+    val libraries: List<Library>,
+    val suggestions: List<Media>,
+    val continueWatching: List<Media>,
+    val nextUp: List<Media>,
+    val latestLibraryContent: Map<UUID, List<Media>>,
+)
+
+private class HomeRefreshFailedException(cause: Throwable) : RuntimeException(cause)

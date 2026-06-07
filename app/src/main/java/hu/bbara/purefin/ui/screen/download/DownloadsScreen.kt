@@ -10,12 +10,15 @@ import androidx.compose.ui.Modifier
 import hu.bbara.purefin.ui.screen.AppBottomBar
 import hu.bbara.purefin.ui.screen.download.components.DownloadsContent
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
+import hu.bbara.purefin.ui.screen.home.components.DefaultTopBarTextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadsScreen(
     selectedTab: Int,
     isOnline: Boolean,
+    isCheckingConnection: Boolean,
+    onCheckConnection: () -> Unit,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -23,7 +26,19 @@ fun DownloadsScreen(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
-        topBar = { DefaultTopBar() },
+        topBar = {
+            DefaultTopBar(
+                rightActions = {
+                    if (!isOnline) {
+                        DefaultTopBarTextButton(
+                            text = if (isCheckingConnection) "Checking…" else "Check connection",
+                            onClick = onCheckConnection,
+                            enabled = !isCheckingConnection
+                        )
+                    }
+                }
+            )
+        },
         bottomBar = {
             AppBottomBar(
                 selectedTab = selectedTab,

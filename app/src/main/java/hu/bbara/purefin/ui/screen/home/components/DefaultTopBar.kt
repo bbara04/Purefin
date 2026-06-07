@@ -5,18 +5,23 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -110,6 +115,37 @@ fun DefaultTopBarIconButton(
             imageVector = imageVector,
             contentDescription = contentDescription,
             modifier = Modifier.size(30.dp),
+        )
+    }
+}
+
+@Composable
+fun DefaultTopBarTextButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        shape = CircleShape,
+        colors = ButtonDefaults.textButtonColors(
+            containerColor = scheme.surface,
+            contentColor = scheme.onSurface,
+            disabledContainerColor = scheme.surface,
+            disabledContentColor = scheme.onSurface
+        ),
+        contentPadding = PaddingValues(horizontal = 18.dp),
+        modifier = modifier
+            .height(50.dp)
+            .clip(CircleShape),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
         )
     }
 }

@@ -67,18 +67,31 @@ class DefaultPlayableMediaRepository @Inject constructor(
             return getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
         }
 
-        return runCatching {
+        val onlinePlayableMedia = runCatching {
             getOnlinePlayableMedia(mediaId, downloadedMediaItem)
-                ?: getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
         }.getOrElse { error ->
             if (error is CancellationException) throw error
+            networkMonitor.checkConnection()
             Timber.tag(TAG).w(error, "Unable to load online metadata for downloaded media $mediaId")
-            getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
+            null
         }
+        if (onlinePlayableMedia != null) return onlinePlayableMedia
+
+        networkMonitor.checkConnection()
+        return getOfflineDownloadedPlayableMedia(mediaId, downloadedMediaItem)
     }
 
     private suspend fun getStreamingPlayableMedia(mediaId: UUID): PlayableMedia? {
-        return getOnlinePlayableMedia(mediaId, downloadedMediaItem = null)
+        if (!networkMonitor.isOnline.first()) return null
+
+        return runCatching {
+            getOnlinePlayableMedia(mediaId, downloadedMediaItem = null)
+        }.getOrElse { error ->
+            if (error is CancellationException) throw error
+            networkMonitor.checkConnection()
+            Timber.tag(TAG).w(error, "Unable to load streaming media $mediaId")
+            null
+        }
     }
 
     private suspend fun getOnlinePlayableMedia(

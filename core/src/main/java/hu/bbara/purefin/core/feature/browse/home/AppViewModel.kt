@@ -43,17 +43,20 @@ class AppViewModel @Inject constructor(
     private val navigationManager: NavigationManager,
     private val homeRefreshCoordinator: HomeRefreshCoordinator,
     private val settingsRepository: SettingsRepository,
-    networkMonitor: NetworkMonitor,
+    private val networkMonitor: NetworkMonitor,
 ) : ViewModel() {
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    private val _isCheckingConnection = MutableStateFlow(false)
+    val isCheckingConnection: StateFlow<Boolean> = _isCheckingConnection.asStateFlow()
+
     val isOnline: StateFlow<Boolean> = networkMonitor.isOnline
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
-            false
+            true
         )
 
     val serverUrl: StateFlow<String> = userSessionRepository.serverUrl
@@ -253,14 +256,30 @@ class AppViewModel @Inject constructor(
 
     fun onResumed() {
         viewModelScope.launch {
+            networkMonitor.checkConnection()
             homeRefreshCoordinator.onResumed()
         }
     }
 
     fun onRefresh() {
         viewModelScope.launch {
+            networkMonitor.checkConnection()
             homeRefreshCoordinator.onRefresh { isRefreshing ->
                 _isRefreshing.value = isRefreshing
+            }
+        }
+    }
+
+    fun checkConnection() {
+        viewModelScope.launch {
+            if (_isCheckingConnection.value) return@launch
+            _isCheckingConnection.value = true
+            val isConnected = networkMonitor.checkConnection()
+            _isCheckingConnection.value = false
+            if (isConnected) {
+                homeRefreshCoordinator.onRefresh { isRefreshing ->
+                    _isRefreshing.value = isRefreshing
+                }
             }
         }
     }
