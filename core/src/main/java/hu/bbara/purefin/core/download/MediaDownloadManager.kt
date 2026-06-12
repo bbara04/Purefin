@@ -10,7 +10,7 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import hu.bbara.purefin.core.data.DownloadMediaSourceResolver
-import hu.bbara.purefin.core.data.OfflineCatalogStore
+import hu.bbara.purefin.core.data.OfflineMediaManager
 import hu.bbara.purefin.core.data.SmartDownloadStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +36,7 @@ class MediaDownloadManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val downloadManager: DownloadManager,
     private val downloadMediaSourceResolver: DownloadMediaSourceResolver,
-    private val offlineCatalogStore: OfflineCatalogStore,
+    private val offlineMediaManager: OfflineMediaManager,
     private val smartDownloadStore: SmartDownloadStore,
 ) : MediaDownloadController {
 
@@ -125,7 +125,7 @@ class MediaDownloadManager @Inject constructor(
                     return@withContext
                 }
 
-                offlineCatalogStore.saveMovies(listOf(source.movie))
+                offlineMediaManager.saveMovies(listOf(source.movie))
 
                 Timber.tag(TAG).d("Starting download for '${source.movie.title}' from: ${source.playbackUrl}")
                 val request = buildDownloadRequest(
@@ -147,7 +147,7 @@ class MediaDownloadManager @Inject constructor(
         withContext(Dispatchers.IO) {
             PurefinDownloadService.sendRemoveDownload(context, movieId.toString())
             try {
-                offlineCatalogStore.deleteMovie(movieId)
+                offlineMediaManager.deleteMovie(movieId)
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Failed to remove movie from offline DB")
             }
@@ -162,15 +162,15 @@ class MediaDownloadManager @Inject constructor(
                     return@withContext
                 }
 
-                if (offlineCatalogStore.getSeriesBasic(source.series.id) == null) {
-                    offlineCatalogStore.saveSeries(listOf(source.series))
+                if (offlineMediaManager.getSeriesBasic(source.series.id) == null) {
+                    offlineMediaManager.saveSeries(listOf(source.series))
                 }
 
-                if (offlineCatalogStore.getSeason(source.season.id) == null) {
-                    offlineCatalogStore.saveSeason(source.season)
+                if (offlineMediaManager.getSeason(source.season.id) == null) {
+                    offlineMediaManager.saveSeason(source.season)
                 }
 
-                offlineCatalogStore.saveEpisode(source.episode)
+                offlineMediaManager.saveEpisode(source.episode)
 
                 Timber.tag(TAG).d("Starting download for episode '${source.episode.title}' from: ${source.playbackUrl}")
                 val request = buildDownloadRequest(
@@ -200,7 +200,7 @@ class MediaDownloadManager @Inject constructor(
         withContext(Dispatchers.IO) {
             PurefinDownloadService.sendRemoveDownload(context, episodeId.toString())
             try {
-                offlineCatalogStore.deleteEpisodeAndCleanup(episodeId)
+                offlineMediaManager.deleteEpisodeAndCleanup(episodeId)
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Failed to remove episode from offline DB")
             }
@@ -217,7 +217,7 @@ class MediaDownloadManager @Inject constructor(
     override suspend fun deleteSmartDownloads(seriesId: UUID) {
         withContext(Dispatchers.IO) {
             smartDownloadStore.disable(seriesId)
-            offlineCatalogStore.getEpisodesBySeries(seriesId).forEach { episode ->
+            offlineMediaManager.getEpisodesBySeries(seriesId).forEach { episode ->
                 cancelEpisodeDownload(episode.id)
             }
         }
@@ -243,7 +243,7 @@ class MediaDownloadManager @Inject constructor(
     private suspend fun syncSmartDownloadsForSeries(seriesId: UUID) {
         withContext(Dispatchers.IO) {
             // 1. Get currently downloaded episodes for this series
-            val downloadedEpisodes = offlineCatalogStore.getEpisodesBySeries(seriesId)
+            val downloadedEpisodes = offlineMediaManager.getEpisodesBySeries(seriesId)
 
             // 2. Check watched status from server and delete watched downloads
             val unwatchedDownloaded = mutableListOf<UUID>()

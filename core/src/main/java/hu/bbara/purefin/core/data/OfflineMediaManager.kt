@@ -6,7 +6,7 @@ import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
 import java.util.UUID
 
-interface OfflineCatalogStore {
+interface OfflineMediaManager {
     suspend fun saveMovies(movies: List<Movie>)
     suspend fun saveSeries(series: List<Series>)
     suspend fun saveSeason(season: Season)
