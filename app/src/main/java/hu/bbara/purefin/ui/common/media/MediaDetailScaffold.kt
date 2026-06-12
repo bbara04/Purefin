@@ -21,7 +21,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -93,6 +95,12 @@ sealed interface MediaDetailSecondaryActionUiModel {
     data class Icon(
         val icon: ImageVector,
         val onClick: () -> Unit = {},
+        override val testTag: String? = null,
+    ) : MediaDetailSecondaryActionUiModel
+
+    data class MarkAsWatched(
+        val watched: Boolean,
+        val onClick: () -> Unit,
         override val testTag: String? = null,
     ) : MediaDetailSecondaryActionUiModel
 }
@@ -351,6 +359,25 @@ private fun MediaDetailActions(
                             backgroundColor = MaterialTheme.colorScheme.surface,
                             iconColor = MaterialTheme.colorScheme.onSurface,
                             icon = action.icon,
+                            height = 48.dp,
+                            onClick = action.onClick,
+                            modifier = Modifier.optionalTestTag(action.testTag)
+                        )
+                    }
+
+                    is MediaDetailSecondaryActionUiModel.MarkAsWatched -> {
+                        MediaActionButton(
+                            backgroundColor = MaterialTheme.colorScheme.surface,
+                            iconColor = if (action.watched) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
+                            icon = if (action.watched) {
+                                Icons.Outlined.CheckCircle
+                            } else {
+                                Icons.Outlined.RadioButtonUnchecked
+                            },
                             height = 48.dp,
                             onClick = action.onClick,
                             modifier = Modifier.optionalTestTag(action.testTag)

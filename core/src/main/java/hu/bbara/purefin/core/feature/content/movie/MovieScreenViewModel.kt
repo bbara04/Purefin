@@ -7,6 +7,7 @@ import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.download.MediaDownloadController
+import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
 import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
@@ -28,6 +29,7 @@ class MovieScreenViewModel @Inject constructor(
     @param:Offline private val offlineMediaCatalogReader: LocalMediaRepository,
     private val navigationManager: NavigationManager,
     private val mediaDownloadManager: MediaDownloadController,
+    private val jellyfinMediaMetadataUpdater: JellyfinMediaMetadataUpdater,
 ): ViewModel() {
 
     private val _movie = MutableStateFlow<MovieDto?>(null)
@@ -65,6 +67,13 @@ class MovieScreenViewModel @Inject constructor(
             mediaDownloadManager.observeDownloadState(movie.id.toString()).collect {
                 _downloadState.value = it
             }
+        }
+    }
+
+    fun markAsWatched(watched: Boolean) {
+        val movieId = movie.value?.id ?: return
+        viewModelScope.launch {
+            jellyfinMediaMetadataUpdater.markAsWatched(movieId, watched)
         }
     }
 

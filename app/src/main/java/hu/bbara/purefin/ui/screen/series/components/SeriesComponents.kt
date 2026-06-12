@@ -394,6 +394,7 @@ private fun EpisodeCard(
 internal const val SeriesPlayButtonTag = "series-play-button"
 internal const val SeriesAddButtonTag = "series-add-button"
 internal const val SeriesDownloadButtonTag = "series-download-button"
+internal const val SeriesWatchedButtonTag = "series-watched-button"
 internal const val SeriesDownloadDialogTag = "series-download-dialog"
 internal const val SeriesDownloadSeasonButtonTag = "series-download-season-button"
 internal const val SeriesDownloadAllButtonTag = "series-download-all-button"

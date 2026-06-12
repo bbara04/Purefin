@@ -25,6 +25,7 @@ fun LibraryPosterSection(
     items: List<MediaUiModel>,
     onLibrarySelected: (LibraryUiModel) -> Unit,
     onMediaSelected: (MediaUiModel) -> Unit,
+    onMarkAsWatched: (MediaUiModel, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (items.isEmpty()) return
@@ -61,6 +62,7 @@ fun LibraryPosterSection(
                         mediaId = item.id
                     ),
                     onMediaSelected = onMediaSelected,
+                    onMarkAsWatched = onMarkAsWatched,
                     modifier = Modifier.testTag("$HomeLibraryItemTagPrefix${library.id}-$index")
                 )
             }

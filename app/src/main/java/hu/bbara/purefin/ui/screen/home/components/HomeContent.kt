@@ -121,11 +121,12 @@ fun HomeContent(
 
                 if (nextUp.isNotEmpty()) {
                     item(key = "next-up") {
-                        NextUpSection(
-                            items = nextUp,
-                            onMediaSelected = onMediaSelected,
-                            modifier = Modifier.testTag(HomeNextUpSectionTag)
-                        )
+                    NextUpSection(
+                        items = nextUp,
+                        onMediaSelected = onMediaSelected,
+                        onMarkAsWatched = onMarkAsWatched,
+                        modifier = Modifier.testTag(HomeNextUpSectionTag)
+                    )
                     }
                 }
 
@@ -138,6 +139,7 @@ fun HomeContent(
                         items = libraryContent[library.id].orEmpty(),
                         onLibrarySelected = onLibrarySelected,
                         onMediaSelected = onMediaSelected,
+                        onMarkAsWatched = onMarkAsWatched,
                         modifier = Modifier.testTag("$HomeLibrarySectionTagPrefix${library.id}")
                     )
                 }

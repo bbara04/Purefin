@@ -38,3 +38,4 @@ internal fun MovieTopBar(
 
 internal const val MoviePlayButtonTag = "movie-play-button"
 internal const val MovieDownloadButtonTag = "movie-download-button"
+internal const val MovieWatchedButtonTag = "movie-watched-button"

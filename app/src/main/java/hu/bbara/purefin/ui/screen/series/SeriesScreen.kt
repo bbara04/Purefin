@@ -48,6 +48,7 @@ import hu.bbara.purefin.ui.screen.series.components.SeasonTabs
 import hu.bbara.purefin.ui.screen.series.components.SeriesAddButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadOption
+import hu.bbara.purefin.ui.screen.series.components.SeriesWatchedButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesPlayButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesTopBar
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
@@ -117,6 +118,7 @@ fun SeriesScreen(
             onLoadSeasonEpisodes = viewModel::loadSeasonEpisodes,
             onObserveSeasonDownloadState = viewModel::observeSeasonDownloadState,
             onBack = viewModel::onGoHome,
+            onMarkAsWatched = viewModel::markAsWatched,
             offline = series.offline,
             modifier = modifier
         )
@@ -136,6 +138,7 @@ private fun SeriesScreenInternal(
     onLoadSeasonEpisodes: (UUID, UUID) -> Unit,
     onObserveSeasonDownloadState: (List<Episode>) -> Unit,
     onBack: () -> Unit,
+    onMarkAsWatched: (Boolean) -> Unit = {},
     offline: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -187,6 +190,7 @@ private fun SeriesScreenInternal(
             nextUpEpisode = nextUpEpisode,
             onPlayClick = playAction ?: {},
             onDownloadClick = { showDownloadDialog = true },
+            onMarkAsWatched = onMarkAsWatched,
             bodyColor = scheme.onSurface
         ),
         modifier = modifier,
@@ -238,6 +242,7 @@ private fun Series.toMediaDetailScaffoldUiModel(
     nextUpEpisode: Episode?,
     onPlayClick: () -> Unit,
     onDownloadClick: () -> Unit,
+    onMarkAsWatched: (Boolean) -> Unit,
     bodyColor: Color,
 ): MediaDetailScaffoldUiModel = MediaDetailScaffoldUiModel(
     imageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.PRIMARY),
@@ -246,6 +251,7 @@ private fun Series.toMediaDetailScaffoldUiModel(
     titleLineHeight = 36.sp,
     metadataItems = listOf(year, "$seasonCount Seasons"),
     actions = selectedSeason?.let {
+        val seriesWatched = unwatchedEpisodeCount == 0
         MediaDetailActionsUiModel(
             primaryAction = MediaDetailPrimaryActionUiModel(
                 text = mediaPlayButtonText(nextUpEpisode?.progress, nextUpEpisode?.watched),
@@ -254,6 +260,11 @@ private fun Series.toMediaDetailScaffoldUiModel(
                 testTag = SeriesPlayButtonTag
             ),
             secondaryActions = listOf(
+                MediaDetailSecondaryActionUiModel.MarkAsWatched(
+                    watched = seriesWatched,
+                    onClick = { onMarkAsWatched(!seriesWatched) },
+                    testTag = SeriesWatchedButtonTag
+                ),
                 MediaDetailSecondaryActionUiModel.Icon(
                     icon = Icons.Outlined.Add,
                     testTag = SeriesAddButtonTag

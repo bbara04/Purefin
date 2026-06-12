@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.HomeRepository
+import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
 import hu.bbara.purefin.core.model.MediaUiModel
 import hu.bbara.purefin.core.model.MovieUiModel
 import hu.bbara.purefin.core.model.SeriesUiModel
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class LibraryViewModel @Inject constructor(
     private val homeRepository: HomeRepository,
     private val navigationManager: NavigationManager,
+    private val jellyfinMediaMetadataUpdater: JellyfinMediaMetadataUpdater,
 ) : ViewModel() {
 
     private val selectedLibrary = MutableStateFlow<UUID?>(null)
@@ -66,6 +68,12 @@ class LibraryViewModel @Inject constructor(
                         id = seriesId,
                     )
             ))
+        }
+    }
+
+    fun markAsWatched(mediaUiModel: MediaUiModel, watched: Boolean) {
+        viewModelScope.launch {
+            jellyfinMediaMetadataUpdater.markAsWatched(mediaUiModel.id, watched)
         }
     }
 

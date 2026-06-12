@@ -22,6 +22,7 @@ import hu.bbara.purefin.core.model.MediaUiModel
 fun NextUpSection(
     items: List<MediaUiModel>,
     onMediaSelected: (MediaUiModel) -> Unit,
+    onMarkAsWatched: (MediaUiModel, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (items.isEmpty()) return
@@ -51,6 +52,7 @@ fun NextUpSection(
                     uiModel = item,
                     sharedBoundsKey = homeMediaSharedBoundsKey("next-up-$index", item.id),
                     onMediaSelected = onMediaSelected,
+                    onMarkAsWatched = onMarkAsWatched,
                     modifier = Modifier.testTag("$HomeNextUpItemTagPrefix$index")
                 )
             }

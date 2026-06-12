@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +31,7 @@ import hu.bbara.purefin.core.model.SeriesUiModel
 import hu.bbara.purefin.core.navigation.LibraryDto
 import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.card.MediaImageCard
+import hu.bbara.purefin.ui.model.MediaAction
 import hu.bbara.purefin.ui.screen.home.components.rememberDefaultTopBarScrollBehavior
 import hu.bbara.purefin.ui.screen.library.components.LibraryTopBar
 
@@ -66,7 +68,10 @@ fun LibraryScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
-            LibraryPosterGrid(libraryItems = libraryItems.value)
+            LibraryPosterGrid(
+                libraryItems = libraryItems.value,
+                onMarkAsWatched = viewModel::markAsWatched,
+            )
         }
     }
 }
@@ -75,6 +80,7 @@ fun LibraryScreen(
 internal fun LibraryPosterGrid(
     libraryItems: List<MediaUiModel>,
     modifier: Modifier = Modifier,
+    onMarkAsWatched: (MediaUiModel, Boolean) -> Unit,
     viewModel: LibraryViewModel = hiltViewModel()
 ) {
     BoxWithConstraints(
@@ -91,6 +97,15 @@ internal fun LibraryPosterGrid(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             items(libraryItems, key = { item -> item.id }) { item ->
+                val popupActions = remember {
+                    buildList {
+                        if (item is MovieUiModel || item is EpisodeUiModel || item is SeriesUiModel) {
+                            add(MediaAction(name = "Mark as watched") { onMarkAsWatched(item, true) })
+                            add(MediaAction(name = "Mark as unwatched") { onMarkAsWatched(item, false) })
+                        }
+                    }
+                }
+
                 MediaImageCard(
                     imageUrl = item.primaryImageUrl,
                     title = item.primaryText,
@@ -102,6 +117,7 @@ internal fun LibraryPosterGrid(
                             is EpisodeUiModel -> Unit
                         }
                     },
+                    popupActions = popupActions,
                     modifier = Modifier.testTag("$LibraryPosterItemTagPrefix${item.id}")
                 ) {
                     when (item) {

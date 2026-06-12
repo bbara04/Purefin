@@ -88,3 +88,4 @@ internal fun EpisodeTopBar(
 internal const val EpisodeSeriesButtonTag = "episode-series-button"
 internal const val EpisodePlayButtonTag = "episode-play-button"
 internal const val EpisodeDownloadButtonTag = "episode-download-button"
+internal const val EpisodeWatchedButtonTag = "episode-watched-button"

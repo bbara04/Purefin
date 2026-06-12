@@ -28,6 +28,7 @@ import hu.bbara.purefin.ui.common.media.MediaDetailScaffoldUiModel
 import hu.bbara.purefin.ui.common.media.MediaDetailSecondaryActionUiModel
 import hu.bbara.purefin.ui.common.media.MediaDetailSynopsisUiModel
 import hu.bbara.purefin.ui.common.media.mediaPlayButtonText
+import hu.bbara.purefin.ui.screen.movie.components.MovieWatchedButtonTag
 import hu.bbara.purefin.ui.common.media.mediaPlaybackProgress
 import hu.bbara.purefin.ui.common.permission.rememberNotificationPermissionGate
 import hu.bbara.purefin.ui.screen.movie.components.MovieDownloadButtonTag
@@ -67,6 +68,7 @@ fun MovieScreen(
             downloadState = downloadState.value,
             onDownloadClick = onDownloadClick,
             onBack = viewModel::onBack,
+            onMarkAsWatched = viewModel::markAsWatched,
             modifier = modifier
         )
     } else {
@@ -81,6 +83,7 @@ private fun MovieScreenInternal(
     downloadState: DownloadState = DownloadState.NotDownloaded,
     onDownloadClick: () -> Unit = {},
     onBack: () -> Unit,
+    onMarkAsWatched: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -96,7 +99,8 @@ private fun MovieScreenInternal(
         uiModel = movie.toMediaDetailScaffoldUiModel(
             onPlayClick = playAction,
             downloadState = downloadState,
-            onDownloadClick = onDownloadClick
+            onDownloadClick = onDownloadClick,
+            onMarkAsWatched = onMarkAsWatched,
         ),
         modifier = modifier,
         topBar = { scrollBehavior ->
@@ -112,6 +116,7 @@ private fun Movie.toMediaDetailScaffoldUiModel(
     onPlayClick: () -> Unit,
     downloadState: DownloadState,
     onDownloadClick: () -> Unit,
+    onMarkAsWatched: (Boolean) -> Unit,
 ): MediaDetailScaffoldUiModel = MediaDetailScaffoldUiModel(
     imageUrl = ImageUrlBuilder.finishImageUrl(imageUrlPrefix, ArtworkKind.PRIMARY),
     title = title,
@@ -125,6 +130,11 @@ private fun Movie.toMediaDetailScaffoldUiModel(
             testTag = MoviePlayButtonTag
         ),
         secondaryActions = listOf(
+            MediaDetailSecondaryActionUiModel.MarkAsWatched(
+                watched = watched,
+                onClick = { onMarkAsWatched(!watched) },
+                testTag = MovieWatchedButtonTag
+            ),
             MediaDetailSecondaryActionUiModel.Download(
                 downloadState = downloadState,
                 onClick = onDownloadClick,
