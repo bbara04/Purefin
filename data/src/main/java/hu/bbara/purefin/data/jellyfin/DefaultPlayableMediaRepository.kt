@@ -8,6 +8,7 @@ import androidx.media3.common.util.UnstableApi
 import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
+import hu.bbara.purefin.core.data.OfflineMediaManager
 import hu.bbara.purefin.core.data.PlayableMediaRepository
 import hu.bbara.purefin.core.data.PlaybackMediaItemTag
 import hu.bbara.purefin.core.data.PlaybackReportContext
@@ -50,6 +51,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
     private val mediaDownloadController: MediaDownloadController,
     private val networkMonitor: NetworkMonitor,
     @param:Offline private val offlineMediaRepository: LocalMediaRepository,
+    private val offlineMediaManager: OfflineMediaManager,
 ) : PlayableMediaRepository {
 
     override suspend fun getPlayableMedia(mediaId: UUID): PlayableMedia? = withContext(Dispatchers.IO) {
@@ -239,7 +241,8 @@ class DefaultPlayableMediaRepository @Inject constructor(
         existingIds: Set<UUID>,
         count: Int,
     ): List<PlayableMedia> = withContext(Dispatchers.IO) {
-        runCatching {
+        // First try the online (Jellyfin API) path
+        val onlineResult = runCatching {
             val episodes = jellyfinApiClient.getNextEpisodes(episodeId = episodeId, count = count)
             episodes.mapNotNull { episode ->
                 val id = episode.id ?: return@mapNotNull null
@@ -249,9 +252,27 @@ class DefaultPlayableMediaRepository @Inject constructor(
                 getPlayableMedia(id)
             }
         }.getOrElse { error ->
-            Timber.tag(TAG).w(error, "Unable to load next-up items for $episodeId")
-            emptyList()
+            Timber.tag(TAG).w(error, "Unable to load next-up items from API for $episodeId")
+            null // Signal that we should try the offline fallback
         }
+        if (onlineResult != null) return@withContext onlineResult
+
+        // Offline fallback: find next episodes from the local database
+        Timber.tag(TAG).d("Falling back to offline next-up resolution for $episodeId")
+        val currentEpisode = offlineMediaRepository.getEpisode(episodeId).first() ?: return@withContext emptyList()
+        val seriesEpisodes = offlineMediaManager.getEpisodesBySeries(currentEpisode.seriesId)
+            .sortedWith(compareBy({ it.seasonIndex }, { it.index }))
+
+        val currentIndex = seriesEpisodes.indexOfFirst { it.id == episodeId }
+        if (currentIndex == -1) return@withContext emptyList()
+
+        seriesEpisodes
+            .drop(currentIndex + 1)
+            .take(count)
+            .filter { it.id !in existingIds }
+            .mapNotNull { nextEpisode ->
+                getPlayableMedia(nextEpisode.id)
+            }
     }
 
     @OptIn(UnstableApi::class)
