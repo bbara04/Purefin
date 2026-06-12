@@ -1,7 +1,7 @@
 package hu.bbara.purefin.core.player.manager
 
 import dagger.hilt.android.scopes.ViewModelScoped
-import hu.bbara.purefin.core.data.LocalMediaUpdater
+import hu.bbara.purefin.core.data.MediaMetadataUpdater
 import hu.bbara.purefin.core.data.PlaybackProgressReporter
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.player.model.MetadataState
@@ -24,7 +24,7 @@ import javax.inject.Inject
 @ViewModelScoped
 class ProgressManager @Inject constructor(
     private val playbackProgressReporter: PlaybackProgressReporter,
-    private val localMediaUpdater: LocalMediaUpdater,
+    private val mediaMetadataUpdater: MediaMetadataUpdater,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var progressJob: Job? = null
@@ -80,7 +80,7 @@ class ProgressManager @Inject constructor(
             report(itemId, lastPositionMs, reportContext = activePlaybackReportContext, isStop = true)
             scope.launch(Dispatchers.IO) {
                 try {
-                    localMediaUpdater.updateWatchProgress(itemId, lastPositionMs, lastDurationMs)
+                    mediaMetadataUpdater.updateWatchProgress(itemId, lastPositionMs, lastDurationMs)
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Local cache update failed")
                 }
@@ -127,7 +127,7 @@ class ProgressManager @Inject constructor(
                     activePlaybackReportContext?.let { reportContext ->
                         playbackProgressReporter.reportPlaybackStopped(itemId, ticks, reportContext)
                     }
-                    localMediaUpdater.updateWatchProgress(itemId, posMs, durMs)
+                    mediaMetadataUpdater.updateWatchProgress(itemId, posMs, durMs)
                     Timber.tag(TAG).d("Stop: $itemId at ${posMs}ms")
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Report failed")

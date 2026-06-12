@@ -3,6 +3,7 @@ package hu.bbara.purefin.data.jellyfin.playback
 import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.Online
 import hu.bbara.purefin.core.data.LocalMediaRepository
+import hu.bbara.purefin.core.data.MediaMetadataUpdater
 import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.feature.browse.home.refresh.HomeRefreshSideEffect
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
@@ -19,6 +20,7 @@ import kotlin.math.roundToLong
 class SyncPlaybackPositionsHomeRefreshSideEffect @Inject constructor(
     private val networkMonitor: NetworkMonitor,
     private val jellyfinApiClient: JellyfinApiClient,
+    private val mediaMetadataUpdater: MediaMetadataUpdater,
     @param:Offline private val offlineRepository: LocalMediaRepository,
     @param:Online private val onlineRepository: LocalMediaRepository,
 ) : HomeRefreshSideEffect {
@@ -49,12 +51,12 @@ class SyncPlaybackPositionsHomeRefreshSideEffect @Inject constructor(
             // furthest known playback position as the best available source of truth.
             when {
                 localPlaybackPositionTicks > remotePlaybackPosition.playbackPositionTicks + tickTolerance -> {
-                    jellyfinApiClient.updatePlaybackPosition(
+                    mediaMetadataUpdater.updatePlaybackPosition(
                         mediaId = localPlaybackPosition.mediaId,
                         playbackPositionTicks = localPlaybackPositionTicks,
                         runtimeTicks = remotePlaybackPosition.runtimeTicks,
                     )
-                    onlineRepository.updateWatchProgressPercent(
+                    mediaMetadataUpdater.updateWatchProgressPercent(
                         mediaId = localPlaybackPosition.mediaId,
                         progressPercent = localPlaybackPositionTicks.toProgressPercent(
                             runtimeTicks = remotePlaybackPosition.runtimeTicks,
@@ -65,11 +67,7 @@ class SyncPlaybackPositionsHomeRefreshSideEffect @Inject constructor(
                     val remoteProgressPercent = remotePlaybackPosition.playbackPositionTicks.toProgressPercent(
                         runtimeTicks = remotePlaybackPosition.runtimeTicks,
                     )
-                    offlineRepository.updateWatchProgressPercent(
-                        mediaId = localPlaybackPosition.mediaId,
-                        progressPercent = remoteProgressPercent,
-                    )
-                    onlineRepository.updateWatchProgressPercent(
+                    mediaMetadataUpdater.updateWatchProgressPercent(
                         mediaId = localPlaybackPosition.mediaId,
                         progressPercent = remoteProgressPercent,
                     )

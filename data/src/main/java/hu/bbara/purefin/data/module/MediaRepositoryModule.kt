@@ -14,7 +14,7 @@ import hu.bbara.purefin.data.catalog.InMemoryLocalMediaRepository
 import hu.bbara.purefin.data.catalog.OfflineLocalMediaRepository
 import hu.bbara.purefin.data.jellyfin.JellyfinMediaMetadataUpdaterImpl
 import hu.bbara.purefin.data.jellyfin.SearchManagerImpl
-import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
+import hu.bbara.purefin.core.data.MediaMetadataUpdater
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -32,7 +32,7 @@ abstract class MediaRepositoryModule {
     abstract fun bindHomeRepository(impl: InMemoryAppContentRepository): HomeRepository
 
     @Binds
-    abstract fun bindJellyfinMediaMetadataUpdater(impl: JellyfinMediaMetadataUpdaterImpl): JellyfinMediaMetadataUpdater
+    abstract fun bindMediaMetadataUpdater(impl: JellyfinMediaMetadataUpdaterImpl): MediaMetadataUpdater
 
     @Binds
     abstract fun bindSearchManager(impl: SearchManagerImpl): SearchManager

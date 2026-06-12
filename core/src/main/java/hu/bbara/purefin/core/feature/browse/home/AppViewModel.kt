@@ -8,7 +8,7 @@ import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.UserSessionRepository
 import hu.bbara.purefin.core.feature.browse.home.refresh.HomeRefreshCoordinator
-import hu.bbara.purefin.core.jellyfin.JellyfinMediaMetadataUpdater
+import hu.bbara.purefin.core.data.MediaMetadataUpdater
 import hu.bbara.purefin.core.settings.SettingsRepository
 import hu.bbara.purefin.core.model.EpisodeUiModel
 import hu.bbara.purefin.core.model.LibraryUiModel
@@ -39,7 +39,7 @@ class AppViewModel @Inject constructor(
     private val homeRepository: HomeRepository,
     private val localMediaRepository: LocalMediaRepository,
     private val userSessionRepository: UserSessionRepository,
-    private val jellyfinMediaMetadataUpdater: JellyfinMediaMetadataUpdater,
+    private val mediaMetadataUpdater: MediaMetadataUpdater,
     private val navigationManager: NavigationManager,
     private val homeRefreshCoordinator: HomeRefreshCoordinator,
     private val settingsRepository: SettingsRepository,
@@ -185,7 +185,7 @@ class AppViewModel @Inject constructor(
 
     fun markAsWatched(mediaUiModel: MediaUiModel, watched: Boolean) {
         viewModelScope.launch {
-            jellyfinMediaMetadataUpdater.markAsWatched(mediaUiModel.id, watched)
+            mediaMetadataUpdater.markAsWatched(mediaUiModel.id, watched)
         }
     }
 
