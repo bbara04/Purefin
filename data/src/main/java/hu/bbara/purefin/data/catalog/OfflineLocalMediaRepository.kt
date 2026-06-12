@@ -71,6 +71,14 @@ class OfflineLocalMediaRepository @Inject constructor(
         // Do nothing
     }
 
+    override suspend fun updatePlaybackPosition(
+        mediaId: UUID,
+        playbackPositionTicks: Long,
+        runtimeTicks: Long,
+    ) {
+        // Server-side operation — not persisted offline
+    }
+
     override suspend fun saveMovies(movies: List<Movie>) {
         localDataSource.saveMovies(movies)
     }

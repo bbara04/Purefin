@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
-interface LocalMediaRepository : LocalMediaUpdater {
+interface LocalMediaRepository : MediaMetadataUpdater {
     val movies: StateFlow<Map<UUID, Movie>>
     val series: StateFlow<Map<UUID, Series>>
     val episodes: StateFlow<Map<UUID, Episode>>

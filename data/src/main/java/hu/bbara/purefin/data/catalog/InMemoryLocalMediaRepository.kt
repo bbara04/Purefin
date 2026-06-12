@@ -214,6 +214,14 @@ class InMemoryLocalMediaRepository @Inject constructor(
         }
     }
 
+    override suspend fun updatePlaybackPosition(
+        mediaId: UUID,
+        playbackPositionTicks: Long,
+        runtimeTicks: Long,
+    ) {
+        // Server-side operation — not persisted locally
+    }
+
     private fun updateLoadedSeriesEpisode(updatedEpisode: Episode) {
         seriesState.update { current ->
             val series = current[updatedEpisode.seriesId] ?: return@update current

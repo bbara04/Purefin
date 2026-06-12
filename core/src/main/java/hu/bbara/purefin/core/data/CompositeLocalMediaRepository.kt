@@ -102,6 +102,18 @@ class CompositeLocalMediaRepository @Inject constructor(
         )
     }
 
+    override suspend fun updatePlaybackPosition(
+        mediaId: UUID,
+        playbackPositionTicks: Long,
+        runtimeTicks: Long,
+    ) {
+        // Server-side operation — delegates to active repository (both are no-ops)
+        runOnlineOrOfflineNoOp(
+            onlineAction = { onlineRepository.updatePlaybackPosition(mediaId, playbackPositionTicks, runtimeTicks) },
+            offlineAction = { offlineRepository.updatePlaybackPosition(mediaId, playbackPositionTicks, runtimeTicks) },
+        )
+    }
+
     private suspend fun <T> getFromActiveRepository(
         onlineRead: suspend () -> Flow<T>,
         offlineRead: suspend () -> Flow<T>,
