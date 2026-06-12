@@ -37,6 +37,7 @@ import org.jellyfin.sdk.model.api.MediaSegmentType.RECAP
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import timber.log.Timber
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -158,7 +159,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
                     artworkUrl = ImageUrlBuilder.finishImageUrl(movie.imageUrlPrefix, ArtworkKind.PRIMARY),
                     playbackReportContext = null,
                 ),
-                resumePositionMs = 0L,
+                resumePositionMs = calculateOfflineResumePosition(movie.progress, movie.runtime, movie.watched),
                 preferences = preferences,
                 mediaSegments = emptyList()
             )
@@ -176,7 +177,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
                     artworkUrl = ImageUrlBuilder.finishImageUrl(episode.imageUrlPrefix, ArtworkKind.PRIMARY),
                     playbackReportContext = null,
                 ),
-                resumePositionMs = 0L,
+                resumePositionMs = calculateOfflineResumePosition(episode.progress, episode.runtime, episode.watched),
                 preferences = preferences,
                 mediaSegments = emptyList()
             )
@@ -324,6 +325,39 @@ class DefaultPlayableMediaRepository @Inject constructor(
             .setMediaMetadata(metadataBuilder.build())
             .setTag(playbackReportContext)
             .build()
+    }
+
+    /**
+     * Calculates the resume position for offline media from the stored progress percentage
+     * and runtime string. Applies the same 5%-95% threshold logic as [calculateResumePosition].
+     */
+    private fun calculateOfflineResumePosition(
+        progress: Double?,
+        runtime: String,
+        watched: Boolean,
+    ): Long {
+        if (watched) return 0L
+        val progressPercent = progress ?: return 0L
+        if (progressPercent.isNaN() || progressPercent <= 0.0) return 0L
+
+        val runtimeMs = parseRuntimeToMs(runtime) ?: return 0L
+        if (runtimeMs <= 0L) return 0L
+
+        val positionMs = ((progressPercent / 100.0) * runtimeMs).toLong()
+        return if (progressPercent in 5.0..95.0) positionMs else 0L
+    }
+
+    /**
+     * Parses a runtime string in the format "2h 1m" or "25m" (produced by [formatRuntime])
+     * into milliseconds. Returns null for unparseable values like "—".
+     */
+    private fun parseRuntimeToMs(runtime: String): Long? {
+        if (runtime.isBlank() || runtime == "—") return null
+        val regex = Regex("""(?:(\d+)h\s*)?(\d+)m""")
+        val match = regex.matchEntire(runtime.trim()) ?: return null
+        val hours = match.groupValues[1].toLongOrNull() ?: 0L
+        val minutes = match.groupValues[2].toLongOrNull() ?: 0L
+        return TimeUnit.MINUTES.toMillis(hours * 60 + minutes)
     }
 
     private fun MediaSegmentDto.toMediaSegment(): MediaSegment {
