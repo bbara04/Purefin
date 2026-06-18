@@ -14,7 +14,6 @@ import hu.bbara.purefin.core.player.model.PlaylistElementUiModel
 import hu.bbara.purefin.core.player.model.TrackOption
 import hu.bbara.purefin.model.PlayableMedia
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,8 +21,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import kotlinx.serialization.InternalSerializationApi
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -46,10 +45,6 @@ class PlayerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
 
-    private val _controlsVisible = MutableStateFlow(true)
-    val controlsVisible: StateFlow<Boolean> = _controlsVisible.asStateFlow()
-
-    private val controlsAutoHidePolicy = ControlsAutoHidePolicy(DEFAULT_CONTROLS_AUTO_HIDE_MS)
     private val seekByCollector = SeekByCollector(viewModelScope) { deltaMs ->
         playerManager.seekBy(deltaMs)
     }
@@ -76,12 +71,6 @@ class PlayerViewModel @Inject constructor(
                         isEnded = state.isEnded,
                         error = state.error ?: dataErrorMessage
                     )
-                }
-                applyControlsAutoHideCommand(
-                    controlsAutoHidePolicy.onPlaybackChanged(state.isPlaying)
-                )
-                if (state.isEnded) {
-                    showControls()
                 }
             }
         }
@@ -188,9 +177,8 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun togglePlayPause(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
+    fun togglePlayPause() {
         playerManager.togglePlayPause()
-        showControls(autoHideDelayMs)
     }
 
     fun pausePlayback() {
@@ -220,49 +208,14 @@ class PlayerViewModel @Inject constructor(
         playerManager.skipActiveSegment()
     }
 
-    fun setControlsAutoHideBlocked(
-        blocker: ControlsAutoHideBlocker,
-        blocked: Boolean
-    ) {
-        applyControlsAutoHideCommand(
-            controlsAutoHidePolicy.setBlocked(blocker, blocked)
-        )
-    }
-
-    fun showControls(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
-        applyControlsAutoHideCommand(
-            controlsAutoHidePolicy.showControls(autoHideDelayMs)
-        )
-    }
-
-    fun toggleControlsVisibility() {
-        applyControlsAutoHideCommand(
-            controlsAutoHidePolicy.toggleControlsVisibility()
-        )
-    }
-
-    private fun applyControlsAutoHideCommand(command: ControlsAutoHideCommand) {
-        _controlsVisible.value = controlsAutoHidePolicy.controlsVisible
-        autoHideJob?.cancel()
-        autoHideJob = null
-        if (command !is ControlsAutoHideCommand.Schedule) return
-        autoHideJob = viewModelScope.launch {
-            delay(command.delayMs)
-            controlsAutoHidePolicy.hideControls()
-            _controlsVisible.value = controlsAutoHidePolicy.controlsVisible
-        }
-    }
-
-    fun next(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
+    fun next() {
         seekByCollector.clear()
         playerManager.next()
-        showControls(autoHideDelayMs)
     }
 
-    fun previous(autoHideDelayMs: Long = DEFAULT_CONTROLS_AUTO_HIDE_MS) {
+    fun previous() {
         seekByCollector.clear()
         playerManager.previous()
-        showControls(autoHideDelayMs)
     }
 
     fun selectTrack(option: TrackOption) {
@@ -276,7 +229,6 @@ class PlayerViewModel @Inject constructor(
     fun playQueueItem(id: String) {
         seekByCollector.clear()
         playerManager.play(id.toUuidOrNull() ?: return)
-        showControls()
     }
 
     fun clearError() {

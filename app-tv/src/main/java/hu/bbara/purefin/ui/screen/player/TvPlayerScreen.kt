@@ -30,9 +30,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,34 +42,36 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import hu.bbara.purefin.core.player.model.TimedMarker
-import hu.bbara.purefin.core.player.viewmodel.ControlsAutoHideBlocker
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.screen.player.components.PlayerSeekBarTrack
 import hu.bbara.purefin.ui.screen.player.components.TvIconButton
 import hu.bbara.purefin.ui.screen.player.components.TvNextEpisodeOverlay
-import hu.bbara.purefin.ui.screen.player.components.TvPlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerLoadingErrorEndCard
+import hu.bbara.purefin.ui.screen.player.components.TvPlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.TvTrackPanelType
 import hu.bbara.purefin.ui.screen.player.components.TvTrackSelectionPanel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val TV_CONTROLS_AUTO_HIDE_MS = 5_000L
 private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.22f
@@ -86,21 +89,28 @@ fun TvPlayerScreen(
         viewModel.loadMedia(mediaId)
     }
 
+    val scope = rememberCoroutineScope()
+    var hideControlsJob: Job? by remember { mutableStateOf(null) }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val controlsVisible by viewModel.controlsVisible.collectAsStateWithLifecycle()
+    var controlsVisible by remember { mutableStateOf(true) }
     var isPlaylistExpanded by remember { mutableStateOf(false) }
     var trackPanelType by remember { mutableStateOf<TvTrackPanelType?>(null) }
+    // TODO why this is needed???
     var pendingTrackButtonFocus by remember { mutableStateOf<TvTrackPanelType?>(null) }
     var stopFeedbackVisible by remember { mutableStateOf(false) }
-    var stopFeedbackRequestId by remember { mutableStateOf(0) }
+    var stopFeedbackRequestId by remember { mutableIntStateOf(0) }
     var hiddenSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
-    var hiddenSeekRequestId by remember { mutableStateOf(0) }
-    val controlsAutoHideBlocked = isPlaylistExpanded || trackPanelType != null
+    var hiddenSeekRequestId by remember { mutableIntStateOf(0) }
 
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
-    val rootFocusRequester = remember { FocusRequester() }
-    val controlsFocusRequester = remember { FocusRequester() }
+
+    val backgroundFocusRequester = remember { FocusRequester() }
+
+    // Main section focus requesters
+    var rootFocusRequester by remember { mutableStateOf(backgroundFocusRequester) }
+    var controlsFocusRequester by remember { mutableStateOf(FocusRequester() ) }
+
     val qualityButtonFocusRequester = remember { FocusRequester() }
     val audioButtonFocusRequester = remember { FocusRequester() }
     val subtitlesButtonFocusRequester = remember { FocusRequester() }
@@ -110,7 +120,11 @@ fun TvPlayerScreen(
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         viewModel.pausePlayback()
     }
-
+    DisposableEffect(Unit) {
+        onDispose {
+            (context as? Activity)?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
     LaunchedEffect(uiState.isPlaying) {
         val activity = context as? Activity
         if (uiState.isPlaying) {
@@ -119,118 +133,73 @@ fun TvPlayerScreen(
             activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
-    DisposableEffect(Unit) {
-        onDispose {
-            (context as? Activity)?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            viewModel.setControlsAutoHideBlocked(ControlsAutoHideBlocker.PLAYLIST, false)
-            viewModel.setControlsAutoHideBlocked(ControlsAutoHideBlocker.TRACK_PANEL, false)
+
+    fun showControls() {
+        controlsVisible = true
+    }
+    fun hideControls() {
+        controlsVisible = false
+    }
+    fun hideControlsWithTimeout() {
+        hideControlsJob?.cancel()
+        if (controlsVisible && !isPlaylistExpanded && trackPanelType == null && !uiState.isEnded && uiState.error == null) {
+            hideControlsJob = scope.launch {
+                delay(TV_CONTROLS_AUTO_HIDE_MS)
+                hideControls()
+            }
+        }
+    }
+    // Needed because of composition scheduling
+    LaunchedEffect(controlsVisible) {
+        if (controlsVisible) {
+            controlsFocusRequester.requestFocus()
+        } else {
+            rootFocusRequester.requestFocus()
         }
     }
 
-    LaunchedEffect(isPlaylistExpanded) {
-        viewModel.setControlsAutoHideBlocked(ControlsAutoHideBlocker.PLAYLIST, isPlaylistExpanded)
+    fun expandPlaylist() {
+        // TODO: focus management for playlist expansion
+        isPlaylistExpanded = true
     }
-
-    LaunchedEffect(trackPanelType) {
-        viewModel.setControlsAutoHideBlocked(
-            ControlsAutoHideBlocker.TRACK_PANEL,
-            trackPanelType != null
-        )
-    }
-
-    val expandPlaylist: () -> Unit = {
-        if (!isPlaylistExpanded) {
-            isPlaylistExpanded = true
-        }
-    }
-    val collapsePlaylistToControls: () -> Unit = {
-        if (isPlaylistExpanded) {
-            isPlaylistExpanded = false
-            viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
-        }
-    }
-    val showTvControls: () -> Unit = {
-        viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
-    }
-    val togglePlayPauseAndShowControls: () -> Unit = {
-        viewModel.togglePlayPause(TV_CONTROLS_AUTO_HIDE_MS)
-    }
-    val pausePlaybackWithoutShowingControls: () -> Unit = {
-        viewModel.pausePlayback()
-        stopFeedbackVisible = true
-        stopFeedbackRequestId += 1
-    }
-    val resumePlaybackWithoutShowingControls: () -> Unit = {
-        viewModel.resumePlayback()
-        stopFeedbackVisible = false
-    }
-    val seekAndShowControls: (Long) -> Unit = { positionMs ->
-        viewModel.seekTo(positionMs)
-        showTvControls()
-    }
-    val seekByAndShowControls: (Long) -> Unit = { deltaMs ->
-        viewModel.seekBy(deltaMs)
-        showTvControls()
-    }
-    val seekByWithoutShowingControls: (Long) -> Unit = { deltaMs ->
-        val basePositionMs = hiddenSeekPreviewPositionMs ?: uiState.positionMs
-        hiddenSeekPreviewPositionMs = (basePositionMs + deltaMs).coerceSeekPosition(uiState.durationMs)
-        hiddenSeekRequestId += 1
-        viewModel.seekBy(deltaMs)
-        stopFeedbackVisible = false
-    }
-    val seekToLiveEdgeAndShowControls: () -> Unit = {
-        viewModel.seekToLiveEdge()
-        showTvControls()
-    }
-    val skipSegmentAndShowControls: () -> Unit = {
-        viewModel.skipActiveSegment()
-        showTvControls()
-    }
-    val nextAndShowControls: () -> Unit = {
-        viewModel.next(TV_CONTROLS_AUTO_HIDE_MS)
-    }
-    val previousAndShowControls: () -> Unit = {
-        viewModel.previous(TV_CONTROLS_AUTO_HIDE_MS)
+    fun closePlaylist() {
+        // TODO focus
+        isPlaylistExpanded = false
     }
     val closeTrackPanel: () -> Unit = {
         trackPanelType?.let { panelType ->
             pendingTrackButtonFocus = panelType
             trackPanelType = null
-            viewModel.showControls(TV_CONTROLS_AUTO_HIDE_MS)
         }
     }
 
-    val playerControlsVisible =
-        controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null
 
-    val showNextEpisodeOverlay = !playerControlsVisible
+    val showSkipIntroButton = !controlsVisible
+        && uiState.activeSkippableSegmentEndMs != null
+        && !uiState.isEnded
+    val showNextEpisodeOverlay = !controlsVisible
         && uiState.nextEpisode != null
         && uiState.durationMs > 0L
         && (uiState.durationMs - uiState.positionMs) <= 60_000L
         && !uiState.isEnded
-
-    LaunchedEffect(
-        controlsVisible,
-        controlsAutoHideBlocked,
-        uiState.activeSkippableSegmentEndMs,
-        showNextEpisodeOverlay
-    ) {
-        if (controlsAutoHideBlocked) return@LaunchedEffect
-        if (controlsVisible) {
-            controlsFocusRequester.requestFocus()
-        } else {
-            if (uiState.activeSkippableSegmentEndMs != null) {
-                skipButtonFocusRequester.requestFocus()
-                return@LaunchedEffect
+    val showHiddenSeekPreview = !controlsVisible && hiddenSeekPreviewPositionMs != null
+    LaunchedEffect(showSkipIntroButton, showNextEpisodeOverlay) {
+        rootFocusRequester = when {
+            showSkipIntroButton -> {
+                skipButtonFocusRequester
             }
-            if (showNextEpisodeOverlay) {
-                nextEpisodeFocusRequester.requestFocus()
-                return@LaunchedEffect
+            showNextEpisodeOverlay -> {
+                nextEpisodeFocusRequester
             }
-            focusManager.clearFocus()
+            else -> {
+                backgroundFocusRequester
+            }
+        }
+        if (!controlsVisible) {
+            rootFocusRequester.requestFocus()
         }
     }
+
 
     LaunchedEffect(trackPanelType, pendingTrackButtonFocus) {
         val pendingFocus = pendingTrackButtonFocus ?: return@LaunchedEffect
@@ -243,6 +212,7 @@ fun TvPlayerScreen(
         pendingTrackButtonFocus = null
     }
 
+    // TODO: use animated visibility for this type of feedback that is already implemented
     LaunchedEffect(stopFeedbackRequestId) {
         if (stopFeedbackRequestId == 0) return@LaunchedEffect
         delay(TV_HIDDEN_STOP_FEEDBACK_MS)
@@ -263,7 +233,7 @@ fun TvPlayerScreen(
     }
 
     val subtitleBottomPaddingFraction =
-        if (playerControlsVisible) {
+        if (controlsVisible) {
             CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION
         } else {
             SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION
@@ -272,8 +242,12 @@ fun TvPlayerScreen(
     BackHandler(enabled = true) {
         when {
             trackPanelType != null -> closeTrackPanel()
-            isPlaylistExpanded -> collapsePlaylistToControls()
-            controlsVisible -> viewModel.toggleControlsVisibility()
+            isPlaylistExpanded -> {
+                closePlaylist()
+            }
+            controlsVisible -> {
+                hideControls()
+            }
             else -> onBack()
         }
     }
@@ -284,23 +258,28 @@ fun TvPlayerScreen(
             .background(Color.Black)
             .focusRequester(rootFocusRequester)
             .onPreviewKeyEvent { event ->
-                handleTvPlayerRootKeyEvent(
+                val handled = handleTvPlayerRootKeyEvent(
                     event = event,
                     isPlaying = uiState.isPlaying,
                     controlsVisible = controlsVisible,
+                    onShowControls = ::showControls,
                     isPlaylistExpanded = isPlaylistExpanded,
                     trackPanelType = trackPanelType,
                     onCloseTrackPanel = closeTrackPanel,
-                    onCollapsePlaylist = collapsePlaylistToControls,
-                    onHideControls = { viewModel.toggleControlsVisibility() },
-                    onPausePlaybackWithoutShowingControls = pausePlaybackWithoutShowingControls,
-                    onResumePlaybackWithoutShowingControls = resumePlaybackWithoutShowingControls,
-                    onSeekRelative = seekByWithoutShowingControls,
-                    onShowControls = showTvControls,
-                    onSkipSegment = skipSegmentAndShowControls,
-                    hasSkippableSegment = uiState.activeSkippableSegmentEndMs != null,
-                    onTogglePlayPause = togglePlayPauseAndShowControls
+                    onCollapsePlaylist = {},
+                    onHideControls = ::hideControls,
+                    onPausePlayback = { viewModel.pausePlayback() },
+                    onResumePlayback = { viewModel.resumePlayback() },
+                    onSeekRelative = { viewModel.seekBy(it) },
+                    onSkipSegment = {
+                        viewModel.skipActiveSegment()
+                    },
+                    hasSkippableSegment = uiState.activeSkippableSegmentEndMs != null
                 )
+                if (event.type == KeyEventType.KeyDown) {
+                    hideControlsWithTimeout()
+                }
+                handled
             }
             .focusable()
     ) {
@@ -323,7 +302,7 @@ fun TvPlayerScreen(
         )
 
         AnimatedVisibility(
-            visible = playerControlsVisible,
+            visible = controlsVisible,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
@@ -335,21 +314,28 @@ fun TvPlayerScreen(
                 qualityButtonFocusRequester = qualityButtonFocusRequester,
                 audioButtonFocusRequester = audioButtonFocusRequester,
                 subtitlesButtonFocusRequester = subtitlesButtonFocusRequester,
-                onPlayPause = togglePlayPauseAndShowControls,
-                onSeek = seekAndShowControls,
-                onSeekRelative = seekByAndShowControls,
-                onSeekLiveEdge = seekToLiveEdgeAndShowControls,
-                onSkipSegment = skipSegmentAndShowControls,
-                onNext = nextAndShowControls,
-                onPrevious = previousAndShowControls,
+                onPlayPause = { viewModel.togglePlayPause() },
+                onSeek = { positionMs ->
+                    viewModel.seekTo(positionMs)
+                },
+                onSeekRelative = { deltaMs ->
+                    viewModel.seekBy(deltaMs)
+                },
+                onSeekLiveEdge = {
+                    viewModel.seekToLiveEdge()
+                },
+                onSkipSegment = {
+                    viewModel.skipActiveSegment()
+                },
+                onNext = { viewModel.next() },
+                onPrevious = { viewModel.previous() },
                 onOpenAudioPanel = { trackPanelType = TvTrackPanelType.AUDIO },
                 onOpenSubtitlesPanel = { trackPanelType = TvTrackPanelType.SUBTITLES },
                 onOpenQualityPanel = { trackPanelType = TvTrackPanelType.QUALITY },
-                onExpandPlaylist = expandPlaylist,
-                onCollapsePlaylist = collapsePlaylistToControls,
+                onExpandPlaylist = ::expandPlaylist,
+                onCollapsePlaylist = ::closePlaylist,
                 onSelectQueueItem = { id ->
                     viewModel.playQueueItem(id)
-                    collapsePlaylistToControls()
                 },
                 qualityButtonEnabled = uiState.qualityTracks.isNotEmpty(),
                 audioButtonEnabled = uiState.audioTracks.isNotEmpty(),
@@ -358,9 +344,7 @@ fun TvPlayerScreen(
         }
 
         AnimatedVisibility(
-            visible = !playerControlsVisible && uiState.activeSkippableSegmentEndMs != null,
-            enter = fadeIn(),
-            exit = fadeOut(),
+            visible = showSkipIntroButton,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(
@@ -371,7 +355,7 @@ fun TvPlayerScreen(
             TvIconButton(
                 icon = Icons.Outlined.SkipNext,
                 contentDescription = "Skip segment",
-                onClick = skipSegmentAndShowControls,
+                onClick = { viewModel.skipActiveSegment() },
                 size = 64,
                 label = "Skip",
                 modifier = Modifier.focusRequester(skipButtonFocusRequester)
@@ -380,8 +364,6 @@ fun TvPlayerScreen(
 
         AnimatedVisibility(
             visible = showNextEpisodeOverlay,
-            enter = fadeIn(),
-            exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(
@@ -392,17 +374,15 @@ fun TvPlayerScreen(
             uiState.nextEpisode?.let { nextEpisode ->
                 TvNextEpisodeOverlay(
                     nextEpisode = nextEpisode,
-                    onClick = { nextAndShowControls() },
-                    onUp = { showTvControls() },
+                    onClick = { viewModel.next() },
                     modifier = Modifier.focusRequester(nextEpisodeFocusRequester)
                 )
             }
         }
 
+        // TODO: use TimedVisibility
         AnimatedVisibility(
-            visible = !playerControlsVisible && hiddenSeekPreviewPositionMs != null,
-            enter = fadeIn(),
-            exit = fadeOut(),
+            visible = showHiddenSeekPreview,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 32.dp, vertical = 28.dp)
@@ -420,18 +400,17 @@ fun TvPlayerScreen(
             modifier = Modifier.align(Alignment.Center),
             uiState = uiState,
             onRetry = { viewModel.retry() },
-            onNext = nextAndShowControls,
+            onNext = { viewModel.next() },
             onReplay = {
                 viewModel.seekTo(0L)
-                togglePlayPauseAndShowControls()
+                viewModel.resumePlayback()
             },
             onDismissError = { viewModel.clearError() }
         )
 
+        // TODO: use TimedVisibility
         AnimatedVisibility(
             visible = stopFeedbackVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
             modifier = Modifier.align(Alignment.Center)
         ) {
             TvPlayerHiddenStopFeedback()
@@ -498,15 +477,8 @@ private fun HiddenTvSeekTimeline(
     }
 }
 
-private fun Long.coerceSeekPosition(durationMs: Long): Long =
-    if (durationMs > 0L) {
-        coerceIn(0L, durationMs)
-    } else {
-        coerceAtLeast(0L)
-    }
-
 internal fun handleTvPlayerRootKeyEvent(
-    event: androidx.compose.ui.input.key.KeyEvent,
+    event: KeyEvent,
     isPlaying: Boolean,
     controlsVisible: Boolean,
     isPlaylistExpanded: Boolean,
@@ -514,13 +486,12 @@ internal fun handleTvPlayerRootKeyEvent(
     onCloseTrackPanel: () -> Unit,
     onCollapsePlaylist: () -> Unit,
     onHideControls: () -> Unit,
-    onPausePlaybackWithoutShowingControls: () -> Unit,
-    onResumePlaybackWithoutShowingControls: () -> Unit,
+    onPausePlayback: () -> Unit,
+    onResumePlayback: () -> Unit,
     onSeekRelative: (Long) -> Unit,
     onShowControls: () -> Unit,
     onSkipSegment: () -> Unit = {},
-    hasSkippableSegment: Boolean = false,
-    onTogglePlayPause: () -> Unit
+    hasSkippableSegment: Boolean = false
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
 
@@ -566,9 +537,9 @@ internal fun handleTvPlayerRootKeyEvent(
                 if (hasSkippableSegment) {
                     onSkipSegment()
                 } else if (isPlaying) {
-                    onPausePlaybackWithoutShowingControls()
+                    onPausePlayback()
                 } else {
-                    onResumePlaybackWithoutShowingControls()
+                    onResumePlayback()
                 }
                 true
             }

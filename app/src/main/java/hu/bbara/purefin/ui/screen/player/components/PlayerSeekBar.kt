@@ -27,8 +27,6 @@ fun PlayerSeekBar(
     chapterMarkers: List<TimedMarker>,
     adMarkers: List<TimedMarker>,
     onSeek: (Long) -> Unit,
-    onScrubStarted: () -> Unit,
-    onScrubFinished: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val safeDuration = durationMs.takeIf { it > 0 } ?: 1L
@@ -61,7 +59,6 @@ fun PlayerSeekBar(
             onValueChange = { newValue ->
                 if (!isScrubbing) {
                     isScrubbing = true
-                    onScrubStarted()
                 }
                 sliderPosition = newValue
             },
@@ -69,7 +66,6 @@ fun PlayerSeekBar(
                 val targetPosition = sliderPosition.toLong().coerceIn(0L, safeDuration)
                 isScrubbing = false
                 onSeek(targetPosition)
-                onScrubFinished()
             },
             valueRange = 0f..safeDuration.toFloat(),
             colors = SliderDefaults.colors(

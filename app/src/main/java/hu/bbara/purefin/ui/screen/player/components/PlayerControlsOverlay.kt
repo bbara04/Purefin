@@ -32,10 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -51,7 +47,6 @@ import hu.bbara.purefin.ui.common.button.PurefinIconButton
 @Composable
 fun PlayerControlsOverlay(
     uiState: PlayerUiState,
-    showControls: Boolean,
     overlayController: PersistentOverlayController,
     onBack: () -> Unit,
     onPlayPause: () -> Unit,
@@ -62,11 +57,9 @@ fun PlayerControlsOverlay(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onSelectTrack: (TrackOption) -> Unit,
-    onQueueSelected: (String) -> Unit,
     onOpenQueue: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    var scrubbing by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -98,11 +91,8 @@ fun PlayerControlsOverlay(
             )
             BottomSection(
                 uiState = uiState,
-                scrubbing = scrubbing,
                 overlayController = overlayController,
-                onScrubStart = { scrubbing = true },
                 onScrub = onSeek,
-                onScrubFinished = { scrubbing = false },
                 onNext = onNext,
                 onPrevious = onPrevious,
                 onPlayPause = onPlayPause,
@@ -111,7 +101,6 @@ fun PlayerControlsOverlay(
                 onSeekLiveEdge = onSeekLiveEdge,
                 onSkipSegment = onSkipSegment,
                 onSelectTrack = onSelectTrack,
-                onQueueSelected = onQueueSelected,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
@@ -163,11 +152,8 @@ private fun TopBar(
 @Composable
 private fun BottomSection(
     uiState: PlayerUiState,
-    scrubbing: Boolean,
     overlayController: PersistentOverlayController,
-    onScrubStart: () -> Unit,
     onScrub: (Long) -> Unit,
-    onScrubFinished: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onPlayPause: () -> Unit,
@@ -176,7 +162,6 @@ private fun BottomSection(
     onSeekLiveEdge: () -> Unit,
     onSkipSegment: () -> Unit,
     onSelectTrack: (TrackOption) -> Unit,
-    onQueueSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -194,8 +179,6 @@ private fun BottomSection(
             chapterMarkers = uiState.chapters,
             adMarkers = uiState.ads,
             onSeek = onScrub,
-            onScrubStarted = onScrubStart,
-            onScrubFinished = onScrubFinished,
             modifier = Modifier.testTag(PlayerSeekBarTag)
         )
         Spacer(modifier = Modifier.height(8.dp))

@@ -24,10 +24,10 @@ import androidx.compose.material.icons.outlined.VolumeUp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,23 +45,27 @@ import hu.bbara.purefin.core.player.model.TimedMarker
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.common.visual.EmptyValueTimedVisibility
 import hu.bbara.purefin.ui.common.visual.ValueChangeTimedVisibility
+import hu.bbara.purefin.ui.screen.player.components.NextEpisodeOverlay
 import hu.bbara.purefin.ui.screen.player.components.PersistentOverlayContainer
 import hu.bbara.purefin.ui.screen.player.components.PlayerAdjustmentIndicator
 import hu.bbara.purefin.ui.screen.player.components.PlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.PlayerGesturesLayer
 import hu.bbara.purefin.ui.screen.player.components.PlayerLoadingErrorEndCard
 import hu.bbara.purefin.ui.screen.player.components.PlayerQueuePanel
-import hu.bbara.purefin.ui.screen.player.components.NextEpisodeOverlay
 import hu.bbara.purefin.ui.screen.player.components.PlayerSeekBarTrack
 import hu.bbara.purefin.ui.screen.player.components.PlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.SkipSegmentButton
 import hu.bbara.purefin.ui.screen.player.components.rememberPersistentOverlayController
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.32f
 /** Small negative band below zero that represents adaptive/auto brightness mode. */
 private const val AUTO_BRIGHTNESS_THRESHOLD = -0.15f
+private const val CONTROLS_AUTO_HIDE_MS = 3_000L
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -69,8 +73,13 @@ fun PlayerScreen(
     viewModel: PlayerViewModel,
     onBack: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    var hideControlsJob: Job? by remember { mutableStateOf(null) }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val controlsVisible by viewModel.controlsVisible.collectAsStateWithLifecycle()
+    var controlsVisible by remember { mutableStateOf(true) }
+    var controlsHasPopupOpen by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     val activity = context as? Activity
 
@@ -83,19 +92,42 @@ fun PlayerScreen(
     var horizontalSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
     val overlayController = rememberPersistentOverlayController()
 
-    LaunchedEffect(uiState.isPlaying) {
-        if (uiState.isPlaying) {
-            showQueuePanel = false
-        }
-    }
-
-    val playerControlsVisible = controlsVisible || uiState.isEnded || uiState.error != null
     val subtitleBottomPaddingFraction =
-        if (playerControlsVisible) {
+        if (controlsVisible) {
             CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION
         } else {
             SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION
         }
+
+
+    val showSkipIntroButton = !controlsVisible && uiState.activeSkippableSegmentEndMs != null
+    val showNextEpisodeOverlay = !controlsVisible
+            && uiState.nextEpisode != null
+            && uiState.durationMs > 0L
+            && (uiState.durationMs - uiState.positionMs) <= 60_000L
+            && !uiState.isEnded
+
+
+    fun toggleControlsVisibility() {
+        controlsVisible = !controlsVisible
+    }
+    fun hideControls() {
+        controlsVisible = false
+    }
+    fun hideControlsWithTimeout() {
+        hideControlsJob?.cancel()
+        if (controlsVisible && !controlsHasPopupOpen && !uiState.isEnded && uiState.error == null) {
+            hideControlsJob = scope.launch {
+                delay(CONTROLS_AUTO_HIDE_MS)
+                hideControls()
+            }
+        }
+    }
+    fun onScreenTap() {
+        toggleControlsVisibility()
+        hideControlsWithTimeout()
+    }
+
 
     Box(
         modifier = Modifier
@@ -121,7 +153,7 @@ fun PlayerScreen(
 
         PlayerGesturesLayer(
             modifier = Modifier.align(Alignment.BottomCenter),
-            onTap = { viewModel.toggleControlsVisibility() },
+            onTap = ::onScreenTap,
             onDoubleTapRight = { viewModel.seekBy(30_000) },
             onDoubleTapLeft = { viewModel.seekBy(-10_000) },
             onDoubleTapCenter = { viewModel.togglePlayPause() },
@@ -152,7 +184,7 @@ fun PlayerScreen(
             onHorizontalDragSeekTo = {
                 viewModel.seekTo(it)
             },
-            currentPositionProvider = { uiState.positionMs }
+            currentPositionProvider = { uiState.positionMs },
         )
 
         EmptyValueTimedVisibility(
@@ -170,7 +202,7 @@ fun PlayerScreen(
             value = horizontalSeekPreviewPositionMs,
             hideAfterMillis = 1_000
         ) { previewPositionMs ->
-            if (!playerControlsVisible) {
+            if (controlsVisible) {
                 HiddenSeekTimeline(
                     positionMs = previewPositionMs,
                     durationMs = uiState.durationMs,
@@ -225,14 +257,13 @@ fun PlayerScreen(
         }
 
         AnimatedVisibility(
-            visible = playerControlsVisible,
+            visible = controlsVisible,
             enter = fadeIn(),
             exit = fadeOut()
         ) {
             PlayerControlsOverlay(
                 modifier = Modifier.fillMaxSize(),
                 uiState = uiState,
-                showControls = controlsVisible,
                 overlayController = overlayController,
                 onBack = onBack,
                 onPlayPause = { viewModel.togglePlayPause() },
@@ -243,13 +274,12 @@ fun PlayerScreen(
                 onNext = { viewModel.next() },
                 onPrevious = { viewModel.previous() },
                 onSelectTrack = { viewModel.selectTrack(it) },
-                onQueueSelected = { viewModel.playQueueItem(it) },
                 onOpenQueue = { showQueuePanel = true }
             )
         }
 
         AnimatedVisibility(
-            visible = !playerControlsVisible && uiState.activeSkippableSegmentEndMs != null,
+            visible = showSkipIntroButton,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -262,11 +292,7 @@ fun PlayerScreen(
             SkipSegmentButton(onClick = { viewModel.skipActiveSegment() })
         }
 
-        val showNextEpisodeOverlay = !playerControlsVisible
-            && uiState.nextEpisode != null
-            && uiState.durationMs > 0L
-            && (uiState.durationMs - uiState.positionMs) <= 60_000L
-            && !uiState.isEnded
+
         AnimatedVisibility(
             visible = showNextEpisodeOverlay,
             enter = fadeIn(),
