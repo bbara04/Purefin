@@ -16,6 +16,7 @@ data class PlayerUiState(
     val chapters: List<TimedMarker> = emptyList(),
     val ads: List<TimedMarker> = emptyList(),
     val queue: List<PlaylistElementUiModel> = emptyList(),
+    val nextEpisode: PlaylistElementUiModel? = null,
     val audioTracks: List<TrackOption> = emptyList(),
     val textTracks: List<TrackOption> = emptyList(),
     val qualityTracks: List<TrackOption> = emptyList(),

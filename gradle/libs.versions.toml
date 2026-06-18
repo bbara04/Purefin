@@ -28,6 +28,8 @@ timber = "5.0.1"
 firebaseCrashlytics = "20.0.5"
 googleGmsGoogleServices = "4.4.4"
 googleFirebaseCrashlytics = "3.0.7"
+foundationVersion = "1.11.2"
+animation = "1.11.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -76,6 +78,8 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
+androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 
 
 [plugins]

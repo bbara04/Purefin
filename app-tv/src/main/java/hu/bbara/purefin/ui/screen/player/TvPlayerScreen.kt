@@ -62,6 +62,7 @@ import hu.bbara.purefin.core.player.viewmodel.ControlsAutoHideBlocker
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.screen.player.components.PlayerSeekBarTrack
 import hu.bbara.purefin.ui.screen.player.components.TvIconButton
+import hu.bbara.purefin.ui.screen.player.components.TvNextEpisodeOverlay
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerLoadingErrorEndCard
@@ -104,6 +105,7 @@ fun TvPlayerScreen(
     val audioButtonFocusRequester = remember { FocusRequester() }
     val subtitlesButtonFocusRequester = remember { FocusRequester() }
     val skipButtonFocusRequester = remember { FocusRequester() }
+    val nextEpisodeFocusRequester = remember { FocusRequester() }
 
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         viewModel.pausePlayback()
@@ -199,10 +201,20 @@ fun TvPlayerScreen(
         }
     }
 
+    val playerControlsVisible =
+        controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null
+
+    val showNextEpisodeOverlay = !playerControlsVisible
+        && uiState.nextEpisode != null
+        && uiState.durationMs > 0L
+        && (uiState.durationMs - uiState.positionMs) <= 60_000L
+        && !uiState.isEnded
+
     LaunchedEffect(
         controlsVisible,
         controlsAutoHideBlocked,
-        uiState.activeSkippableSegmentEndMs
+        uiState.activeSkippableSegmentEndMs,
+        showNextEpisodeOverlay
     ) {
         if (controlsAutoHideBlocked) return@LaunchedEffect
         if (controlsVisible) {
@@ -210,6 +222,10 @@ fun TvPlayerScreen(
         } else {
             if (uiState.activeSkippableSegmentEndMs != null) {
                 skipButtonFocusRequester.requestFocus()
+                return@LaunchedEffect
+            }
+            if (showNextEpisodeOverlay) {
+                nextEpisodeFocusRequester.requestFocus()
                 return@LaunchedEffect
             }
             focusManager.clearFocus()
@@ -246,8 +262,6 @@ fun TvPlayerScreen(
         }
     }
 
-    val playerControlsVisible =
-        controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null
     val subtitleBottomPaddingFraction =
         if (playerControlsVisible) {
             CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION
@@ -362,6 +376,27 @@ fun TvPlayerScreen(
                 label = "Skip",
                 modifier = Modifier.focusRequester(skipButtonFocusRequester)
             )
+        }
+
+        AnimatedVisibility(
+            visible = showNextEpisodeOverlay,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(
+                    end = 32.dp,
+                    bottom = 140.dp
+                )
+        ) {
+            uiState.nextEpisode?.let { nextEpisode ->
+                TvNextEpisodeOverlay(
+                    nextEpisode = nextEpisode,
+                    onClick = { nextAndShowControls() },
+                    onUp = { showTvControls() },
+                    modifier = Modifier.focusRequester(nextEpisodeFocusRequester)
+                )
+            }
         }
 
         AnimatedVisibility(

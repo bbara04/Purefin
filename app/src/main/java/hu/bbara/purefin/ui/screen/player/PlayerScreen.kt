@@ -51,6 +51,7 @@ import hu.bbara.purefin.ui.screen.player.components.PlayerControlsOverlay
 import hu.bbara.purefin.ui.screen.player.components.PlayerGesturesLayer
 import hu.bbara.purefin.ui.screen.player.components.PlayerLoadingErrorEndCard
 import hu.bbara.purefin.ui.screen.player.components.PlayerQueuePanel
+import hu.bbara.purefin.ui.screen.player.components.NextEpisodeOverlay
 import hu.bbara.purefin.ui.screen.player.components.PlayerSeekBarTrack
 import hu.bbara.purefin.ui.screen.player.components.PlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.SkipSegmentButton
@@ -259,6 +260,30 @@ fun PlayerScreen(
                 )
         ) {
             SkipSegmentButton(onClick = { viewModel.skipActiveSegment() })
+        }
+
+        val showNextEpisodeOverlay = !playerControlsVisible
+            && uiState.nextEpisode != null
+            && uiState.durationMs > 0L
+            && (uiState.durationMs - uiState.positionMs) <= 60_000L
+            && !uiState.isEnded
+        AnimatedVisibility(
+            visible = showNextEpisodeOverlay,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(
+                    end = 24.dp,
+                    bottom = 120.dp
+                )
+        ) {
+            uiState.nextEpisode?.let { nextEpisode ->
+                NextEpisodeOverlay(
+                    nextEpisode = nextEpisode,
+                    onClick = { viewModel.next() }
+                )
+            }
         }
 
         PlayerLoadingErrorEndCard(

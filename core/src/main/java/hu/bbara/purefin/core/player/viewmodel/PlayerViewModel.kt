@@ -139,9 +139,16 @@ class PlayerViewModel @Inject constructor(
                     playableMedia.toPlaylistElementUiModel(currentPlayableMedia?.id)
                 }
             }.collect { queue ->
+                val currentIndex = queue.indexOfFirst { it.isCurrent }
+                val nextEpisode = if (currentIndex != -1 && currentIndex + 1 < queue.size) {
+                    queue[currentIndex + 1]
+                } else {
+                    null
+                }
                 _uiState.update { state ->
                     state.copy(
-                        queue = queue
+                        queue = queue,
+                        nextEpisode = nextEpisode
                     )
                 }
             }
