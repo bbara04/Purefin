@@ -2,7 +2,6 @@ package hu.bbara.purefin.ui.screen.series
 
 import android.content.Intent
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -45,12 +44,11 @@ import hu.bbara.purefin.ui.common.permission.rememberNotificationPermissionGate
 import hu.bbara.purefin.ui.screen.series.components.DownloadOptionsBottomSheet
 import hu.bbara.purefin.ui.screen.series.components.EpisodeCarousel
 import hu.bbara.purefin.ui.screen.series.components.SeasonTabs
-import hu.bbara.purefin.ui.screen.series.components.SeriesAddButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadOption
-import hu.bbara.purefin.ui.screen.series.components.SeriesWatchedButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesPlayButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesTopBar
+import hu.bbara.purefin.ui.screen.series.components.SeriesWatchedButtonTag
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import java.util.UUID
 
@@ -264,10 +262,6 @@ private fun Series.toMediaDetailScaffoldUiModel(
                     watched = seriesWatched,
                     onClick = { onMarkAsWatched(!seriesWatched) },
                     testTag = SeriesWatchedButtonTag
-                ),
-                MediaDetailSecondaryActionUiModel.Icon(
-                    icon = Icons.Outlined.Add,
-                    testTag = SeriesAddButtonTag
                 ),
                 MediaDetailSecondaryActionUiModel.Icon(
                     icon = Icons.Outlined.Download,
