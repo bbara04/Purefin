@@ -22,6 +22,7 @@ import kotlin.math.abs
 @Composable
 fun PlayerGesturesLayer(
     modifier: Modifier = Modifier,
+    controlsVisible: Boolean,
     onTap: () -> Unit,
     onDoubleTapCenter: () -> Unit,
     onDoubleTapRight: () -> Unit,
@@ -104,6 +105,7 @@ fun PlayerGesturesLayer(
                             }
                             DragDirection.VERTICAL -> {
                                 change.consume()
+                                if (controlsVisible) return@drag
                                 val isLeftSide = startX < size.width / 2
                                 if (isLeftSide) {
                                     onVerticalDragLeft(delta.y)

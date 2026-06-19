@@ -154,6 +154,7 @@ fun PlayerScreen(
 
         PlayerGesturesLayer(
             modifier = Modifier.align(Alignment.BottomCenter),
+            controlsVisible = controlsVisible,
             onTap = ::onScreenTap,
             onDoubleTapRight = { viewModel.seekBy(30_000) },
             onDoubleTapLeft = { viewModel.seekBy(-10_000) },
