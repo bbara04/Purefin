@@ -262,6 +262,7 @@ fun TvPlayerScreen(
                     event = event,
                     isPlaying = uiState.isPlaying,
                     controlsVisible = controlsVisible,
+                    popupVisible = showSkipIntroButton || showNextEpisodeOverlay,
                     onShowControls = ::showControls,
                     isPlaylistExpanded = isPlaylistExpanded,
                     trackPanelType = trackPanelType,
@@ -271,10 +272,6 @@ fun TvPlayerScreen(
                     onPausePlayback = { viewModel.pausePlayback() },
                     onResumePlayback = { viewModel.resumePlayback() },
                     onSeekRelative = { viewModel.seekBy(it) },
-                    onSkipSegment = {
-                        viewModel.skipActiveSegment()
-                    },
-                    hasSkippableSegment = uiState.activeSkippableSegmentEndMs != null
                 )
                 if (event.type == KeyEventType.KeyDown) {
                     hideControlsWithTimeout()
@@ -481,6 +478,7 @@ internal fun handleTvPlayerRootKeyEvent(
     event: KeyEvent,
     isPlaying: Boolean,
     controlsVisible: Boolean,
+    popupVisible: Boolean,
     isPlaylistExpanded: Boolean,
     trackPanelType: TvTrackPanelType?,
     onCloseTrackPanel: () -> Unit,
@@ -490,8 +488,6 @@ internal fun handleTvPlayerRootKeyEvent(
     onResumePlayback: () -> Unit,
     onSeekRelative: (Long) -> Unit,
     onShowControls: () -> Unit,
-    onSkipSegment: () -> Unit = {},
-    hasSkippableSegment: Boolean = false
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
 
@@ -534,14 +530,16 @@ internal fun handleTvPlayerRootKeyEvent(
             }
 
             Key.DirectionCenter, Key.Enter -> {
-                if (hasSkippableSegment) {
-                    onSkipSegment()
+                if (popupVisible) {
+                    // Do nothing because the focused component is not he root, but an overlay
+                    false
                 } else if (isPlaying) {
                     onPausePlayback()
+                    true
                 } else {
                     onResumePlayback()
+                    true
                 }
-                true
             }
 
             else -> false
