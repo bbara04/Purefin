@@ -4,6 +4,9 @@ import androidx.datastore.core.DataStore
 import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.UserSessionRepository
+import hu.bbara.purefin.core.model.MediaUiModel
+import hu.bbara.purefin.core.model.MovieUiModel
+import hu.bbara.purefin.core.model.SeriesUiModel
 import hu.bbara.purefin.data.converter.toEpisode
 import hu.bbara.purefin.data.converter.toLibrary
 import hu.bbara.purefin.data.converter.toMovie
@@ -34,14 +37,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.BaseItemKind
-import org.jellyfin.sdk.model.api.CollectionType
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import timber.log.Timber
 
 @Singleton
 class InMemoryAppContentRepository @Inject constructor(
@@ -241,73 +244,88 @@ class InMemoryAppContentRepository @Inject constructor(
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load libraries")
             }
-        // Decide which libraries to refresh content for. When the libraries
-        // endpoint returns 304 (ETag hit), the library list hasn't changed,
-        // but per-library content is a separate query with its own ETag, so
-        // we still need to call getLibraryContent for each library to pick
-        // up content additions that the libraries endpoint doesn't surface.
-        val librariesToProcess: List<Library> = if (librariesItem == null) {
-            librariesState.value
-        } else {
-            val filtered = librariesItem.filter {
-                it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS
+
+        // Build the new library list in a single pass, so collectors of
+        // `librariesState` only ever see the final value. When /UserViews
+        // returns 304 we already have the BaseItemDto list in memory, so
+        // we just rebuild from it. Otherwise we have the new DTOs.
+        val filledLibraries: List<Library> = if (librariesItem == null) {
+            // ETag 304 on /UserViews — re-fetch the count per library
+            // against the existing in-memory state. The size fallback
+            // (`?: library.size`) handles a 304 on /Items too, so a
+            // 304 on both endpoints leaves Library.size untouched.
+            librariesState.value.map { library ->
+                val count = jellyfinApiClient.getLibraryItemCount(library.id) ?: library.size
+                when (library.type) {
+                    LibraryKind.MOVIES -> library.copy(movies = emptyList(), size = count)
+                    LibraryKind.SERIES -> library.copy(series = emptyList(), size = count)
+                }
             }
-            // Capture the server-reported "last media added" timestamp per
-            // library for this refresh. loadLatestLibraryContent reads
-            // this map to decide which libraries need a /Items/Latest call,
-            // and persistHomeCache writes it to HomeCache as the new
-            // "cached" baseline for the next refresh.
-            currentLibraryDateLastMediaAdded = filtered
+        } else {
+            // Capture the server-reported "last media added" timestamp
+            // per library for this refresh. loadLatestLibraryContent
+            // reads this map to decide which libraries need a
+            // /Items/Latest call, and persistHomeCache writes it to
+            // HomeCache as the new "cached" baseline.
+            currentLibraryDateLastMediaAdded = librariesItem
                 .mapNotNull { dto ->
                     dto.dateLastMediaAdded?.let { dto.id to it.toString() }
                 }
                 .toMap()
-            val emptyLibraries = filtered.map { it.toLibrary(serverUrl()) }
-            librariesState.value = emptyLibraries
-            emptyLibraries
+
+            // Count-only refresh: ask the server for the number of items
+            // in each library instead of enumerating them. The home
+            // dashboard only uses Library.size for the library cards;
+            // the full movies/series lists are fetched on demand by the
+            // library detail screen via loadLibraryContent, and on the
+            // home rows by loadSuggestions / loadContinueWatching /
+            // loadLatestLibraryContent.
+            librariesItem.map { dto ->
+                val library = dto.toLibrary(serverUrl())
+                val count = jellyfinApiClient.getLibraryItemCount(library.id) ?: library.size
+                when (library.type) {
+                    LibraryKind.MOVIES -> library.copy(movies = emptyList(), size = count)
+                    LibraryKind.SERIES -> library.copy(series = emptyList(), size = count)
+                }
+            }
         }
-
-        val filledLibraries = librariesToProcess.map { loadLibrary(it) }
         librariesState.value = filledLibraries
-
-        val movies = filledLibraries.filter { it.type == LibraryKind.MOVIES }.flatMap { it.movies.orEmpty() }
-        onlineMediaRepository.upsertMovies(movies)
-
-        val series = filledLibraries.filter { it.type == LibraryKind.SERIES }.flatMap { it.series.orEmpty() }
-        onlineMediaRepository.upsertSeries(series)
     }
 
-    private suspend fun loadLibrary(library: Library): Library {
-        val contentItem = runCatching { jellyfinApiClient.getLibraryContent(library.id) }
-            .getOrElse { error ->
-                handleRefreshFailure(error, "Unable to load library ${library.id}")
-            }
-        // ETag hit — the library's content is unchanged. Return the original
-        // library so the existing movies/series/size stay in state.
-        if (contentItem == null) {
-            return library
-        }
+    override suspend fun loadLibraryContent(libraryId: UUID): List<MediaUiModel>? {
+        val library = librariesState.value.find { it.id == libraryId } ?: return emptyList()
+        // ETag hit — return null so the caller can keep its previously
+        // fetched copy. The library detail viewmodel uses this signal to
+        // preserve its in-memory cache across re-selections.
+        val items = jellyfinApiClient.getLibraryContent(libraryId) ?: return null
+        val url = serverUrl()
         return when (library.type) {
-            LibraryKind.MOVIES -> library.copy(
-                movies = contentItem.map { it.toMovie(serverUrl()) },
-                size = contentItem.size,
-            )
-            LibraryKind.SERIES -> library.copy(
-                series = contentItem.map { it.toSeries(serverUrl()) },
-                size = contentItem.size,
-            )
+            LibraryKind.MOVIES -> items.map { MovieUiModel(it.toMovie(url)) }
+            LibraryKind.SERIES -> items.map { SeriesUiModel(it.toSeries(url)) }
         }
     }
 
     private suspend fun loadSuggestions() {
+        val url = serverUrl()
+        // Head-first fetch: ask the server for just the first 2 items and
+        // compare to the cached head. If the head is unchanged, the rest
+        // of the row is also unchanged (the home screen shows the head
+        // prominently and only rotates when new content arrives at the
+        // top), so we can skip the full request entirely.
+        val headItems = runCatching { jellyfinApiClient.getSuggestionsHead() }
+            .getOrElse { error ->
+                handleRefreshFailure(error, "Unable to load suggestions head")
+            }
+        if (headItems == null) return
+        if (headMatches(headItems, suggestionsState.value)) return
+
+        // Head changed (or first refresh) — fetch the full list.
         val suggestionsItems = runCatching { jellyfinApiClient.getSuggestions() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load suggestions")
             }
-        // ETag hit — suggestions are unchanged, keep the existing state.
-        if (suggestionsItems == null) {
-            return
-        }
+        if (suggestionsItems == null) return
+
         suggestionsState.value = suggestionsItems.mapNotNull { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
@@ -316,22 +334,31 @@ class InMemoryAppContentRepository @Inject constructor(
             }
         }
 
+        // Upsert full details so the home viewmodel can look up each item.
         suggestionsItems.forEach { item ->
-            if (item.type == BaseItemKind.EPISODE) {
-                onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(serverUrl())))
+            when (item.type) {
+                BaseItemKind.MOVIE -> onlineMediaRepository.upsertMovies(listOf(item.toMovie(url)))
+                BaseItemKind.EPISODE -> onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(url)))
+                else -> {}
             }
         }
     }
 
     private suspend fun loadContinueWatching() {
+        val url = serverUrl()
+        val headItems = runCatching { jellyfinApiClient.getContinueWatchingHead() }
+            .getOrElse { error ->
+                handleRefreshFailure(error, "Unable to load continue watching head")
+            }
+        if (headItems == null) return
+        if (headMatches(headItems, continueWatchingState.value)) return
+
         val continueWatchingItems = runCatching { jellyfinApiClient.getContinueWatching() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load continue watching")
             }
-        // ETag hit — continue watching is unchanged, keep the existing state.
-        if (continueWatchingItems == null) {
-            return
-        }
+        if (continueWatchingItems == null) return
+
         continueWatchingState.value = continueWatchingItems.mapNotNull { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
@@ -341,27 +368,35 @@ class InMemoryAppContentRepository @Inject constructor(
         }
 
         continueWatchingItems.forEach { item ->
-            if (item.type == BaseItemKind.EPISODE) {
-                onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(serverUrl())))
+            when (item.type) {
+                BaseItemKind.MOVIE -> onlineMediaRepository.upsertMovies(listOf(item.toMovie(url)))
+                BaseItemKind.EPISODE -> onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(url)))
+                else -> {}
             }
         }
     }
 
     private suspend fun loadNextUp() {
+        val url = serverUrl()
+        val headItems = runCatching { jellyfinApiClient.getNextUpHead() }
+            .getOrElse { error ->
+                handleRefreshFailure(error, "Unable to load next up head")
+            }
+        if (headItems == null) return
+        if (headMatches(headItems, nextUpState.value)) return
+
         val nextUpItems = runCatching { jellyfinApiClient.getNextUpEpisodes() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load next up")
             }
-        // ETag hit — next up is unchanged, keep the existing state.
-        if (nextUpItems == null) {
-            return
-        }
+        if (nextUpItems == null) return
+
         nextUpState.value = nextUpItems.map { item ->
             Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
         }
 
         nextUpItems.forEach { item ->
-            onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(serverUrl())))
+            onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(url)))
         }
     }
 
@@ -371,52 +406,90 @@ class InMemoryAppContentRepository @Inject constructor(
         val filteredLibraries = librariesState.value
         val url = serverUrl()
         val latestLibraryContents = filteredLibraries.associate { library ->
-            // Skip the per-library GET when the server-reported "last media added"
-            // timestamp is identical to the one we saw last refresh. This is
-            // Jellyfin's stable signal that no new content was added, and it lets
-            // us avoid one request per library on the common case. ETag on
-            // /Items/Latest remains the fallback for changes that don't bump the
-            // timestamp (e.g. metadata refreshes that don't add media).
+            // Layer 1: skip when the server-reported "last media added"
+            // timestamp is unchanged since the last refresh. This is the
+            // cheapest check (no request) and handles the common "no new
+            // content" case.
             val cachedDate = cachedLibraryDateLastMediaAdded[library.id]
             val currentDate = currentLibraryDateLastMediaAdded[library.id]
             if (cachedDate != null && cachedDate == currentDate) {
                 library.id to (latestLibraryContentState.value[library.id] ?: emptyList())
             } else {
-                val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
+                // Layer 2: head-only fetch. If the first 2 items of the
+                // latest row are the same as the cached head, the rest of
+                // the row is also unchanged (the home row only rotates at
+                // the top) and we can skip the full request.
+                val headDtos = runCatching { jellyfinApiClient.getLatestFromLibraryHead(library.id) }
                     .getOrElse { error ->
-                        handleRefreshFailure(error, "Unable to load latest items for library ${library.id}")
+                        handleRefreshFailure(error, "Unable to load latest head for library ${library.id}")
                     }
-                // ETag hit — /Items/Latest is unchanged, keep the previous slice.
-                if (latestFromLibrary == null) {
-                    library.id to (latestLibraryContentState.value[library.id] ?: emptyList())
+                val cachedSlice = latestLibraryContentState.value[library.id].orEmpty()
+                if (headDtos == null || headMatches(headDtos, cachedSlice)) {
+                    library.id to cachedSlice
                 } else {
-                    library.id to when (library.type) {
-                        LibraryKind.MOVIES -> latestFromLibrary.map {
-                            val movie = it.toMovie(url)
-                            Media.MovieMedia(movieId = movie.id)
+                    // Layer 3: head changed — fetch the full row.
+                    val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
+                        .getOrElse { error ->
+                            handleRefreshFailure(error, "Unable to load latest items for library ${library.id}")
                         }
-                        LibraryKind.SERIES -> latestFromLibrary.map {
-                            when (it.type) {
-                                BaseItemKind.SERIES -> {
-                                    val series = it.toSeries(url)
-                                    Media.SeriesMedia(seriesId = series.id)
+                    if (latestFromLibrary == null) {
+                        library.id to cachedSlice
+                    } else {
+                        val media = when (library.type) {
+                            LibraryKind.MOVIES -> latestFromLibrary.map {
+                                val movie = it.toMovie(url)
+                                onlineMediaRepository.upsertMovies(listOf(movie))
+                                Media.MovieMedia(movieId = movie.id)
+                            }
+                            LibraryKind.SERIES -> latestFromLibrary.map { dto ->
+                                when (dto.type) {
+                                    BaseItemKind.SERIES -> {
+                                        val series = dto.toSeries(url)
+                                        onlineMediaRepository.upsertSeries(listOf(series))
+                                        Media.SeriesMedia(seriesId = series.id)
+                                    }
+                                    BaseItemKind.SEASON -> {
+                                        val season = dto.toSeason()
+                                        Media.SeasonMedia(seasonId = season.id, seriesId = season.seriesId)
+                                    }
+                                    BaseItemKind.EPISODE -> {
+                                        val episode = dto.toEpisode(url)
+                                        onlineMediaRepository.upsertEpisodes(listOf(episode))
+                                        Media.EpisodeMedia(episodeId = episode.id, seriesId = episode.seriesId)
+                                    }
+                                    else -> throw UnsupportedOperationException("Unsupported item type: ${dto.type}")
                                 }
-                                BaseItemKind.SEASON -> {
-                                    val season = it.toSeason()
-                                    Media.SeasonMedia(seasonId = season.id, seriesId = season.seriesId)
-                                }
-                                BaseItemKind.EPISODE -> {
-                                    val episode = it.toEpisode(url)
-                                    Media.EpisodeMedia(episodeId = episode.id, seriesId = episode.seriesId)
-                                }
-                                else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
                             }
                         }
+                        library.id to media
                     }
                 }
             }
         }
         latestLibraryContentState.value = latestLibraryContents
+    }
+
+    /**
+     * Returns true when the first [JellyfinApiClient.HEAD_LIMIT] IDs of the
+     * freshly fetched [headDtos] match the first
+     * [JellyfinApiClient.HEAD_LIMIT] IDs of the cached [cachedMedia]. Used
+     * by the home row refreshers to short-circuit the full request when
+     * the head of the row is unchanged.
+     *
+     * Order-sensitive: the comparison is positional. The Jellyfin server
+     * can reorder rows (e.g., Suggestions reorders on a relevance
+     * recompute even when the item set is unchanged), which will report
+     * a false "head changed" and pay for the full request. The reverse
+     * false negative — head order unchanged but a mid-list item rotated —
+     * is a known limitation of the head-diff heuristic.
+     */
+    private fun headMatches(
+        headDtos: List<BaseItemDto>,
+        cachedMedia: List<Media>,
+    ): Boolean {
+        val headIds = headDtos.take(JellyfinApiClient.HEAD_LIMIT).map { it.id }
+        val cachedIds = cachedMedia.take(JellyfinApiClient.HEAD_LIMIT).map { it.id }
+        return headIds == cachedIds
     }
 
     private suspend fun serverUrl(): String {

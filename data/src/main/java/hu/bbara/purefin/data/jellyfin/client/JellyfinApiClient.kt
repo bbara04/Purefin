@@ -270,6 +270,39 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
+    /**
+     * Returns the total number of items in [libraryId] without enumerating
+     * them. Uses `getItems` with `limit=0, enableTotalRecordCount=true`,
+     * which the Jellyfin server short-circuits to a single integer in the
+     * response. The home page uses this to populate `Library.size` for the
+     * library cards on the dashboard without paying for the full library
+     * content.
+     *
+     * ETag is honored via the [ETagInterceptor]: `null` means the cached
+     * count is still current.
+     */
+    suspend fun getLibraryItemCount(libraryId: UUID): Int? = withContext(Dispatchers.IO) {
+        logRequest("getLibraryItemCount") {
+            if (!ensureConfigured()) {
+                return@logRequest 0
+            }
+            try {
+                val request = GetItemsRequest(
+                    userId = getUserId(),
+                    parentId = libraryId,
+                    includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+                    recursive = true,
+                    limit = 0,
+                    enableTotalRecordCount = true,
+                )
+                val response = api.itemsApi.getItems(request)
+                response.content.totalRecordCount
+            } catch (e: NotModifiedException) {
+                null
+            }
+        }
+    }
+
     suspend fun getSuggestions(): List<BaseItemDto>? = withContext(Dispatchers.IO) {
         logRequest("getSuggestions") {
             if (!ensureConfigured()) {
@@ -351,6 +384,105 @@ class JellyfinApiClient @Inject constructor(
             }
         }
     }
+
+    /**
+     * Head-only fetch for the suggestions row. Returns the first [limit]
+     * items so the caller can diff against the cached head and decide
+     * whether the full request is necessary. ETag is honored via the
+     * [ETagInterceptor]; `null` means the cached head is still current.
+     */
+    suspend fun getSuggestionsHead(limit: Int = HEAD_LIMIT): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+        logRequest("getSuggestionsHead") {
+            if (!ensureConfigured()) {
+                return@logRequest emptyList<BaseItemDto>()
+            }
+            try {
+                val response = api.suggestionsApi.getSuggestions(
+                    userId = getUserId(),
+                    mediaType = listOf(MediaType.VIDEO),
+                    type = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+                    limit = limit,
+                    enableTotalRecordCount = false,
+                )
+                response.content.items
+            } catch (e: NotModifiedException) {
+                null
+            }
+        }
+    }
+
+    /**
+     * Head-only fetch for the continue-watching row. See [getSuggestionsHead].
+     */
+    suspend fun getContinueWatchingHead(limit: Int = HEAD_LIMIT): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+        logRequest("getContinueWatchingHead") {
+            if (!ensureConfigured()) {
+                return@logRequest emptyList<BaseItemDto>()
+            }
+            val userId = getUserId() ?: return@logRequest emptyList<BaseItemDto>()
+            try {
+                val getResumeItemsRequest = GetResumeItemsRequest(
+                    userId = userId,
+                    fields = defaultItemFields,
+                    includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
+                    enableUserData = true,
+                    startIndex = 0,
+                    limit = limit,
+                )
+                val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
+                response.content.items
+            } catch (e: NotModifiedException) {
+                null
+            }
+        }
+    }
+
+    /**
+     * Head-only fetch for the next-up row. See [getSuggestionsHead].
+     */
+    suspend fun getNextUpHead(limit: Int = HEAD_LIMIT): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+        logRequest("getNextUpHead") {
+            if (!ensureConfigured()) {
+                return@logRequest emptyList<BaseItemDto>()
+            }
+            try {
+                val getNextUpRequest = GetNextUpRequest(
+                    userId = getUserId(),
+                    fields = defaultItemFields,
+                    enableResumable = false,
+                    limit = limit,
+                )
+                val result = api.tvShowsApi.getNextUp(getNextUpRequest)
+                result.content.items
+            } catch (e: NotModifiedException) {
+                null
+            }
+        }
+    }
+
+    /**
+     * Head-only fetch for the latest row of a library. See [getSuggestionsHead].
+     */
+    suspend fun getLatestFromLibraryHead(libraryId: UUID, limit: Int = HEAD_LIMIT): List<BaseItemDto>? =
+        withContext(Dispatchers.IO) {
+            logRequest("getLatestFromLibraryHead") {
+                if (!ensureConfigured()) {
+                    return@logRequest emptyList<BaseItemDto>()
+                }
+                try {
+                    val response = api.userLibraryApi.getLatestMedia(
+                        userId = getUserId(),
+                        parentId = libraryId,
+                        fields = defaultItemFields,
+                        includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
+                        limit = limit,
+                    )
+                    response.content
+                } catch (e: NotModifiedException) {
+                    null
+                }
+            }
+        }
 
     suspend fun getItemInfo(mediaId: UUID): BaseItemDto? = withContext(Dispatchers.IO) {
         logRequest("getItemInfo") {
@@ -664,5 +796,9 @@ class JellyfinApiClient @Inject constructor(
 
     companion object {
         private const val TAG = "JellyfinApiClient"
+        // How many items to fetch on the head-only path. Two is enough to
+        // detect the common case of "first card unchanged" without making
+        // the head request meaningfully heavier than the minimum.
+        const val HEAD_LIMIT = 2
     }
 }
