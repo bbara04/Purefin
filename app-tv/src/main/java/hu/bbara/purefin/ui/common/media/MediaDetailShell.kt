@@ -89,44 +89,46 @@ internal fun TvMediaDetailBodyBox(
             .fillMaxWidth()
             .heightIn(min = bodyHeight)
     ) {
-        Box(modifier = Modifier.matchParentSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(MediaDetailBodyImageWidthFraction)
+                .align(Alignment.TopEnd)
+        ) {
             PurefinAsyncImage(
                 model = backgroundImageUrl,
                 contentDescription = null,
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(MediaDetailBodyImageWidthFraction)
-                    .align(Alignment.TopEnd),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.horizontalGradient(
+                            colorStops = arrayOf(
+                                0.0f to scheme.background,
+                                0.28f to scheme.background.copy(alpha = 0.88f),
+                                0.62f to scheme.background.copy(alpha = 0.42f),
+                                1.0f to scheme.background.copy(alpha = 0.12f)
+                            )
+                        )
+                    )
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colorStops = arrayOf(
+                                0.0f to scheme.background.copy(alpha = 0.08f),
+                                0.55f to scheme.background.copy(alpha = 0.16f),
+                                1.0f to scheme.background
+                            )
+                        )
+                    )
+            )
         }
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.horizontalGradient(
-                        colorStops = arrayOf(
-                            0.0f to scheme.background,
-                            0.28f to scheme.background.copy(alpha = 0.88f),
-                            0.62f to scheme.background.copy(alpha = 0.42f),
-                            1.0f to scheme.background.copy(alpha = 0.12f)
-                        )
-                    )
-                )
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.verticalGradient(
-                        colorStops = arrayOf(
-                            0.0f to scheme.background.copy(alpha = 0.08f),
-                            0.55f to scheme.background.copy(alpha = 0.16f),
-                            1.0f to scheme.background
-                        )
-                    )
-                )
-        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
