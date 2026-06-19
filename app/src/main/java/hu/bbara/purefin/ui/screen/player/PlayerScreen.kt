@@ -43,6 +43,7 @@ import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import hu.bbara.purefin.core.player.model.TimedMarker
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
+import hu.bbara.purefin.model.SegmentType
 import hu.bbara.purefin.ui.common.visual.EmptyValueTimedVisibility
 import hu.bbara.purefin.ui.common.visual.ValueChangeTimedVisibility
 import hu.bbara.purefin.ui.screen.player.components.NextEpisodeOverlay
@@ -100,11 +101,11 @@ fun PlayerScreen(
         }
 
 
-    val showSkipIntroButton = !controlsVisible && uiState.activeSkippableSegmentEndMs != null
+    val showSkipIntroButton = !controlsVisible && uiState.activeSkippableSegmentEndMs != null && uiState.activeSkippableSegmentType == SegmentType.INTRO
     val showNextEpisodeOverlay = !controlsVisible
             && uiState.nextEpisode != null
             && uiState.durationMs > 0L
-            && (uiState.durationMs - uiState.positionMs) <= 60_000L
+            && ((uiState.durationMs - uiState.positionMs) <= 60_000L || uiState.activeSkippableSegmentType == SegmentType.OUTRO)
             && !uiState.isEnded
 
 
@@ -301,7 +302,7 @@ fun PlayerScreen(
                 .align(Alignment.BottomEnd)
                 .padding(
                     end = 24.dp,
-                    bottom = 120.dp
+                    bottom = 24.dp
                 )
         ) {
             uiState.nextEpisode?.let { nextEpisode ->

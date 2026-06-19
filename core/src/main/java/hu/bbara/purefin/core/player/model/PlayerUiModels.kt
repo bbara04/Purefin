@@ -1,5 +1,7 @@
 package hu.bbara.purefin.core.player.model
 
+import hu.bbara.purefin.model.SegmentType
+
 data class PlayerUiState(
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
@@ -11,6 +13,7 @@ data class PlayerUiState(
     val positionMs: Long = 0L,
     val bufferedMs: Long = 0L,
     val activeSkippableSegmentEndMs: Long? = null,
+    val activeSkippableSegmentType: SegmentType? = null,
     val error: String? = null,
     val playbackSpeed: Float = 1f,
     val chapters: List<TimedMarker> = emptyList(),

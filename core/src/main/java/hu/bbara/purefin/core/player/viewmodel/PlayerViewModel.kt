@@ -117,7 +117,10 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             playerManager.activeSkippableSegment.collect { mediaSegment ->
                 _uiState.update {
-                    it.copy(activeSkippableSegmentEndMs = mediaSegment?.endMs)
+                    it.copy(
+                        activeSkippableSegmentEndMs = mediaSegment?.endMs,
+                        activeSkippableSegmentType = mediaSegment?.type
+                    )
                 }
             }
         }
