@@ -285,13 +285,16 @@ fun PlayerScreen(
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
-                .align(Alignment.BottomEnd)
+                .align(Alignment.CenterEnd)
                 .padding(
                     end = 24.dp,
-                    bottom = if (horizontalSeekPreviewPositionMs != null) 96.dp else 24.dp
                 )
         ) {
-            SkipSegmentButton(onClick = { viewModel.skipActiveSegment() })
+            SkipSegmentButton(
+                size = 72.dp,
+                fontSize = 22,
+                onClick = { viewModel.skipActiveSegment() }
+            )
         }
 
 

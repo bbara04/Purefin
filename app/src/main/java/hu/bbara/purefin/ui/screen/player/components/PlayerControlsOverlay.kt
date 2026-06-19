@@ -10,11 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Cast
@@ -26,9 +22,6 @@ import androidx.compose.material.icons.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.Replay10
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,9 +31,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.player.model.PlayerUiState
 import hu.bbara.purefin.core.player.model.TrackOption
+import hu.bbara.purefin.ui.common.button.CircularTextButton
 import hu.bbara.purefin.ui.common.button.GhostIconButton
 import hu.bbara.purefin.ui.common.button.PurefinIconButton
 
@@ -278,32 +273,21 @@ internal const val PlayerSkipSegmentButtonTag = "player_skip_segment_button"
 @Composable
 fun SkipSegmentButton(
     onClick: () -> Unit,
+    fontSize: Int = 18,
+    size: Dp = 52.dp,
     modifier: Modifier = Modifier
 ) {
     val scheme = MaterialTheme.colorScheme
 
-    FilledTonalButton(
+    CircularTextButton(
+        text = "Skip",
+        textColor = scheme.onSecondary,
+        fontSize = fontSize,
+        containerColor = scheme.secondary,
+        size = size,
         onClick = onClick,
-        modifier = modifier.heightIn(min = 44.dp),
-        shape = RoundedCornerShape(50),
-        colors = ButtonDefaults.filledTonalButtonColors(
-            containerColor = scheme.secondary.copy(alpha = 0.92f),
-            contentColor = scheme.onSecondary
-        ),
-        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-    ) {
-        Text(
-            text = "Skip",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Icon(
-            imageVector = Icons.Outlined.SkipNext,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp)
-        )
-    }
+        modifier = modifier
+    )
 }
 
 @Composable

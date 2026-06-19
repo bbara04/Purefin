@@ -30,7 +30,5 @@ fun MediaActionButton(
         onClick = onClick,
         modifier = modifier,
         focusedScale = focusedScale,
-        focusedBorderWidth = focusedBorderWidth,
-        focusedBorderColor = focusedBorderColor
     )
 }

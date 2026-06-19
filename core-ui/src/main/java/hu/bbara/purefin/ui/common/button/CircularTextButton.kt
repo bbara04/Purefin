@@ -2,11 +2,11 @@ package hu.bbara.purefin.ui.common.button
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,16 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
-fun CircularIconButton(
-    icon: ImageVector,
-    contentDescription: String?,
+fun CircularTextButton(
+    text: String,
+    textColor: Color,
+    fontSize: Int,
     containerColor: Color,
-    iconColor: Color,
     size: Dp,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -41,24 +41,23 @@ fun CircularIconButton(
         targetValue = if (isFocused) focusedBackgroundColor else containerColor,
         label = "background"
     )
-    val iconSize = (size - 24.dp).coerceAtLeast(0.dp)
 
-    FilledIconButton(
+    FilledTonalButton(
         onClick = onClick,
-        colors = IconButtonDefaults.filledIconButtonColors(
+        colors = ButtonDefaults.filledTonalButtonColors(
             containerColor = backgroundColor,
-            contentColor = iconColor
+            contentColor = textColor
         ),
         shape = CircleShape,
         modifier = modifier
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            .size(size)
+            .height(size)
             .onFocusChanged { isFocused = it.isFocused || it.hasFocus }
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            modifier = Modifier.size(iconSize)
+        Text(
+            text = text,
+            fontSize = fontSize.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }
