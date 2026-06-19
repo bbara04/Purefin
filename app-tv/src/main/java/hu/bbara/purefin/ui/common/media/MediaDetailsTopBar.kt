@@ -5,8 +5,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -81,8 +81,6 @@ internal fun MediaDetailsTopBar(
                 onClick = onBack,
                 modifier = backModifier.then(downModifier),
                 focusedScale = 1.1f,
-                focusedBorderWidth = 2.5.dp,
-                focusedBorderColor = scheme.primary,
                 focusedBackgroundColor = scheme.primary.copy(alpha = 0.25f)
             )
             if (shortcut != null) {
@@ -100,8 +98,6 @@ internal fun MediaDetailsTopBar(
                 onClick = onCastClick,
                 modifier = downModifier,
                 focusedScale = 1.1f,
-                focusedBorderWidth = 2.5.dp,
-                focusedBorderColor = scheme.primary,
                 focusedBackgroundColor = scheme.primary.copy(alpha = 0.25f)
             )
             GhostIconButton(
@@ -110,8 +106,6 @@ internal fun MediaDetailsTopBar(
                 onClick = onMoreClick,
                 modifier = downModifier,
                 focusedScale = 1.1f,
-                focusedBorderWidth = 2.5.dp,
-                focusedBorderColor = scheme.primary,
                 focusedBackgroundColor = scheme.primary.copy(alpha = 0.25f)
             )
         }
