@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -37,6 +38,7 @@ fun PlayerGesturesLayer(
     val horizontalThresholdPx = with(density) { HorizontalSeekGestureHelper.START_THRESHOLD.toPx() }
     val directionThresholdPx = with(density) { 20.dp.toPx() }
     val dragActive = remember { mutableStateOf(false) }
+    val currentControlsVisible = rememberUpdatedState(controlsVisible)
 
     Box(
         modifier = modifier
@@ -63,6 +65,13 @@ fun PlayerGesturesLayer(
                     val down = awaitFirstDown(requireUnconsumed = false)
                     val startX = down.position.x
                     dragActive.value = false
+
+                    if (currentControlsVisible.value) {
+                        // Swipe gestures are disabled while the controls overlay is visible.
+                        // Tap gestures (single/double tap) are still handled by the
+                        // pointerInput block above.
+                        return@awaitEachGesture
+                    }
 
                     var accumulatedDrag = Offset.Zero
                     var dragDirection: DragDirection? = null
@@ -105,7 +114,6 @@ fun PlayerGesturesLayer(
                             }
                             DragDirection.VERTICAL -> {
                                 change.consume()
-                                if (controlsVisible) return@drag
                                 val isLeftSide = startX < size.width / 2
                                 if (isLeftSide) {
                                     onVerticalDragLeft(delta.y)
