@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import hu.bbara.purefin.core.model.MediaUiModel
 import hu.bbara.purefin.core.model.MovieUiModel
 import hu.bbara.purefin.core.model.LibraryUiModel
@@ -40,8 +39,7 @@ fun TvHomeScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             TvFocusedItemHero(
-                item = focusedMediaUiModel.value,
-                height = 220.dp
+                item = focusedMediaUiModel.value
             )
             TvHomeContent(
                 libraries = libraries,
