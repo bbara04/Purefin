@@ -303,27 +303,24 @@ class InMemoryAppContentRepository @Inject constructor(
     }
 
     private suspend fun loadLatestLibraryContent() {
-        val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
-            .getOrElse { error ->
-                handleRefreshFailure(error, "Unable to load latest library content")
-            }
-        val filteredLibraries = librariesItem.filter {
-            it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS
-        }
+        // Reuse the libraries already loaded by loadLibraries() so we don't refetch
+        // the same /Users/{userId}/Views response a second time per refresh.
+        val filteredLibraries = librariesState.value
+        val url = serverUrl()
         val latestLibraryContents = filteredLibraries.associate { library ->
             val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
                 .getOrElse { error ->
                     handleRefreshFailure(error, "Unable to load latest items for library ${library.id}")
                 }
-            library.id to when (library.collectionType) {
-                CollectionType.MOVIES -> latestFromLibrary.map {
-                    val movie = it.toMovie(serverUrl())
+            library.id to when (library.type) {
+                LibraryKind.MOVIES -> latestFromLibrary.map {
+                    val movie = it.toMovie(url)
                     Media.MovieMedia(movieId = movie.id)
                 }
-                CollectionType.TVSHOWS -> latestFromLibrary.map {
+                LibraryKind.SERIES -> latestFromLibrary.map {
                     when (it.type) {
                         BaseItemKind.SERIES -> {
-                            val series = it.toSeries(serverUrl())
+                            val series = it.toSeries(url)
                             Media.SeriesMedia(seriesId = series.id)
                         }
                         BaseItemKind.SEASON -> {
@@ -331,13 +328,12 @@ class InMemoryAppContentRepository @Inject constructor(
                             Media.SeasonMedia(seasonId = season.id, seriesId = season.seriesId)
                         }
                         BaseItemKind.EPISODE -> {
-                            val episode = it.toEpisode(serverUrl())
+                            val episode = it.toEpisode(url)
                             Media.EpisodeMedia(episodeId = episode.id, seriesId = episode.seriesId)
                         }
                         else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
                     }
                 }
-                else -> throw UnsupportedOperationException("Unsupported library type: ${library.collectionType}")
             }
         }
         latestLibraryContentState.value = latestLibraryContents

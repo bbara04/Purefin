@@ -1,5 +1,6 @@
 package hu.bbara.purefin.data.jellyfin.playback
 
+import android.os.SystemClock
 import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.Online
 import hu.bbara.purefin.core.data.LocalMediaRepository
@@ -15,6 +16,9 @@ import org.jellyfin.sdk.model.api.BaseItemDto
 import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.fetchAndIncrement
 import kotlin.math.roundToLong
 
 class SyncPlaybackPositionsHomeRefreshSideEffect @Inject constructor(
@@ -25,17 +29,44 @@ class SyncPlaybackPositionsHomeRefreshSideEffect @Inject constructor(
     @param:Online private val onlineRepository: LocalMediaRepository,
 ) : HomeRefreshSideEffect {
 
+    // Tracks the last time the sync actually ran. Using an AtomicLong keeps the
+    // timestamp race-free across coroutines; the debounce compares against
+    // SystemClock.elapsedRealtime() and skips when the window has not elapsed.
+    @OptIn(ExperimentalAtomicApi::class)
+    private val lastRunAtElapsedMs = AtomicLong(0L)
+
+    // Rotates the slice of items synced on each successful run. Without this,
+    // sortedBy+take(25) would re-fetch the same lexicographically lowest UUIDs
+    // forever and the rest of the offline library would never be reconciled.
+    @OptIn(ExperimentalAtomicApi::class)
+    private val nextWindowIndex = AtomicLong(0L)
+
+    @OptIn(ExperimentalAtomicApi::class)
     override suspend fun run() {
         if (!networkMonitor.isOnline.first()) return
 
-        val localPlaybackPositions = buildList {
-            addAll(offlineRepository.movies.first().values.map { it.toLocalPlaybackPosition() })
-            addAll(offlineRepository.episodes.first().values.map { it.toLocalPlaybackPosition() })
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastRunAtElapsedMs.load() < MIN_INTERVAL_MS) {
+            Timber.tag(TAG).d("Skipping playback position sync (rate-limited)")
+            return
         }
 
-        localPlaybackPositions.forEach { localPlaybackPosition ->
-            syncPlaybackPosition(localPlaybackPosition)
+        val sorted = buildList {
+            addAll(offlineRepository.movies.first().values.map { it.toLocalPlaybackPosition() })
+            addAll(offlineRepository.episodes.first().values.map { it.toLocalPlaybackPosition() })
+        }.sortedBy { it.mediaId }
+
+        val total = sorted.size
+        if (total > 0) {
+            val windowCount = (total + MAX_PER_RUN - 1) / MAX_PER_RUN
+            val windowIndex = Math.floorMod(nextWindowIndex.fetchAndIncrement(), windowCount.toLong()).toInt()
+            val start = windowIndex * MAX_PER_RUN
+            val end = minOf(start + MAX_PER_RUN, total)
+            val window = sorted.subList(start, end)
+            window.forEach { syncPlaybackPosition(it) }
         }
+
+        lastRunAtElapsedMs.store(SystemClock.elapsedRealtime())
     }
 
     private suspend fun syncPlaybackPosition(localPlaybackPosition: LocalPlaybackPosition) {
@@ -151,5 +182,11 @@ class SyncPlaybackPositionsHomeRefreshSideEffect @Inject constructor(
     private companion object {
         const val TAG = "PlaybackPositionSync"
         const val PROGRESS_TOLERANCE_PERCENT = 0.5
+        // At most one full sweep every 6 hours; combined with MAX_PER_RUN this
+        // bounds the request count regardless of how many downloads the user has.
+        const val MIN_INTERVAL_MS = 6L * 60L * 60L * 1000L
+        // Cap the number of getItemInfo calls per refresh so a user with many
+        // downloads does not trigger N requests on every resume.
+        const val MAX_PER_RUN = 25
     }
 }
