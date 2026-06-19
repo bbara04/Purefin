@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,6 +61,7 @@ import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
 import hu.bbara.purefin.core.player.model.TimedMarker
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
+import hu.bbara.purefin.ui.common.visual.ValueChangeTimedVisibility
 import hu.bbara.purefin.ui.screen.player.components.PlayerSeekBarTrack
 import hu.bbara.purefin.ui.screen.player.components.TvIconButton
 import hu.bbara.purefin.ui.screen.player.components.TvNextEpisodeOverlay
@@ -98,10 +99,7 @@ fun TvPlayerScreen(
     var trackPanelType by remember { mutableStateOf<TvTrackPanelType?>(null) }
     // TODO why this is needed???
     var pendingTrackButtonFocus by remember { mutableStateOf<TvTrackPanelType?>(null) }
-    var stopFeedbackVisible by remember { mutableStateOf(false) }
-    var stopFeedbackRequestId by remember { mutableIntStateOf(0) }
     var hiddenSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
-    var hiddenSeekRequestId by remember { mutableIntStateOf(0) }
 
     val context = LocalContext.current
 
@@ -212,22 +210,9 @@ fun TvPlayerScreen(
         pendingTrackButtonFocus = null
     }
 
-    // TODO: use animated visibility for this type of feedback that is already implemented
-    LaunchedEffect(stopFeedbackRequestId) {
-        if (stopFeedbackRequestId == 0) return@LaunchedEffect
-        delay(TV_HIDDEN_STOP_FEEDBACK_MS)
-        stopFeedbackVisible = false
-    }
-
-    LaunchedEffect(hiddenSeekRequestId) {
-        if (hiddenSeekRequestId == 0) return@LaunchedEffect
-        delay(TV_HIDDEN_STOP_FEEDBACK_MS)
-        hiddenSeekPreviewPositionMs = null
-    }
-
+    // TODO check if neccessary
     LaunchedEffect(controlsVisible, isPlaylistExpanded, trackPanelType, uiState.isEnded, uiState.error) {
         if (controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null) {
-            stopFeedbackVisible = false
             hiddenSeekPreviewPositionMs = null
         }
     }
@@ -405,12 +390,11 @@ fun TvPlayerScreen(
             onDismissError = { viewModel.clearError() }
         )
 
-        // TODO: use TimedVisibility
-        AnimatedVisibility(
-            visible = stopFeedbackVisible,
+        ValueChangeTimedVisibility(
+            value = uiState.isPlaying,
             modifier = Modifier.align(Alignment.Center)
-        ) {
-            TvPlayerHiddenStopFeedback()
+        ) { value ->
+            TvPlayerResumeStopFeedback(resume = value)
         }
 
         AnimatedVisibility(
@@ -550,7 +534,8 @@ internal fun handleTvPlayerRootKeyEvent(
 }
 
 @Composable
-internal fun TvPlayerHiddenStopFeedback(
+internal fun TvPlayerResumeStopFeedback(
+    resume: Boolean,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -562,8 +547,8 @@ internal fun TvPlayerHiddenStopFeedback(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Outlined.Pause,
-            contentDescription = "Pause playback",
+            imageVector = if (resume) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
+            contentDescription = "Play/Pause playback",
             tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(72.dp)
         )
