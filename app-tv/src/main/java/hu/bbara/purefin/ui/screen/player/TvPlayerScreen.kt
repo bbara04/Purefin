@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,11 +98,15 @@ fun TvPlayerScreen(
     var controlsVisible by remember { mutableStateOf(true) }
     var isPlaylistExpanded by remember { mutableStateOf(false) }
     var trackPanelType by remember { mutableStateOf<TvTrackPanelType?>(null) }
-    // TODO why this is needed???
     var pendingTrackButtonFocus by remember { mutableStateOf<TvTrackPanelType?>(null) }
-    var hiddenSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
+
+    // This is a hack for timed visibility.
+    var resumeStopFeedbackCounter by remember { mutableIntStateOf(0) }
+    var hiddenSeekCounter by remember { mutableIntStateOf(0) }
+
 
     val context = LocalContext.current
+
 
     val backgroundFocusRequester = remember { FocusRequester() }
 
@@ -180,7 +185,6 @@ fun TvPlayerScreen(
         && uiState.durationMs > 0L
         && (uiState.durationMs - uiState.positionMs) <= 60_000L
         && !uiState.isEnded
-    val showHiddenSeekPreview = !controlsVisible && hiddenSeekPreviewPositionMs != null
     LaunchedEffect(showSkipIntroButton, showNextEpisodeOverlay) {
         rootFocusRequester = when {
             showSkipIntroButton -> {
@@ -208,13 +212,6 @@ fun TvPlayerScreen(
             TvTrackPanelType.QUALITY -> qualityButtonFocusRequester.requestFocus()
         }
         pendingTrackButtonFocus = null
-    }
-
-    // TODO check if neccessary
-    LaunchedEffect(controlsVisible, isPlaylistExpanded, trackPanelType, uiState.isEnded, uiState.error) {
-        if (controlsVisible || isPlaylistExpanded || trackPanelType != null || uiState.isEnded || uiState.error != null) {
-            hiddenSeekPreviewPositionMs = null
-        }
     }
 
     val subtitleBottomPaddingFraction =
@@ -254,9 +251,16 @@ fun TvPlayerScreen(
                     onCloseTrackPanel = closeTrackPanel,
                     onCollapsePlaylist = {},
                     onHideControls = ::hideControls,
-                    onPausePlayback = { viewModel.pausePlayback() },
-                    onResumePlayback = { viewModel.resumePlayback() },
-                    onSeekRelative = { viewModel.seekBy(it) },
+                    onTogglePlayback = {
+                        // This is a hack to trigger the ValueChangeTimedVisibility to show the hidden resume/stop feedback.
+                        resumeStopFeedbackCounter++
+                        viewModel.togglePlayPause()
+                    },
+                    onSeekRelative = {
+                        // This is a hack to trigger the ValueChangeTimedVisibility to show the hidden seek timeline.
+                        hiddenSeekCounter++
+                        viewModel.seekBy(it)
+                    },
                 )
                 if (event.type == KeyEventType.KeyDown) {
                     hideControlsWithTimeout()
@@ -331,7 +335,7 @@ fun TvPlayerScreen(
                 .align(Alignment.BottomEnd)
                 .padding(
                     end = 24.dp,
-                    bottom = if (hiddenSeekPreviewPositionMs != null) 104.dp else 24.dp
+                    bottom = 24.dp
                 )
         ) {
             TvIconButton(
@@ -362,15 +366,15 @@ fun TvPlayerScreen(
             }
         }
 
-        // TODO: use TimedVisibility
-        AnimatedVisibility(
-            visible = showHiddenSeekPreview,
+        ValueChangeTimedVisibility(
+            value = hiddenSeekCounter,
+            hideAfterMillis = 2500L,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 32.dp, vertical = 28.dp)
         ) {
             HiddenTvSeekTimeline(
-                positionMs = hiddenSeekPreviewPositionMs ?: uiState.positionMs,
+                positionMs = uiState.positionMs,
                 durationMs = uiState.durationMs,
                 bufferedMs = uiState.bufferedMs,
                 chapterMarkers = uiState.chapters,
@@ -391,10 +395,11 @@ fun TvPlayerScreen(
         )
 
         ValueChangeTimedVisibility(
-            value = uiState.isPlaying,
+            value = resumeStopFeedbackCounter,
+            hideAfterMillis = TV_HIDDEN_STOP_FEEDBACK_MS,
             modifier = Modifier.align(Alignment.Center)
-        ) { value ->
-            TvPlayerResumeStopFeedback(resume = value)
+        ) {
+            TvPlayerResumeStopFeedback(resume = uiState.isPlaying)
         }
 
         AnimatedVisibility(
@@ -468,8 +473,7 @@ internal fun handleTvPlayerRootKeyEvent(
     onCloseTrackPanel: () -> Unit,
     onCollapsePlaylist: () -> Unit,
     onHideControls: () -> Unit,
-    onPausePlayback: () -> Unit,
-    onResumePlayback: () -> Unit,
+    onTogglePlayback: () -> Unit,
     onSeekRelative: (Long) -> Unit,
     onShowControls: () -> Unit,
 ): Boolean {
@@ -504,7 +508,7 @@ internal fun handleTvPlayerRootKeyEvent(
             }
 
             Key.DirectionRight -> {
-                onSeekRelative(10_000)
+                onSeekRelative(30_000)
                 true
             }
 
@@ -517,11 +521,8 @@ internal fun handleTvPlayerRootKeyEvent(
                 if (popupVisible) {
                     // Do nothing because the focused component is not he root, but an overlay
                     false
-                } else if (isPlaying) {
-                    onPausePlayback()
-                    true
                 } else {
-                    onResumePlayback()
+                    onTogglePlayback()
                     true
                 }
             }
