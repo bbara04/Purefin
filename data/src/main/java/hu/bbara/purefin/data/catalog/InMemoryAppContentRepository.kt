@@ -73,6 +73,17 @@ class InMemoryAppContentRepository @Inject constructor(
     private val latestLibraryContentState = MutableStateFlow<Map<UUID, List<Media>>>(emptyMap())
     override val latestLibraryContent: StateFlow<Map<UUID, List<Media>>> = latestLibraryContentState.asStateFlow()
 
+    // dateLastMediaAdded values captured at the end of the last successful
+    // refresh. Used to short-circuit per-library /Items/Latest calls when
+    // the timestamp hasn't moved. Persisted via HomeCache.
+    private val cachedLibraryDateLastMediaAdded = mutableMapOf<UUID, String>()
+
+    // dateLastMediaAdded values observed during the CURRENT refresh's
+    // /UserViews response. Read by loadLatestLibraryContent to decide
+    // which libraries need a /Items/Latest call, then merged into
+    // cachedLibraryDateLastMediaAdded and persisted at the end.
+    private var currentLibraryDateLastMediaAdded: Map<UUID, String> = emptyMap()
+
     init {
         ensureReady()
     }
@@ -126,6 +137,14 @@ class InMemoryAppContentRepository @Inject constructor(
     private suspend fun loadHomeCache() {
         Timber.tag(TAG).d("Loading home cache")
         val cache = homeCacheDataStore.data.first()
+        // Hydrate the dateLastMediaAdded map from disk before the first
+        // refresh runs, so the per-library short-circuit has a baseline.
+        cachedLibraryDateLastMediaAdded.clear()
+        cache.libraryDateLastMediaAdded.forEach { (key, date) ->
+            runCatching { UUID.fromString(key) }.getOrNull()?.let { uuid ->
+                cachedLibraryDateLastMediaAdded[uuid] = date
+            }
+        }
         if (cache.libraries.isNotEmpty()) {
             val libraries = cache.libraries.mapNotNull { it.toLibrary() }
             librariesState.value = libraries
@@ -168,6 +187,12 @@ class InMemoryAppContentRepository @Inject constructor(
         val movies = onlineMediaRepository.movies.value
         val series = onlineMediaRepository.series.value
         val episodes = onlineMediaRepository.episodes.value
+        // Persist this refresh's dateLastMediaAdded as the new baseline
+        // for the next refresh's per-library short-circuit.
+        cachedLibraryDateLastMediaAdded.clear()
+        currentLibraryDateLastMediaAdded.forEach { (id, date) ->
+            cachedLibraryDateLastMediaAdded[id] = date
+        }
         val cache = HomeCache(
             suggestions = suggestionsState.value.map { it.toCachedItem() },
             continueWatching = continueWatchingState.value.map { it.toCachedItem() },
@@ -176,6 +201,7 @@ class InMemoryAppContentRepository @Inject constructor(
                 uuid.toString() to items.map { it.toCachedItem() }
             }.toMap(),
             libraries = librariesState.value.map { it.toCachedLibrary() },
+            libraryDateLastMediaAdded = cachedLibraryDateLastMediaAdded.mapKeys { it.key.toString() },
             movies = referencedMediaIds.movieIds.mapNotNull { movies[it] }.map { it.toCachedMovie() },
             series = referencedMediaIds.seriesIds.mapNotNull { series[it] }.map { it.toCachedSeries() },
             episodes = referencedMediaIds.episodeIds.mapNotNull { episodes[it] }.map { it.toCachedEpisode() },
@@ -215,13 +241,33 @@ class InMemoryAppContentRepository @Inject constructor(
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load libraries")
             }
-        val filteredLibraries = librariesItem.filter {
-            it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS
+        // Decide which libraries to refresh content for. When the libraries
+        // endpoint returns 304 (ETag hit), the library list hasn't changed,
+        // but per-library content is a separate query with its own ETag, so
+        // we still need to call getLibraryContent for each library to pick
+        // up content additions that the libraries endpoint doesn't surface.
+        val librariesToProcess: List<Library> = if (librariesItem == null) {
+            librariesState.value
+        } else {
+            val filtered = librariesItem.filter {
+                it.collectionType == CollectionType.MOVIES || it.collectionType == CollectionType.TVSHOWS
+            }
+            // Capture the server-reported "last media added" timestamp per
+            // library for this refresh. loadLatestLibraryContent reads
+            // this map to decide which libraries need a /Items/Latest call,
+            // and persistHomeCache writes it to HomeCache as the new
+            // "cached" baseline for the next refresh.
+            currentLibraryDateLastMediaAdded = filtered
+                .mapNotNull { dto ->
+                    dto.dateLastMediaAdded?.let { dto.id to it.toString() }
+                }
+                .toMap()
+            val emptyLibraries = filtered.map { it.toLibrary(serverUrl()) }
+            librariesState.value = emptyLibraries
+            emptyLibraries
         }
-        val emptyLibraries = filteredLibraries.map { it.toLibrary(serverUrl()) }
-        librariesState.value = emptyLibraries
 
-        val filledLibraries = emptyLibraries.map { loadLibrary(it) }
+        val filledLibraries = librariesToProcess.map { loadLibrary(it) }
         librariesState.value = filledLibraries
 
         val movies = filledLibraries.filter { it.type == LibraryKind.MOVIES }.flatMap { it.movies.orEmpty() }
@@ -236,6 +282,11 @@ class InMemoryAppContentRepository @Inject constructor(
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load library ${library.id}")
             }
+        // ETag hit — the library's content is unchanged. Return the original
+        // library so the existing movies/series/size stay in state.
+        if (contentItem == null) {
+            return library
+        }
         return when (library.type) {
             LibraryKind.MOVIES -> library.copy(
                 movies = contentItem.map { it.toMovie(serverUrl()) },
@@ -253,6 +304,10 @@ class InMemoryAppContentRepository @Inject constructor(
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load suggestions")
             }
+        // ETag hit — suggestions are unchanged, keep the existing state.
+        if (suggestionsItems == null) {
+            return
+        }
         suggestionsState.value = suggestionsItems.mapNotNull { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
@@ -273,6 +328,10 @@ class InMemoryAppContentRepository @Inject constructor(
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load continue watching")
             }
+        // ETag hit — continue watching is unchanged, keep the existing state.
+        if (continueWatchingItems == null) {
+            return
+        }
         continueWatchingState.value = continueWatchingItems.mapNotNull { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
@@ -293,6 +352,10 @@ class InMemoryAppContentRepository @Inject constructor(
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load next up")
             }
+        // ETag hit — next up is unchanged, keep the existing state.
+        if (nextUpItems == null) {
+            return
+        }
         nextUpState.value = nextUpItems.map { item ->
             Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
         }
@@ -308,30 +371,47 @@ class InMemoryAppContentRepository @Inject constructor(
         val filteredLibraries = librariesState.value
         val url = serverUrl()
         val latestLibraryContents = filteredLibraries.associate { library ->
-            val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
-                .getOrElse { error ->
-                    handleRefreshFailure(error, "Unable to load latest items for library ${library.id}")
-                }
-            library.id to when (library.type) {
-                LibraryKind.MOVIES -> latestFromLibrary.map {
-                    val movie = it.toMovie(url)
-                    Media.MovieMedia(movieId = movie.id)
-                }
-                LibraryKind.SERIES -> latestFromLibrary.map {
-                    when (it.type) {
-                        BaseItemKind.SERIES -> {
-                            val series = it.toSeries(url)
-                            Media.SeriesMedia(seriesId = series.id)
+            // Skip the per-library GET when the server-reported "last media added"
+            // timestamp is identical to the one we saw last refresh. This is
+            // Jellyfin's stable signal that no new content was added, and it lets
+            // us avoid one request per library on the common case. ETag on
+            // /Items/Latest remains the fallback for changes that don't bump the
+            // timestamp (e.g. metadata refreshes that don't add media).
+            val cachedDate = cachedLibraryDateLastMediaAdded[library.id]
+            val currentDate = currentLibraryDateLastMediaAdded[library.id]
+            if (cachedDate != null && cachedDate == currentDate) {
+                library.id to (latestLibraryContentState.value[library.id] ?: emptyList())
+            } else {
+                val latestFromLibrary = runCatching { jellyfinApiClient.getLatestFromLibrary(library.id) }
+                    .getOrElse { error ->
+                        handleRefreshFailure(error, "Unable to load latest items for library ${library.id}")
+                    }
+                // ETag hit — /Items/Latest is unchanged, keep the previous slice.
+                if (latestFromLibrary == null) {
+                    library.id to (latestLibraryContentState.value[library.id] ?: emptyList())
+                } else {
+                    library.id to when (library.type) {
+                        LibraryKind.MOVIES -> latestFromLibrary.map {
+                            val movie = it.toMovie(url)
+                            Media.MovieMedia(movieId = movie.id)
                         }
-                        BaseItemKind.SEASON -> {
-                            val season = it.toSeason()
-                            Media.SeasonMedia(seasonId = season.id, seriesId = season.seriesId)
+                        LibraryKind.SERIES -> latestFromLibrary.map {
+                            when (it.type) {
+                                BaseItemKind.SERIES -> {
+                                    val series = it.toSeries(url)
+                                    Media.SeriesMedia(seriesId = series.id)
+                                }
+                                BaseItemKind.SEASON -> {
+                                    val season = it.toSeason()
+                                    Media.SeasonMedia(seasonId = season.id, seriesId = season.seriesId)
+                                }
+                                BaseItemKind.EPISODE -> {
+                                    val episode = it.toEpisode(url)
+                                    Media.EpisodeMedia(episodeId = episode.id, seriesId = episode.seriesId)
+                                }
+                                else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
+                            }
                         }
-                        BaseItemKind.EPISODE -> {
-                            val episode = it.toEpisode(url)
-                            Media.EpisodeMedia(episodeId = episode.id, seriesId = episode.seriesId)
-                        }
-                        else -> throw UnsupportedOperationException("Unsupported item type: ${it.type}")
                     }
                 }
             }
