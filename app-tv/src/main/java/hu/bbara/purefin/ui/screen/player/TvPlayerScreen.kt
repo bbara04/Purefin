@@ -366,20 +366,22 @@ fun TvPlayerScreen(
             }
         }
 
-        ValueChangeTimedVisibility(
-            value = hiddenSeekCounter,
-            hideAfterMillis = 2500L,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 32.dp, vertical = 28.dp)
-        ) {
-            HiddenTvSeekTimeline(
-                positionMs = uiState.positionMs,
-                durationMs = uiState.durationMs,
-                bufferedMs = uiState.bufferedMs,
-                chapterMarkers = uiState.chapters,
-                adMarkers = uiState.ads
-            )
+        if (!showSkipIntroButton) {
+            ValueChangeTimedVisibility(
+                value = hiddenSeekCounter,
+                hideAfterMillis = 2500L,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 32.dp, vertical = 28.dp)
+            ) {
+                HiddenTvSeekTimeline(
+                    positionMs = uiState.positionMs,
+                    durationMs = uiState.durationMs,
+                    bufferedMs = uiState.bufferedMs,
+                    chapterMarkers = uiState.chapters,
+                    adMarkers = uiState.ads
+                )
+            }
         }
 
         TvPlayerLoadingErrorEndCard(
