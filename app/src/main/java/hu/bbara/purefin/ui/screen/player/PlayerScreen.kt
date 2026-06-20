@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -86,8 +87,8 @@ fun PlayerScreen(
 
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     val maxVolume = remember { audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1) }
-    var volume by remember { mutableStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / maxVolume.toFloat()) }
-    var brightness by remember { mutableStateOf(readCurrentBrightness(activity)) }
+    var volume by remember { mutableFloatStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / maxVolume.toFloat()) }
+    var brightness by remember { mutableFloatStateOf(readCurrentBrightness(activity)) }
     var showQueuePanel by remember { mutableStateOf(false) }
     var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
     var horizontalSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
