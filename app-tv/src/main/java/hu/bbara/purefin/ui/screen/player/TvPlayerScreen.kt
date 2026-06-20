@@ -244,7 +244,6 @@ fun TvPlayerScreen(
             .onPreviewKeyEvent { event ->
                 val handled = handleTvPlayerRootKeyEvent(
                     event = event,
-                    isPlaying = uiState.isPlaying,
                     controlsVisible = controlsVisible,
                     popupVisible = showSkipIntroButton || showNextEpisodeOverlay,
                     onShowControls = ::showControls,
@@ -467,7 +466,6 @@ private fun HiddenTvSeekTimeline(
 
 internal fun handleTvPlayerRootKeyEvent(
     event: KeyEvent,
-    isPlaying: Boolean,
     controlsVisible: Boolean,
     popupVisible: Boolean,
     isPlaylistExpanded: Boolean,
