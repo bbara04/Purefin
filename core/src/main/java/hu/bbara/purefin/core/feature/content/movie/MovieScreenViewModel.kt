@@ -64,6 +64,9 @@ class MovieScreenViewModel @Inject constructor(
     fun selectMovie(movie: MovieDto) {
         _movie.value = movie
         viewModelScope.launch {
+            mediaCatalogReader(movie.offline).loadMovie(movie.id)
+        }
+        viewModelScope.launch {
             mediaDownloadManager.observeDownloadState(movie.id.toString()).collect {
                 _downloadState.value = it
             }

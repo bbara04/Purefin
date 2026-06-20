@@ -67,6 +67,27 @@ class CompositeLocalMediaRepository @Inject constructor(
         )
     }
 
+    override suspend fun loadMovie(id: UUID) {
+        runOnlineOrOfflineNoOp(
+            onlineAction = { onlineRepository.loadMovie(id) },
+            offlineAction = { offlineRepository.loadMovie(id) },
+        )
+    }
+
+    override suspend fun loadSeries(id: UUID) {
+        runOnlineOrOfflineNoOp(
+            onlineAction = { onlineRepository.loadSeries(id) },
+            offlineAction = { offlineRepository.loadSeries(id) },
+        )
+    }
+
+    override suspend fun loadEpisode(id: UUID) {
+        runOnlineOrOfflineNoOp(
+            onlineAction = { onlineRepository.loadEpisode(id) },
+            offlineAction = { offlineRepository.loadEpisode(id) },
+        )
+    }
+
     override suspend fun loadSeasons(seriesId: UUID) {
         runOnlineOrOfflineNoOp(
             onlineAction = { onlineRepository.loadSeasons(seriesId) },

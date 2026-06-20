@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -47,17 +46,6 @@ class EpisodeScreenViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val seriesTitle: StateFlow<String?> = _episode
-        .flatMapLatest { episode ->
-            if (episode == null) {
-                flowOf(null)
-            } else {
-                mediaCatalogReader(episode.offline).getSeries(episode.seriesId).map { it?.name }
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
     val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
 
@@ -76,6 +64,9 @@ class EpisodeScreenViewModel @Inject constructor(
 
     fun selectEpisode(episode: EpisodeDto) {
         _episode.value = episode
+        viewModelScope.launch {
+            mediaCatalogReader(episode.offline).loadEpisode(episode.id)
+        }
         viewModelScope.launch {
             mediaDownloadManager.observeDownloadState(episode.id.toString()).collect {
                 _downloadState.value = it

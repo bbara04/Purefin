@@ -46,6 +46,18 @@ class OfflineLocalMediaRepository @Inject constructor(
         return episodes.map { it[id] }
     }
 
+    override suspend fun loadMovie(id: UUID) {
+        // Offline movie content is already persisted.
+    }
+
+    override suspend fun loadSeries(id: UUID) {
+        // Offline series content is already persisted.
+    }
+
+    override suspend fun loadEpisode(id: UUID) {
+        // Offline episode content is already persisted.
+    }
+
     override suspend fun loadSeasons(seriesId: UUID) {
         // Offline series content is already emitted with its saved seasons.
     }

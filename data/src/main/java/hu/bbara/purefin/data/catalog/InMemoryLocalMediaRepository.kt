@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import org.jellyfin.sdk.model.api.BaseItemKind
@@ -48,48 +47,70 @@ class InMemoryLocalMediaRepository @Inject constructor(
     private val episodesState = MutableStateFlow<Map<UUID, Episode>>(emptyMap())
     override val episodes: StateFlow<Map<UUID, Episode>> = episodesState.asStateFlow()
 
-    override suspend fun getMovie(id: UUID): Flow<Movie?> {
-        if (!moviesState.value.containsKey(id)) {
+    override suspend fun getMovie(id: UUID): Flow<Movie?> =
+        moviesState.map { it[id] }.distinctUntilChanged()
+
+    override suspend fun getSeries(id: UUID): Flow<Series?> =
+        seriesState.map { it[id] }.distinctUntilChanged()
+
+    override suspend fun getEpisode(id: UUID): Flow<Episode?> =
+        episodesState.map { it[id] }.distinctUntilChanged()
+
+    override suspend fun loadMovie(id: UUID) {
+        if (moviesState.value.containsKey(id)) return
+        try {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.MOVIE) {
                     Timber.tag(TAG).d("Item is not an movie: ${item.type}")
-                    return flowOf(null)
+                    return
                 }
                 val movie = item.toMovie(serverUrl.first())
                 moviesState.update { current -> current + (movie.id to movie) }
             }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Timber.tag(TAG).e(error, "Failed to load movie $id")
+            throw error
         }
-        return moviesState.map { it[id] }.distinctUntilChanged()
     }
 
-    override suspend fun getSeries(id: UUID): Flow<Series?> {
-        if (!seriesState.value.containsKey(id)) {
+    override suspend fun loadSeries(id: UUID) {
+        if (seriesState.value.containsKey(id)) return
+        try {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.SERIES) {
                     Timber.tag(TAG).d("Item is not an series: ${item.type}")
-                    return flowOf(null)
+                    return
                 }
                 val series = item.toSeries(serverUrl.first())
                 seriesState.update { current -> current + (series.id to series) }
             }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Timber.tag(TAG).e(error, "Failed to load series $id")
+            throw error
         }
-        return seriesState.map { it[id] }.distinctUntilChanged()
     }
 
-    override suspend fun getEpisode(id: UUID): Flow<Episode?> {
-        if (!episodesState.value.containsKey(id)) {
+    override suspend fun loadEpisode(id: UUID) {
+        if (episodesState.value.containsKey(id)) return
+        try {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.EPISODE) {
                     Timber.tag(TAG).d("Item is not an episode: ${item.type}")
-                    return flowOf(null)
+                    return
                 }
                 val episode = item.toEpisode(serverUrl.first())
                 episodesState.update { current -> current + (episode.id to episode) }
             }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Timber.tag(TAG).e(error, "Failed to load episode $id")
+            throw error
         }
-        val episode = episodesState.value[id] ?: return flowOf(null)
-        preloadSeasonsForEpisode(episode.seriesId)
-        return episodesState.map { it[id] }.distinctUntilChanged()
     }
 
     fun upsertMovies(movies: List<Movie>) {
@@ -112,16 +133,6 @@ class InMemoryLocalMediaRepository @Inject constructor(
         } catch (error: Exception) {
             Timber.tag(TAG).e(error, "Failed to load content for series $seriesId")
             throw error
-        }
-    }
-
-    private suspend fun preloadSeasonsForEpisode(seriesId: UUID) {
-        try {
-            loadSeasonsInternal(seriesId)
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Timber.tag(TAG).w(error, "Unable to preload seasons for episode series $seriesId")
         }
     }
 

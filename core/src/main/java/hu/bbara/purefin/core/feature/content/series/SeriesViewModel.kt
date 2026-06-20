@@ -195,7 +195,9 @@ class SeriesViewModel @Inject constructor(
     fun selectSeries(series: SeriesDto) {
         _series.value = series
         viewModelScope.launch {
-            mediaCatalogReader(series.offline).loadSeasons(series.id)
+            val mediaCatalogReader = mediaCatalogReader(series.offline)
+            mediaCatalogReader.loadSeries(series.id)
+            mediaCatalogReader.loadSeasons(series.id)
         }
     }
 

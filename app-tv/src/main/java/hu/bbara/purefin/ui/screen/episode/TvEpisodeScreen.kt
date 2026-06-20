@@ -41,7 +41,6 @@ fun TvEpisodeScreen(
     }
 
     val episode = viewModel.episode.collectAsStateWithLifecycle()
-    val seriesTitle = viewModel.seriesTitle.collectAsStateWithLifecycle()
     val selectedEpisode = episode.value
 
     if (selectedEpisode == null) {
@@ -51,7 +50,7 @@ fun TvEpisodeScreen(
 
     TvEpisodeScreenContent(
         episode = selectedEpisode,
-        seriesTitle = seriesTitle.value,
+        seriesTitle = selectedEpisode.seriesName,
         onPlay = remember(selectedEpisode.id, navigationManager) {
             {
                 navigationManager.navigate(

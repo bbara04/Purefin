@@ -14,6 +14,9 @@ interface LocalMediaRepository : MediaMetadataUpdater {
     suspend fun getMovie(id: UUID): Flow<Movie?>
     suspend fun getSeries(id: UUID): Flow<Series?>
     suspend fun getEpisode(id: UUID): Flow<Episode?>
+    suspend fun loadMovie(id: UUID)
+    suspend fun loadSeries(id: UUID)
+    suspend fun loadEpisode(id: UUID)
     suspend fun loadSeasons(seriesId: UUID)
     suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID)
 }

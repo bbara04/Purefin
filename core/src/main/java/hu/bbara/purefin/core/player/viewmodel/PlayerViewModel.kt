@@ -169,8 +169,7 @@ class PlayerViewModel @Inject constructor(
             _uiState.update { it.copy(error = dataErrorMessage) }
             return
         }
-        //TODO hack to preload the series media
-        mediaCatalogReader.getEpisode(UUID.fromString(id))
+        mediaCatalogReader.loadEpisode(UUID.fromString(id))
         viewModelScope.launch {
             runCatching {
                 playerManager.play(uuid)
@@ -243,6 +242,7 @@ class PlayerViewModel @Inject constructor(
     private suspend fun PlayableMedia.toPlaylistElementUiModel(currentMediaId: UUID?): PlaylistElementUiModel? {
         return when (this) {
             is PlayableMedia.Movie -> {
+                mediaCatalogReader.loadMovie(id)
                 val movie = mediaCatalogReader.getMovie(id).first()
                 if (movie == null) {
                     Timber.tag(TAG).e("Movie not found for playlist item: $id")
@@ -261,6 +261,7 @@ class PlayerViewModel @Inject constructor(
             }
 
             is PlayableMedia.Series -> {
+                mediaCatalogReader.loadSeries(id)
                 val series = mediaCatalogReader.getSeries(id).first()
                 if (series == null) {
                     Timber.tag(TAG).e("Series not found for playlist item: $id")
@@ -279,6 +280,7 @@ class PlayerViewModel @Inject constructor(
             }
 
             is PlayableMedia.Episode -> {
+                mediaCatalogReader.loadEpisode(id)
                 val episode = mediaCatalogReader.getEpisode(id).first()
                 if (episode == null) {
                     Timber.tag(TAG).e("Episode not found for playlist item: $id")
