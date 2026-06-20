@@ -2,9 +2,7 @@ package hu.bbara.purefin.ui.screen.home.components
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
@@ -31,40 +30,34 @@ internal const val TvHomeHeroTitleTag = "tv-home-hero-title"
 internal const val TvHomeHeroProgressLabelTag = "tv-home-hero-progress-label"
 
 private const val TvHomeHeroAnimationMillis = 180
-// Half the screen for the billboard, half for the content rows. Tuned so both
-// the hero block and the first focused row fit on a 540dp-tall (1080p xhdpi) TV.
+// The billboard backdrop covers the top portion of the home screen so the hero
+// text sits at the bottom of the backdrop and the content rows begin below it.
 internal const val TvHomeHeroHeightFraction = 0.45f
+internal const val TvHomeBackdropOffset = 0.20f
 
+/**
+ * The home screen background image plus the darkening gradients that keep the
+ * hero text readable. Drawn behind the home content and sized to the top
+ * [TvHomeHeroHeightFraction] of the screen.
+ */
 @Composable
-internal fun TvFocusedItemHero(
-    item: MediaUiModel,
+internal fun TvHomeHeroBackdrop(
+    backdropImageUrl: String?,
     modifier: Modifier = Modifier,
-    heightFraction: Float = TvHomeHeroHeightFraction,
+    heightFraction: Float = TvHomeHeroHeightFraction + TvHomeBackdropOffset,
 ) {
     val scheme = MaterialTheme.colorScheme
-    Box(
+    Crossfade(
+        targetState = backdropImageUrl,
+        animationSpec = tween(durationMillis = TvHomeHeroAnimationMillis),
+        label = "tv-home-hero-backdrop",
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight(heightFraction)
-            .background(scheme.background)
-    ) {
-        Crossfade(
-            targetState = item.backdropImageUrl,
-            animationSpec = tween(durationMillis = TvHomeHeroAnimationMillis),
-            label = "tv-home-hero-background"
-        ) { imageUrl ->
-            PurefinAsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
-        // Darken the left side so the text block stays readable over any backdrop.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
+            .drawWithContent {
+                drawContent()
+                // Darken the left side so the text block stays readable over any backdrop.
+                drawRect(
                     Brush.horizontalGradient(
                         colorStops = arrayOf(
                             0.0f to scheme.background.copy(alpha = 0.86f),
@@ -74,12 +67,8 @@ internal fun TvFocusedItemHero(
                         )
                     )
                 )
-        )
-        // Strong bottom fade so the title and metadata are legible.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
+                // Strong bottom fade so the title and metadata are legible.
+                drawRect(
                     Brush.verticalGradient(
                         colorStops = arrayOf(
                             0.0f to scheme.background.copy(alpha = 0f),
@@ -89,43 +78,62 @@ internal fun TvFocusedItemHero(
                         )
                     )
                 )
+            }
+    ) { imageUrl ->
+        PurefinAsyncImage(
+            model = imageUrl,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
-        Crossfade(
-            targetState = item,
-            animationSpec = tween(durationMillis = TvHomeHeroAnimationMillis),
-            label = "tv-home-hero-content"
-        ) { hero ->
+    }
+}
+
+@Composable
+internal fun TvFocusedItemHero(
+    item: MediaUiModel,
+    modifier: Modifier = Modifier,
+    heightFraction: Float = TvHomeHeroHeightFraction,
+) {
+    val scheme = MaterialTheme.colorScheme
+    Crossfade(
+        targetState = item,
+        animationSpec = tween(durationMillis = TvHomeHeroAnimationMillis),
+        label = "tv-home-hero-content",
+        modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight(heightFraction)
+    ) { hero ->
+        Column(
+            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 40.dp, vertical = 16.dp)
+        ) {
             Column(
-                verticalArrangement = Arrangement.Bottom,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 40.dp, vertical = 16.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.widthIn(max = 720.dp)
             ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.widthIn(max = 720.dp)
-                ) {
+                Text(
+                    text = hero.primaryText,
+                    color = scheme.onBackground,
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 44.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.testTag(TvHomeHeroTitleTag)
+                )
+                TvHomeHeroMetadataRow(item = hero)
+                if (hero.description.isNotBlank()) {
                     Text(
-                        text = hero.primaryText,
-                        color = scheme.onBackground,
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 44.sp,
+                        text = hero.description,
+                        color = scheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.testTag(TvHomeHeroTitleTag)
+                        overflow = TextOverflow.Ellipsis
                     )
-                    TvHomeHeroMetadataRow(item = hero)
-                    if (hero.description.isNotBlank()) {
-                        Text(
-                            text = hero.description,
-                            color = scheme.onSurfaceVariant,
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
                 }
             }
         }

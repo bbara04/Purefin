@@ -1,6 +1,6 @@
 package hu.bbara.purefin.ui.screen.home
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,11 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.core.model.MediaUiModel
 import hu.bbara.purefin.core.model.MovieUiModel
-import hu.bbara.purefin.core.model.LibraryUiModel
 import hu.bbara.purefin.ui.screen.home.components.TvFocusedItemHero
 import hu.bbara.purefin.ui.screen.home.components.TvHomeContent
+import hu.bbara.purefin.ui.screen.home.components.TvHomeHeroBackdrop
 import java.util.UUID
 
 @Composable
@@ -30,30 +31,33 @@ fun TvHomeScreen(
     val focusedMediaUiModel = remember { mutableStateOf<MediaUiModel>(MovieUiModel.createPlaceholder()) }
 
     Surface(
-        modifier = modifier
-            .fillMaxSize()
-            .background(scheme.background)
+        modifier = modifier.fillMaxSize(),
+        color = scheme.background
     ) {
-
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            TvFocusedItemHero(
-                item = focusedMediaUiModel.value
+        Box(modifier = Modifier.fillMaxSize()) {
+            TvHomeHeroBackdrop(
+                backdropImageUrl = focusedMediaUiModel.value.backdropImageUrl
             )
-            TvHomeContent(
-                libraries = libraries,
-                libraryContent = libraryContent,
-                continueWatching = continueWatching,
-                nextUp = nextUp,
-                onMediaFocused = {
-                    focusedMediaUiModel.value = it
-                },
-                onMediaSelected = onMediaSelected,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            )
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                TvFocusedItemHero(
+                    item = focusedMediaUiModel.value
+                )
+                TvHomeContent(
+                    libraries = libraries,
+                    libraryContent = libraryContent,
+                    continueWatching = continueWatching,
+                    nextUp = nextUp,
+                    onMediaFocused = {
+                        focusedMediaUiModel.value = it
+                    },
+                    onMediaSelected = onMediaSelected,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                )
+            }
         }
     }
 }
