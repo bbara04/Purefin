@@ -77,7 +77,7 @@ class JellyfinApiClient @Inject constructor(
         apiClientFactory = okHttpFactory
     }
 
-    private val api = jellyfin.createApi()
+    val api = jellyfin.createApi()
 
     private val defaultItemFields =
         listOf(
