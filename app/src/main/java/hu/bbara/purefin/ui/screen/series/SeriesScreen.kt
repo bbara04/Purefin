@@ -99,6 +99,7 @@ fun SeriesScreen(
 
         SeriesScreenInternal(
             series = seriesData,
+            selectSeason = viewModel::selectSeason,
             seriesDownloadState = seriesDownloadState,
             seasonDownloadState = seasonDownloadState,
             isSmartDownloadEnabled = isSmartDownloadEnabled,
@@ -113,7 +114,6 @@ fun SeriesScreen(
                     }
                 }
             },
-            onLoadSeasonEpisodes = viewModel::loadSeasonEpisodes,
             onObserveSeasonDownloadState = viewModel::observeSeasonDownloadState,
             onBack = viewModel::onGoHome,
             onMarkAsWatched = viewModel::markAsWatched,
@@ -129,11 +129,11 @@ fun SeriesScreen(
 @Composable
 private fun SeriesScreenInternal(
     series: Series,
+    selectSeason: (UUID, UUID) -> Unit,
     seriesDownloadState: DownloadState,
     seasonDownloadState: DownloadState,
     isSmartDownloadEnabled: Boolean,
     onDownloadOptionSelected: (SeriesDownloadOption, Season) -> Unit,
-    onLoadSeasonEpisodes: (UUID, UUID) -> Unit,
     onObserveSeasonDownloadState: (List<Episode>) -> Unit,
     onBack: () -> Unit,
     onMarkAsWatched: (Boolean) -> Unit = {},
@@ -175,7 +175,7 @@ private fun SeriesScreenInternal(
     }
 
     LaunchedEffect(series.id, selectedSeason?.id) {
-        selectedSeason?.let { onLoadSeasonEpisodes(series.id, it.id) }
+        selectedSeason?.let { selectSeason(series.id, it.id) }
     }
 
     LaunchedEffect(selectedSeason?.id, selectedSeason?.episodes) {

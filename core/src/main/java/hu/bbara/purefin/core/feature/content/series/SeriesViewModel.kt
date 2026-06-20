@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.Offline
 import hu.bbara.purefin.core.data.LocalMediaRepository
+import hu.bbara.purefin.core.data.MediaMetadataUpdater
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.download.MediaDownloadController
-import hu.bbara.purefin.core.data.MediaMetadataUpdater
 import hu.bbara.purefin.core.navigation.EpisodeDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
@@ -95,12 +95,6 @@ class SeriesViewModel @Inject constructor(
             val flows = allEpisodes.map { mediaDownloadManager.observeDownloadState(it.id.toString()) }
             combine(flows) { states -> aggregateDownloadStates(states.toList()) }
                 .collect { _seriesDownloadState.value = it }
-        }
-    }
-
-    fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {
-        viewModelScope.launch {
-            selectedMediaCatalogReader().loadSeasonEpisodes(seriesId, seasonId)
         }
     }
 
@@ -196,8 +190,14 @@ class SeriesViewModel @Inject constructor(
         _series.value = series
         viewModelScope.launch {
             val mediaCatalogReader = mediaCatalogReader(series.offline)
-            mediaCatalogReader.loadSeries(series.id)
-            mediaCatalogReader.loadSeasons(series.id)
+            launch { mediaCatalogReader.loadSeries(series.id) }
+            launch { mediaCatalogReader.loadSeasons(series.id) }
+        }
+    }
+
+    fun selectSeason(seriesId: UUID, seasonId: UUID) {
+        viewModelScope.launch {
+            selectedMediaCatalogReader().loadSeasonEpisodes(seriesId, seasonId)
         }
     }
 

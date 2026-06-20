@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -18,13 +17,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text as TvText
 import hu.bbara.purefin.core.feature.content.series.SeriesViewModel
+import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
-import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.ui.common.media.MediaDetailHorizontalPadding
 import hu.bbara.purefin.ui.common.media.TvMediaDetailBodyBox
 import hu.bbara.purefin.ui.common.media.TvMediaDetailScaffold
@@ -35,6 +34,7 @@ import hu.bbara.purefin.ui.screen.series.components.TvSeasonTabs
 import hu.bbara.purefin.ui.screen.series.components.TvSeriesHeroSection
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import java.util.UUID
+import androidx.tv.material3.Text as TvText
 
 @Composable
 fun TvSeriesScreen(
@@ -54,8 +54,8 @@ fun TvSeriesScreen(
     if (seriesData != null) {
         TvSeriesScreenContent(
             series = seriesData,
+            selectSeason = viewModel::selectSeason,
             onPlayEpisode = viewModel::onPlayEpisode,
-            onLoadSeasonEpisodes = viewModel::loadSeasonEpisodes,
             focusedSeasonId = focusedSeasonId,
             focusedEpisodeId = focusedEpisodeId,
             modifier = modifier
@@ -68,8 +68,8 @@ fun TvSeriesScreen(
 @Composable
 internal fun TvSeriesScreenContent(
     series: Series,
+    selectSeason: (UUID, UUID) -> Unit,
     onPlayEpisode: (UUID) -> Unit,
-    onLoadSeasonEpisodes: (UUID, UUID) -> Unit = { _, _ -> },
     focusedSeasonId: UUID? = null,
     focusedEpisodeId: UUID? = null,
     modifier: Modifier = Modifier,
@@ -96,7 +96,7 @@ internal fun TvSeriesScreenContent(
         initialFocusSeason.episodeCount > 0
 
     LaunchedEffect(series.id, selectedSeason?.id) {
-        selectedSeason?.let { onLoadSeasonEpisodes(series.id, it.id) }
+        selectedSeason?.let { selectSeason(series.id, it.id) }
     }
 
     TvMediaDetailScaffold(
