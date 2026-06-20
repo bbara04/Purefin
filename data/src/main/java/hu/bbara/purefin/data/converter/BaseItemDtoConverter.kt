@@ -11,12 +11,13 @@ import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.CollectionType
+import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-fun BaseItemDto.toLibrary(serverUrl: String): Library {
+fun BaseItemDto.toLibrary(serverUrl: String): Library? {
     return when (collectionType) {
         CollectionType.MOVIES -> Library(
             id = id,
@@ -42,9 +43,19 @@ fun BaseItemDto.toLibrary(serverUrl: String): Library {
             size = childCount ?: 0,
             series = emptyList(),
         )
-        else -> throw UnsupportedOperationException("Unsupported library type: $collectionType")
+        else -> {
+            // Jellyfin servers can return other top-level views (e.g. boxsets,
+            // music, photos, live TV) that this app does not surface on the
+            // home dashboard. Skip them so a single unsupported view does
+            // not abort the whole refresh and leave the user with an empty
+            // home screen.
+            Timber.tag(TAG).w("Skipping unsupported library type: $collectionType")
+            null
+        }
     }
 }
+
+private const val TAG = "BaseItemDtoConverter"
 
 fun BaseItemDto.toMovie(serverUrl: String): Movie {
     return Movie(

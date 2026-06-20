@@ -280,8 +280,8 @@ class InMemoryAppContentRepository @Inject constructor(
             // library detail screen via loadLibraryContent, and on the
             // home rows by loadSuggestions / loadContinueWatching /
             // loadLatestLibraryContent.
-            librariesItem.map { dto ->
-                val library = dto.toLibrary(serverUrl())
+            librariesItem.mapNotNull { dto ->
+                val library = dto.toLibrary(serverUrl()) ?: return@mapNotNull null
                 val count = jellyfinApiClient.getLibraryItemCount(library.id) ?: library.size
                 when (library.type) {
                     LibraryKind.MOVIES -> library.copy(movies = emptyList(), size = count)
