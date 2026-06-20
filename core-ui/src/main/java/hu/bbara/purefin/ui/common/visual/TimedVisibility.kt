@@ -8,29 +8,37 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun <T> EmptyValueTimedVisibility(
     value: T?,
     hideAfterMillis: Long = 1_000,
+    enterTransition: EnterTransition = EnterTransition.None,
+    exitTransition: ExitTransition = ExitTransition.None,
     modifier: Modifier = Modifier,
     content: @Composable (T) -> Unit
 ) {
-    val shownValue = remember { mutableStateOf<T?>(null) }
-
+    var displayedValue by remember { mutableStateOf(value) }
     LaunchedEffect(value) {
-        if (value == null) {
-            delay(hideAfterMillis)
-            shownValue.value = null
+        if (value != null) {
+            displayedValue = value
         }
-        shownValue.value = value
     }
-
-    shownValue.value?.let {
-        content(it)
+    if (displayedValue != null) {
+        ValueChangeTimedVisibility(
+            value = displayedValue!!,
+            hideAfterMillis = hideAfterMillis,
+            enterTransition = enterTransition,
+            exitTransition = exitTransition,
+            modifier = modifier,
+            content = content
+        )
     }
 }
 
@@ -38,30 +46,40 @@ fun <T> EmptyValueTimedVisibility(
 fun <T> ValueChangeTimedVisibility(
     value: T,
     hideAfterMillis: Long = 1_000,
+    enterTransition: EnterTransition = EnterTransition.None,
+    exitTransition: ExitTransition = ExitTransition.None,
     modifier: Modifier = Modifier,
     content: @Composable (T) -> Unit
 ) {
     var displayedValue by remember { mutableStateOf(value) }
-    var isVisible by remember { mutableStateOf(false) }
     var hasInitialValue by remember { mutableStateOf(false) }
+    var isVisible by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    var hideJob: Job? by remember { mutableStateOf(null) }
+    fun restartHideJob() {
+        hideJob?.cancel()
+        hideJob = coroutineScope.launch {
+            delay(hideAfterMillis)
+            isVisible = false
+        }
+    }
 
     LaunchedEffect(value) {
-        displayedValue = value
         if (!hasInitialValue) {
             hasInitialValue = true
             return@LaunchedEffect
         }
-
+        displayedValue = value
         isVisible = true
-        delay(hideAfterMillis)
-        isVisible = false
+        restartHideJob()
     }
 
     AnimatedVisibility(
         visible = isVisible,
         modifier = modifier,
-        enter = EnterTransition.None,
-        exit = ExitTransition.None
+        enter = enterTransition,
+        exit = exitTransition
     ) {
         content(displayedValue)
     }

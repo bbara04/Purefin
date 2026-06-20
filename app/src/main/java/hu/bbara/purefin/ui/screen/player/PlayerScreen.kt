@@ -192,30 +192,30 @@ fun PlayerScreen(
 
         EmptyValueTimedVisibility(
             value = horizontalSeekFeedback,
-            hideAfterMillis = 1_000
+            hideAfterMillis = 1_000,
+            modifier = Modifier
+                .align(Alignment.Center)
         ) {
             SeekAmountIndicator(
                 deltaMs = it,
-                modifier = Modifier
-                    .align(Alignment.Center)
             )
         }
 
         EmptyValueTimedVisibility(
             value = horizontalSeekPreviewPositionMs,
-            hideAfterMillis = 1_000
+            hideAfterMillis = 1_000,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 24.dp, vertical = 28.dp)
         ) { previewPositionMs ->
-            if (controlsVisible) {
+            if (!controlsVisible) {
                 HiddenSeekTimeline(
                     positionMs = previewPositionMs,
                     durationMs = uiState.durationMs,
                     bufferedMs = uiState.bufferedMs,
                     chapterMarkers = uiState.chapters,
                     adMarkers = uiState.ads,
-                    isLive = uiState.isLive,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 24.dp, vertical = 28.dp)
+                    isLive = uiState.isLive
                 )
             }
         }
