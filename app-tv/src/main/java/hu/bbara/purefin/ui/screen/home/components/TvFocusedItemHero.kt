@@ -33,7 +33,7 @@ internal const val TvHomeHeroProgressLabelTag = "tv-home-hero-progress-label"
 private const val TvHomeHeroAnimationMillis = 180
 // Half the screen for the billboard, half for the content rows. Tuned so both
 // the hero block and the first focused row fit on a 540dp-tall (1080p xhdpi) TV.
-internal const val TvHomeHeroHeightFraction = 0.5f
+internal const val TvHomeHeroHeightFraction = 0.45f
 
 @Composable
 internal fun TvFocusedItemHero(
