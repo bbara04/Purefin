@@ -250,9 +250,14 @@ private fun Series.toMediaDetailScaffoldUiModel(
     metadataItems = listOf(year, "$seasonCount Seasons"),
     actions = selectedSeason?.let {
         val seriesWatched = unwatchedEpisodeCount == 0
+        val playButtonText = mediaPlayButtonText(nextUpEpisode?.progress, nextUpEpisode?.watched)
         MediaDetailActionsUiModel(
             primaryAction = MediaDetailPrimaryActionUiModel(
-                text = mediaPlayButtonText(nextUpEpisode?.progress, nextUpEpisode?.watched),
+                text = if (nextUpEpisode != null) {
+                    "$playButtonText S${it.index} • E${nextUpEpisode.index}"
+                } else {
+                    playButtonText
+                },
                 progress = mediaPlaybackProgress(nextUpEpisode?.progress),
                 onClick = onPlayClick,
                 testTag = SeriesPlayButtonTag

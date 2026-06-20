@@ -220,6 +220,8 @@ private fun ColumnScope.MediaDetailScaffoldContent(
             color = scheme.onBackground,
             fontSize = uiModel.subtitleFontSize,
             fontWeight = uiModel.subtitleFontWeight,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = modifier
         )
     }
