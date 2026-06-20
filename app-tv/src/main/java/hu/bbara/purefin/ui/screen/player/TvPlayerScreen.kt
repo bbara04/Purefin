@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Pause
-import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -400,7 +399,7 @@ fun TvPlayerScreen(
             hideAfterMillis = TV_HIDDEN_STOP_FEEDBACK_MS,
             modifier = Modifier.align(Alignment.Center)
         ) {
-            TvPlayerResumeStopFeedback(resume = uiState.isPlaying)
+            TvPlayerStopFeedback(stopped = !uiState.isPlaying)
         }
 
         AnimatedVisibility(
@@ -535,10 +534,13 @@ internal fun handleTvPlayerRootKeyEvent(
 }
 
 @Composable
-internal fun TvPlayerResumeStopFeedback(
-    resume: Boolean,
+internal fun TvPlayerStopFeedback(
+    stopped: Boolean,
     modifier: Modifier = Modifier
 ) {
+    if (!stopped) {
+        return
+    }
     Box(
         modifier = modifier
             .testTag(TvPlayerHiddenStopFeedbackTag)
@@ -548,7 +550,7 @@ internal fun TvPlayerResumeStopFeedback(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = if (resume) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
+            imageVector = Icons.Outlined.Pause,
             contentDescription = "Play/Pause playback",
             tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(72.dp)
