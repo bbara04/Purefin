@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +34,16 @@ fun PlayerSeekBar(
     val currentPosition = positionMs.coerceIn(0, safeDuration)
     var sliderPosition by remember { mutableFloatStateOf(currentPosition.toFloat()) }
     var isScrubbing by remember { mutableStateOf(false) }
-    val sliderValue = if (isScrubbing) sliderPosition else currentPosition.toFloat()
+    val sliderValue = sliderPosition
+
+    // Keep sliderPosition in sync with the player's position when the user is not
+    // actively scrubbing. While scrubbing, the local drag value is preserved so the
+    // thumb does not snap back to a stale positionMs prop before the seek is committed.
+    LaunchedEffect(positionMs) {
+        if (!isScrubbing) {
+            sliderPosition = positionMs.toFloat()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -64,6 +74,7 @@ fun PlayerSeekBar(
             },
             onValueChangeFinished = {
                 val targetPosition = sliderPosition.toLong().coerceIn(0L, safeDuration)
+                sliderPosition = targetPosition.toFloat()
                 isScrubbing = false
                 onSeek(targetPosition)
             },
