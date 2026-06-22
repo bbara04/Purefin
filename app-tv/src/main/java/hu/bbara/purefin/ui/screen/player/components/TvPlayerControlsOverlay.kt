@@ -16,10 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Forward30
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Replay10
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +61,6 @@ internal fun TvPlayerControlsOverlay(
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
-    onSeekLiveEdge: () -> Unit,
     onSkipSegment: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -109,7 +106,6 @@ internal fun TvPlayerControlsOverlay(
             onPlayPause = onPlayPause,
             onSeek = onSeek,
             onSeekRelative = onSeekRelative,
-            onSeekLiveEdge = onSeekLiveEdge,
             onSkipSegment = onSkipSegment,
             onNext = onNext,
             onPrevious = onPrevious,
@@ -172,7 +168,6 @@ private fun TvPlayerBottomSection(
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
     onSeekRelative: (Long) -> Unit,
-    onSeekLiveEdge: () -> Unit,
     onSkipSegment: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -248,13 +243,6 @@ private fun TvPlayerBottomSection(
                     modifier = expandPlaylistModifier
                 )
                 TvIconButton(
-                    icon = Icons.Outlined.Replay10,
-                    contentDescription = "Seek backward 10 seconds",
-                    onClick = { onSeekRelative(-10_000) },
-                    size = 56,
-                    modifier = expandPlaylistModifier
-                )
-                TvIconButton(
                     icon = if (uiState.isPlaying) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
                     contentDescription = if (uiState.isPlaying) "Pause" else "Play",
                     onClick = onPlayPause,
@@ -262,13 +250,6 @@ private fun TvPlayerBottomSection(
                     modifier = expandPlaylistModifier
                         .focusRequester(focusRequester)
                         .testTag(TvPlayerPlayPauseButtonTag)
-                )
-                TvIconButton(
-                    icon = Icons.Outlined.Forward30,
-                    contentDescription = "Seek forward 30 seconds",
-                    onClick = { onSeekRelative(30_000) },
-                    size = 56,
-                    modifier = expandPlaylistModifier
                 )
                 TvIconButton(
                     icon = Icons.Outlined.SkipNext,

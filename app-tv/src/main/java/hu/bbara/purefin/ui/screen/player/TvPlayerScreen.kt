@@ -307,9 +307,6 @@ fun TvPlayerScreen(
                 onSeekRelative = { deltaMs ->
                     viewModel.seekBy(deltaMs)
                 },
-                onSeekLiveEdge = {
-                    viewModel.seekToLiveEdge()
-                },
                 onSkipSegment = {
                     viewModel.skipActiveSegment()
                 },
