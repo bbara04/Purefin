@@ -329,20 +329,19 @@ class InMemoryAppContentRepository @Inject constructor(
             }
         if (suggestionsItems == null) return@run
 
-        suggestionsState.value = suggestionsItems.mapNotNull { item ->
-            when (item.type) {
-                BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
-                BaseItemKind.EPISODE -> Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
-                else -> throw UnsupportedOperationException("Unsupported item type: ${item.type}")
-            }
-        }
-
-        // Upsert full details so the home viewmodel can look up each item.
         suggestionsItems.forEach { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> onlineMediaRepository.upsertMovies(listOf(item.toMovie(url)))
                 BaseItemKind.EPISODE -> onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(url)))
                 else -> {}
+            }
+        }
+
+        suggestionsState.value = suggestionsItems.mapNotNull { item ->
+            when (item.type) {
+                BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
+                BaseItemKind.EPISODE -> Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
+                else -> throw UnsupportedOperationException("Unsupported item type: ${item.type}")
             }
         }
     }
@@ -362,19 +361,25 @@ class InMemoryAppContentRepository @Inject constructor(
             }
         if (continueWatchingItems == null) return@run
 
-        continueWatchingState.value = continueWatchingItems.mapNotNull { item ->
-            when (item.type) {
-                BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
-                BaseItemKind.EPISODE -> Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
-                else -> throw UnsupportedOperationException("Unsupported item type: ${item.type}")
-            }
-        }
-
+        // Upsert full details BEFORE publishing the new row, so the
+        // home viewmodel's `combine` of this flow with the local media
+        // repository never observes an empty intermediate state. If we
+        // assigned continueWatchingState first, the new episode/movie IDs
+        // would be unresolvable for a single emission and the Continue
+        // Watching section would briefly drop from the home screen.
         continueWatchingItems.forEach { item ->
             when (item.type) {
                 BaseItemKind.MOVIE -> onlineMediaRepository.upsertMovies(listOf(item.toMovie(url)))
                 BaseItemKind.EPISODE -> onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(url)))
                 else -> {}
+            }
+        }
+
+        continueWatchingState.value = continueWatchingItems.mapNotNull { item ->
+            when (item.type) {
+                BaseItemKind.MOVIE -> Media.MovieMedia(movieId = item.id)
+                BaseItemKind.EPISODE -> Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
+                else -> throw UnsupportedOperationException("Unsupported item type: ${item.type}")
             }
         }
     }
@@ -394,12 +399,18 @@ class InMemoryAppContentRepository @Inject constructor(
             }
         if (nextUpItems == null) return@run
 
-        nextUpState.value = nextUpItems.map { item ->
-            Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
-        }
-
+        // Upsert full details BEFORE publishing the new row, so the
+        // home viewmodel's `combine` of this flow with the local media
+        // repository never observes an empty intermediate state. If we
+        // assigned nextUpState first, the new episode IDs would be
+        // unresolvable for a single emission and the Next Up section
+        // would briefly drop from the home screen.
         nextUpItems.forEach { item ->
             onlineMediaRepository.upsertEpisodes(listOf(item.toEpisode(url)))
+        }
+
+        nextUpState.value = nextUpItems.map { item ->
+            Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
         }
     }
 
