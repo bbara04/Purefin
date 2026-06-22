@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +50,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -71,6 +73,9 @@ import hu.bbara.purefin.ui.screen.player.components.TvPlayerLoadingErrorEndCard
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.TvTrackPanelType
 import hu.bbara.purefin.ui.screen.player.components.TvTrackSelectionPanel
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -327,6 +332,17 @@ fun TvPlayerScreen(
         }
 
         AnimatedVisibility(
+            visible = controlsVisible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        ) {
+            TvPlayerClock()
+        }
+
+        AnimatedVisibility(
             visible = showSkipIntroButton,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -460,6 +476,25 @@ private fun HiddenTvSeekTimeline(
             focusedThumbHaloRadiusDelta = 0.dp
         )
     }
+}
+
+@Composable
+private fun TvPlayerClock(modifier: Modifier = Modifier) {
+    var currentTime by remember { mutableStateOf(LocalTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentTime = LocalTime.now()
+            delay(1_000L)
+        }
+    }
+    val formatter = remember { DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()) }
+    Text(
+        text = formatter.format(currentTime),
+        color = MaterialTheme.colorScheme.onBackground,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        modifier = modifier
+    )
 }
 
 internal fun handleTvPlayerRootKeyEvent(
