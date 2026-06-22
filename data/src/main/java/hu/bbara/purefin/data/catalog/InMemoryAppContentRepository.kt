@@ -1,6 +1,7 @@
 package hu.bbara.purefin.data.catalog
 
 import androidx.datastore.core.DataStore
+import hu.bbara.purefin.core.concurrency.SingleFlight
 import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.NetworkMonitor
 import hu.bbara.purefin.core.data.UserSessionRepository
@@ -53,6 +54,7 @@ class InMemoryAppContentRepository @Inject constructor(
     private val homeCacheDataStore: DataStore<HomeCache>,
     private val onlineMediaRepository: InMemoryLocalMediaRepository,
     private val networkMonitor: NetworkMonitor,
+    private val singleFlight: SingleFlight,
 ) : HomeRepository {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var cacheLoadJob: Job? = null
@@ -239,7 +241,7 @@ class InMemoryAppContentRepository @Inject constructor(
         )
     }
 
-    private suspend fun loadLibraries() {
+    private suspend fun loadLibraries() = singleFlight.run("AppContent:loadLibraries") {
         val librariesItem = runCatching { jellyfinApiClient.getLibraries() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load libraries")
@@ -292,20 +294,21 @@ class InMemoryAppContentRepository @Inject constructor(
         librariesState.value = filledLibraries
     }
 
-    override suspend fun loadLibraryContent(libraryId: UUID): List<MediaUiModel>? {
-        val library = librariesState.value.find { it.id == libraryId } ?: return emptyList()
-        // ETag hit — return null so the caller can keep its previously
-        // fetched copy. The library detail viewmodel uses this signal to
-        // preserve its in-memory cache across re-selections.
-        val items = jellyfinApiClient.getLibraryContent(libraryId) ?: return null
-        val url = serverUrl()
-        return when (library.type) {
-            LibraryKind.MOVIES -> items.map { MovieUiModel(it.toMovie(url)) }
-            LibraryKind.SERIES -> items.map { SeriesUiModel(it.toSeries(url)) }
+    override suspend fun loadLibraryContent(libraryId: UUID): List<MediaUiModel>? =
+        singleFlight.run("AppContent:loadLibraryContent:$libraryId") {
+            val library = librariesState.value.find { it.id == libraryId } ?: return@run emptyList()
+            // ETag hit — return null so the caller can keep its previously
+            // fetched copy. The library detail viewmodel uses this signal to
+            // preserve its in-memory cache across re-selections.
+            val items = jellyfinApiClient.getLibraryContent(libraryId) ?: return@run null
+            val url = serverUrl()
+            when (library.type) {
+                LibraryKind.MOVIES -> items.map { MovieUiModel(it.toMovie(url)) }
+                LibraryKind.SERIES -> items.map { SeriesUiModel(it.toSeries(url)) }
+            }
         }
-    }
 
-    private suspend fun loadSuggestions() {
+    private suspend fun loadSuggestions() = singleFlight.run("AppContent:loadSuggestions") {
         val url = serverUrl()
         // Head-first fetch: ask the server for just the first 2 items and
         // compare to the cached head. If the head is unchanged, the rest
@@ -316,15 +319,15 @@ class InMemoryAppContentRepository @Inject constructor(
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load suggestions head")
             }
-        if (headItems == null) return
-        if (headMatches(headItems, suggestionsState.value)) return
+        if (headItems == null) return@run
+        if (headMatches(headItems, suggestionsState.value)) return@run
 
         // Head changed (or first refresh) — fetch the full list.
         val suggestionsItems = runCatching { jellyfinApiClient.getSuggestions() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load suggestions")
             }
-        if (suggestionsItems == null) return
+        if (suggestionsItems == null) return@run
 
         suggestionsState.value = suggestionsItems.mapNotNull { item ->
             when (item.type) {
@@ -344,20 +347,20 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    private suspend fun loadContinueWatching() {
+    private suspend fun loadContinueWatching() = singleFlight.run("AppContent:loadContinueWatching") {
         val url = serverUrl()
         val headItems = runCatching { jellyfinApiClient.getContinueWatchingHead() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load continue watching head")
             }
-        if (headItems == null) return
-        if (headMatches(headItems, continueWatchingState.value)) return
+        if (headItems == null) return@run
+        if (headMatches(headItems, continueWatchingState.value)) return@run
 
         val continueWatchingItems = runCatching { jellyfinApiClient.getContinueWatching() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load continue watching")
             }
-        if (continueWatchingItems == null) return
+        if (continueWatchingItems == null) return@run
 
         continueWatchingState.value = continueWatchingItems.mapNotNull { item ->
             when (item.type) {
@@ -376,20 +379,20 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    private suspend fun loadNextUp() {
+    private suspend fun loadNextUp() = singleFlight.run("AppContent:loadNextUp") {
         val url = serverUrl()
         val headItems = runCatching { jellyfinApiClient.getNextUpHead() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load next up head")
             }
-        if (headItems == null) return
-        if (headMatches(headItems, nextUpState.value)) return
+        if (headItems == null) return@run
+        if (headMatches(headItems, nextUpState.value)) return@run
 
         val nextUpItems = runCatching { jellyfinApiClient.getNextUpEpisodes() }
             .getOrElse { error ->
                 handleRefreshFailure(error, "Unable to load next up")
             }
-        if (nextUpItems == null) return
+        if (nextUpItems == null) return@run
 
         nextUpState.value = nextUpItems.map { item ->
             Media.EpisodeMedia(episodeId = item.id, seriesId = item.seriesId!!)
@@ -400,7 +403,7 @@ class InMemoryAppContentRepository @Inject constructor(
         }
     }
 
-    private suspend fun loadLatestLibraryContent() {
+    private suspend fun loadLatestLibraryContent() = singleFlight.run("AppContent:loadLatestLibraryContent") {
         // Reuse the libraries already loaded by loadLibraries() so we don't refetch
         // the same /Users/{userId}/Views response a second time per refresh.
         val filteredLibraries = librariesState.value
