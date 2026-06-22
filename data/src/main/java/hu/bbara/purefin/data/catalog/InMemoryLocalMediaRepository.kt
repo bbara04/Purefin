@@ -139,46 +139,26 @@ class InMemoryLocalMediaRepository @Inject constructor(
     private suspend fun loadSeasonsInternal(seriesId: UUID) {
         seriesState.value[seriesId]?.takeIf { it.seasons.isNotEmpty() }?.let { return }
 
-        val seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
+        val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
 
-        // Await the parallel loadSeries to populate the series entry.
-        // Precondition: seriesId refers to a real series (selectSeries always uses a
-        // SeriesDto from a real series list). If loadSeries returns without populating
-        // state (null item / wrong type) this suspends until cancelled by structured
-        // concurrency when a sibling load* call fails.
-        seriesState.first { it.containsKey(seriesId) }
-
-        seriesState.update { current ->
-            val existing = current[seriesId] ?: return@update current
-            if (existing.seasons.isNotEmpty()) return@update current
-            current + (seriesId to existing.copy(seasons = seasons))
-        }
+        val updatedSeries = series.copy(
+            seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
+        )
+        seriesState.update { it + (updatedSeries.id to updatedSeries) }
     }
 
     override suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) {
-        // Fast path: season already cached with episodes or known empty — skip the fetch.
-        seriesState.value[seriesId]?.seasons?.firstOrNull { it.id == seasonId }?.let { cached ->
-            if (cached.episodes.isNotEmpty() || cached.episodeCount == 0) return
-        }
+        loadSeasons(seriesId)
 
-        // Fetch first so this runs concurrently with loadSeries/loadSeasons when launched
-        // from selectSeries. Precondition: seasons are pre-loaded by selectSeries and
-        // seasonId is always a valid season from a real EpisodeDto in this path.
-        val serverUrl = userSessionRepository.serverUrl.first()
-        val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
-            .map { it.toEpisode(serverUrl) }
-
-        // Await the season to be present in state (immediate when pre-loaded; waits for
-        // the parallel loadSeasons otherwise).
-        seriesState.first { it[seriesId]?.seasons?.any { it.id == seasonId } == true }
-
-        // Re-check guard after await: a concurrent call may have filled episodes already.
-        val series = seriesState.value[seriesId] ?: return
+        val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
         val season = series.seasons.firstOrNull { it.id == seasonId } ?: return
         if (season.episodes.isNotEmpty() || season.episodeCount == 0) {
             return
         }
 
+        val serverUrl = userSessionRepository.serverUrl.first()
+        val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
+            .map { it.toEpisode(serverUrl) }
         seriesState.update { current ->
             val currentSeries = current[seriesId] ?: return@update current
             val updatedSeries = currentSeries.copy(
