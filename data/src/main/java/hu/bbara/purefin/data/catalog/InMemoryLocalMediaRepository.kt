@@ -1,8 +1,8 @@
 package hu.bbara.purefin.data.catalog
 
+import hu.bbara.purefin.core.concurrency.SingleFlight
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.UserSessionRepository
-import hu.bbara.purefin.core.concurrency.SingleFlight
 import hu.bbara.purefin.data.converter.toEpisode
 import hu.bbara.purefin.data.converter.toMovie
 import hu.bbara.purefin.data.converter.toSeason
@@ -12,9 +12,6 @@ import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,8 +32,6 @@ class InMemoryLocalMediaRepository @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val singleFlight: SingleFlight,
 ) : LocalMediaRepository {
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val serverUrl = userSessionRepository.serverUrl
 
@@ -59,7 +54,6 @@ class InMemoryLocalMediaRepository @Inject constructor(
         episodesState.map { it[id] }.distinctUntilChanged()
 
     override suspend fun loadMovie(id: UUID) = singleFlight.run("LocalMedia:loadMovie:$id") {
-        if (moviesState.value.containsKey(id)) return@run
         try {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.MOVIE) {
@@ -78,7 +72,6 @@ class InMemoryLocalMediaRepository @Inject constructor(
     }
 
     override suspend fun loadSeries(id: UUID) = singleFlight.run("LocalMedia:loadSeries:$id") {
-        if (seriesState.value.containsKey(id)) return@run
         try {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.SERIES) {
@@ -97,7 +90,6 @@ class InMemoryLocalMediaRepository @Inject constructor(
     }
 
     override suspend fun loadEpisode(id: UUID) = singleFlight.run("LocalMedia:loadEpisode:$id") {
-        if (episodesState.value.containsKey(id)) return@run
         try {
             jellyfinApiClient.getItemInfo(id)?.let { item ->
                 if (item.type != BaseItemKind.EPISODE) {
@@ -129,53 +121,59 @@ class InMemoryLocalMediaRepository @Inject constructor(
 
     override suspend fun loadSeasons(seriesId: UUID) = singleFlight.run("LocalMedia:loadSeasons:$seriesId") {
         try {
-            loadSeasonsInternal(seriesId)
+            // Ensure the series is loaded
+            var series = seriesState.value[seriesId]
+            if (series == null) {
+                loadSeries(seriesId)
+                series = seriesState.first()[seriesId] ?: throw RuntimeException("Series not found")
+            }
+
+            val updatedSeries = series.copy(
+                seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
+            )
+            seriesState.update { it + (updatedSeries.id to updatedSeries) }
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Timber.tag(TAG).e(error, "Failed to load content for series $seriesId")
+            Timber.tag(TAG).e(error, "Failed to load seasons for series $seriesId")
             throw error
         }
     }
 
-    private suspend fun loadSeasonsInternal(seriesId: UUID) {
-        seriesState.value[seriesId]?.takeIf { it.seasons.isNotEmpty() }?.let { return }
-
-        val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
-
-        val updatedSeries = series.copy(
-            seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
-        )
-        seriesState.update { it + (updatedSeries.id to updatedSeries) }
-    }
-
     override suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) =
         singleFlight.run("LocalMedia:loadSeasonEpisodes:$seriesId:$seasonId") {
-            loadSeasons(seriesId)
+            try {
+                // Ensure the series and season is loaded
+                var series = seriesState.value[seriesId]
+                if (series == null) {
+                    loadSeries(seriesId)
+                    series = seriesState.first()[seriesId] ?: throw RuntimeException("Series not found")
+                }
+                series.seasons.firstOrNull { it.id == seasonId }?.let { loadSeasons(seriesId) }
 
-            val series = seriesState.value[seriesId] ?: throw RuntimeException("Series not found")
-            val season = series.seasons.firstOrNull { it.id == seasonId } ?: return@run
-            if (season.episodes.isNotEmpty() || season.episodeCount == 0) {
-                return@run
-            }
-
-            val serverUrl = userSessionRepository.serverUrl.first()
-            val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
-                .map { it.toEpisode(serverUrl) }
-            seriesState.update { current ->
-                val currentSeries = current[seriesId] ?: return@update current
-                val updatedSeries = currentSeries.copy(
-                    seasons = currentSeries.seasons.map {
-                        if (it.id == seasonId && it.episodes.isEmpty()) {
-                            it.copy(episodes = episodes)
-                        } else {
-                            it
+                val serverUrl = userSessionRepository.serverUrl.first()
+                val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
+                    .map { it.toEpisode(serverUrl) }
+                seriesState.update { current ->
+                    val currentSeries = current[seriesId] ?: return@update current
+                    val updatedSeries = currentSeries.copy(
+                        seasons = currentSeries.seasons.map {
+                            if (it.id == seasonId && it.episodes.isEmpty()) {
+                                it.copy(episodes = episodes)
+                            } else {
+                                it
+                            }
                         }
-                    }
-                )
-                current + (updatedSeries.id to updatedSeries)
+                    )
+                    current + (updatedSeries.id to updatedSeries)
+                }
+                episodesState.update { current -> current + episodes.associateBy { it.id } }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Timber.tag(TAG).e(error, "Failed to load episodes for season $seasonId")
+                throw error
             }
-            episodesState.update { current -> current + episodes.associateBy { it.id } }
         }
 
     override suspend fun updateWatchProgress(mediaId: UUID, positionMs: Long, durationMs: Long) {
