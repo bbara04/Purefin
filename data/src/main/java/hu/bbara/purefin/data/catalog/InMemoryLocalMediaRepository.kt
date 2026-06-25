@@ -79,7 +79,15 @@ class InMemoryLocalMediaRepository @Inject constructor(
                     return@run
                 }
                 val series = item.toSeries(serverUrl.first())
-                seriesState.update { current -> current + (series.id to series) }
+                seriesState.update { current ->
+                    val existing = current[series.id]
+                    val merged = if (existing != null && existing.seasons.isNotEmpty() && series.seasons.isEmpty()) {
+                        series.copy(seasons = existing.seasons)
+                    } else {
+                        series
+                    }
+                    current + (series.id to merged)
+                }
             }
         } catch (error: CancellationException) {
             throw error
