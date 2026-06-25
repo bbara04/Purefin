@@ -112,7 +112,16 @@ class InMemoryLocalMediaRepository @Inject constructor(
     }
 
     fun upsertSeries(series: List<Series>) {
-        seriesState.update { current -> current + series.associateBy { it.id } }
+        seriesState.update { current ->
+            current + series.associateBy { it.id }.mapValues { (id, newSeries) ->
+                val existing = current[id]
+                if (existing != null && existing.seasons.isNotEmpty() && newSeries.seasons.isEmpty()) {
+                    newSeries.copy(seasons = existing.seasons)
+                } else {
+                    newSeries
+                }
+            }
+        }
     }
 
     fun upsertEpisodes(episodes: List<Episode>) {
@@ -149,7 +158,17 @@ class InMemoryLocalMediaRepository @Inject constructor(
                     loadSeries(seriesId)
                     series = seriesState.first()[seriesId] ?: throw RuntimeException("Series not found")
                 }
-                series.seasons.firstOrNull { it.id == seasonId }?.let { loadSeasons(seriesId) }
+                // The season we are about to load episodes for must be present
+                // in `series.seasons` for the `seriesState.update { ... }` block
+                // below to attach the fetched episodes to it; otherwise the
+                // `map { ... }` iterates over an empty list and the freshly
+                // fetched episodes are silently dropped, leaving the series
+                // detail screen stuck on "Loading seasons…". If the seasons
+                // have not been hydrated yet (e.g. `loadSeasons` from
+                // `selectSeries` is still racing with us), load them first.
+                if (series.seasons.none { it.id == seasonId }) {
+                    loadSeasons(seriesId)
+                }
 
                 val serverUrl = userSessionRepository.serverUrl.first()
                 val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
