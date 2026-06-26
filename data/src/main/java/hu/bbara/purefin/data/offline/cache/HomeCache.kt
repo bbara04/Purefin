@@ -91,7 +91,6 @@ data class HomeCache(
     val nextUp: List<CachedMediaItem> = emptyList(),
     val latestLibraryContent: Map<String, List<CachedMediaItem>> = emptyMap(),
     val libraries: List<CachedLibrary> = emptyList(),
-    val libraryDateLastMediaAdded: Map<String, String> = emptyMap(),
     val movies: List<CachedMovie> = emptyList(),
     val series: List<CachedSeries> = emptyList(),
     val episodes: List<CachedEpisode> = emptyList()

@@ -6,13 +6,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.data.MediaMetadataUpdater
 import hu.bbara.purefin.core.model.MediaUiModel
+import hu.bbara.purefin.core.model.MovieUiModel
+import hu.bbara.purefin.core.model.SeriesUiModel
 import hu.bbara.purefin.core.navigation.MovieDto
 import hu.bbara.purefin.core.navigation.NavigationManager
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
+import hu.bbara.purefin.model.LibraryKind
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -26,35 +31,24 @@ class LibraryViewModel @Inject constructor(
 
     private val selectedLibrary = MutableStateFlow<UUID?>(null)
 
-    // Local cache of the last-fetched content per library. Used to preserve
-    // content when re-selecting a library whose ETag matches (so the
-    // repository's 304 response can be treated as "use the cached copy").
-    private val cachedContents = mutableMapOf<UUID, List<MediaUiModel>>()
-
-    private val _contents = MutableStateFlow<List<MediaUiModel>>(emptyList())
-    val contents: StateFlow<List<MediaUiModel>> = _contents.asStateFlow()
+    val contents: StateFlow<List<MediaUiModel>> = combine(selectedLibrary, homeRepository.libraries) {
+        libraryId, libraries ->
+        if (libraryId == null) {
+            return@combine emptyList()
+        }
+        val library = libraries.find { it.id == libraryId } ?: return@combine emptyList()
+        when (library.type) {
+            LibraryKind.SERIES -> library.series!!.map { series ->
+                SeriesUiModel(series)
+            }
+            LibraryKind.MOVIES -> library.movies!!.map { movie ->
+                MovieUiModel(movie)
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
         viewModelScope.launch { homeRepository.ensureReady() }
-        viewModelScope.launch {
-            selectedLibrary.collect { libraryId ->
-                if (libraryId == null) {
-                    _contents.value = emptyList()
-                } else {
-                    val fresh = homeRepository.loadLibraryContent(libraryId)
-                    if (fresh != null) {
-                        cachedContents[libraryId] = fresh
-                        _contents.value = fresh
-                    } else {
-                        // ETag 304 — keep the cached copy for this library if
-                        // we have one. On a first-visit 304 (rare, would
-                        // require the library's ETag to be set without any
-                        // prior fetch) the screen briefly shows empty.
-                        _contents.value = cachedContents[libraryId] ?: emptyList()
-                    }
-                }
-            }
-        }
     }
 
     fun onMovieSelected(movieId: UUID) {

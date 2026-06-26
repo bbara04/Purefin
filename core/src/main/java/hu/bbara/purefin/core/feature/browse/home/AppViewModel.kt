@@ -68,17 +68,16 @@ class AppViewModel @Inject constructor(
 
     val libraries = homeRepository.libraries.map { libraries ->
         libraries.map {
-            // The home page no longer fetches the full library content
-            // (see InMemoryAppContentRepository.loadLibraries). isEmpty
-            // therefore reflects the actual server-reported size, not
-            // the contents of the local media repository.
             LibraryUiModel(
                 id = it.id,
                 name = it.name,
                 type = it.type,
                 posterUrl = it.posterUrl,
                 size = it.size,
-                isEmpty = it.size == 0,
+                isEmpty = when (it.type) {
+                    LibraryKind.MOVIES -> localMediaRepository.movies.value.isEmpty()
+                    LibraryKind.SERIES -> localMediaRepository.series.value.isEmpty()
+                }
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

@@ -8,8 +8,6 @@ import hu.bbara.purefin.core.data.PlaybackMethod
 import hu.bbara.purefin.core.data.PlaybackReportContext
 import hu.bbara.purefin.core.data.QuickConnectSession
 import hu.bbara.purefin.core.data.UserSessionRepository
-import hu.bbara.purefin.core.jellyfin.JellyfinSdkClient
-import hu.bbara.purefin.data.jellyfin.etag.NotModifiedException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +32,6 @@ import org.jellyfin.sdk.api.client.extensions.userApi
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
 import org.jellyfin.sdk.api.client.extensions.userViewsApi
 import org.jellyfin.sdk.api.client.extensions.videosApi
-import org.jellyfin.sdk.api.okhttp.OkHttpFactory
 import org.jellyfin.sdk.createJellyfin
 import org.jellyfin.sdk.discovery.RecommendedServerInfo
 import org.jellyfin.sdk.discovery.RecommendedServerInfoScore
@@ -69,12 +66,10 @@ import javax.inject.Singleton
 class JellyfinApiClient @Inject constructor(
     @ApplicationContext private val applicationContext: Context,
     private val userSessionRepository: UserSessionRepository,
-    @JellyfinSdkClient private val okHttpFactory: OkHttpFactory,
 ) {
     private val jellyfin = createJellyfin {
         context = applicationContext
         clientInfo = ClientInfo(name = "Purefin", version = "0.0.1")
-        apiClientFactory = okHttpFactory
     }
 
     val api = jellyfin.createApi()
@@ -219,21 +214,17 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
-    suspend fun getLibraries(): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+    suspend fun getLibraries(): List<BaseItemDto> = withContext(Dispatchers.IO) {
         logRequest("getLibraries") {
             if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
+                return@logRequest emptyList()
             }
-            try {
-                val response = api.userViewsApi.getUserViews(
-                    userId = getUserId(),
-                    presetViews = listOf(CollectionType.MOVIES, CollectionType.TVSHOWS),
-                    includeHidden = false,
-                )
-                response.content.items
-            } catch (e: NotModifiedException) {
-                null
-            }
+            val response = api.userViewsApi.getUserViews(
+                userId = getUserId(),
+                presetViews = listOf(CollectionType.MOVIES, CollectionType.TVSHOWS),
+                includeHidden = false,
+            )
+            response.content.items
         }
     }
 
@@ -247,242 +238,90 @@ class JellyfinApiClient @Inject constructor(
         }
     }
 
-    suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+    suspend fun getLibraryContent(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
         logRequest("getLibraryContent") {
             if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
+                return@logRequest emptyList()
             }
-            try {
-                val getItemsRequest = GetItemsRequest(
-                    userId = getUserId(),
-                    enableImages = true,
-                    parentId = libraryId,
-                    fields = defaultItemFields + ItemFields.OVERVIEW,
-                    enableUserData = true,
-                    includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-                    recursive = true,
-                )
-                val response = api.itemsApi.getItems(getItemsRequest)
-                response.content.items
-            } catch (e: NotModifiedException) {
-                null
-            }
+            val getItemsRequest = GetItemsRequest(
+                userId = getUserId(),
+                enableImages = true,
+                parentId = libraryId,
+                fields = defaultItemFields + ItemFields.OVERVIEW,
+                enableUserData = true,
+                includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+                recursive = true,
+            )
+            val response = api.itemsApi.getItems(getItemsRequest)
+            response.content.items
         }
     }
 
-    /**
-     * Returns the total number of items in [libraryId] without enumerating
-     * them. Uses `getItems` with `limit=0, enableTotalRecordCount=true`,
-     * which the Jellyfin server short-circuits to a single integer in the
-     * response. The home page uses this to populate `Library.size` for the
-     * library cards on the dashboard without paying for the full library
-     * content.
-     *
-     * ETag is honored via the [ETagInterceptor]: `null` means the cached
-     * count is still current.
-     */
-    suspend fun getLibraryItemCount(libraryId: UUID): Int? = withContext(Dispatchers.IO) {
-        logRequest("getLibraryItemCount") {
-            if (!ensureConfigured()) {
-                return@logRequest 0
-            }
-            try {
-                val request = GetItemsRequest(
-                    userId = getUserId(),
-                    parentId = libraryId,
-                    includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-                    recursive = true,
-                    limit = 0,
-                    enableTotalRecordCount = true,
-                )
-                val response = api.itemsApi.getItems(request)
-                response.content.totalRecordCount
-            } catch (e: NotModifiedException) {
-                null
-            }
-        }
-    }
-
-    suspend fun getSuggestions(): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+    suspend fun getSuggestions(): List<BaseItemDto> = withContext(Dispatchers.IO) {
         logRequest("getSuggestions") {
             if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
+                return@logRequest emptyList()
             }
-            val userId = getUserId() ?: return@logRequest emptyList<BaseItemDto>()
-            try {
-                val response = api.suggestionsApi.getSuggestions(
-                    userId = userId,
-                    mediaType = listOf(MediaType.VIDEO),
-                    type = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-                    limit = 8,
-                    enableTotalRecordCount = true,
-                )
-                response.content.items
-            } catch (e: NotModifiedException) {
-                null
-            }
+            val userId = getUserId() ?: return@logRequest emptyList()
+            val response = api.suggestionsApi.getSuggestions(
+                userId = userId,
+                mediaType = listOf(MediaType.VIDEO),
+                type = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
+                limit = 8,
+                enableTotalRecordCount = true,
+            )
+            response.content.items
         }
     }
 
-    suspend fun getContinueWatching(): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+    suspend fun getContinueWatching(): List<BaseItemDto> = withContext(Dispatchers.IO) {
         logRequest("getContinueWatching") {
             if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
+                return@logRequest emptyList()
             }
-            val userId = getUserId() ?: return@logRequest emptyList<BaseItemDto>()
-            try {
-                val getResumeItemsRequest = GetResumeItemsRequest(
-                    userId = userId,
-                    fields = defaultItemFields + ItemFields.OVERVIEW,
-                    includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
-                    enableUserData = true,
-                    startIndex = 0,
-                )
-                val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
-                response.content.items
-            } catch (e: NotModifiedException) {
-                null
-            }
+            val userId = getUserId() ?: return@logRequest emptyList()
+            val getResumeItemsRequest = GetResumeItemsRequest(
+                userId = userId,
+                fields = defaultItemFields + ItemFields.OVERVIEW,
+                includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
+                enableUserData = true,
+                startIndex = 0,
+            )
+            val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
+            response.content.items
         }
     }
 
-    suspend fun getNextUpEpisodes(): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+    suspend fun getNextUpEpisodes(): List<BaseItemDto> = withContext(Dispatchers.IO) {
         logRequest("getNextUpEpisodes") {
             if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
+                throw IllegalStateException("Not configured")
             }
-            try {
-                val getNextUpRequest = GetNextUpRequest(
-                    userId = getUserId(),
-                    fields = defaultItemFields + ItemFields.OVERVIEW,
-                    enableResumable = false,
-                )
-                val result = api.tvShowsApi.getNextUp(getNextUpRequest)
-                result.content.items
-            } catch (e: NotModifiedException) {
-                null
-            }
+            val getNextUpRequest = GetNextUpRequest(
+                userId = getUserId(),
+                fields = defaultItemFields + ItemFields.OVERVIEW,
+                enableResumable = false,
+            )
+            val result = api.tvShowsApi.getNextUp(getNextUpRequest)
+            result.content.items
         }
     }
 
-    suspend fun getLatestFromLibrary(libraryId: UUID): List<BaseItemDto>? = withContext(Dispatchers.IO) {
+    suspend fun getLatestFromLibrary(libraryId: UUID): List<BaseItemDto> = withContext(Dispatchers.IO) {
         logRequest("getLatestFromLibrary") {
             if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
+                return@logRequest emptyList()
             }
-            try {
-                val response = api.userLibraryApi.getLatestMedia(
-                    userId = getUserId(),
-                    parentId = libraryId,
-                    fields = defaultItemFields + ItemFields.OVERVIEW,
-                    includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
-                    limit = 15,
-                )
-                response.content
-            } catch (e: NotModifiedException) {
-                null
-            }
+            val response = api.userLibraryApi.getLatestMedia(
+                userId = getUserId(),
+                parentId = libraryId,
+                fields = defaultItemFields + ItemFields.OVERVIEW,
+                includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
+                limit = 15,
+            )
+            response.content
         }
     }
-
-    /**
-     * Head-only fetch for the suggestions row. Returns the first [limit]
-     * items so the caller can diff against the cached head and decide
-     * whether the full request is necessary. ETag is honored via the
-     * [ETagInterceptor]; `null` means the cached head is still current.
-     */
-    suspend fun getSuggestionsHead(limit: Int = HEAD_LIMIT): List<BaseItemDto>? = withContext(Dispatchers.IO) {
-        logRequest("getSuggestionsHead") {
-            if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
-            }
-            try {
-                val response = api.suggestionsApi.getSuggestions(
-                    userId = getUserId(),
-                    mediaType = listOf(MediaType.VIDEO),
-                    type = listOf(BaseItemKind.MOVIE, BaseItemKind.SERIES),
-                    limit = limit,
-                    enableTotalRecordCount = false,
-                )
-                response.content.items
-            } catch (e: NotModifiedException) {
-                null
-            }
-        }
-    }
-
-    /**
-     * Head-only fetch for the continue-watching row. See [getSuggestionsHead].
-     */
-    suspend fun getContinueWatchingHead(limit: Int = HEAD_LIMIT): List<BaseItemDto>? = withContext(Dispatchers.IO) {
-        logRequest("getContinueWatchingHead") {
-            if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
-            }
-            val userId = getUserId() ?: return@logRequest emptyList<BaseItemDto>()
-            try {
-                val getResumeItemsRequest = GetResumeItemsRequest(
-                    userId = userId,
-                    fields = defaultItemFields,
-                    includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE),
-                    enableUserData = true,
-                    startIndex = 0,
-                    limit = limit,
-                )
-                val response: Response<BaseItemDtoQueryResult> = api.itemsApi.getResumeItems(getResumeItemsRequest)
-                response.content.items
-            } catch (e: NotModifiedException) {
-                null
-            }
-        }
-    }
-
-    /**
-     * Head-only fetch for the next-up row. See [getSuggestionsHead].
-     */
-    suspend fun getNextUpHead(limit: Int = HEAD_LIMIT): List<BaseItemDto>? = withContext(Dispatchers.IO) {
-        logRequest("getNextUpHead") {
-            if (!ensureConfigured()) {
-                return@logRequest emptyList<BaseItemDto>()
-            }
-            try {
-                val getNextUpRequest = GetNextUpRequest(
-                    userId = getUserId(),
-                    fields = defaultItemFields,
-                    enableResumable = false,
-                    limit = limit,
-                )
-                val result = api.tvShowsApi.getNextUp(getNextUpRequest)
-                result.content.items
-            } catch (e: NotModifiedException) {
-                null
-            }
-        }
-    }
-
-    /**
-     * Head-only fetch for the latest row of a library. See [getSuggestionsHead].
-     */
-    suspend fun getLatestFromLibraryHead(libraryId: UUID, limit: Int = HEAD_LIMIT): List<BaseItemDto>? =
-        withContext(Dispatchers.IO) {
-            logRequest("getLatestFromLibraryHead") {
-                if (!ensureConfigured()) {
-                    return@logRequest emptyList<BaseItemDto>()
-                }
-                try {
-                    val response = api.userLibraryApi.getLatestMedia(
-                        userId = getUserId(),
-                        parentId = libraryId,
-                        fields = defaultItemFields,
-                        includeItemTypes = listOf(BaseItemKind.MOVIE, BaseItemKind.EPISODE, BaseItemKind.SEASON),
-                        limit = limit,
-                    )
-                    response.content
-                } catch (e: NotModifiedException) {
-                    null
-                }
-            }
-        }
 
     suspend fun getItemInfo(mediaId: UUID): BaseItemDto? = withContext(Dispatchers.IO) {
         logRequest("getItemInfo") {
@@ -796,9 +635,5 @@ class JellyfinApiClient @Inject constructor(
 
     companion object {
         private const val TAG = "JellyfinApiClient"
-        // How many items to fetch on the head-only path. Two is enough to
-        // detect the common case of "first card unchanged" without making
-        // the head request meaningfully heavier than the minimum.
-        const val HEAD_LIMIT = 2
     }
 }
