@@ -1,8 +1,10 @@
 package hu.bbara.purefin.ui.screen.series.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +62,7 @@ import hu.bbara.purefin.ui.common.badge.WatchStateBadge
 import hu.bbara.purefin.ui.common.bar.MediaProgressBar
 import hu.bbara.purefin.ui.common.button.GhostIconButton
 import hu.bbara.purefin.ui.common.image.PurefinAsyncImage
+import hu.bbara.purefin.ui.model.MediaAction
 import hu.bbara.purefin.ui.screen.home.components.DefaultTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -315,6 +318,7 @@ internal fun EpisodeCarousel(episodes: List<Episode>, modifier: Modifier = Modif
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun EpisodeCard(
     viewModel: SeriesViewModel = hiltViewModel(),
@@ -322,15 +326,31 @@ private fun EpisodeCard(
 ) {
     val scheme = MaterialTheme.colorScheme
     val mutedStrong = scheme.onSurfaceVariant.copy(alpha = 0.7f)
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val popupActions = remember(episode.id) {
+        listOf(
+            MediaAction(name = "Mark as watched") {
+                viewModel.markEpisodeAsWatched(episode.id, true)
+            },
+            MediaAction(name = "Mark as unwatched") {
+                viewModel.markEpisodeAsWatched(episode.id, false)
+            }
+        )
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("$SeriesEpisodeCardTagPrefix${episode.id}")
-            .clickable { viewModel.onSelectEpisode(
-                seriesId = episode.seriesId,
-                seasonId = episode.seasonId,
-                episodeId = episode.id
-            ) },
+            .combinedClickable(
+                onClick = {
+                    viewModel.onSelectEpisode(
+                        seriesId = episode.seriesId,
+                        seasonId = episode.seasonId,
+                        episodeId = episode.id
+                    )
+                },
+                onLongClick = { showBottomSheet = true }
+            ),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -389,6 +409,30 @@ private fun EpisodeCard(
             )
         }
     }
+
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            modifier = Modifier.testTag(SeriesEpisodeActionsDialogTag),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp)
+            ) {
+                popupActions.forEach { action ->
+                    ListItem(
+                        headlineContent = { Text(text = action.name) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            action.onClick()
+                            showBottomSheet = false
+                        }
+                    )
+                }
+            }
+        }
+    }
 }
 
 internal const val SeriesPlayButtonTag = "series-play-button"
@@ -402,6 +446,7 @@ internal const val SeriesSmartDownloadButtonTag = "series-smart-download-button"
 internal const val SeriesSeasonSelectorTag = "series-season-selector"
 internal const val SeriesEpisodeCarouselTag = "series-episode-carousel"
 internal const val SeriesEpisodeCardTagPrefix = "series-episode-card-"
+internal const val SeriesEpisodeActionsDialogTag = "series-episode-actions-dialog"
 
 @Composable
 internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {

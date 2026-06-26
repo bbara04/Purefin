@@ -186,6 +186,12 @@ class SeriesViewModel @Inject constructor(
         }
     }
 
+    fun markEpisodeAsWatched(episodeId: UUID, watched: Boolean) {
+        viewModelScope.launch {
+            mediaMetadataUpdater.markAsWatched(episodeId, watched)
+        }
+    }
+
     fun selectSeries(series: SeriesDto) {
         _series.value = series
         viewModelScope.launch {
