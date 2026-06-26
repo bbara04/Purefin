@@ -73,12 +73,12 @@ import hu.bbara.purefin.ui.screen.player.components.TvPlayerLoadingErrorEndCard
 import hu.bbara.purefin.ui.screen.player.components.TvPlayerTimeRow
 import hu.bbara.purefin.ui.screen.player.components.TvTrackPanelType
 import hu.bbara.purefin.ui.screen.player.components.TvTrackSelectionPanel
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 private const val TV_CONTROLS_AUTO_HIDE_MS = 5_000L
 private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.22f
@@ -379,7 +379,7 @@ fun TvPlayerScreen(
             }
         }
 
-        if (!showSkipIntroButton) {
+        if (!showSkipIntroButton && !controlsVisible) {
             ValueChangeTimedVisibility(
                 value = hiddenSeekCounter,
                 hideAfterMillis = 2500L,
