@@ -3,9 +3,11 @@ package hu.bbara.purefin.ui.screen.series
 import android.content.Intent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -144,6 +146,7 @@ private fun SeriesScreenInternal(
     val context = LocalContext.current
     val navigationManager = LocalNavigationManager.current
     var showDownloadDialog by remember { mutableStateOf(false) }
+    var showMarkAsWatchedDialog by remember { mutableStateOf(false) }
 
     fun getDefaultSeason(): Season? {
         return series.seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: series.seasons.firstOrNull()
@@ -188,7 +191,13 @@ private fun SeriesScreenInternal(
             nextUpEpisode = nextUpEpisode,
             onPlayClick = playAction ?: {},
             onDownloadClick = { showDownloadDialog = true },
-            onMarkAsWatched = onMarkAsWatched,
+            onMarkAsWatched = { watched ->
+                if (watched) {
+                    showMarkAsWatchedDialog = true
+                } else {
+                    onMarkAsWatched(false)
+                }
+            },
             bodyColor = scheme.onSurface
         ),
         modifier = modifier,
@@ -231,6 +240,16 @@ private fun SeriesScreenInternal(
                 onDownloadOptionSelected(it, selectedSeason)
             },
             onDismiss = { showDownloadDialog = false }
+        )
+    }
+
+    if (showMarkAsWatchedDialog) {
+        MarkSeriesAsWatchedConfirmationDialog(
+            onConfirm = {
+                showMarkAsWatchedDialog = false
+                onMarkAsWatched(true)
+            },
+            onDismiss = { showMarkAsWatchedDialog = false }
         )
     }
 }
@@ -311,4 +330,26 @@ private fun SeriesDownloadOption.requiresNotificationPermission(): Boolean = whe
     SeriesDownloadOption.SERIES,
     SeriesDownloadOption.SMART -> true
     SeriesDownloadOption.DELETE_SMART -> false
+}
+
+@Composable
+private fun MarkSeriesAsWatchedConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Mark series as watched?") },
+        text = { Text("This will mark every episode of this series as watched.") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Mark as watched")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
