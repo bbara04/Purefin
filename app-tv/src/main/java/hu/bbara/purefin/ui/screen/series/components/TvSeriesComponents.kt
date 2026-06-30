@@ -153,14 +153,20 @@ private fun TvSeasonTab(
 ) {
     val scheme = MaterialTheme.colorScheme
     val color = if (isSelected) scheme.primary else scheme.onSurface
-    val indicatorColor = if (isSelected) scheme.primary else Color.Transparent
+    val isFocused = remember { mutableStateOf(false) }
 
-    Column(
+    Box(
         modifier = modifier
             .onFocusChanged { state ->
-                if (state.isFocused) onFocused()
+                if (state.isFocused) {
+                    onFocused()
+                    isFocused.value = true
+                } else {
+                    isFocused.value = false
+                }
             }
             .clickable(onClick = onClick)
+            .borderIfFocused(isFocused.value, MaterialTheme.colorScheme.primary)
     ) {
         TvText(
             text = name,
@@ -169,13 +175,8 @@ private fun TvSeasonTab(
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(2.dp)
-                .background(indicatorColor)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
 }
@@ -256,11 +257,9 @@ internal fun TvEpisodeCarousel(
                                 Modifier
                             }
                         )
-                        .then(
-                            upFocusRequester?.let { requester ->
-                                Modifier.focusProperties { up = requester }
-                            } ?: Modifier
-                        )
+                        .then(upFocusRequester?.let { requester ->
+                            Modifier.focusProperties { up = requester }
+                        } ?: Modifier)
                         .then(
                             if (episode.id == targetEpisodeId) {
                                 Modifier.testTag(SeriesNextUpEpisodeCardTag)
@@ -432,3 +431,15 @@ internal fun CastRow(cast: List<CastMember>, modifier: Modifier = Modifier) {
 //        roleSize = 10.sp
 //    )
 }
+
+private fun Modifier.borderIfFocused(isFocused: Boolean, borderColor: Color): Modifier =
+    if (isFocused) {
+        this.border(
+            width = 2.dp,
+            color = borderColor,
+            shape = RoundedCornerShape(12.dp)
+        )
+    } else {
+        this
+    }
+
