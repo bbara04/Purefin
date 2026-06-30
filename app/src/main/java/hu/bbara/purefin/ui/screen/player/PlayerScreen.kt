@@ -37,6 +37,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -127,6 +129,9 @@ fun PlayerScreen(
     }
     fun onScreenTap() {
         toggleControlsVisibility()
+        hideControlsWithTimeout()
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
         hideControlsWithTimeout()
     }
 

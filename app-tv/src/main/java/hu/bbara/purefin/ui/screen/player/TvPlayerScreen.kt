@@ -165,6 +165,9 @@ fun TvPlayerScreen(
             rootFocusRequester.requestFocus()
         }
     }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        hideControlsWithTimeout()
+    }
 
     fun expandPlaylist() {
         // TODO: focus management for playlist expansion
