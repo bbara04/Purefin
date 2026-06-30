@@ -515,7 +515,7 @@ internal fun handleTvPlayerRootKeyEvent(
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
 
-    if (event.key == Key.Escape) {
+    if (event.key == Key.Back || event.key == Key.Escape) {
         return when {
             trackPanelType != null -> {
                 onCloseTrackPanel()
