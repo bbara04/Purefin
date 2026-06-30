@@ -254,11 +254,6 @@ fun TvPlayerScreen(
                     controlsVisible = controlsVisible,
                     popupVisible = showSkipIntroButton || showNextEpisodeOverlay,
                     onShowControls = ::showControls,
-                    isPlaylistExpanded = isPlaylistExpanded,
-                    trackPanelType = trackPanelType,
-                    onCloseTrackPanel = closeTrackPanel,
-                    onCollapsePlaylist = {},
-                    onHideControls = ::hideControls,
                     onTogglePlayback = {
                         // This is a hack to trigger the ValueChangeTimedVisibility to show the hidden resume/stop feedback.
                         resumeStopFeedbackCounter++
@@ -504,37 +499,11 @@ internal fun handleTvPlayerRootKeyEvent(
     event: KeyEvent,
     controlsVisible: Boolean,
     popupVisible: Boolean,
-    isPlaylistExpanded: Boolean,
-    trackPanelType: TvTrackPanelType?,
-    onCloseTrackPanel: () -> Unit,
-    onCollapsePlaylist: () -> Unit,
-    onHideControls: () -> Unit,
     onTogglePlayback: () -> Unit,
     onSeekRelative: (Long) -> Unit,
     onShowControls: () -> Unit,
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
-
-    if (event.key == Key.Back || event.key == Key.Escape) {
-        return when {
-            trackPanelType != null -> {
-                onCloseTrackPanel()
-                true
-            }
-
-            isPlaylistExpanded -> {
-                onCollapsePlaylist()
-                true
-            }
-
-            controlsVisible -> {
-                onHideControls()
-                true
-            }
-
-            else -> false
-        }
-    }
 
     if (!controlsVisible) {
         return when (event.key) {
