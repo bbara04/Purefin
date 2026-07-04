@@ -1,0 +1,1747 @@
+{
+  "app-tv/build.gradle.kts": {
+    "mtime": 1781870261.0037396,
+    "ast_hash": "2481ca2e1eef5603e07994efd327d9c2",
+    "semantic_hash": "2481ca2e1eef5603e07994efd327d9c2"
+  },
+  "app-tv/google-services.json": {
+    "mtime": 1781870261.003877,
+    "ast_hash": "08a4f9f74aa8ff34425539f30da97e79",
+    "semantic_hash": "08a4f9f74aa8ff34425539f30da97e79"
+  },
+  "app-tv/src/androidTest/java/hu/bbara/purefin/ui/common/media/TvMediaDetailBringIntoViewSpecTest.kt": {
+    "mtime": 1781870261.0042176,
+    "ast_hash": "44d81767886b23c69e0cb0f78d864a78",
+    "semantic_hash": "44d81767886b23c69e0cb0f78d864a78"
+  },
+  "app-tv/src/androidTest/java/hu/bbara/purefin/ui/screen/episode/EpisodeScreenContentTest.kt": {
+    "mtime": 1781870261.0044358,
+    "ast_hash": "5657e08c987e18de528fe2ec8a3fac65",
+    "semantic_hash": "5657e08c987e18de528fe2ec8a3fac65"
+  },
+  "app-tv/src/androidTest/java/hu/bbara/purefin/ui/screen/home/components/TvHomeContentTest.kt": {
+    "mtime": 1781870261.0046642,
+    "ast_hash": "da6e6ecbda714c9fecd7611f27fa8c86",
+    "semantic_hash": "da6e6ecbda714c9fecd7611f27fa8c86"
+  },
+  "app-tv/src/androidTest/java/hu/bbara/purefin/ui/screen/home/components/TvNavigationDrawerTest.kt": {
+    "mtime": 1781870261.0048091,
+    "ast_hash": "0f98556796eb3a79602430a23af06b0f",
+    "semantic_hash": "0f98556796eb3a79602430a23af06b0f"
+  },
+  "app-tv/src/androidTest/java/hu/bbara/purefin/ui/screen/libraries/TvLibrariesOverviewScreenTest.kt": {
+    "mtime": 1781870261.004921,
+    "ast_hash": "3a9400f49afac1fcc8c032466a018600",
+    "semantic_hash": "3a9400f49afac1fcc8c032466a018600"
+  },
+  "app-tv/src/androidTest/java/hu/bbara/purefin/ui/screen/movie/MovieScreenContentTest.kt": {
+    "mtime": 1781870261.0050344,
+    "ast_hash": "cedebda7727f0cb5382530475929edc0",
+    "semantic_hash": "cedebda7727f0cb5382530475929edc0"
+  },
+  "app-tv/src/androidTest/java/hu/bbara/purefin/ui/screen/series/SeriesScreenContentTest.kt": {
+    "mtime": 1781870261.0051308,
+    "ast_hash": "2be56afb060e183bb60969dd1bd94a8b",
+    "semantic_hash": "2be56afb060e183bb60969dd1bd94a8b"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/modules/TvNavigationModule.kt": {
+    "mtime": 1781870261.0057244,
+    "ast_hash": "aa165514256c61fb6bfed5eddffd776f",
+    "semantic_hash": "aa165514256c61fb6bfed5eddffd776f"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/modules/TvPlaybackProfileFamilyModule.kt": {
+    "mtime": 1781870261.0058382,
+    "ast_hash": "e3ec4aaaef503acfdb4814242d2afb9c",
+    "semantic_hash": "e3ec4aaaef503acfdb4814242d2afb9c"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/navigation/NavigationLocals.kt": {
+    "mtime": 1781870261.0059307,
+    "ast_hash": "f768075115ce80320812c985a0d55501",
+    "semantic_hash": "f768075115ce80320812c985a0d55501"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/navigation/TvRouteEntryBuilder.kt": {
+    "mtime": 1781870261.0060318,
+    "ast_hash": "2d3d9ada0d4dbc2fc3c0f8ed23c3fdb3",
+    "semantic_hash": "2d3d9ada0d4dbc2fc3c0f8ed23c3fdb3"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/tv/TvActivity.kt": {
+    "mtime": 1781870261.006367,
+    "ast_hash": "2c0566fee8f47d5dc4385d3ba7017e06",
+    "semantic_hash": "2c0566fee8f47d5dc4385d3ba7017e06"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/tv/TvApplication.kt": {
+    "mtime": 1781870261.0064673,
+    "ast_hash": "23bdfe169b54edc3c0c4575ac76027c5",
+    "semantic_hash": "23bdfe169b54edc3c0c4575ac76027c5"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/common/card/PosterCard.kt": {
+    "mtime": 1781870261.006719,
+    "ast_hash": "2f52f3e44a4c6f333094cccff9cc4440",
+    "semantic_hash": "2f52f3e44a4c6f333094cccff9cc4440"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/common/media/MediaDetailShell.kt": {
+    "mtime": 1781885697.865787,
+    "ast_hash": "0b8fedaeb7a8939253e18f48e69251d2",
+    "semantic_hash": "0b8fedaeb7a8939253e18f48e69251d2"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/common/media/MediaDetailsTopBar.kt": {
+    "mtime": 1781884545.898145,
+    "ast_hash": "e5c831c0e31cbd1fb1adac9219e200e9",
+    "semantic_hash": "e5c831c0e31cbd1fb1adac9219e200e9"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/TvAppScreen.kt": {
+    "mtime": 1781891004.9307861,
+    "ast_hash": "bf5bac6d29ad7f6696727a4823c0c763",
+    "semantic_hash": "bf5bac6d29ad7f6696727a4823c0c763"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/episode/TvEpisodeScreen.kt": {
+    "mtime": 1781946939.9236848,
+    "ast_hash": "5e7a3562a28517f7eb4ca35169321af4",
+    "semantic_hash": "5e7a3562a28517f7eb4ca35169321af4"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/episode/components/TvEpisodeComponents.kt": {
+    "mtime": 1781870261.0080674,
+    "ast_hash": "56f42c74ac20b7ce9fa917d28cadbf1e",
+    "semantic_hash": "56f42c74ac20b7ce9fa917d28cadbf1e"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/home/TvHomeScreen.kt": {
+    "mtime": 1781981404.7478144,
+    "ast_hash": "7392e5bf0c3b6a580d4d3397691c3922",
+    "semantic_hash": "7392e5bf0c3b6a580d4d3397691c3922"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/home/components/TvFocusedItemHero.kt": {
+    "mtime": 1781981262.2587519,
+    "ast_hash": "ea54bf1eae59edba657e971d94ec228b",
+    "semantic_hash": "ea54bf1eae59edba657e971d94ec228b"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/home/components/TvHomeBringIntoView.kt": {
+    "mtime": 1781870261.008565,
+    "ast_hash": "780e0c8088b75a75cd5491b279edb08b",
+    "semantic_hash": "780e0c8088b75a75cd5491b279edb08b"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/home/components/TvHomeContent.kt": {
+    "mtime": 1781980873.0686944,
+    "ast_hash": "f106123d60799d6dfcfa20c921ab2caa",
+    "semantic_hash": "f106123d60799d6dfcfa20c921ab2caa"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/home/components/TvHomeMetaChip.kt": {
+    "mtime": 1781870261.0088294,
+    "ast_hash": "41b70990f9c47a3f256e28eaebc52c00",
+    "semantic_hash": "41b70990f9c47a3f256e28eaebc52c00"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/home/components/TvHomeModels.kt": {
+    "mtime": 1781870261.0089405,
+    "ast_hash": "57211842916f0c21bfc9f9f5f8ddc79b",
+    "semantic_hash": "57211842916f0c21bfc9f9f5f8ddc79b"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/home/components/TvHomeSections.kt": {
+    "mtime": 1781870261.0092013,
+    "ast_hash": "307406a399c05c64fb0e05fa35b5c193",
+    "semantic_hash": "307406a399c05c64fb0e05fa35b5c193"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/home/components/TvNavigationDrawer.kt": {
+    "mtime": 1781891004.931993,
+    "ast_hash": "18e059bff458d11ad31de43628750b04",
+    "semantic_hash": "18e059bff458d11ad31de43628750b04"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/libraries/TvLibrariesOverviewScreen.kt": {
+    "mtime": 1781870261.0094087,
+    "ast_hash": "f8cb535b1f4c44b8fab76ed6c9da03f2",
+    "semantic_hash": "f8cb535b1f4c44b8fab76ed6c9da03f2"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/library/TvLibraryScreen.kt": {
+    "mtime": 1781870261.009694,
+    "ast_hash": "9a3944b4602d530fb2756292cc96d5bc",
+    "semantic_hash": "9a3944b4602d530fb2756292cc96d5bc"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/login/TvLoginContent.kt": {
+    "mtime": 1781870261.0098283,
+    "ast_hash": "919c7603c173b18edb5bbd55793b05f1",
+    "semantic_hash": "919c7603c173b18edb5bbd55793b05f1"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/login/TvLoginScreen.kt": {
+    "mtime": 1781870261.0100856,
+    "ast_hash": "bce01d9cf3049226d39923be8a504ec3",
+    "semantic_hash": "bce01d9cf3049226d39923be8a504ec3"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/movie/TvMovieScreen.kt": {
+    "mtime": 1781870261.0102992,
+    "ast_hash": "2bf13061d9aa75924fb8b06ad1be5232",
+    "semantic_hash": "2bf13061d9aa75924fb8b06ad1be5232"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/movie/components/TvMovieComponents.kt": {
+    "mtime": 1781870261.0104194,
+    "ast_hash": "a096f5249853adac88615240025af9de",
+    "semantic_hash": "a096f5249853adac88615240025af9de"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/player/TvPlayerScreen.kt": {
+    "mtime": 1782851923.0941334,
+    "ast_hash": "d73f689e353483c560e221f75917b79b",
+    "semantic_hash": "d73f689e353483c560e221f75917b79b"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/player/components/TvIconButton.kt": {
+    "mtime": 1781870261.0107725,
+    "ast_hash": "c531bf645aa7e9c719f4f6eeb11589ed",
+    "semantic_hash": "c531bf645aa7e9c719f4f6eeb11589ed"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/player/components/TvNextEpisodeOverlay.kt": {
+    "mtime": 1781870261.0111449,
+    "ast_hash": "e792d160c8e2d970ca7ca890519c0550",
+    "semantic_hash": "e792d160c8e2d970ca7ca890519c0550"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/player/components/TvPlayerControlsOverlay.kt": {
+    "mtime": 1782146458.4039865,
+    "ast_hash": "1e688a47fbe0e8f387d91bbbffdb2913",
+    "semantic_hash": "1e688a47fbe0e8f387d91bbbffdb2913"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/player/components/TvPlayerLoadingErrorEndCard.kt": {
+    "mtime": 1781870261.0115294,
+    "ast_hash": "ad7587c978aca204c19e7afadf678a00",
+    "semantic_hash": "ad7587c978aca204c19e7afadf678a00"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/player/components/TvPlayerQueuePanel.kt": {
+    "mtime": 1781870261.0116875,
+    "ast_hash": "9f1e328aeb49ccfe442a4e8d58ec8484",
+    "semantic_hash": "9f1e328aeb49ccfe442a4e8d58ec8484"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/player/components/TvPlayerSeekBar.kt": {
+    "mtime": 1781870261.0118399,
+    "ast_hash": "8a53aace922ece61fb7568f7e1eb7636",
+    "semantic_hash": "8a53aace922ece61fb7568f7e1eb7636"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/player/components/TvTrackSelectionButtons.kt": {
+    "mtime": 1781870261.011967,
+    "ast_hash": "69a3dcf6da0745297763ba23b552d7a0",
+    "semantic_hash": "69a3dcf6da0745297763ba23b552d7a0"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/series/TvSeriesScreen.kt": {
+    "mtime": 1782844753.9587595,
+    "ast_hash": "0f87d29b2616e3cc209bd041ab5c3a4d",
+    "semantic_hash": "0f87d29b2616e3cc209bd041ab5c3a4d"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/series/components/TvSeriesComponents.kt": {
+    "mtime": 1782845908.887392,
+    "ast_hash": "6d6f25c581b946a6a95245180263ba89",
+    "semantic_hash": "6d6f25c581b946a6a95245180263ba89"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/screen/settings/TvSettingsScreen.kt": {
+    "mtime": 1781870261.0129406,
+    "ast_hash": "1d6b3a505a910b7d2089f3d5085f7078",
+    "semantic_hash": "1d6b3a505a910b7d2089f3d5085f7078"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/theme/Color.kt": {
+    "mtime": 1781870261.01312,
+    "ast_hash": "e0ac7684af0984e9efb101ba41f78b0f",
+    "semantic_hash": "e0ac7684af0984e9efb101ba41f78b0f"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/theme/Theme.kt": {
+    "mtime": 1781870261.0132182,
+    "ast_hash": "215950ffe71b87cb923f8f229511ec5a",
+    "semantic_hash": "215950ffe71b87cb923f8f229511ec5a"
+  },
+  "app-tv/src/main/java/hu/bbara/purefin/ui/theme/Type.kt": {
+    "mtime": 1781870261.0135715,
+    "ast_hash": "584bc0f1706dbfd708d663ece480c088",
+    "semantic_hash": "584bc0f1706dbfd708d663ece480c088"
+  },
+  "app-tv/src/test/java/hu/bbara/purefin/ui/screen/home/components/TvFocusedItemHeroTest.kt": {
+    "mtime": 1781870261.0160613,
+    "ast_hash": "4a57fe5a8947a630fd430c783276ed9a",
+    "semantic_hash": "4a57fe5a8947a630fd430c783276ed9a"
+  },
+  "app-tv/src/test/java/hu/bbara/purefin/ui/screen/home/components/TvHomeBringIntoViewSpecTest.kt": {
+    "mtime": 1781870261.0161438,
+    "ast_hash": "ff84bdd06c932c61cb90a6389cac2855",
+    "semantic_hash": "ff84bdd06c932c61cb90a6389cac2855"
+  },
+  "app-tv/src/test/java/hu/bbara/purefin/ui/screen/home/components/TvHomeHeroStateTest.kt": {
+    "mtime": 1781870261.016234,
+    "ast_hash": "a7ba71ce3ee9c262a7b3335eb7377075",
+    "semantic_hash": "a7ba71ce3ee9c262a7b3335eb7377075"
+  },
+  "app/build.gradle.kts": {
+    "mtime": 1782146339.2981403,
+    "ast_hash": "4f4cc290e93a77097a4e18774b4a01cd",
+    "semantic_hash": "4f4cc290e93a77097a4e18774b4a01cd"
+  },
+  "app/src/androidTest/java/hu/bbara/purefin/ExampleInstrumentedTest.kt": {
+    "mtime": 1781870261.0167525,
+    "ast_hash": "0ec13dc2838827075158078573e7e63a",
+    "semantic_hash": "0ec13dc2838827075158078573e7e63a"
+  },
+  "app/src/main/java/hu/bbara/purefin/PurefinActivity.kt": {
+    "mtime": 1781870261.017578,
+    "ast_hash": "4d783181a3c4d783ed5845eef2713324",
+    "semantic_hash": "4d783181a3c4d783ed5845eef2713324"
+  },
+  "app/src/main/java/hu/bbara/purefin/PurefinApplication.kt": {
+    "mtime": 1781870261.0176659,
+    "ast_hash": "faf9326c8a38fe48f29d05ca4bfa5610",
+    "semantic_hash": "faf9326c8a38fe48f29d05ca4bfa5610"
+  },
+  "app/src/main/java/hu/bbara/purefin/modules/NavigationModule.kt": {
+    "mtime": 1781870261.0177667,
+    "ast_hash": "7d499e66a35e615be96e8c9bb7f42f47",
+    "semantic_hash": "7d499e66a35e615be96e8c9bb7f42f47"
+  },
+  "app/src/main/java/hu/bbara/purefin/modules/PlaybackProfileFamilyModule.kt": {
+    "mtime": 1781870261.0178478,
+    "ast_hash": "4873db2fdd9749a91c8c02adb17ee44f",
+    "semantic_hash": "4873db2fdd9749a91c8c02adb17ee44f"
+  },
+  "app/src/main/java/hu/bbara/purefin/navigation/NavigationLocals.kt": {
+    "mtime": 1781870261.017939,
+    "ast_hash": "14e02c6d34a65db441d1c0cada3e32d4",
+    "semantic_hash": "14e02c6d34a65db441d1c0cada3e32d4"
+  },
+  "app/src/main/java/hu/bbara/purefin/navigation/RouteEntryBuilder.kt": {
+    "mtime": 1781870261.0180144,
+    "ast_hash": "a745acfc40157eeb44d46f130abd72b9",
+    "semantic_hash": "a745acfc40157eeb44d46f130abd72b9"
+  },
+  "app/src/main/java/hu/bbara/purefin/player/PlayerActivity.kt": {
+    "mtime": 1781870261.0182402,
+    "ast_hash": "07dd8252eade26962e331bde86e704b0",
+    "semantic_hash": "07dd8252eade26962e331bde86e704b0"
+  },
+  "app/src/main/java/hu/bbara/purefin/player/helper/HorizontalSeekGestureHelper.kt": {
+    "mtime": 1781870261.0183983,
+    "ast_hash": "ba883608d9bc39e1d1cf370b80dc5cc2",
+    "semantic_hash": "ba883608d9bc39e1d1cf370b80dc5cc2"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/common/badge/ContentBadge.kt": {
+    "mtime": 1781870261.0185204,
+    "ast_hash": "dba077b0cbf09e71fa12ecc76e10dee1",
+    "semantic_hash": "dba077b0cbf09e71fa12ecc76e10dee1"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/common/card/MediaImageCard.kt": {
+    "mtime": 1781870261.0187485,
+    "ast_hash": "b2079b0688095dbd97b9f9ea67305e5f",
+    "semantic_hash": "b2079b0688095dbd97b9f9ea67305e5f"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/common/card/PosterCard.kt": {
+    "mtime": 1781870261.0189335,
+    "ast_hash": "0e3ad8cc1b5f55d081b9b3252079c632",
+    "semantic_hash": "0e3ad8cc1b5f55d081b9b3252079c632"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/common/header/SectionHeader.kt": {
+    "mtime": 1781870261.0190237,
+    "ast_hash": "7ed524f4dd7c7fd0c1ef9d83f9dda97d",
+    "semantic_hash": "7ed524f4dd7c7fd0c1ef9d83f9dda97d"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/common/media/HomeMediaSharedBounds.kt": {
+    "mtime": 1781870261.0192318,
+    "ast_hash": "a1b296fb803842f250e027d5d396d7f4",
+    "semantic_hash": "a1b296fb803842f250e027d5d396d7f4"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/common/media/MediaDetailScaffold.kt": {
+    "mtime": 1781976932.6568205,
+    "ast_hash": "5f5ad383ba51fb2e5eb61a1298d8c77a",
+    "semantic_hash": "5f5ad383ba51fb2e5eb61a1298d8c77a"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/common/permission/NotificationPermissionGate.kt": {
+    "mtime": 1781870261.0197835,
+    "ast_hash": "46267c69f60af5148d9b1e9eb6786b78",
+    "semantic_hash": "46267c69f60af5148d9b1e9eb6786b78"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/model/MediaAction.kt": {
+    "mtime": 1781870261.019876,
+    "ast_hash": "7534fdc343026cb45c7595ca9285e356",
+    "semantic_hash": "7534fdc343026cb45c7595ca9285e356"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/AppBottomBar.kt": {
+    "mtime": 1781870261.020086,
+    "ast_hash": "2f8496255960ead0139342f0343342bd",
+    "semantic_hash": "2f8496255960ead0139342f0343342bd"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/AppScreen.kt": {
+    "mtime": 1781870261.0203934,
+    "ast_hash": "a12e7b81fcc21b2be69ee2a063399615",
+    "semantic_hash": "a12e7b81fcc21b2be69ee2a063399615"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/download/DownloadsScreen.kt": {
+    "mtime": 1781870261.0206969,
+    "ast_hash": "900dfcce0df4a44b94f37fcc6a4c380f",
+    "semantic_hash": "900dfcce0df4a44b94f37fcc6a4c380f"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/download/components/DownloadingItemRow.kt": {
+    "mtime": 1781870261.0208735,
+    "ast_hash": "b4d2216b12a1ed5d9d32830d7044b6aa",
+    "semantic_hash": "b4d2216b12a1ed5d9d32830d7044b6aa"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/download/components/DownloadsContent.kt": {
+    "mtime": 1781870261.0211587,
+    "ast_hash": "dbc88beb551df1ae41182929c64b96fc",
+    "semantic_hash": "dbc88beb551df1ae41182929c64b96fc"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/episode/EpisodeScreen.kt": {
+    "mtime": 1781870261.0214534,
+    "ast_hash": "27dc7c1aaa6581c1dc80399de5ce9238",
+    "semantic_hash": "27dc7c1aaa6581c1dc80399de5ce9238"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/episode/components/EpisodeComponents.kt": {
+    "mtime": 1781870261.0216937,
+    "ast_hash": "b7f4e252c081a7c98689cf7831b2905c",
+    "semantic_hash": "b7f4e252c081a7c98689cf7831b2905c"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/HomeScreen.kt": {
+    "mtime": 1781870261.0219648,
+    "ast_hash": "d56cc06b6bc813576d33095eee3a2fdd",
+    "semantic_hash": "d56cc06b6bc813576d33095eee3a2fdd"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/DefaultTopBar.kt": {
+    "mtime": 1781870261.022385,
+    "ast_hash": "79a73ccea64fa97291ea4620f537449c",
+    "semantic_hash": "79a73ccea64fa97291ea4620f537449c"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/HomeContent.kt": {
+    "mtime": 1781870261.0225925,
+    "ast_hash": "0d325dc4e19dd047a7d46440de9306b5",
+    "semantic_hash": "0d325dc4e19dd047a7d46440de9306b5"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/HomeEmptyState.kt": {
+    "mtime": 1781870261.0226767,
+    "ast_hash": "7e9a69bc79d6ca62e51a43bc18f021cd",
+    "semantic_hash": "7e9a69bc79d6ca62e51a43bc18f021cd"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/HomeTopBar.kt": {
+    "mtime": 1781870261.0229576,
+    "ast_hash": "c84a1fce1d0cfa4a2d9d2aa5f1c51a0c",
+    "semantic_hash": "c84a1fce1d0cfa4a2d9d2aa5f1c51a0c"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/continuewatching/ContinueWatchingCard.kt": {
+    "mtime": 1781870261.0231516,
+    "ast_hash": "c6ac4c991345c330fa4f40aa11536bf3",
+    "semantic_hash": "c6ac4c991345c330fa4f40aa11536bf3"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/continuewatching/ContinueWatchingSection.kt": {
+    "mtime": 1781870261.0233643,
+    "ast_hash": "0556eb3164aa5fab1990c7047c4776eb",
+    "semantic_hash": "0556eb3164aa5fab1990c7047c4776eb"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/featured/SuggestionCard.kt": {
+    "mtime": 1781870261.0234687,
+    "ast_hash": "992f3915c6e0766433e70cb833e6c9e0",
+    "semantic_hash": "992f3915c6e0766433e70cb833e6c9e0"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/featured/SuggestionsSection.kt": {
+    "mtime": 1781870261.0236545,
+    "ast_hash": "f556370ff98af434ed97f5f3372d52a4",
+    "semantic_hash": "f556370ff98af434ed97f5f3372d52a4"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/library/HomeBrowseCard.kt": {
+    "mtime": 1781870261.0238848,
+    "ast_hash": "e3459a47843a5fc98be64507e3290589",
+    "semantic_hash": "e3459a47843a5fc98be64507e3290589"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/library/LibraryPosterSection.kt": {
+    "mtime": 1781870261.02409,
+    "ast_hash": "bcad6993e12ae16d2cb24addcd81f671",
+    "semantic_hash": "bcad6993e12ae16d2cb24addcd81f671"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/nextup/NextUpCard.kt": {
+    "mtime": 1781870261.0242822,
+    "ast_hash": "51022a16e930fd25eac23550e33e7fb0",
+    "semantic_hash": "51022a16e930fd25eac23550e33e7fb0"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/nextup/NextUpSection.kt": {
+    "mtime": 1781870261.0244913,
+    "ast_hash": "dc5d4fb81c88939cc9609acb182dc034",
+    "semantic_hash": "dc5d4fb81c88939cc9609acb182dc034"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/search/SearchMessage.kt": {
+    "mtime": 1781870261.024573,
+    "ast_hash": "42d5007184e6657e1dcc5fde8de313f3",
+    "semantic_hash": "42d5007184e6657e1dcc5fde8de313f3"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/search/SearchOverlay.kt": {
+    "mtime": 1781870261.0247772,
+    "ast_hash": "33c7df02dd7856d21731fb836beb9d76",
+    "semantic_hash": "33c7df02dd7856d21731fb836beb9d76"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/search/SearchResultCard.kt": {
+    "mtime": 1781870261.0248525,
+    "ast_hash": "e3b30f389c39cd4f338716d5906426f1",
+    "semantic_hash": "e3b30f389c39cd4f338716d5906426f1"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/home/components/search/SearchScreen.kt": {
+    "mtime": 1781870261.0253127,
+    "ast_hash": "36a1bb6fe9520b5790faf4d7d4761ad7",
+    "semantic_hash": "36a1bb6fe9520b5790faf4d7d4761ad7"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/libraries/LibrariesScreen.kt": {
+    "mtime": 1781870261.0255344,
+    "ast_hash": "13490e098c4fffe274174b0311d5e4ea",
+    "semantic_hash": "13490e098c4fffe274174b0311d5e4ea"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/libraries/components/LibrariesContent.kt": {
+    "mtime": 1781870261.0257413,
+    "ast_hash": "db7bfcf7718ddc2362e1710cf35b3788",
+    "semantic_hash": "db7bfcf7718ddc2362e1710cf35b3788"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/libraries/components/LibrariesTopBar.kt": {
+    "mtime": 1781870261.0259118,
+    "ast_hash": "97865a5c343f8f71047a681ab0824745",
+    "semantic_hash": "97865a5c343f8f71047a681ab0824745"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/libraries/components/LibraryListItem.kt": {
+    "mtime": 1781870261.026006,
+    "ast_hash": "4b6b1534afdb254961792ef680388307",
+    "semantic_hash": "4b6b1534afdb254961792ef680388307"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/library/LibraryScreen.kt": {
+    "mtime": 1781870261.0262532,
+    "ast_hash": "3a6d59241888062ba43cc18e3d6ce9d4",
+    "semantic_hash": "3a6d59241888062ba43cc18e3d6ce9d4"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/library/components/LibraryTopBar.kt": {
+    "mtime": 1781870261.0264678,
+    "ast_hash": "afa9f9fef4656f792c3bc0ac7b0b7deb",
+    "semantic_hash": "afa9f9fef4656f792c3bc0ac7b0b7deb"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/login/LoginContent.kt": {
+    "mtime": 1781870261.026714,
+    "ast_hash": "f15067e924683274140d3ef657e3dd82",
+    "semantic_hash": "f15067e924683274140d3ef657e3dd82"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/login/LoginScreen.kt": {
+    "mtime": 1781870261.0269248,
+    "ast_hash": "269cef3bbe81258f29fa66470a10ac5b",
+    "semantic_hash": "269cef3bbe81258f29fa66470a10ac5b"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/movie/MovieScreen.kt": {
+    "mtime": 1781870261.0272484,
+    "ast_hash": "8f94a4dcc5e972d2205f758b502479b9",
+    "semantic_hash": "8f94a4dcc5e972d2205f758b502479b9"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/movie/components/MovieComponents.kt": {
+    "mtime": 1781870261.0274856,
+    "ast_hash": "b420c1e1ee6847891eeb93b00ac1c692",
+    "semantic_hash": "b420c1e1ee6847891eeb93b00ac1c692"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/PlayerScreen.kt": {
+    "mtime": 1782805179.751347,
+    "ast_hash": "af3533d36898bbf00c035cd81d1162a0",
+    "semantic_hash": "af3533d36898bbf00c035cd81d1162a0"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/NextEpisodeOverlay.kt": {
+    "mtime": 1781870261.0281267,
+    "ast_hash": "fa85b266177d887c64d92d1751a075fc",
+    "semantic_hash": "fa85b266177d887c64d92d1751a075fc"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/PersistentOverlayContainer.kt": {
+    "mtime": 1781870261.0282116,
+    "ast_hash": "495b1bbc77764d4a6b4529e29bc265a3",
+    "semantic_hash": "495b1bbc77764d4a6b4529e29bc265a3"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/PlayerAdjustmentIndicator.kt": {
+    "mtime": 1781870261.0284271,
+    "ast_hash": "c1e3a7793e3403fea3fc49f2d7fe483e",
+    "semantic_hash": "c1e3a7793e3403fea3fc49f2d7fe483e"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/PlayerControlsOverlay.kt": {
+    "mtime": 1782146339.2979083,
+    "ast_hash": "5a531aa301008f4dc7225fe5f70c3c1a",
+    "semantic_hash": "5a531aa301008f4dc7225fe5f70c3c1a"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/PlayerGesturesLayer.kt": {
+    "mtime": 1781880282.7074971,
+    "ast_hash": "8b9d566917b9ccf015f90b8b0dd0b936",
+    "semantic_hash": "8b9d566917b9ccf015f90b8b0dd0b936"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/PlayerLoadingErrorEndCard.kt": {
+    "mtime": 1781870261.0288668,
+    "ast_hash": "44c9519dea380d68eb6004e5649032bb",
+    "semantic_hash": "44c9519dea380d68eb6004e5649032bb"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/PlayerQueuePanel.kt": {
+    "mtime": 1781870261.0291004,
+    "ast_hash": "cf91cb4e26b617600a74c8fa3cabd73e",
+    "semantic_hash": "cf91cb4e26b617600a74c8fa3cabd73e"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/PlayerSeekBar.kt": {
+    "mtime": 1782040007.170427,
+    "ast_hash": "89997d65842be874e9ff6919fae76b80",
+    "semantic_hash": "89997d65842be874e9ff6919fae76b80"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/player/components/TrackSelectionButtons.kt": {
+    "mtime": 1781870261.0295136,
+    "ast_hash": "68d3871f362863ff625a8ecc88b777d4",
+    "semantic_hash": "68d3871f362863ff625a8ecc88b777d4"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/series/SeriesScreen.kt": {
+    "mtime": 1782491856.751901,
+    "ast_hash": "945ce28267310300e2d2dd4f2b7c1e85",
+    "semantic_hash": "945ce28267310300e2d2dd4f2b7c1e85"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/series/components/SeriesComponents.kt": {
+    "mtime": 1782490896.9130712,
+    "ast_hash": "47a4fafe01109882500cab2e324b76fb",
+    "semantic_hash": "47a4fafe01109882500cab2e324b76fb"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/settings/SettingsScreen.kt": {
+    "mtime": 1781870261.0304434,
+    "ast_hash": "493e3b2b96604cb8ce395335539d95e0",
+    "semantic_hash": "493e3b2b96604cb8ce395335539d95e0"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/settings/components/BooleanSettingItem.kt": {
+    "mtime": 1781870261.0306635,
+    "ast_hash": "7079a7f5ce72eb09fc50a71eaafe4849",
+    "semantic_hash": "7079a7f5ce72eb09fc50a71eaafe4849"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/settings/components/DropdownSettingItem.kt": {
+    "mtime": 1781870261.0308335,
+    "ast_hash": "3109a5d85ca5b3c2c2b90489dd6b872e",
+    "semantic_hash": "3109a5d85ca5b3c2c2b90489dd6b872e"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/settings/components/RangeSettingItem.kt": {
+    "mtime": 1781870261.0310051,
+    "ast_hash": "cdcd0dbc49a60ee070ebdea81ae32b0f",
+    "semantic_hash": "cdcd0dbc49a60ee070ebdea81ae32b0f"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/settings/components/ReadOnlySettingItem.kt": {
+    "mtime": 1781870261.031162,
+    "ast_hash": "c3a16f0bd0027fbd897a3e9a61692333",
+    "semantic_hash": "c3a16f0bd0027fbd897a3e9a61692333"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/settings/components/StringSettingItem.kt": {
+    "mtime": 1781870261.0313659,
+    "ast_hash": "e0b24944d14aa4a5a4f524af62f2056c",
+    "semantic_hash": "e0b24944d14aa4a5a4f524af62f2056c"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/screen/settings/components/VoidSettingItem.kt": {
+    "mtime": 1781870261.0315456,
+    "ast_hash": "1028339bf67d5efbfbefdedd3f75dbee",
+    "semantic_hash": "1028339bf67d5efbfbefdedd3f75dbee"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/theme/Color.kt": {
+    "mtime": 1781870261.03165,
+    "ast_hash": "09c2899de7a86d13675ddd7c27604bc3",
+    "semantic_hash": "09c2899de7a86d13675ddd7c27604bc3"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/theme/Theme.kt": {
+    "mtime": 1781870261.0317426,
+    "ast_hash": "ade3c003421d1c232843552dd034fb5a",
+    "semantic_hash": "ade3c003421d1c232843552dd034fb5a"
+  },
+  "app/src/main/java/hu/bbara/purefin/ui/theme/Type.kt": {
+    "mtime": 1781870261.0318177,
+    "ast_hash": "584bc0f1706dbfd708d663ece480c088",
+    "semantic_hash": "584bc0f1706dbfd708d663ece480c088"
+  },
+  "build.gradle.kts": {
+    "mtime": 1781870261.032663,
+    "ast_hash": "ae039220ee08576d239e29341ccb65e4",
+    "semantic_hash": "ae039220ee08576d239e29341ccb65e4"
+  },
+  "core-model/build.gradle.kts": {
+    "mtime": 1781870261.0328276,
+    "ast_hash": "1da7fbb3727e7319f93f04d563ccef69",
+    "semantic_hash": "1da7fbb3727e7319f93f04d563ccef69"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/CastMember.kt": {
+    "mtime": 1781870261.0329382,
+    "ast_hash": "23a92b23255203939f6deeab6d20a1b9",
+    "semantic_hash": "23a92b23255203939f6deeab6d20a1b9"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/Episode.kt": {
+    "mtime": 1781870261.0330641,
+    "ast_hash": "7df5c902e879801c162686a91c2e92f9",
+    "semantic_hash": "7df5c902e879801c162686a91c2e92f9"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/Genre.kt": {
+    "mtime": 1781870261.0331554,
+    "ast_hash": "039612bc675645a39db3770696019b6b",
+    "semantic_hash": "039612bc675645a39db3770696019b6b"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/Library.kt": {
+    "mtime": 1781870261.0332491,
+    "ast_hash": "fde450e226b061896b425e7c29101538",
+    "semantic_hash": "fde450e226b061896b425e7c29101538"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/LibraryKind.kt": {
+    "mtime": 1781870261.0333269,
+    "ast_hash": "69e1b0ae295b75d54d7d7a28bc5b7f53",
+    "semantic_hash": "69e1b0ae295b75d54d7d7a28bc5b7f53"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/Media.kt": {
+    "mtime": 1781870261.0334017,
+    "ast_hash": "fcb1d99d3441a60da367b21de56c60c0",
+    "semantic_hash": "fcb1d99d3441a60da367b21de56c60c0"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/MediaKind.kt": {
+    "mtime": 1781870261.0334709,
+    "ast_hash": "1a8cee266f8a048c3e492a5b9645d949",
+    "semantic_hash": "1a8cee266f8a048c3e492a5b9645d949"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/MediaSegment.kt": {
+    "mtime": 1781870261.033537,
+    "ast_hash": "2665dc1e9846a63a00e685cf447ab2f4",
+    "semantic_hash": "2665dc1e9846a63a00e685cf447ab2f4"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/Movie.kt": {
+    "mtime": 1781870261.0336065,
+    "ast_hash": "acafcbda211b401914c674dfd61e035a",
+    "semantic_hash": "acafcbda211b401914c674dfd61e035a"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/PlayableMedia.kt": {
+    "mtime": 1781870261.0336719,
+    "ast_hash": "c37a4fa03ae2e2a559a01b5ac02de9c6",
+    "semantic_hash": "c37a4fa03ae2e2a559a01b5ac02de9c6"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/Season.kt": {
+    "mtime": 1781957864.9427786,
+    "ast_hash": "fd8441d523aab011de0c8f99b993737f",
+    "semantic_hash": "fd8441d523aab011de0c8f99b993737f"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/Series.kt": {
+    "mtime": 1781870261.033821,
+    "ast_hash": "cd5f6113ae1425e73d59118dbd40c0ca",
+    "semantic_hash": "cd5f6113ae1425e73d59118dbd40c0ca"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/Settings.kt": {
+    "mtime": 1781870261.033888,
+    "ast_hash": "2d4b74c99ceeccbe019bcb707db7f872",
+    "semantic_hash": "2d4b74c99ceeccbe019bcb707db7f872"
+  },
+  "core-model/src/main/java/hu/bbara/purefin/model/TrackPreference.kt": {
+    "mtime": 1781870261.0339746,
+    "ast_hash": "e45e2e0bd6bf6b6b53b862079a59a14e",
+    "semantic_hash": "e45e2e0bd6bf6b6b53b862079a59a14e"
+  },
+  "core-ui/build.gradle.kts": {
+    "mtime": 1781870261.0340614,
+    "ast_hash": "bfc8616c675166c759b56e2ca9b31dd2",
+    "semantic_hash": "bfc8616c675166c759b56e2ca9b31dd2"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/badge/UnwatchedEpisodeBadge.kt": {
+    "mtime": 1781870261.0341613,
+    "ast_hash": "eb7a495530c53797d934dd4fe2998c5a",
+    "semantic_hash": "eb7a495530c53797d934dd4fe2998c5a"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/badge/WatchStateBadge.kt": {
+    "mtime": 1781870261.0342264,
+    "ast_hash": "f14db866978c43d7b7a6a737804dab93",
+    "semantic_hash": "f14db866978c43d7b7a6a737804dab93"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/bar/MediaProgressBar.kt": {
+    "mtime": 1781870261.0344064,
+    "ast_hash": "b20f059890991283d3b18bf7aed76966",
+    "semantic_hash": "b20f059890991283d3b18bf7aed76966"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/button/CircularIconButton.kt": {
+    "mtime": 1781878366.9418747,
+    "ast_hash": "249779a631f8eedb826f6a4e08da20a8",
+    "semantic_hash": "249779a631f8eedb826f6a4e08da20a8"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/button/CircularTextButton.kt": {
+    "mtime": 1781879458.6941192,
+    "ast_hash": "47a1bea0524b85cb3e29fe70affd1c8b",
+    "semantic_hash": "47a1bea0524b85cb3e29fe70affd1c8b"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/button/DownloadActionButton.kt": {
+    "mtime": 1781870261.0346916,
+    "ast_hash": "fc36372c923b4745d432e194aa644205",
+    "semantic_hash": "fc36372c923b4745d432e194aa644205"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/button/GhostIconButton.kt": {
+    "mtime": 1781878387.742525,
+    "ast_hash": "df0886ab972c1bcdb586e33cbb0da6b7",
+    "semantic_hash": "df0886ab972c1bcdb586e33cbb0da6b7"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/button/MediaActionButton.kt": {
+    "mtime": 1781878366.9504855,
+    "ast_hash": "758c685f45ba703bf8161b6328189470",
+    "semantic_hash": "758c685f45ba703bf8161b6328189470"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/button/MediaResumeButton.kt": {
+    "mtime": 1781870261.0349262,
+    "ast_hash": "463919bafe3f84a7552e2e30b610f1e4",
+    "semantic_hash": "463919bafe3f84a7552e2e30b610f1e4"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/button/PurefinIconButton.kt": {
+    "mtime": 1781878867.9149327,
+    "ast_hash": "5c5db90ef1e44e0cf291052d09d9297e",
+    "semantic_hash": "5c5db90ef1e44e0cf291052d09d9297e"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/button/PurefinTextButton.kt": {
+    "mtime": 1781870261.035073,
+    "ast_hash": "ca84c47664c35c7190ba85d32ca6535c",
+    "semantic_hash": "ca84c47664c35c7190ba85d32ca6535c"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/dialog/ExitAppDialog.kt": {
+    "mtime": 1781870261.035273,
+    "ast_hash": "25c2f311711e838adcac0e21cc0e7d16",
+    "semantic_hash": "25c2f311711e838adcac0e21cc0e7d16"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/image/PurefinAsyncImage.kt": {
+    "mtime": 1781870261.0353541,
+    "ast_hash": "b33f598ed3da6f1919dc5724b19f4c08",
+    "semantic_hash": "b33f598ed3da6f1919dc5724b19f4c08"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/image/PurefinLogo.kt": {
+    "mtime": 1781870261.0354326,
+    "ast_hash": "71ec7062d4937a2a58e941ef11a34733",
+    "semantic_hash": "71ec7062d4937a2a58e941ef11a34733"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/media/MediaDetailComponents.kt": {
+    "mtime": 1781870261.0355287,
+    "ast_hash": "ec5f2906c285558b309465aeb24b9412",
+    "semantic_hash": "ec5f2906c285558b309465aeb24b9412"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/media/MediaMetadataFlowRow.kt": {
+    "mtime": 1781870261.0357437,
+    "ast_hash": "ec9193a7a92ef7f3169280b3892b4cdd",
+    "semantic_hash": "ec9193a7a92ef7f3169280b3892b4cdd"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/media/MediaPlayButtonLabel.kt": {
+    "mtime": 1781870261.0358274,
+    "ast_hash": "7fd43e34f32cce9ff87506a719eaba5f",
+    "semantic_hash": "7fd43e34f32cce9ff87506a719eaba5f"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/media/MediaPlaybackSettings.kt": {
+    "mtime": 1781870261.0359066,
+    "ast_hash": "1a8f39d5474c4d706819de67847418d3",
+    "semantic_hash": "1a8f39d5474c4d706819de67847418d3"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/media/MediaSynopsis.kt": {
+    "mtime": 1781870261.0359857,
+    "ast_hash": "e1beb29b76450f7053ae2c835e51cbf1",
+    "semantic_hash": "e1beb29b76450f7053ae2c835e51cbf1"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/textfield/PurefinComplexTextField.kt": {
+    "mtime": 1781870261.036054,
+    "ast_hash": "e8c3c78ad215ea56d76db20391214894",
+    "semantic_hash": "e8c3c78ad215ea56d76db20391214894"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/textfield/PurefinPasswordField.kt": {
+    "mtime": 1781870261.036125,
+    "ast_hash": "9059dff47574b53710e9387686a73f21",
+    "semantic_hash": "9059dff47574b53710e9387686a73f21"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/common/visual/TimedVisibility.kt": {
+    "mtime": 1781976292.7581737,
+    "ast_hash": "68057aafa8afe8d52ecc1c770c69de38",
+    "semantic_hash": "68057aafa8afe8d52ecc1c770c69de38"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/screen/login/LoginModels.kt": {
+    "mtime": 1781870261.0362694,
+    "ast_hash": "9a788f8ed3a01e337feec242e09987a9",
+    "semantic_hash": "9a788f8ed3a01e337feec242e09987a9"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/screen/player/components/PlayerLoadingErrorEndCardContent.kt": {
+    "mtime": 1781870261.036348,
+    "ast_hash": "6b7d1cb5f232c899541d52eaa9e02179",
+    "semantic_hash": "6b7d1cb5f232c899541d52eaa9e02179"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/screen/player/components/PlayerSeekBarTrack.kt": {
+    "mtime": 1781870261.0364354,
+    "ast_hash": "dd8d648552463de3099470d7f8f59162",
+    "semantic_hash": "dd8d648552463de3099470d7f8f59162"
+  },
+  "core-ui/src/main/java/hu/bbara/purefin/ui/screen/waiting/WaitingScreen.kt": {
+    "mtime": 1781870261.0365536,
+    "ast_hash": "8192343bb236c90e37e6168c46f68a4b",
+    "semantic_hash": "8192343bb236c90e37e6168c46f68a4b"
+  },
+  "core-ui/src/test/java/hu/bbara/purefin/ui/common/media/MediaPlayButtonLabelTest.kt": {
+    "mtime": 1781870261.0367692,
+    "ast_hash": "17d845b6e860d56d71d625359bc83772",
+    "semantic_hash": "17d845b6e860d56d71d625359bc83772"
+  },
+  "core/build.gradle.kts": {
+    "mtime": 1782146339.2978253,
+    "ast_hash": "f161df38b24a2bbe750621b13b256df5",
+    "semantic_hash": "f161df38b24a2bbe750621b13b256df5"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/Qualifiers.kt": {
+    "mtime": 1781870261.0370731,
+    "ast_hash": "59dc7a6093e0f7da78ce6d7f9d7fcc86",
+    "semantic_hash": "59dc7a6093e0f7da78ce6d7f9d7fcc86"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/concurrency/SingleFlight.kt": {
+    "mtime": 1782149072.0776403,
+    "ast_hash": "2754591ebd9efda9418b15f5dd1bf18d",
+    "semantic_hash": "2754591ebd9efda9418b15f5dd1bf18d"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/AuthenticationRepository.kt": {
+    "mtime": 1781870261.0372384,
+    "ast_hash": "54fc764719e177183e654fbfb4a1d49c",
+    "semantic_hash": "54fc764719e177183e654fbfb4a1d49c"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/CompositeLocalMediaRepository.kt": {
+    "mtime": 1781971529.0519104,
+    "ast_hash": "6bf0870e407490eadec8bbe7b786a67c",
+    "semantic_hash": "6bf0870e407490eadec8bbe7b786a67c"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/DownloadMediaSourceResolver.kt": {
+    "mtime": 1781870261.0376916,
+    "ast_hash": "647022323d70951260ae3f1809e4cc74",
+    "semantic_hash": "647022323d70951260ae3f1809e4cc74"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/HomeRepository.kt": {
+    "mtime": 1782488001.2378607,
+    "ast_hash": "edbfb89e144c053da401fdeccc4c1b85",
+    "semantic_hash": "edbfb89e144c053da401fdeccc4c1b85"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/LocalMediaRepository.kt": {
+    "mtime": 1781971529.0523188,
+    "ast_hash": "19982fbe7e858056dad1d40e03e77b6a",
+    "semantic_hash": "19982fbe7e858056dad1d40e03e77b6a"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/MediaMetadataUpdater.kt": {
+    "mtime": 1781870261.0384188,
+    "ast_hash": "78fa7801755bd6eb59cb5ec8cbd4399d",
+    "semantic_hash": "78fa7801755bd6eb59cb5ec8cbd4399d"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/NetworkMonitor.kt": {
+    "mtime": 1781870261.038642,
+    "ast_hash": "a512013d7f0bf33843c45205129d446a",
+    "semantic_hash": "a512013d7f0bf33843c45205129d446a"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/OfflineMediaManager.kt": {
+    "mtime": 1781870261.039007,
+    "ast_hash": "c9ff69e186033105fd43823355053161",
+    "semantic_hash": "c9ff69e186033105fd43823355053161"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/PlayableMediaRepository.kt": {
+    "mtime": 1781870261.039082,
+    "ast_hash": "4bc5926fa55b68df5ae424b770ef444d",
+    "semantic_hash": "4bc5926fa55b68df5ae424b770ef444d"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/PlaybackMediaItemTag.kt": {
+    "mtime": 1781870261.039277,
+    "ast_hash": "7f244123dd7df670620ffb90393f8b15",
+    "semantic_hash": "7f244123dd7df670620ffb90393f8b15"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/PlaybackMethod.kt": {
+    "mtime": 1781870261.0394537,
+    "ast_hash": "8b5729de8ee25dfcf9dabad198e22ecb",
+    "semantic_hash": "8b5729de8ee25dfcf9dabad198e22ecb"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/PlaybackProfileFamily.kt": {
+    "mtime": 1781870261.0395203,
+    "ast_hash": "b7fc14822304bebe5af7e17f12e57961",
+    "semantic_hash": "b7fc14822304bebe5af7e17f12e57961"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/PlaybackProgressReporter.kt": {
+    "mtime": 1781870261.0395846,
+    "ast_hash": "b3a363c4339b217bc9f092132208626f",
+    "semantic_hash": "b3a363c4339b217bc9f092132208626f"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/PlaybackReportContext.kt": {
+    "mtime": 1781870261.0398018,
+    "ast_hash": "a58a47db2f6b60c2ecb5c2d0de387b90",
+    "semantic_hash": "a58a47db2f6b60c2ecb5c2d0de387b90"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/SearchManager.kt": {
+    "mtime": 1781870261.0399177,
+    "ast_hash": "9bd81b32b53e9aedbac07833d6cdb04b",
+    "semantic_hash": "9bd81b32b53e9aedbac07833d6cdb04b"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/SessionBootstrapper.kt": {
+    "mtime": 1781870261.040004,
+    "ast_hash": "b124ec1a340edac262a3669ab026b029",
+    "semantic_hash": "b124ec1a340edac262a3669ab026b029"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/SmartDownloadStore.kt": {
+    "mtime": 1781870261.040077,
+    "ast_hash": "605796e78473b7ba9050caa3d30b27f6",
+    "semantic_hash": "605796e78473b7ba9050caa3d30b27f6"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/data/UserSessionRepository.kt": {
+    "mtime": 1781870261.04018,
+    "ast_hash": "8574f13600fcca26e2be3008050fb8aa",
+    "semantic_hash": "8574f13600fcca26e2be3008050fb8aa"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/download/DownloadControllerModule.kt": {
+    "mtime": 1781870261.0402708,
+    "ast_hash": "7918d39be25dd8b46fcba2cfed8af410",
+    "semantic_hash": "7918d39be25dd8b46fcba2cfed8af410"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/download/DownloadModule.kt": {
+    "mtime": 1781870261.0403392,
+    "ast_hash": "a325f33c02c41cecbfb70fe8b398d951",
+    "semantic_hash": "a325f33c02c41cecbfb70fe8b398d951"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/download/DownloadState.kt": {
+    "mtime": 1781870261.0404017,
+    "ast_hash": "a26e4fb425d051e95a5cc801f9714d49",
+    "semantic_hash": "a26e4fb425d051e95a5cc801f9714d49"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/download/MediaDownloadController.kt": {
+    "mtime": 1781870261.0404685,
+    "ast_hash": "e2a3001c902aded52eb6c3a2bfee8fbc",
+    "semantic_hash": "e2a3001c902aded52eb6c3a2bfee8fbc"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/download/MediaDownloadManager.kt": {
+    "mtime": 1781870261.040762,
+    "ast_hash": "1af67276dfb8fe346c4d5c73d118808e",
+    "semantic_hash": "1af67276dfb8fe346c4d5c73d118808e"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/download/PurefinDownloadService.kt": {
+    "mtime": 1781870261.0408475,
+    "ast_hash": "b38e4c7d4ce537f1d6ebb8366b96fd2d",
+    "semantic_hash": "b38e4c7d4ce537f1d6ebb8366b96fd2d"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/browse/home/AppViewModel.kt": {
+    "mtime": 1782488001.2382672,
+    "ast_hash": "3f3ac735ce1b09f67d4945f809d90b47",
+    "semantic_hash": "3f3ac735ce1b09f67d4945f809d90b47"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/browse/home/refresh/HomeRefreshCoordinator.kt": {
+    "mtime": 1781872577.7518997,
+    "ast_hash": "daaa590d6981d3a0a58a698d393eefb9",
+    "semantic_hash": "daaa590d6981d3a0a58a698d393eefb9"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/browse/home/refresh/HomeRefreshSideEffect.kt": {
+    "mtime": 1781870261.041533,
+    "ast_hash": "cbb11cac9fe08d601cc8efcefac331e8",
+    "semantic_hash": "cbb11cac9fe08d601cc8efcefac331e8"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/browse/home/refresh/HomeRefreshSideEffectModule.kt": {
+    "mtime": 1781870261.0416853,
+    "ast_hash": "723e87e66e63f9cb197743e68e13895b",
+    "semantic_hash": "723e87e66e63f9cb197743e68e13895b"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/browse/home/refresh/SyncSmartDownloadsHomeRefreshSideEffect.kt": {
+    "mtime": 1781870261.0418866,
+    "ast_hash": "4e03a7b75a5859305bef9465b99b435f",
+    "semantic_hash": "4e03a7b75a5859305bef9465b99b435f"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/browse/library/LibraryViewModel.kt": {
+    "mtime": 1782488001.2384317,
+    "ast_hash": "d257a9e7d23c53b8984f711dea1f8992",
+    "semantic_hash": "d257a9e7d23c53b8984f711dea1f8992"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/content/episode/EpisodeScreenViewModel.kt": {
+    "mtime": 1781946913.8249142,
+    "ast_hash": "2b291fe2f6e26d447db4d893d419d96c",
+    "semantic_hash": "2b291fe2f6e26d447db4d893d419d96c"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/content/episode/SeriesIdLookUpUseCase.kt": {
+    "mtime": 1781870261.0424154,
+    "ast_hash": "3ec4aaf252e67a60917e1443f1df9599",
+    "semantic_hash": "3ec4aaf252e67a60917e1443f1df9599"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/content/movie/MovieScreenViewModel.kt": {
+    "mtime": 1781946901.5594032,
+    "ast_hash": "85967f60d8ded5b19084c46c64b53bfa",
+    "semantic_hash": "85967f60d8ded5b19084c46c64b53bfa"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/content/series/SeriesViewModel.kt": {
+    "mtime": 1782490874.0484242,
+    "ast_hash": "401c1dc88d39b052efba5213591bd86f",
+    "semantic_hash": "401c1dc88d39b052efba5213591bd86f"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/downloads/ActiveDownloadItem.kt": {
+    "mtime": 1781870261.0429075,
+    "ast_hash": "c5fd38f02ba2e3c57a06a463ff71a701",
+    "semantic_hash": "c5fd38f02ba2e3c57a06a463ff71a701"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/downloads/DownloadedItem.kt": {
+    "mtime": 1781870261.0431156,
+    "ast_hash": "2202dd56f39eba1fdaf60961c69c9e50",
+    "semantic_hash": "2202dd56f39eba1fdaf60961c69c9e50"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/downloads/DownloadsViewModel.kt": {
+    "mtime": 1781870261.0432951,
+    "ast_hash": "8214c0c0394768243ef57bfd16fd0741",
+    "semantic_hash": "8214c0c0394768243ef57bfd16fd0741"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/login/LoginViewModel.kt": {
+    "mtime": 1781870261.0434701,
+    "ast_hash": "495c6d8fcd545b6adc9b58de3da9e75a",
+    "semantic_hash": "495c6d8fcd545b6adc9b58de3da9e75a"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/search/SearchResult.kt": {
+    "mtime": 1781870261.043551,
+    "ast_hash": "ec1475c95f5e5d040993c116848c0c19",
+    "semantic_hash": "ec1475c95f5e5d040993c116848c0c19"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/search/SearchViewModel.kt": {
+    "mtime": 1781870261.0436327,
+    "ast_hash": "7830adcc3682e2710fe0727683140dce",
+    "semantic_hash": "7830adcc3682e2710fe0727683140dce"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/settings/HomeLibrarySettingsProvider.kt": {
+    "mtime": 1781870261.043864,
+    "ast_hash": "57498d837651cb96ab72ad5bb2236782",
+    "semantic_hash": "57498d837651cb96ab72ad5bb2236782"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/settings/LogoutSettingsProvider.kt": {
+    "mtime": 1781870261.0439723,
+    "ast_hash": "ec4b543f1dcedf8adacbf0d1e7db5d93",
+    "semantic_hash": "ec4b543f1dcedf8adacbf0d1e7db5d93"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/settings/SettingsViewModel.kt": {
+    "mtime": 1781870261.0440633,
+    "ast_hash": "8274d1a2d82eda9ca7ea8649a06172d1",
+    "semantic_hash": "8274d1a2d82eda9ca7ea8649a06172d1"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/update/AppUpdateController.kt": {
+    "mtime": 1781870261.0441592,
+    "ast_hash": "e984f3c689099ec3fe5479f915d4dc1b",
+    "semantic_hash": "e984f3c689099ec3fe5479f915d4dc1b"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/update/AppUpdateInfo.kt": {
+    "mtime": 1781870261.0442467,
+    "ast_hash": "29ee8b8e73c19cc0022ebf4112572a74",
+    "semantic_hash": "29ee8b8e73c19cc0022ebf4112572a74"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/update/AppUpdateInstaller.kt": {
+    "mtime": 1781870261.044322,
+    "ast_hash": "b919d5cbb61169cc7f1a39bd5c2b7cd1",
+    "semantic_hash": "b919d5cbb61169cc7f1a39bd5c2b7cd1"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/update/AppUpdateRepository.kt": {
+    "mtime": 1781870261.044404,
+    "ast_hash": "817ab393f005a4b51f6daf7a0358488e",
+    "semantic_hash": "817ab393f005a4b51f6daf7a0358488e"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/update/AppUpdateViewModel.kt": {
+    "mtime": 1781870261.0444853,
+    "ast_hash": "77ad86589b1693f112dd2acb67ef4fc7",
+    "semantic_hash": "77ad86589b1693f112dd2acb67ef4fc7"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/feature/update/AppVersionProvider.kt": {
+    "mtime": 1781870261.0445585,
+    "ast_hash": "8340144b1a986ded608c8b6d5968cde6",
+    "semantic_hash": "8340144b1a986ded608c8b6d5968cde6"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/image/ArtworkKind.kt": {
+    "mtime": 1781870261.04464,
+    "ast_hash": "3baad4427cb8f9db615da598b32467df",
+    "semantic_hash": "3baad4427cb8f9db615da598b32467df"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/image/ImageUrlBuilder.kt": {
+    "mtime": 1781870261.044714,
+    "ast_hash": "fae0900311cef31c0fb24aa63c94c990",
+    "semantic_hash": "fae0900311cef31c0fb24aa63c94c990"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/jellyfin/JellyfinAuthInterceptor.kt": {
+    "mtime": 1781870261.0448034,
+    "ast_hash": "d35a6afe534a32ff01b39ebc083f9c68",
+    "semantic_hash": "d35a6afe534a32ff01b39ebc083f9c68"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/jellyfin/JellyfinNetworkModule.kt": {
+    "mtime": 1781870261.0448813,
+    "ast_hash": "71b89beee72585adb05310a3a0fe3007",
+    "semantic_hash": "71b89beee72585adb05310a3a0fe3007"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/logging/PurefinLogger.kt": {
+    "mtime": 1781870261.0450633,
+    "ast_hash": "f8be7388bf6cf61558a22d47c6f91ce9",
+    "semantic_hash": "f8be7388bf6cf61558a22d47c6f91ce9"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/model/LibraryUiModel.kt": {
+    "mtime": 1781870261.0451424,
+    "ast_hash": "00164fd0420127b3195cbc3a93670f45",
+    "semantic_hash": "00164fd0420127b3195cbc3a93670f45"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/model/MediaUiModel.kt": {
+    "mtime": 1781870261.045297,
+    "ast_hash": "e062b2df30b7ba15f22cbdb369dc60a2",
+    "semantic_hash": "e062b2df30b7ba15f22cbdb369dc60a2"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/module/RepositoryModule.kt": {
+    "mtime": 1781870261.0455253,
+    "ast_hash": "a3b9226d487c1d3888781a66d898408f",
+    "semantic_hash": "a3b9226d487c1d3888781a66d898408f"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/navigation/EpisodeDto.kt": {
+    "mtime": 1781870261.0456212,
+    "ast_hash": "a5d657f35d28d5b11814204767d9a649",
+    "semantic_hash": "a5d657f35d28d5b11814204767d9a649"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/navigation/LibraryDto.kt": {
+    "mtime": 1781870261.0456965,
+    "ast_hash": "fd5008d343586f756ef61d69d0d8dc80",
+    "semantic_hash": "fd5008d343586f756ef61d69d0d8dc80"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/navigation/MovieDto.kt": {
+    "mtime": 1781870261.0457768,
+    "ast_hash": "464e623c37da76be98202bf9423d9cd2",
+    "semantic_hash": "464e623c37da76be98202bf9423d9cd2"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/navigation/NavigationManager.kt": {
+    "mtime": 1781870261.045875,
+    "ast_hash": "ed89f005947232961d1aae6ceed3760d",
+    "semantic_hash": "ed89f005947232961d1aae6ceed3760d"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/navigation/NavigationManagerModule.kt": {
+    "mtime": 1781870261.0459552,
+    "ast_hash": "8df7acd1a334fa4b0d498e1fd394088d",
+    "semantic_hash": "8df7acd1a334fa4b0d498e1fd394088d"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/navigation/Route.kt": {
+    "mtime": 1781870261.0460374,
+    "ast_hash": "0dc27a30a36633bb611ac21c01b46cf1",
+    "semantic_hash": "0dc27a30a36633bb611ac21c01b46cf1"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/navigation/SeriesDto.kt": {
+    "mtime": 1781870261.0461137,
+    "ast_hash": "5a9b285651198073fb5df3261a831108",
+    "semantic_hash": "5a9b285651198073fb5df3261a831108"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/navigation/UuidSerializer.kt": {
+    "mtime": 1781870261.0462012,
+    "ast_hash": "670d7b6c761b6033cd60f74168e027f6",
+    "semantic_hash": "670d7b6c761b6033cd60f74168e027f6"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/manager/MediaSegmentManager.kt": {
+    "mtime": 1782146339.297637,
+    "ast_hash": "62ec8f5af1dcb41293737de199d851dc",
+    "semantic_hash": "62ec8f5af1dcb41293737de199d851dc"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/manager/PlayerManager.kt": {
+    "mtime": 1783133584.982869,
+    "ast_hash": "5560335ac6d507bab4857423fdc3435b",
+    "semantic_hash": "5560335ac6d507bab4857423fdc3435b"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/manager/ProgressManager.kt": {
+    "mtime": 1781870261.0467312,
+    "ast_hash": "fe81920da19410848fa91bc7cdfb1d1b",
+    "semantic_hash": "fe81920da19410848fa91bc7cdfb1d1b"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/manager/TrackMapper.kt": {
+    "mtime": 1781870261.0468147,
+    "ast_hash": "ae390a3183142a7b53cb41ee57dbe37e",
+    "semantic_hash": "ae390a3183142a7b53cb41ee57dbe37e"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/model/MediaContext.kt": {
+    "mtime": 1781870261.0468898,
+    "ast_hash": "7e3ac26517c23e13a0599f3d9ac23d89",
+    "semantic_hash": "7e3ac26517c23e13a0599f3d9ac23d89"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/model/MetadataState.kt": {
+    "mtime": 1782146339.2974935,
+    "ast_hash": "accd1dcc949aa8d871778f3e2a140319",
+    "semantic_hash": "accd1dcc949aa8d871778f3e2a140319"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/model/PlaybackProgressSnapshot.kt": {
+    "mtime": 1781870261.0471337,
+    "ast_hash": "d07141a43b253e5d5c8ccd42d50aec99",
+    "semantic_hash": "d07141a43b253e5d5c8ccd42d50aec99"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/model/PlaybackStateSnapshot.kt": {
+    "mtime": 1781870261.0471995,
+    "ast_hash": "60dd8fea32f9e927f10368fd417f8819",
+    "semantic_hash": "60dd8fea32f9e927f10368fd417f8819"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/model/PlayerUiModels.kt": {
+    "mtime": 1782146339.297454,
+    "ast_hash": "5ae479175e51af7a02e951bf199ff619",
+    "semantic_hash": "5ae479175e51af7a02e951bf199ff619"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/model/SegmentStatus.kt": {
+    "mtime": 1781870261.0473747,
+    "ast_hash": "bbaa0e21763ac83f23108c4681081763",
+    "semantic_hash": "bbaa0e21763ac83f23108c4681081763"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/module/PlaybackNetworkModule.kt": {
+    "mtime": 1781870261.0474422,
+    "ast_hash": "50c2018f1ab22c9e362b9c81aa1385ba",
+    "semantic_hash": "50c2018f1ab22c9e362b9c81aa1385ba"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/module/VideoPlayerModule.kt": {
+    "mtime": 1781870261.04763,
+    "ast_hash": "ca98b19c4dab9015775d483d45739d7a",
+    "semantic_hash": "ca98b19c4dab9015775d483d45739d7a"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/preference/TrackMatcher.kt": {
+    "mtime": 1781870261.0477087,
+    "ast_hash": "713f1539836b6003eea9dc50b86eba88",
+    "semantic_hash": "713f1539836b6003eea9dc50b86eba88"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/preference/TrackPreferencesModule.kt": {
+    "mtime": 1781870261.0477748,
+    "ast_hash": "0144057cf74757996e9727f8913105c5",
+    "semantic_hash": "0144057cf74757996e9727f8913105c5"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/preference/TrackPreferencesRepository.kt": {
+    "mtime": 1781870261.0478418,
+    "ast_hash": "81184bd6338bfbceadb2c3f5498e286c",
+    "semantic_hash": "81184bd6338bfbceadb2c3f5498e286c"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/preference/TrackPreferencesSerializer.kt": {
+    "mtime": 1781870261.0479121,
+    "ast_hash": "e5fcead4de60b9a28777cb300873cd5a",
+    "semantic_hash": "e5fcead4de60b9a28777cb300873cd5a"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/viewmodel/PlayerViewModel.kt": {
+    "mtime": 1782146339.2973793,
+    "ast_hash": "f97c668b4fd2e224710b8d46f28c1625",
+    "semantic_hash": "f97c668b4fd2e224710b8d46f28c1625"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/player/viewmodel/SeekByCollector.kt": {
+    "mtime": 1781870261.0481217,
+    "ast_hash": "bfdb9a9e51fe4ca29750948cc7e7ffae",
+    "semantic_hash": "bfdb9a9e51fe4ca29750948cc7e7ffae"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/settings/SettingOption.kt": {
+    "mtime": 1781870261.0482016,
+    "ast_hash": "9e2c0dbf78524618a848968d7a31a17e",
+    "semantic_hash": "9e2c0dbf78524618a848968d7a31a17e"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/settings/SettingsGroupProvider.kt": {
+    "mtime": 1781870261.048315,
+    "ast_hash": "ce0377899a20f622f596fe960a7f1e06",
+    "semantic_hash": "ce0377899a20f622f596fe960a7f1e06"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/settings/SettingsGroupProviderModule.kt": {
+    "mtime": 1781870261.0485394,
+    "ast_hash": "e41d4b65ede202c1c13e16a69c82d77e",
+    "semantic_hash": "e41d4b65ede202c1c13e16a69c82d77e"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/settings/SettingsRepository.kt": {
+    "mtime": 1781870261.0486226,
+    "ast_hash": "79bbf52dceaef60a9f7ccf29e67b10aa",
+    "semantic_hash": "79bbf52dceaef60a9f7ccf29e67b10aa"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/update/AndroidAppVersionProvider.kt": {
+    "mtime": 1781870261.0487022,
+    "ast_hash": "de9feecf5cdf6f413cdbd0bd70045cf8",
+    "semantic_hash": "de9feecf5cdf6f413cdbd0bd70045cf8"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/update/AppUpdateInstallReceiver.kt": {
+    "mtime": 1781870261.0487766,
+    "ast_hash": "5f419e29aed43c09da194c5afabe6795",
+    "semantic_hash": "5f419e29aed43c09da194c5afabe6795"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/update/AppUpdateInstaller.kt": {
+    "mtime": 1781870261.0488703,
+    "ast_hash": "5ca3bf4bb2564937b8a420336814a9a1",
+    "semantic_hash": "5ca3bf4bb2564937b8a420336814a9a1"
+  },
+  "core/src/main/java/hu/bbara/purefin/core/update/AppUpdateModule.kt": {
+    "mtime": 1781870261.0489445,
+    "ast_hash": "7a5f36d4350dadde5463f25640ea7cb5",
+    "semantic_hash": "7a5f36d4350dadde5463f25640ea7cb5"
+  },
+  "core/src/test/java/hu/bbara/purefin/core/download/DownloadModuleTest.kt": {
+    "mtime": 1781870261.0491207,
+    "ast_hash": "1cd7195f275433cfd3781d9541dc1bf6",
+    "semantic_hash": "1cd7195f275433cfd3781d9541dc1bf6"
+  },
+  "core/src/test/java/hu/bbara/purefin/core/navigation/RouteSerializationTest.kt": {
+    "mtime": 1781870261.049198,
+    "ast_hash": "beba2257a88a2528d4a14a8e948c174e",
+    "semantic_hash": "beba2257a88a2528d4a14a8e948c174e"
+  },
+  "data/build.gradle.kts": {
+    "mtime": 1781870261.0492878,
+    "ast_hash": "a82582b3cc8cb247044aa8cf93f85357",
+    "semantic_hash": "a82582b3cc8cb247044aa8cf93f85357"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/catalog/InMemoryAppContentRepository.kt": {
+    "mtime": 1782488488.7035325,
+    "ast_hash": "224a248212662d5d85dad72c7e59d2b8",
+    "semantic_hash": "224a248212662d5d85dad72c7e59d2b8"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/catalog/InMemoryLocalMediaRepository.kt": {
+    "mtime": 1782413745.5662854,
+    "ast_hash": "6b8e8936ccc536e9c2c24450e3b7e56e",
+    "semantic_hash": "6b8e8936ccc536e9c2c24450e3b7e56e"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/catalog/OfflineLocalMediaRepository.kt": {
+    "mtime": 1781971529.0534794,
+    "ast_hash": "7cac73cf8763e0ee29bc03368d1544a0",
+    "semantic_hash": "7cac73cf8763e0ee29bc03368d1544a0"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/converter/BaseItemDtoConverter.kt": {
+    "mtime": 1781985015.7888815,
+    "ast_hash": "00559630b5667d8a344acc9c6cdf6eb1",
+    "semantic_hash": "00559630b5667d8a344acc9c6cdf6eb1"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/ConnectivityNetworkMonitor.kt": {
+    "mtime": 1781870261.0505784,
+    "ast_hash": "1e3fe489e6c23f0ef876d68d401a2cda",
+    "semantic_hash": "1e3fe489e6c23f0ef876d68d401a2cda"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/DefaultPlayableMediaRepository.kt": {
+    "mtime": 1781870261.0510585,
+    "ast_hash": "87a5d6646491e1a9d6136e85010cc1d7",
+    "semantic_hash": "87a5d6646491e1a9d6136e85010cc1d7"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/JellyfinBindingsModule.kt": {
+    "mtime": 1781870261.0513012,
+    "ast_hash": "e7c3cae77cdfe01e0ebe5746d0b59eb6",
+    "semantic_hash": "e7c3cae77cdfe01e0ebe5746d0b59eb6"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/JellyfinMediaMetadataUpdaterImpl.kt": {
+    "mtime": 1781870261.0515933,
+    "ast_hash": "e737ac6f28f69ec46dcdd00c30499ca9",
+    "semantic_hash": "e737ac6f28f69ec46dcdd00c30499ca9"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/JellyfinPlaybackProgressReporter.kt": {
+    "mtime": 1781870261.0516715,
+    "ast_hash": "fa935f8ecafd901026e46c3367da01e8",
+    "semantic_hash": "fa935f8ecafd901026e46c3367da01e8"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/SearchManagerImpl.kt": {
+    "mtime": 1781870261.0517926,
+    "ast_hash": "bfc29abf063e049e897dd4e76091af43",
+    "semantic_hash": "bfc29abf063e049e897dd4e76091af43"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/client/JellyfinApiClient.kt": {
+    "mtime": 1782488419.5528622,
+    "ast_hash": "0601aa0898959e580a7ebf9cef9b6a77",
+    "semantic_hash": "0601aa0898959e580a7ebf9cef9b6a77"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/download/JellyfinDownloadMediaSourceResolver.kt": {
+    "mtime": 1781870261.0523505,
+    "ast_hash": "ae0634539fa1ddf66128d3e6590dab0e",
+    "semantic_hash": "ae0634539fa1ddf66128d3e6590dab0e"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/AndroidCodecCatalog.kt": {
+    "mtime": 1781870261.052523,
+    "ast_hash": "72cee0a75c717dd5d5bea05891da6539",
+    "semantic_hash": "72cee0a75c717dd5d5bea05891da6539"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/AndroidDeviceProfileCapabilities.kt": {
+    "mtime": 1781870261.0526452,
+    "ast_hash": "21907845aa0f58ce6c55e0a6b18d3763",
+    "semantic_hash": "21907845aa0f58ce6c55e0a6b18d3763"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/CodecDebugHelper.kt": {
+    "mtime": 1781870261.0527391,
+    "ast_hash": "db2cefb7f1365e54f819497c7cf4f789",
+    "semantic_hash": "db2cefb7f1365e54f819497c7cf4f789"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/JellyfinAndroidMobileDeviceProfile.kt": {
+    "mtime": 1781870261.0529728,
+    "ast_hash": "ecc152118229dcc62f703b87695cf20a",
+    "semantic_hash": "ecc152118229dcc62f703b87695cf20a"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/JellyfinAndroidTvDeviceProfile.kt": {
+    "mtime": 1781870261.0533915,
+    "ast_hash": "7b5915121ec023ac2cb2b9d56c94d711",
+    "semantic_hash": "7b5915121ec023ac2cb2b9d56c94d711"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/JellyfinPlaybackResolver.kt": {
+    "mtime": 1781870261.0537188,
+    "ast_hash": "7fa2fa03d706a96d9be2f884251028f2",
+    "semantic_hash": "7fa2fa03d706a96d9be2f884251028f2"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/PlaybackCacheKeys.kt": {
+    "mtime": 1781870261.0538101,
+    "ast_hash": "300ff5fa5c4df5c126013638f0d98d3b",
+    "semantic_hash": "300ff5fa5c4df5c126013638f0d98d3b"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/PlaybackDecision.kt": {
+    "mtime": 1781870261.0538938,
+    "ast_hash": "5c2f456aa92cb9f6889117b9db0e0d09",
+    "semantic_hash": "5c2f456aa92cb9f6889117b9db0e0d09"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/PlaybackProfileModule.kt": {
+    "mtime": 1781870261.0539865,
+    "ast_hash": "acb7129c53d962f5c51e528dd0b5f52c",
+    "semantic_hash": "acb7129c53d962f5c51e528dd0b5f52c"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/PlaybackProfilePolicy.kt": {
+    "mtime": 1781870261.0542097,
+    "ast_hash": "09a52767baeb391c65d3bb260c2748c7",
+    "semantic_hash": "09a52767baeb391c65d3bb260c2748c7"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/PlaybackSource.kt": {
+    "mtime": 1781870261.054478,
+    "ast_hash": "e4bdc2d41ae93b3ecac624edfaece23d",
+    "semantic_hash": "e4bdc2d41ae93b3ecac624edfaece23d"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/playback/SyncPlaybackPositionsHomeRefreshSideEffect.kt": {
+    "mtime": 1781872625.591921,
+    "ast_hash": "5780a0811b65e12e38d1490735087b59",
+    "semantic_hash": "5780a0811b65e12e38d1490735087b59"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/session/JellyfinAuthenticationRepository.kt": {
+    "mtime": 1781870261.0548275,
+    "ast_hash": "1710ba1c77912a813f4ab929bba53609",
+    "semantic_hash": "1710ba1c77912a813f4ab929bba53609"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/session/JellyfinSessionBootstrapper.kt": {
+    "mtime": 1781959116.8534522,
+    "ast_hash": "0918eabd4367f0d5043d47699f336248",
+    "semantic_hash": "0918eabd4367f0d5043d47699f336248"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/session/UserSession.kt": {
+    "mtime": 1781870261.055102,
+    "ast_hash": "acc8246e19b0f7761847a990cb240395",
+    "semantic_hash": "acc8246e19b0f7761847a990cb240395"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/session/UserSessionModule.kt": {
+    "mtime": 1781870261.055171,
+    "ast_hash": "86a4fba8a9851be1c50b532399406b4c",
+    "semantic_hash": "86a4fba8a9851be1c50b532399406b4c"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/session/UserSessionRepository.kt": {
+    "mtime": 1781870261.0552392,
+    "ast_hash": "7d66fb89bfcdaab4510b228ea2457330",
+    "semantic_hash": "7d66fb89bfcdaab4510b228ea2457330"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/session/UserSessionSerializer.kt": {
+    "mtime": 1781870261.0553186,
+    "ast_hash": "623106eacd863ef5a7fc57b747e1668b",
+    "semantic_hash": "623106eacd863ef5a7fc57b747e1668b"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/jellyfin/websocket/JellyfinWebSocketService.kt": {
+    "mtime": 1781970855.8556209,
+    "ast_hash": "12a0e612b82da57ea56b7e1fc452c84d",
+    "semantic_hash": "12a0e612b82da57ea56b7e1fc452c84d"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/logging/LogUploadSettingsModule.kt": {
+    "mtime": 1781870261.0554073,
+    "ast_hash": "427087561bb0db68de548acee4018446",
+    "semantic_hash": "427087561bb0db68de548acee4018446"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/logging/LogUploadSettingsProvider.kt": {
+    "mtime": 1781870261.055494,
+    "ast_hash": "40ca47d3063a216c036b5b01f9e6f800",
+    "semantic_hash": "40ca47d3063a216c036b5b01f9e6f800"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/module/MediaRepositoryModule.kt": {
+    "mtime": 1781870261.0557737,
+    "ast_hash": "85781f94d1d527ee46d143c3835316d7",
+    "semantic_hash": "85781f94d1d527ee46d143c3835316d7"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/OfflineBindingsModule.kt": {
+    "mtime": 1781870261.0560472,
+    "ast_hash": "4719a06fd1001220a4c72d2e1f9ac9d8",
+    "semantic_hash": "4719a06fd1001220a4c72d2e1f9ac9d8"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/RoomSmartDownloadStore.kt": {
+    "mtime": 1781870261.056135,
+    "ast_hash": "72199298670d4891eb83f3643f49f6b8",
+    "semantic_hash": "72199298670d4891eb83f3643f49f6b8"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/cache/HomeCache.kt": {
+    "mtime": 1782488419.5533085,
+    "ast_hash": "27f0507dd0f226ec332fbe0153f5d1fa",
+    "semantic_hash": "27f0507dd0f226ec332fbe0153f5d1fa"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/cache/HomeCacheModule.kt": {
+    "mtime": 1781870261.05631,
+    "ast_hash": "7664f9e84375588720ca34fd5def932c",
+    "semantic_hash": "7664f9e84375588720ca34fd5def932c"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/cache/HomeCacheSerializer.kt": {
+    "mtime": 1781870261.0563836,
+    "ast_hash": "3c952eaae4f21e8e7f77c4771c2bbe0b",
+    "semantic_hash": "3c952eaae4f21e8e7f77c4771c2bbe0b"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/MediaDatabaseModule.kt": {
+    "mtime": 1781870261.0564811,
+    "ast_hash": "228d6944fed125114ad5bd2f45b9f0d9",
+    "semantic_hash": "228d6944fed125114ad5bd2f45b9f0d9"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/RoomRelations.kt": {
+    "mtime": 1781870261.0565646,
+    "ast_hash": "3e6c3ebc7a75719349e00647736dcd15",
+    "semantic_hash": "3e6c3ebc7a75719349e00647736dcd15"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/UuidConverters.kt": {
+    "mtime": 1781870261.0566576,
+    "ast_hash": "4918cff51744cf252bf418c9eb743c50",
+    "semantic_hash": "4918cff51744cf252bf418c9eb743c50"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/dao/CastMemberDao.kt": {
+    "mtime": 1781870261.056733,
+    "ast_hash": "b0a8f41f2048cd0e5b3a72f1c8ea3629",
+    "semantic_hash": "b0a8f41f2048cd0e5b3a72f1c8ea3629"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/dao/EpisodeDao.kt": {
+    "mtime": 1781870261.0568073,
+    "ast_hash": "8a3e2338db74d884ec6ee9120083cc98",
+    "semantic_hash": "8a3e2338db74d884ec6ee9120083cc98"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/dao/LibraryDao.kt": {
+    "mtime": 1781870261.0568745,
+    "ast_hash": "281fa6b64233396a5142185d8119fba9",
+    "semantic_hash": "281fa6b64233396a5142185d8119fba9"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/dao/MovieDao.kt": {
+    "mtime": 1781870261.0569422,
+    "ast_hash": "bccac50da7747060fa3d007d9ecbbd24",
+    "semantic_hash": "bccac50da7747060fa3d007d9ecbbd24"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/dao/SeasonDao.kt": {
+    "mtime": 1781870261.0570068,
+    "ast_hash": "3630880e4651e15bf946ed0f93b6f994",
+    "semantic_hash": "3630880e4651e15bf946ed0f93b6f994"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/dao/SeriesDao.kt": {
+    "mtime": 1781870261.0570672,
+    "ast_hash": "eec7b98a57c4d11d95a8d8ec68780d21",
+    "semantic_hash": "eec7b98a57c4d11d95a8d8ec68780d21"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/dao/SmartDownloadDao.kt": {
+    "mtime": 1781870261.0571315,
+    "ast_hash": "625cea176e5baebb87b694138e31c920",
+    "semantic_hash": "625cea176e5baebb87b694138e31c920"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/entity/CastMemberEntity.kt": {
+    "mtime": 1781870261.057212,
+    "ast_hash": "52202507b7d4518eb99e902adf9ed9cd",
+    "semantic_hash": "52202507b7d4518eb99e902adf9ed9cd"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/entity/EpisodeEntity.kt": {
+    "mtime": 1781870261.0572867,
+    "ast_hash": "222e24523d0075037a44a6fb9a589532",
+    "semantic_hash": "222e24523d0075037a44a6fb9a589532"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/entity/LibraryEntity.kt": {
+    "mtime": 1781870261.0573533,
+    "ast_hash": "b0950d886c95aace0717eaba9116a8a9",
+    "semantic_hash": "b0950d886c95aace0717eaba9116a8a9"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/entity/MovieEntity.kt": {
+    "mtime": 1781870261.0574205,
+    "ast_hash": "d286d25229fd45f524fe86ee2e4fcd3c",
+    "semantic_hash": "d286d25229fd45f524fe86ee2e4fcd3c"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/entity/SeasonEntity.kt": {
+    "mtime": 1781870261.057487,
+    "ast_hash": "1716c6eec0ef3defdac74c6ca12ea6c8",
+    "semantic_hash": "1716c6eec0ef3defdac74c6ca12ea6c8"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/entity/SeriesEntity.kt": {
+    "mtime": 1781870261.0575597,
+    "ast_hash": "c3d38f040a970be57153eca1c5cc169d",
+    "semantic_hash": "c3d38f040a970be57153eca1c5cc169d"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/entity/SmartDownloadEntity.kt": {
+    "mtime": 1781870261.0576363,
+    "ast_hash": "bbeff503484b66782afa6f90c850e962",
+    "semantic_hash": "bbeff503484b66782afa6f90c850e962"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/offline/OfflineMediaDatabase.kt": {
+    "mtime": 1781870261.057716,
+    "ast_hash": "4045041e1e6d08900252f76352c98d1a",
+    "semantic_hash": "4045041e1e6d08900252f76352c98d1a"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/offline/room/offline/OfflineRoomMediaLocalDataSource.kt": {
+    "mtime": 1781870261.057806,
+    "ast_hash": "9a5c29ff8a7e9a738e2a4c2821443813",
+    "semantic_hash": "9a5c29ff8a7e9a738e2a4c2821443813"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/settings/SettingsModule.kt": {
+    "mtime": 1781870261.057879,
+    "ast_hash": "b389d24b615bc9a579de9bc7ae4fd9fc",
+    "semantic_hash": "b389d24b615bc9a579de9bc7ae4fd9fc"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/settings/SettingsRepositoryImpl.kt": {
+    "mtime": 1781870261.0579531,
+    "ast_hash": "2ec5b25bf3053a761d83091473be72f4",
+    "semantic_hash": "2ec5b25bf3053a761d83091473be72f4"
+  },
+  "data/src/main/java/hu/bbara/purefin/data/settings/SettingsSerializer.kt": {
+    "mtime": 1781870261.0580301,
+    "ast_hash": "72253cbcad9401412b313a18bf6f52f0",
+    "semantic_hash": "72253cbcad9401412b313a18bf6f52f0"
+  },
+  "data/src/test/java/hu/bbara/purefin/data/jellyfin/playback/AndroidDeviceProfileTest.kt": {
+    "mtime": 1781870261.0582707,
+    "ast_hash": "f8c1bf248da3b27c7ec1910769fc8791",
+    "semantic_hash": "f8c1bf248da3b27c7ec1910769fc8791"
+  },
+  "data/src/test/java/hu/bbara/purefin/data/jellyfin/playback/PlaybackCacheKeysTest.kt": {
+    "mtime": 1781870261.0583613,
+    "ast_hash": "ff44c107a9136945ef3bf60fe9405c47",
+    "semantic_hash": "ff44c107a9136945ef3bf60fe9405c47"
+  },
+  "gradlew": {
+    "mtime": 1781870261.0597904,
+    "ast_hash": "266606e78242737ef3da02a80ea0564d",
+    "semantic_hash": "266606e78242737ef3da02a80ea0564d"
+  },
+  "settings.gradle.kts": {
+    "mtime": 1781870261.0599556,
+    "ast_hash": "62c3ba05a1bb36e7bb528a26c2739824",
+    "semantic_hash": "62c3ba05a1bb36e7bb528a26c2739824"
+  },
+  "AGENTS.md": {
+    "mtime": 1781870261.0027199,
+    "ast_hash": "3db23c7eb4053804a9e2c0dcde2629ae",
+    "semantic_hash": "3db23c7eb4053804a9e2c0dcde2629ae"
+  },
+  "README.md": {
+    "mtime": 1781870261.0033183,
+    "ast_hash": "a0e189ce9956758b364c466a420a0acf",
+    "semantic_hash": "a0e189ce9956758b364c466a420a0acf"
+  },
+  "app-tv/src/main/res/mipmap-hdpi/purefin_logo.webp": {
+    "mtime": 1781870261.0140793,
+    "ast_hash": "af82994f562ee46b9fa18ca718e10e6a",
+    "semantic_hash": "af82994f562ee46b9fa18ca718e10e6a"
+  },
+  "app-tv/src/main/res/mipmap-hdpi/purefin_logo_foreground.webp": {
+    "mtime": 1781870261.0141537,
+    "ast_hash": "969181e6c1f9ed4a6eb7e03fe1146625",
+    "semantic_hash": "969181e6c1f9ed4a6eb7e03fe1146625"
+  },
+  "app-tv/src/main/res/mipmap-hdpi/purefin_logo_round.webp": {
+    "mtime": 1781870261.014218,
+    "ast_hash": "cb0bf6a328c19b817ca24ce1678e14c3",
+    "semantic_hash": "cb0bf6a328c19b817ca24ce1678e14c3"
+  },
+  "app-tv/src/main/res/mipmap-mdpi/purefin_logo.webp": {
+    "mtime": 1781870261.0142858,
+    "ast_hash": "6ce85d2965bf22768236d448a7c1ab41",
+    "semantic_hash": "6ce85d2965bf22768236d448a7c1ab41"
+  },
+  "app-tv/src/main/res/mipmap-mdpi/purefin_logo_foreground.webp": {
+    "mtime": 1781870261.0143542,
+    "ast_hash": "b446315dc205811b6514ea245217e044",
+    "semantic_hash": "b446315dc205811b6514ea245217e044"
+  },
+  "app-tv/src/main/res/mipmap-mdpi/purefin_logo_round.webp": {
+    "mtime": 1781870261.0144188,
+    "ast_hash": "4761a3f366fd09f6658e9893c2737f01",
+    "semantic_hash": "4761a3f366fd09f6658e9893c2737f01"
+  },
+  "app-tv/src/main/res/mipmap-xhdpi/purefin_logo.webp": {
+    "mtime": 1781870261.0144951,
+    "ast_hash": "8eaeb99dab464d269360caccdda0e3d9",
+    "semantic_hash": "8eaeb99dab464d269360caccdda0e3d9"
+  },
+  "app-tv/src/main/res/mipmap-xhdpi/purefin_logo_foreground.webp": {
+    "mtime": 1781870261.0145695,
+    "ast_hash": "7fcfc0609eec80a5ecc99feb8c2c53b4",
+    "semantic_hash": "7fcfc0609eec80a5ecc99feb8c2c53b4"
+  },
+  "app-tv/src/main/res/mipmap-xhdpi/purefin_logo_round.webp": {
+    "mtime": 1781870261.0147393,
+    "ast_hash": "bf582be46015f460384e6e314454ecfa",
+    "semantic_hash": "bf582be46015f460384e6e314454ecfa"
+  },
+  "app-tv/src/main/res/mipmap-xxhdpi/purefin_logo.webp": {
+    "mtime": 1781870261.014822,
+    "ast_hash": "1db4d55d5c8fcd0a4f620de9b7c85c30",
+    "semantic_hash": "1db4d55d5c8fcd0a4f620de9b7c85c30"
+  },
+  "app-tv/src/main/res/mipmap-xxhdpi/purefin_logo_foreground.webp": {
+    "mtime": 1781870261.014927,
+    "ast_hash": "53bcf35587c1efe700fde8fb3ebb9582",
+    "semantic_hash": "53bcf35587c1efe700fde8fb3ebb9582"
+  },
+  "app-tv/src/main/res/mipmap-xxhdpi/purefin_logo_round.webp": {
+    "mtime": 1781870261.0150118,
+    "ast_hash": "821f05764ecc945e7a485f4f47a119ba",
+    "semantic_hash": "821f05764ecc945e7a485f4f47a119ba"
+  },
+  "app-tv/src/main/res/mipmap-xxxhdpi/purefin_logo.webp": {
+    "mtime": 1781870261.015086,
+    "ast_hash": "b12eff1723493a8ce069bfffb30af0d1",
+    "semantic_hash": "b12eff1723493a8ce069bfffb30af0d1"
+  },
+  "app-tv/src/main/res/mipmap-xxxhdpi/purefin_logo_foreground.webp": {
+    "mtime": 1781870261.015309,
+    "ast_hash": "a75ade5d303fba5e6d973bd1dd4b6f60",
+    "semantic_hash": "a75ade5d303fba5e6d973bd1dd4b6f60"
+  },
+  "app-tv/src/main/res/mipmap-xxxhdpi/purefin_logo_round.webp": {
+    "mtime": 1781870261.0154536,
+    "ast_hash": "e75529df7976a9781700999b34ae13aa",
+    "semantic_hash": "e75529df7976a9781700999b34ae13aa"
+  }
+}
