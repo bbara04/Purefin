@@ -43,8 +43,6 @@ class ProgressManager @Inject constructor(
             combine(playbackState, progress, metadata) { state, prog, meta ->
                 Triple(state, prog, meta)
             }.collect { (state, prog, meta) ->
-                lastPositionMs = prog.positionMs
-                lastDurationMs = prog.durationMs
                 isPaused = !state.isPlaying
                 val mediaId = meta.mediaId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
                 val nextPlaybackReportContext = meta.playbackReportContext
@@ -52,6 +50,9 @@ class ProgressManager @Inject constructor(
                 if (activeItemId != null && (mediaId != activeItemId || state.isEnded)) {
                     stopSession()
                 }
+
+                lastPositionMs = prog.positionMs
+                lastDurationMs = prog.durationMs
 
                 if (activeItemId == null && mediaId != null && !state.isEnded) {
                     startSession(mediaId, prog.positionMs, nextPlaybackReportContext)
