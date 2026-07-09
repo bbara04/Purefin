@@ -66,11 +66,21 @@ class ProgressManager @Inject constructor(
     private fun startSession(itemId: UUID, positionMs: Long, reportContext: PlaybackReportContext?) {
         activeItemId = itemId
         activePlaybackReportContext = reportContext
+        val isOffline = reportContext == null
         report(itemId, positionMs, reportContext = reportContext, isStart = true)
         progressJob = scope.launch {
             while (isActive) {
                 delay(5000)
                 report(itemId, lastPositionMs, reportContext = activePlaybackReportContext, isPaused = isPaused)
+                if (isOffline) {
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            mediaMetadataUpdater.updateWatchProgress(itemId, lastPositionMs, lastDurationMs)
+                        } catch (e: Exception) {
+                            Timber.tag(TAG).e(e, "Local cache update failed")
+                        }
+                    }
+                }
             }
         }
     }
