@@ -34,7 +34,6 @@ class PlayerViewModel @Inject constructor(
     private val progressManager: ProgressManager,
 ) : ViewModel() {
     companion object {
-        private const val DEFAULT_CONTROLS_AUTO_HIDE_MS = 3_500L
         private const val TAG = "PlayerViewModel"
     }
 
