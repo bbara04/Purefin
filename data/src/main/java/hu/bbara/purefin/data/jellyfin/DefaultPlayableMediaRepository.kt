@@ -20,6 +20,7 @@ import hu.bbara.purefin.core.player.preference.TrackPreferencesRepository
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
 import hu.bbara.purefin.data.jellyfin.playback.PlaybackSource
+import hu.bbara.purefin.data.jellyfin.playback.SubtitleConfigurationMapper
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.MediaSegment
 import hu.bbara.purefin.model.PlayableMedia
@@ -50,6 +51,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val mediaDownloadController: MediaDownloadController,
     private val networkMonitor: NetworkMonitor,
+    private val subtitleConfigurationMapper: SubtitleConfigurationMapper,
     @param:Offline private val offlineMediaRepository: LocalMediaRepository,
     private val offlineMediaManager: OfflineMediaManager,
 ) : PlayableMediaRepository {
@@ -198,6 +200,11 @@ class DefaultPlayableMediaRepository @Inject constructor(
         val serverUrl = userSessionRepository.serverUrl.first()
         val artworkUrl = ImageUrlBuilder.toImageUrl(serverUrl, mediaId, ArtworkKind.PRIMARY)
 
+        val subtitleConfigurations = subtitleConfigurationMapper.createSubtitleConfigurations(
+            mediaSource = playbackSource.mediaSource,
+            serverUrl = serverUrl,
+        )
+
         val mediaItem = createMediaItem(
             mediaId = mediaId.toString(),
             url = playbackSource.directPlayUrl,
@@ -205,6 +212,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
             subtitle = seasonEpisodeLabel(baseItem),
             artworkUrl = artworkUrl,
             playbackTag = playbackSource.toPlaybackMediaItemTag(),
+            subtitleConfigurations = subtitleConfigurations,
         )
 
         return@withContext mediaItem
@@ -283,6 +291,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
         subtitle: String?,
         artworkUrl: String,
         playbackTag: Any?,
+        subtitleConfigurations: List<MediaItem.SubtitleConfiguration> = emptyList(),
     ): MediaItem {
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
@@ -294,6 +303,9 @@ class DefaultPlayableMediaRepository @Inject constructor(
             .setMediaId(mediaId)
             .setMediaMetadata(metadata)
             .setTag(playbackTag)
+        if (subtitleConfigurations.isNotEmpty()) {
+            builder.setSubtitleConfigurations(subtitleConfigurations)
+        }
         return builder.build()
     }
 
