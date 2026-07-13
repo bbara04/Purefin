@@ -2,7 +2,6 @@ package hu.bbara.purefin.ui.screen.player
 
 import android.app.Activity
 import android.view.WindowManager
-import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -183,6 +182,14 @@ fun TvPlayerScreen(
             trackPanelType = null
         }
     }
+    fun handleBack() {
+        when {
+            trackPanelType != null -> closeTrackPanel()
+            isPlaylistExpanded -> closePlaylist()
+            controlsVisible -> hideControls()
+            else -> onBack()
+        }
+    }
 
 
     val showSkipIntroButton = !controlsVisible
@@ -230,45 +237,37 @@ fun TvPlayerScreen(
             SubtitleView.DEFAULT_BOTTOM_PADDING_FRACTION
         }
 
-    BackHandler(enabled = true) {
-        when {
-            trackPanelType != null -> closeTrackPanel()
-            isPlaylistExpanded -> {
-                closePlaylist()
-            }
-            controlsVisible -> {
-                hideControls()
-            }
-            else -> onBack()
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .focusRequester(rootFocusRequester)
             .onKeyEvent { event ->
-                val handled = handleTvPlayerRootKeyEvent(
-                    event = event,
-                    controlsVisible = controlsVisible,
-                    popupVisible = showSkipIntroButton || showNextEpisodeOverlay,
-                    onShowControls = ::showControls,
-                    onTogglePlayback = {
-                        // This is a hack to trigger the ValueChangeTimedVisibility to show the hidden resume/stop feedback.
-                        resumeStopFeedbackCounter++
-                        viewModel.togglePlayPause()
-                    },
-                    onSeekRelative = {
-                        // This is a hack to trigger the ValueChangeTimedVisibility to show the hidden seek timeline.
-                        hiddenSeekCounter++
-                        viewModel.seekBy(it)
-                    },
-                )
-                if (event.type == KeyEventType.KeyDown) {
-                    hideControlsWithTimeout()
+                if (event.key == Key.Back) {
+                    if (event.type == KeyEventType.KeyDown) {
+                        handleBack()
+                    }
+                    true
+                } else {
+                    val handled = handleTvPlayerRootKeyEvent(
+                        event = event,
+                        controlsVisible = controlsVisible,
+                        popupVisible = showSkipIntroButton || showNextEpisodeOverlay,
+                        onShowControls = ::showControls,
+                        onTogglePlayback = {
+                            resumeStopFeedbackCounter++
+                            viewModel.togglePlayPause()
+                        },
+                        onSeekRelative = {
+                            hiddenSeekCounter++
+                            viewModel.seekBy(it)
+                        },
+                    )
+                    if (event.type == KeyEventType.KeyDown) {
+                        hideControlsWithTimeout()
+                    }
+                    handled
                 }
-                handled
             }
             .focusable()
     ) {
@@ -279,6 +278,8 @@ fun TvPlayerScreen(
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                     player = viewModel.player
                     subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
+                    isFocusable = false
+                    isFocusableInTouchMode = false
                 }
             },
             update = {
