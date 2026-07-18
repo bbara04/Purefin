@@ -39,6 +39,8 @@ dependencies {
     implementation(libs.medi3.exoplayer)
     implementation(libs.medi3.exoplayer.hls)
     implementation(libs.media3.datasource.okhttp)
+    implementation(libs.media3.exoplayer.cast)
+    implementation(libs.media3.exoplayer.session)
     implementation(libs.datastore)
     implementation(libs.okhttp)
     implementation(libs.timber)
