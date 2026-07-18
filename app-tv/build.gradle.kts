@@ -13,12 +13,12 @@ plugins {
 
 android {
     namespace = "hu.bbara.purefin.tv"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "hu.bbara.purefin.tv"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 37
         versionCode = providers.gradleProperty("purefinTvVersionCode").get().toInt()
         versionName = "0.1"
 

@@ -11,12 +11,12 @@ plugins {
 
 android {
     namespace = "hu.bbara.purefin"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "hu.bbara.purefin"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 37
         versionName = "0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

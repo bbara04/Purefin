@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "hu.bbara.purefin.core.ui"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 29
