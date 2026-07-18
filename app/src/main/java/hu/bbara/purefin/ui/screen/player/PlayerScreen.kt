@@ -150,6 +150,10 @@ fun PlayerScreen(
                     subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
                 }
             },
+            update = {
+                it.player = viewModel.player
+                it.subtitleView?.setBottomPaddingFraction(subtitleBottomPaddingFraction)
+            },
             onRelease = { playerView ->
                 playerView.player = null
             },

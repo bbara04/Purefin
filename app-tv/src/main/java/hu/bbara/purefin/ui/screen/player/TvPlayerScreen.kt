@@ -80,7 +80,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private const val TV_CONTROLS_AUTO_HIDE_MS = 5_000L
-private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.22f
+private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.31f
 internal const val TV_HIDDEN_STOP_FEEDBACK_MS = 1_200L
 internal const val TvPlayerHiddenStopFeedbackTag = "tv_player_hidden_stop_feedback"
 
