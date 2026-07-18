@@ -18,7 +18,7 @@ android {
     defaultConfig {
         applicationId = "hu.bbara.purefin.tv"
         minSdk = 29
-        targetSdk = 37
+        targetSdk = 36
         versionCode = providers.gradleProperty("purefinTvVersionCode").get().toInt()
         versionName = "0.1"
 
