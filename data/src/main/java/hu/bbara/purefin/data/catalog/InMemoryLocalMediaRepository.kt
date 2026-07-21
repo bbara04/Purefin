@@ -145,8 +145,16 @@ class InMemoryLocalMediaRepository @Inject constructor(
                 series = seriesState.first()[seriesId] ?: throw RuntimeException("Series not found")
             }
 
+            val existingSeasonsById = series.seasons.associateBy { it.id }
             val updatedSeries = series.copy(
-                seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }
+                seasons = jellyfinApiClient.getSeasons(seriesId).map { it.toSeason() }.map { fresh ->
+                    val existing = existingSeasonsById[fresh.id]
+                    if (existing != null && existing.episodes.isNotEmpty()) {
+                        fresh.copy(episodes = existing.episodes)
+                    } else {
+                        fresh
+                    }
+                }
             )
             seriesState.update { it + (updatedSeries.id to updatedSeries) }
         } catch (error: CancellationException) {
