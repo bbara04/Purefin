@@ -3,6 +3,7 @@ package hu.bbara.purefin.ui.screen.player
 import android.app.Activity
 import android.content.Context
 import android.media.AudioManager
+import android.provider.Settings
 import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -67,8 +68,9 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private const val CONTROLS_VISIBLE_SUBTITLE_BOTTOM_PADDING_FRACTION = 0.32f
-/** Small negative band below zero that represents adaptive/auto brightness mode. */
-private const val AUTO_BRIGHTNESS_THRESHOLD = -0.15f
+private const val BRIGHTNESS_DRAG_SENSITIVITY = 800f
+private const val BRIGHTNESS_AUTO_ENTER_THRESHOLD = 0.15f
+private const val BRIGHTNESS_AUTO_EXIT_THRESHOLD = 0.15f
 private const val CONTROLS_AUTO_HIDE_MS = 3_000L
 
 @OptIn(UnstableApi::class)
@@ -90,7 +92,11 @@ fun PlayerScreen(
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     val maxVolume = remember { audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1) }
     var volume by remember { mutableFloatStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) / maxVolume.toFloat()) }
-    var brightness by remember { mutableFloatStateOf(readCurrentBrightness(activity)) }
+    var brightness by remember { mutableFloatStateOf(readCurrentBrightness(activity, context)) }
+    var isAutoBrightness by remember { mutableStateOf(false) }
+    var dragOvershoot by remember { mutableFloatStateOf(0f) }
+    var autoDragTick by remember { mutableStateOf(0) }
+    val originalScreenBrightness by remember { mutableFloatStateOf(activity?.window?.attributes?.screenBrightness ?: -1f) }
     var showQueuePanel by remember { mutableStateOf(false) }
     var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
     var horizontalSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
@@ -131,8 +137,60 @@ fun PlayerScreen(
         toggleControlsVisibility()
         hideControlsWithTimeout()
     }
+    fun onBrightnessDragStart(isLeftSide: Boolean) {
+        if (isLeftSide) {
+            dragOvershoot = 0f
+        }
+    }
+    fun onBrightnessDragEnd() {
+        dragOvershoot = 0f
+    }
+    fun onBrightnessDrag(delta: Float) {
+        val diff = -delta / BRIGHTNESS_DRAG_SENSITIVITY
+        if (isAutoBrightness) {
+            if (diff > 0f) {
+                dragOvershoot += diff
+                if (dragOvershoot >= BRIGHTNESS_AUTO_EXIT_THRESHOLD) {
+                    isAutoBrightness = false
+                    brightness = (dragOvershoot - BRIGHTNESS_AUTO_EXIT_THRESHOLD).coerceIn(0f, 1f)
+                    dragOvershoot = 0f
+                    applyBrightness(activity, brightness, isAuto = false)
+                }
+            } else {
+                autoDragTick++
+            }
+        } else {
+            val newBrightness = brightness + diff
+            if (newBrightness <= 0f) {
+                brightness = 0f
+                applyBrightness(activity, brightness, isAuto = false)
+                dragOvershoot += newBrightness
+                if (dragOvershoot <= -BRIGHTNESS_AUTO_ENTER_THRESHOLD) {
+                    isAutoBrightness = true
+                    dragOvershoot = 0f
+                    applyBrightness(activity, brightness, isAuto = true)
+                }
+            } else {
+                brightness = newBrightness.coerceIn(0f, 1f)
+                dragOvershoot = 0f
+                applyBrightness(activity, brightness, isAuto = false)
+            }
+        }
+    }
+    fun onVolumeDrag(delta: Float) {
+        val diff = -delta / 800f
+        volume = (volume + diff).coerceIn(0f, 1f)
+        audioManager.setStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            (volume * maxVolume).roundToInt(),
+            0
+        )
+    }
     LifecycleEventEffect(Lifecycle.Event.ON_START) {
         hideControlsWithTimeout()
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        restoreBrightness(activity, originalScreenBrightness)
     }
 
 
@@ -169,20 +227,10 @@ fun PlayerScreen(
             onDoubleTapRight = { viewModel.seekBy(30_000) },
             onDoubleTapLeft = { viewModel.seekBy(-10_000) },
             onDoubleTapCenter = { viewModel.togglePlayPause() },
-            onVerticalDragLeft = { delta ->
-                val diff = (-delta / 800f)
-                brightness = (brightness + diff).coerceIn(AUTO_BRIGHTNESS_THRESHOLD, 1f)
-                applyBrightness(activity, brightness)
-            },
-            onVerticalDragRight = { delta ->
-                val diff = (-delta / 800f)
-                volume = (volume + diff).coerceIn(0f, 1f)
-                audioManager.setStreamVolume(
-                    AudioManager.STREAM_MUSIC,
-                    (volume * maxVolume).roundToInt(),
-                    0
-                )
-            },
+            onVerticalDragStart = ::onBrightnessDragStart,
+            onVerticalDragEnd = ::onBrightnessDragEnd,
+            onVerticalDragLeft = ::onBrightnessDrag,
+            onVerticalDragRight = ::onVolumeDrag,
             onHorizontalDragPreview = { deltaMs, previewPositionMs ->
                 horizontalSeekFeedback = deltaMs
                 horizontalSeekPreviewPositionMs = previewPositionMs?.let {
@@ -230,23 +278,21 @@ fun PlayerScreen(
         }
 
         ValueChangeTimedVisibility(
-            value = brightness,
+            value = BrightnessUiState(brightness, isAutoBrightness, autoDragTick),
             hideAfterMillis = 800,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(start = 20.dp)
-        ) { currentBrightness ->
+        ) { state ->
             PlayerAdjustmentIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 icon = Icons.Outlined.BrightnessMedium,
                 contentDescription = "Brightness",
-                value = currentBrightness,
-                bottomText = if (currentBrightness <= AUTO_BRIGHTNESS_THRESHOLD) {
+                value = state.brightness,
+                bottomText = if (state.isAuto) {
                     "Auto"
-                } else if (currentBrightness >= 0f) {
-                    "${(currentBrightness * 100).roundToInt()}%"
                 } else {
-                    null
+                    "${(state.brightness * 100).roundToInt()}%"
                 }
             )
         }
@@ -434,14 +480,34 @@ private fun formatSeekDelta(deltaMs: Long): String {
     }
 }
 
-private fun readCurrentBrightness(activity: Activity?): Float {
-    val current = activity?.window?.attributes?.screenBrightness
-    return if (current != null && current >= 0) current else -1f
+private data class BrightnessUiState(val brightness: Float, val isAuto: Boolean, val dragTick: Int)
+
+private fun readCurrentBrightness(activity: Activity?, context: Context): Float {
+    val windowBrightness = activity?.window?.attributes?.screenBrightness
+    if (windowBrightness != null && windowBrightness >= 0f) {
+        return windowBrightness
+    }
+    return try {
+        val systemBrightness = Settings.System.getInt(
+            context.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS
+        )
+        (systemBrightness / 255f).coerceIn(0f, 1f)
+    } catch (e: Settings.SettingNotFoundException) {
+        0.5f
+    }
 }
 
-private fun applyBrightness(activity: Activity?, value: Float) {
+private fun applyBrightness(activity: Activity?, brightness: Float, isAuto: Boolean) {
     activity ?: return
     val params = activity.window.attributes
-    params.screenBrightness = if (value <= AUTO_BRIGHTNESS_THRESHOLD) -1f else value
+    params.screenBrightness = if (isAuto) -1f else brightness
+    activity.window.attributes = params
+}
+
+private fun restoreBrightness(activity: Activity?, originalValue: Float) {
+    activity ?: return
+    val params = activity.window.attributes
+    params.screenBrightness = originalValue
     activity.window.attributes = params
 }

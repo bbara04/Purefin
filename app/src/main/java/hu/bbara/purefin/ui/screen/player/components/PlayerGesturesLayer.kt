@@ -30,6 +30,8 @@ fun PlayerGesturesLayer(
     onDoubleTapLeft: () -> Unit,
     onVerticalDragLeft: (delta: Float) -> Unit,
     onVerticalDragRight: (delta: Float) -> Unit,
+    onVerticalDragStart: (isLeftSide: Boolean) -> Unit = {},
+    onVerticalDragEnd: () -> Unit = {},
     onHorizontalDragPreview: (deltaMs: Long?, previewPositionMs: Long?) -> Unit = { _, _ -> },
     onHorizontalDragSeekTo: (positionMs: Long) -> Unit,
     currentPositionProvider: () -> Long,
@@ -79,6 +81,7 @@ fun PlayerGesturesLayer(
                     var isHorizontalDragActive = false
                     var lastPreviewDelta: Long? = null
                     var startPositionMs = 0L
+                    var verticalDragStarted = false
 
                     drag(down.id) { change ->
                         val delta = change.positionChange()
@@ -115,6 +118,10 @@ fun PlayerGesturesLayer(
                             DragDirection.VERTICAL -> {
                                 change.consume()
                                 val isLeftSide = startX < size.width / 2
+                                if (!verticalDragStarted) {
+                                    verticalDragStarted = true
+                                    onVerticalDragStart(isLeftSide)
+                                }
                                 if (isLeftSide) {
                                     onVerticalDragLeft(delta.y)
                                 } else {
@@ -134,6 +141,10 @@ fun PlayerGesturesLayer(
                         }
                     }
                     onHorizontalDragPreview(null, null)
+
+                    if (verticalDragStarted) {
+                        onVerticalDragEnd()
+                    }
                 }
             }
     )
