@@ -13,6 +13,8 @@ import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
+import hu.bbara.purefin.model.UNCATEGORIZED_LABEL
+import hu.bbara.purefin.model.UNCATEGORIZED_SEASON_ID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
@@ -78,6 +80,23 @@ class OfflineRoomMediaLocalDataSource(
                     episodeDao.upsert(episode.toEntity())
                 }
             }
+
+            if (series.uncategorizedEpisodes.isNotEmpty()) {
+                val unwatched = series.uncategorizedEpisodes.count { !it.watched }
+                val sentinelSeason = Season(
+                    id = UNCATEGORIZED_SEASON_ID,
+                    seriesId = series.id,
+                    name = UNCATEGORIZED_LABEL,
+                    index = 0,
+                    unwatchedEpisodeCount = unwatched,
+                    episodeCount = series.uncategorizedEpisodes.size,
+                    episodes = series.uncategorizedEpisodes,
+                )
+                seasonDao.upsert(sentinelSeason.toEntity())
+                series.uncategorizedEpisodes.forEach { episode ->
+                    episodeDao.upsert(episode.toEntity())
+                }
+            }
         }
     }
 
@@ -93,6 +112,19 @@ class OfflineRoomMediaLocalDataSource(
         database.withTransaction {
             seriesDao.getById(episode.seriesId)
                 ?: throw RuntimeException("Cannot add episode without series. Episode: $episode")
+
+            if (episode.seasonId == UNCATEGORIZED_SEASON_ID && seasonDao.getById(UNCATEGORIZED_SEASON_ID) == null) {
+                seasonDao.upsert(
+                    SeasonEntity(
+                        id = UNCATEGORIZED_SEASON_ID,
+                        seriesId = episode.seriesId,
+                        name = UNCATEGORIZED_LABEL,
+                        index = 0,
+                        unwatchedEpisodeCount = 0,
+                        episodeCount = 0,
+                    )
+                )
+            }
 
             episodeDao.upsert(episode.toEntity())
         }
@@ -165,12 +197,14 @@ class OfflineRoomMediaLocalDataSource(
     }
 
     suspend fun getSeasons(seriesId: UUID): List<Season> {
-        return seasonDao.getBySeriesId(seriesId).map { seasonEntity ->
-            val episodes = episodeDao.getBySeasonId(seasonEntity.id).map { episodeEntity ->
-                episodeEntity.toDomain()
+        return seasonDao.getBySeriesId(seriesId)
+            .filter { it.id != UNCATEGORIZED_SEASON_ID }
+            .map { seasonEntity ->
+                val episodes = episodeDao.getBySeasonId(seasonEntity.id).map { episodeEntity ->
+                    episodeEntity.toDomain()
+                }
+                seasonEntity.toDomain(episodes)
             }
-            seasonEntity.toDomain(episodes)
-        }
     }
 
     suspend fun getEpisode(seriesId: UUID, seasonId: UUID, episodeId: UUID): Episode? {
@@ -277,18 +311,23 @@ class OfflineRoomMediaLocalDataSource(
         cast = emptyList()
     )
 
-    private fun SeriesEntity.toDomain(seasons: List<Season>) = Series(
-        id = id,
-        libraryId = libraryId,
-        name = name,
-        synopsis = synopsis,
-        year = year,
-        imageUrlPrefix = imageUrlPrefix,
-        unwatchedEpisodeCount = unwatchedEpisodeCount,
-        seasonCount = seasonCount,
-        seasons = seasons,
-        cast = emptyList()
-    )
+    private fun SeriesEntity.toDomain(seasons: List<Season>): Series {
+        val (realSeasons, sentinelSeason) = seasons.partition { it.id != UNCATEGORIZED_SEASON_ID }
+        val uncategorizedEpisodes = sentinelSeason.flatMap { it.episodes }
+        return Series(
+            id = id,
+            libraryId = libraryId,
+            name = name,
+            synopsis = synopsis,
+            year = year,
+            imageUrlPrefix = imageUrlPrefix,
+            unwatchedEpisodeCount = unwatchedEpisodeCount,
+            seasonCount = seasonCount,
+            seasons = realSeasons,
+            uncategorizedEpisodes = uncategorizedEpisodes,
+            cast = emptyList(),
+        )
+    }
 
     private fun SeasonEntity.toDomain(episodes: List<Episode>) = Season(
         id = id,

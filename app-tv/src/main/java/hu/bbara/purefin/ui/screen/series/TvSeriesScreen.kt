@@ -78,10 +78,10 @@ internal fun TvSeriesScreenContent(
     var selectedSeasonId by remember(series.id, focusedSeasonId) {
         mutableStateOf(defaultSeason?.id)
     }
-    val selectedSeason = series.seasons.firstOrNull { it.id == selectedSeasonId } ?: defaultSeason
+    val selectedSeason = series.allSeasons.firstOrNull { it.id == selectedSeasonId } ?: defaultSeason
     val initialFocusSeasonId = defaultSeason?.id
     val initialFocusSeason = initialFocusSeasonId?.let { seasonId ->
-        series.seasons.firstOrNull { it.id == seasonId }
+        series.allSeasons.firstOrNull { it.id == seasonId }
     } ?: defaultSeason
     val initialFocusedEpisodeId = initialFocusSeason?.focusTargetEpisodeId(focusedEpisodeId)
     val seasonTabFocusRequester = remember { FocusRequester() }
@@ -120,7 +120,7 @@ internal fun TvSeriesScreenContent(
                 Spacer(modifier = Modifier.height(16.dp))
                 if (selectedSeason != null) {
                     TvSeasonTabs(
-                        seasons = series.seasons,
+                        seasons = series.allSeasons,
                         selectedSeason = selectedSeason,
                         selectedItemFocusRequester = seasonTabFocusRequester,
                         firstItemTestTag = SeriesFirstSeasonTabTag,
@@ -156,10 +156,10 @@ internal fun TvSeriesScreenContent(
 
 private fun Series.defaultSeason(focusedSeasonId: UUID?): Season? {
     if (focusedSeasonId != null) {
-        seasons.firstOrNull { it.id == focusedSeasonId }?.let { return it }
+        allSeasons.firstOrNull { it.id == focusedSeasonId }?.let { return it }
     }
 
-    return seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: seasons.firstOrNull()
+    return allSeasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: allSeasons.firstOrNull()
 }
 
 private fun Season.nextUpEpisode(): Episode? {

@@ -3,6 +3,7 @@ package hu.bbara.purefin.data.catalog
 import hu.bbara.purefin.core.concurrency.SingleFlight
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.UserSessionRepository
+import hu.bbara.purefin.data.converter.isUncategorizedEpisode
 import hu.bbara.purefin.data.converter.toEpisode
 import hu.bbara.purefin.data.converter.toMovie
 import hu.bbara.purefin.data.converter.toSeason
@@ -11,6 +12,7 @@ import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Series
+import hu.bbara.purefin.model.UNCATEGORIZED_SEASON_ID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,7 +84,10 @@ class InMemoryLocalMediaRepository @Inject constructor(
                 seriesState.update { current ->
                     val existing = current[series.id]
                     val merged = if (existing != null && existing.seasons.isNotEmpty() && series.seasons.isEmpty()) {
-                        series.copy(seasons = existing.seasons)
+                        series.copy(
+                            seasons = existing.seasons,
+                            uncategorizedEpisodes = existing.uncategorizedEpisodes,
+                        )
                     } else {
                         series
                     }
@@ -124,7 +129,10 @@ class InMemoryLocalMediaRepository @Inject constructor(
             current + series.associateBy { it.id }.mapValues { (id, newSeries) ->
                 val existing = current[id]
                 if (existing != null && existing.seasons.isNotEmpty() && newSeries.seasons.isEmpty()) {
-                    newSeries.copy(seasons = existing.seasons)
+                    newSeries.copy(
+                        seasons = existing.seasons,
+                        uncategorizedEpisodes = existing.uncategorizedEpisodes,
+                    )
                 } else {
                     newSeries
                 }
@@ -168,6 +176,11 @@ class InMemoryLocalMediaRepository @Inject constructor(
     override suspend fun loadSeasonEpisodes(seriesId: UUID, seasonId: UUID) =
         singleFlight.run("LocalMedia:loadSeasonEpisodes:$seriesId:$seasonId") {
             try {
+                // The "Uncategorized" season is synthetic; its episodes are
+                // populated as a side effect of loading real seasons, so
+                // selecting that tab must not trigger a Jellyfin API call.
+                if (seasonId == UNCATEGORIZED_SEASON_ID) return@run
+
                 // Ensure the series and season is loaded
                 var series = seriesState.value[seriesId]
                 if (series == null) {
@@ -187,22 +200,35 @@ class InMemoryLocalMediaRepository @Inject constructor(
                 }
 
                 val serverUrl = userSessionRepository.serverUrl.first()
-                val episodes = jellyfinApiClient.getEpisodesInSeason(seriesId, seasonId)
-                    .map { it.toEpisode(serverUrl) }
+                val seriesName = seriesState.value[seriesId]?.name
+                val (categorized, uncategorized) = jellyfinApiClient
+                    .getEpisodesInSeason(seriesId, seasonId)
+                    .partition { !it.isUncategorizedEpisode() }
+                val categorizedEpisodes = categorized.map {
+                    it.toEpisode(serverUrl, fallbackSeriesId = seriesId, fallbackSeriesName = seriesName)
+                }
+                val uncategorizedEpisodes = uncategorized.map {
+                    it.toEpisode(serverUrl, fallbackSeriesId = seriesId, fallbackSeriesName = seriesName)
+                }
                 seriesState.update { current ->
                     val currentSeries = current[seriesId] ?: return@update current
                     val updatedSeries = currentSeries.copy(
                         seasons = currentSeries.seasons.map {
                             if (it.id == seasonId && it.episodes.isEmpty()) {
-                                it.copy(episodes = episodes)
+                                it.copy(episodes = categorizedEpisodes)
                             } else {
                                 it
                             }
-                        }
+                        },
+                        uncategorizedEpisodes = (
+                            currentSeries.uncategorizedEpisodes + uncategorizedEpisodes
+                        ).distinctBy { it.id }
                     )
                     current + (updatedSeries.id to updatedSeries)
                 }
-                episodesState.update { current -> current + episodes.associateBy { it.id } }
+                episodesState.update { current ->
+                    current + (categorizedEpisodes + uncategorizedEpisodes).associateBy { it.id }
+                }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
@@ -285,8 +311,21 @@ class InMemoryLocalMediaRepository @Inject constructor(
                     )
                 }
             }
+            val uncategorizedEpisodes = if (
+                series.uncategorizedEpisodes.none { it.id == updatedEpisode.id }
+            ) {
+                series.uncategorizedEpisodes
+            } else {
+                changed = true
+                series.uncategorizedEpisodes.map { episode ->
+                    if (episode.id == updatedEpisode.id) updatedEpisode else episode
+                }
+            }
             if (changed) {
-                current + (series.id to series.copy(seasons = seasons))
+                current + (series.id to series.copy(
+                    seasons = seasons,
+                    uncategorizedEpisodes = uncategorizedEpisodes,
+                ))
             } else {
                 current
             }

@@ -9,12 +9,15 @@ import hu.bbara.purefin.model.LibraryKind
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
+import hu.bbara.purefin.model.UNCATEGORIZED_SEASON_ID
+import hu.bbara.purefin.model.UNCATEGORIZED_SERIES_ID
 import org.jellyfin.sdk.model.api.BaseItemDto
 import org.jellyfin.sdk.model.api.CollectionType
 import timber.log.Timber
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 fun BaseItemDto.toLibrary(serverUrl: String): Library? {
@@ -101,24 +104,38 @@ fun BaseItemDto.toSeason(): Season {
     )
 }
 
-fun BaseItemDto.toEpisode(serverUrl: String): Episode {
+/**
+ * An episode is considered "uncategorized" when it is missing any of the
+ * identity/season fields required to place it under a real season. Missing
+ * watch data ([userData]) is intentionally NOT a trigger — it is defaulted
+ * so the episode can still appear under its real season.
+ */
+fun BaseItemDto.isUncategorizedEpisode(): Boolean =
+    parentId == null || seriesId == null || seriesName == null ||
+        parentIndexNumber == null || indexNumber == null
+
+fun BaseItemDto.toEpisode(
+    serverUrl: String,
+    fallbackSeriesId: UUID? = null,
+    fallbackSeriesName: String? = null,
+): Episode {
     val releaseDate = formatReleaseDate(premiereDate, productionYear)
     val imageUrlPrefix = id?.let { itemId ->
         ImageUrlBuilder.toPrefixImageUrl(url = serverUrl, itemId = itemId)
     } ?: ""
     return Episode(
-        id = id,
-        seriesId = seriesId!!,
-        seriesName = seriesName!!,
-        seasonId = parentId!!,
-        seasonIndex = parentIndexNumber!!,
+        id = id ?: error("Episode without id"),
+        seriesId = seriesId ?: fallbackSeriesId ?: UNCATEGORIZED_SERIES_ID,
+        seriesName = seriesName ?: fallbackSeriesName ?: "Unknown",
+        seasonId = parentId ?: UNCATEGORIZED_SEASON_ID,
+        seasonIndex = parentIndexNumber ?: 0,
         title = name ?: "Unknown title",
-        index = indexNumber!!,
+        index = indexNumber ?: 0,
         releaseDate = releaseDate,
         rating = officialRating ?: "NR",
         runtime = formatRuntime(runTimeTicks),
-        progress = userData!!.playedPercentage,
-        watched = userData!!.played,
+        progress = userData?.playedPercentage,
+        watched = userData?.played ?: false,
         format = container?.uppercase() ?: "VIDEO",
         synopsis = overview ?: "No synopsis available.",
         imageUrlPrefix = imageUrlPrefix,

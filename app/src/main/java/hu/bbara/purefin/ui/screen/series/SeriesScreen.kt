@@ -149,12 +149,12 @@ private fun SeriesScreenInternal(
     var showMarkAsWatchedDialog by remember { mutableStateOf(false) }
 
     fun getDefaultSeason(): Season? {
-        return series.seasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: series.seasons.firstOrNull()
+        return series.allSeasons.firstOrNull { it.unwatchedEpisodeCount > 0 } ?: series.allSeasons.firstOrNull()
     }
 
     var selectedSeasonId by remember(series.id) { mutableStateOf(getDefaultSeason()?.id) }
     val selectedSeason =
-        series.seasons.firstOrNull { it.id == selectedSeasonId } ?: getDefaultSeason()
+        series.allSeasons.firstOrNull { it.id == selectedSeasonId } ?: getDefaultSeason()
     val nextUpEpisode = selectedSeason?.episodes?.firstOrNull { !it.watched }
         ?: selectedSeason?.episodes?.firstOrNull()
     val playAction = remember(nextUpEpisode, offline) {
@@ -210,7 +210,7 @@ private fun SeriesScreenInternal(
     ) { _modifier ->
         if (selectedSeason != null) {
             SeasonTabs(
-                seasons = series.seasons,
+                seasons = series.allSeasons,
                 selectedSeason = selectedSeason,
                 onSelect = { selectedSeasonId = it.id },
                 modifier = _modifier
