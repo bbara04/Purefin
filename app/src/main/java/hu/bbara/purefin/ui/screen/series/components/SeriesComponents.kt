@@ -9,15 +9,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -26,8 +29,10 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -173,6 +178,95 @@ internal fun DownloadOptionsBottomSheet(
                     onClick = { onDownloadOptionSelected(SeriesDownloadOption.SMART) },
                     modifier = Modifier.testTag(SeriesSmartDownloadButtonTag)
                 )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun SmartDownloadCountSheet(
+    countOptions: List<Int>,
+    selectedCount: Int,
+    onCountSelected: (Int) -> Unit,
+    onConfirm: () -> Unit,
+    onBack: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val scheme = MaterialTheme.colorScheme
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag(SeriesSmartDownloadCountSheetTag),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "Back",
+                        tint = scheme.onSurface
+                    )
+                }
+                Column(
+                    modifier = Modifier.padding(start = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = "Smart Downloads",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = scheme.onSurface
+                    )
+                    Text(
+                        text = "Choose how many unwatched episodes to keep offline.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = scheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(countOptions) { option ->
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = if (option == 1) "$option episode" else "$option episodes"
+                            )
+                        },
+                        leadingContent = if (option == selectedCount) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Outlined.Check,
+                                    contentDescription = null,
+                                    tint = scheme.primary
+                                )
+                            }
+                        } else null,
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable { onCountSelected(option) }
+                    )
+                }
+            }
+
+            Button(
+                onClick = onConfirm,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                    .testTag(SeriesSmartDownloadConfirmButtonTag)
+            ) {
+                Text("Enable Smart Downloads")
             }
         }
     }
@@ -443,6 +537,8 @@ internal const val SeriesDownloadDialogTag = "series-download-dialog"
 internal const val SeriesDownloadSeasonButtonTag = "series-download-season-button"
 internal const val SeriesDownloadAllButtonTag = "series-download-all-button"
 internal const val SeriesSmartDownloadButtonTag = "series-smart-download-button"
+internal const val SeriesSmartDownloadCountSheetTag = "series-smart-download-count-sheet"
+internal const val SeriesSmartDownloadConfirmButtonTag = "series-smart-download-confirm-button"
 internal const val SeriesSeasonSelectorTag = "series-season-selector"
 internal const val SeriesEpisodeCarouselTag = "series-episode-carousel"
 internal const val SeriesEpisodeCardTagPrefix = "series-episode-card-"

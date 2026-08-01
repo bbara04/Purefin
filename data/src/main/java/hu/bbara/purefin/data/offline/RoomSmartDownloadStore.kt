@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.Flow
 class RoomSmartDownloadStore @Inject constructor(
     private val smartDownloadDao: SmartDownloadDao,
 ) : SmartDownloadStore {
-    override suspend fun enable(seriesId: UUID) {
-        smartDownloadDao.insert(SmartDownloadEntity(seriesId))
+    override suspend fun enable(seriesId: UUID, count: Int) {
+        smartDownloadDao.insert(SmartDownloadEntity(seriesId, count))
     }
 
     override suspend fun disable(seriesId: UUID) {
@@ -26,5 +26,9 @@ class RoomSmartDownloadStore @Inject constructor(
 
     override suspend fun getEnabledSeriesIds(): List<UUID> {
         return smartDownloadDao.getAll().map { it.seriesId }
+    }
+
+    override suspend fun getCount(seriesId: UUID): Int? {
+        return smartDownloadDao.getCount(seriesId)
     }
 }

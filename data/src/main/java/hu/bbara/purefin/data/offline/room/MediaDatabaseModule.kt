@@ -2,6 +2,8 @@ package hu.bbara.purefin.data.offline.room
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,11 +23,20 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object MediaDatabaseModule {
 
+    private val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE smart_downloads ADD COLUMN count INTEGER NOT NULL DEFAULT 5"
+            )
+        }
+    }
+
     // Offline Database and DAOs
     @Provides
     @Singleton
     fun provideOfflineDatabase(@ApplicationContext context: Context): OfflineMediaDatabase =
         Room.databaseBuilder(context, OfflineMediaDatabase::class.java, "offline_media_database")
+            .addMigrations(MIGRATION_12_13)
             .fallbackToDestructiveMigration()
             .build()
 

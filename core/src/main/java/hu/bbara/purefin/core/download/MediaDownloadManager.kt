@@ -214,9 +214,9 @@ class MediaDownloadManager @Inject constructor(
 
     // ── Smart Download ──────────────────────────────────────────────────
 
-    override suspend fun enableSmartDownload(seriesId: UUID) {
-        smartDownloadStore.enable(seriesId)
-        syncSmartDownloadsForSeries(seriesId)
+    override suspend fun enableSmartDownload(seriesId: UUID, count: Int) {
+        smartDownloadStore.enable(seriesId, count)
+        syncSmartDownloadsForSeries(seriesId, count)
     }
 
     override suspend fun deleteSmartDownloads(seriesId: UUID) {
@@ -235,7 +235,9 @@ class MediaDownloadManager @Inject constructor(
             val enabledSeriesIds = smartDownloadStore.getEnabledSeriesIds()
             for (seriesId in enabledSeriesIds) {
                 try {
-                    syncSmartDownloadsForSeries(seriesId)
+                    val count = smartDownloadStore.getCount(seriesId)
+                        ?: SmartDownloadStore.DEFAULT_SMART_DOWNLOAD_COUNT
+                    syncSmartDownloadsForSeries(seriesId, count)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -245,7 +247,7 @@ class MediaDownloadManager @Inject constructor(
         }
     }
 
-    private suspend fun syncSmartDownloadsForSeries(seriesId: UUID) {
+    private suspend fun syncSmartDownloadsForSeries(seriesId: UUID, count: Int) {
         withContext(Dispatchers.IO) {
             // 1. Get currently downloaded episodes for this series
             val downloadedEpisodes = offlineMediaManager.getEpisodesBySeries(seriesId)
@@ -262,7 +264,7 @@ class MediaDownloadManager @Inject constructor(
             }
 
             // 3. Find unwatched episodes not already downloaded
-            val needed = SMART_DOWNLOAD_COUNT - unwatchedDownloaded.size
+            val needed = count - unwatchedDownloaded.size
             if (needed <= 0) return@withContext
 
             val toDownload = downloadMediaSourceResolver.getUnwatchedEpisodeIds(
@@ -308,6 +310,5 @@ class MediaDownloadManager @Inject constructor(
 
     companion object {
         private const val TAG = "MediaDownloadManager"
-        private const val SMART_DOWNLOAD_COUNT = 5
     }
 }

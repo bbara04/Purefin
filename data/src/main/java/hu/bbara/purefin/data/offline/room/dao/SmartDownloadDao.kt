@@ -25,6 +25,9 @@ interface SmartDownloadDao {
     @Query("SELECT EXISTS(SELECT 1 FROM smart_downloads WHERE seriesId = :seriesId)")
     fun observe(seriesId: UUID): Flow<Boolean>
 
+    @Query("SELECT count FROM smart_downloads WHERE seriesId = :seriesId")
+    suspend fun getCount(seriesId: UUID): Int?
+
     @Query("SELECT * FROM smart_downloads")
     fun observeAll(): Flow<List<SmartDownloadEntity>>
 }

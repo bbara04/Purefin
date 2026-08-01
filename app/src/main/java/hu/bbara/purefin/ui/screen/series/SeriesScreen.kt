@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import hu.bbara.purefin.core.data.SmartDownloadStore
 import hu.bbara.purefin.core.download.DownloadState
 import hu.bbara.purefin.core.feature.content.series.SeriesViewModel
 import hu.bbara.purefin.core.image.ArtworkKind
@@ -51,6 +52,7 @@ import hu.bbara.purefin.ui.screen.series.components.SeriesDownloadOption
 import hu.bbara.purefin.ui.screen.series.components.SeriesPlayButtonTag
 import hu.bbara.purefin.ui.screen.series.components.SeriesTopBar
 import hu.bbara.purefin.ui.screen.series.components.SeriesWatchedButtonTag
+import hu.bbara.purefin.ui.screen.series.components.SmartDownloadCountSheet
 import hu.bbara.purefin.ui.screen.waiting.PurefinWaitingScreen
 import java.util.UUID
 
@@ -75,6 +77,9 @@ fun SeriesScreen(
         val seriesDownloadState = viewModel.seriesDownloadState.collectAsStateWithLifecycle().value
         val seasonDownloadState = viewModel.seasonDownloadState.collectAsStateWithLifecycle().value
         val isSmartDownloadEnabled = viewModel.isSmartDownloadEnabled.collectAsStateWithLifecycle().value
+        var smartDownloadCount by remember { mutableStateOf(SmartDownloadStore.DEFAULT_SMART_DOWNLOAD_COUNT) }
+        val smartDownloadCountOptions = remember { listOf(1, 3, 5, 10, 15) }
+        var showSmartDownloadCountSheet by remember { mutableStateOf(false) }
 
         fun canPerformDownloadOption(option: SeriesDownloadOption): Boolean =
             option.canPerform(
@@ -91,8 +96,9 @@ fun SeriesScreen(
                 SeriesDownloadOption.SERIES ->
                     viewModel.downloadSeries(seriesData)
 
-                SeriesDownloadOption.SMART ->
-                    viewModel.enableSmartDownload(seriesData.id)
+                SeriesDownloadOption.SMART -> {
+                    showSmartDownloadCountSheet = true
+                }
 
                 SeriesDownloadOption.DELETE_SMART ->
                     viewModel.deleteSmartDownloads(seriesData.id)
@@ -122,6 +128,22 @@ fun SeriesScreen(
             offline = series.offline,
             modifier = modifier
         )
+
+        if (showSmartDownloadCountSheet) {
+            SmartDownloadCountSheet(
+                countOptions = smartDownloadCountOptions,
+                selectedCount = smartDownloadCount,
+                onCountSelected = { smartDownloadCount = it },
+                onConfirm = {
+                    showSmartDownloadCountSheet = false
+                    requestNotificationPermission {
+                        viewModel.enableSmartDownload(seriesData.id, smartDownloadCount)
+                    }
+                },
+                onBack = { showSmartDownloadCountSheet = false },
+                onDismiss = { showSmartDownloadCountSheet = false }
+            )
+        }
     } else {
         PurefinWaitingScreen()
     }

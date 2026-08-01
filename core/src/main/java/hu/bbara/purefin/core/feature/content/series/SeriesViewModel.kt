@@ -112,9 +112,9 @@ class SeriesViewModel @Inject constructor(
         }
     }
 
-    fun enableSmartDownload(seriesId: UUID) {
+    fun enableSmartDownload(seriesId: UUID, count: Int) {
         viewModelScope.launch {
-            mediaDownloadManager.enableSmartDownload(seriesId)
+            mediaDownloadManager.enableSmartDownload(seriesId, count)
         }
     }
 
