@@ -1,7 +1,9 @@
 package hu.bbara.purefin.navigation
 
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
+import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.core.navigation.SeriesDto
 import hu.bbara.purefin.core.feature.browse.home.AppViewModel
@@ -12,6 +14,7 @@ import hu.bbara.purefin.ui.screen.TvAppScreen
 import hu.bbara.purefin.ui.screen.library.TvLibraryScreen
 import hu.bbara.purefin.ui.screen.player.TvPlayerScreen
 import hu.bbara.purefin.ui.screen.settings.TvSettingsScreen
+import kotlinx.coroutines.launch
 
 fun EntryProviderScope<Route>.tvHomeSection() {
     entry<Route.Home> {
@@ -47,12 +50,16 @@ fun EntryProviderScope<Route>.tvEpisodeSection() {
     }
 }
 
-fun EntryProviderScope<Route>.tvPlayerSection() {
+fun EntryProviderScope<Route>.tvPlayerSection(homeRepository: HomeRepository) {
     entry<Route.PlayerRoute> { route ->
         val navigationManager = LocalNavigationManager.current
+        val scope = rememberCoroutineScope()
         TvPlayerScreen(
             mediaId = route.mediaId,
-            onBack = { navigationManager.pop() }
+            onBack = {
+                scope.launch { homeRepository.refreshHomeData() }
+                navigationManager.pop()
+            }
         )
     }
 }

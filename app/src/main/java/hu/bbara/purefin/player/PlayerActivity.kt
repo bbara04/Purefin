@@ -11,14 +11,26 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.player.viewmodel.PlayerViewModel
 import hu.bbara.purefin.ui.screen.player.PlayerScreen
 import hu.bbara.purefin.ui.theme.AppTheme
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class PlayerActivity : ComponentActivity() {
     private val viewModel: PlayerViewModel by viewModels()
+
+    @Inject
+    lateinit var homeRepository: HomeRepository
+
+    override fun finish() {
+        lifecycleScope.launch { homeRepository.refreshHomeData() }
+        super.finish()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

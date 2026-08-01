@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.multibindings.IntoSet
+import hu.bbara.purefin.core.data.HomeRepository
 import hu.bbara.purefin.core.navigation.Route
 import hu.bbara.purefin.navigation.tvEpisodeSection
 import hu.bbara.purefin.navigation.tvHomeSection
@@ -52,8 +53,8 @@ object TvNavigationModule {
 
     @IntoSet
     @Provides
-    fun provideTvPlayerEntryBuilder(): EntryProviderScope<Route>.() -> Unit = {
-        tvPlayerSection()
+    fun provideTvPlayerEntryBuilder(homeRepository: HomeRepository): EntryProviderScope<Route>.() -> Unit = {
+        tvPlayerSection(homeRepository)
     }
 
     @IntoSet
