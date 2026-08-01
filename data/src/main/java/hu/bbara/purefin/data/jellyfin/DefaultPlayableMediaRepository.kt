@@ -2,6 +2,7 @@ package hu.bbara.purefin.data.jellyfin
 
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
@@ -38,6 +39,7 @@ import org.jellyfin.sdk.model.api.MediaSegmentType.PREVIEW
 import org.jellyfin.sdk.model.api.MediaSegmentType.RECAP
 import org.jellyfin.sdk.model.api.MediaSourceInfo
 import timber.log.Timber
+import java.io.File
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -151,6 +153,8 @@ class DefaultPlayableMediaRepository @Inject constructor(
         mediaId: UUID,
         downloadedMediaItem: MediaItem,
     ): PlayableMedia? {
+        val subtitleConfigurations = buildLocalSubtitleConfigurations(mediaId)
+
         offlineMediaRepository.getMovie(mediaId).first()?.let { movie ->
             val preferences = trackPreferencesRepository.getMediaPreferences(mediaId.toString()).first()
             return PlayableMedia.Movie(
@@ -162,6 +166,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
                     subtitle = null,
                     artworkUrl = ImageUrlBuilder.finishImageUrl(movie.imageUrlPrefix, ArtworkKind.PRIMARY),
                     playbackReportContext = null,
+                    subtitleConfigurations = subtitleConfigurations,
                 ),
                 resumePositionMs = calculateOfflineResumePosition(movie.progress, movie.runtime, movie.watched),
                 preferences = preferences,
@@ -180,6 +185,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
                     subtitle = episode.seasonEpisodeLabel(),
                     artworkUrl = ImageUrlBuilder.finishImageUrl(episode.imageUrlPrefix, ArtworkKind.PRIMARY),
                     playbackReportContext = null,
+                    subtitleConfigurations = subtitleConfigurations,
                 ),
                 resumePositionMs = calculateOfflineResumePosition(episode.progress, episode.runtime, episode.watched),
                 preferences = preferences,
@@ -227,6 +233,8 @@ class DefaultPlayableMediaRepository @Inject constructor(
         val serverUrl = userSessionRepository.serverUrl.first()
         val artworkUrl = ImageUrlBuilder.toImageUrl(serverUrl, mediaId, ArtworkKind.PRIMARY)
 
+        val subtitleConfigurations = buildLocalSubtitleConfigurations(mediaId)
+
         return@withContext downloadedMediaItem.withMetadata(
             mediaId = mediaId.toString(),
             title = baseItem?.name ?: "Unknown",
@@ -234,6 +242,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
             artworkUrl = artworkUrl,
             // TODO
             playbackReportContext = null,
+            subtitleConfigurations = subtitleConfigurations,
         )
     }
 
@@ -281,6 +290,30 @@ class DefaultPlayableMediaRepository @Inject constructor(
             .mapNotNull { nextEpisode ->
                 getPlayableMedia(nextEpisode.id)
             }
+    }
+
+    @OptIn(UnstableApi::class)
+    private suspend fun buildLocalSubtitleConfigurations(mediaId: UUID): List<MediaItem.SubtitleConfiguration> {
+        val subtitles = offlineMediaManager.getSubtitles(mediaId)
+        if (subtitles.isEmpty()) return emptyList()
+        return subtitles.mapNotNull { sub ->
+            val file = File(sub.localFilePath)
+            if (!file.exists()) return@mapNotNull null
+            MediaItem.SubtitleConfiguration.Builder(android.net.Uri.fromFile(file))
+                .setMimeType(sub.mimeType)
+                .setLanguage(sub.language)
+                .setLabel(sub.label)
+                .setSelectionFlags(buildSelectionFlags(sub.forced, sub.defaultTrack))
+                .build()
+        }
+    }
+
+    @OptIn(UnstableApi::class)
+    private fun buildSelectionFlags(isForced: Boolean, isDefault: Boolean): Int {
+        var flags = 0
+        if (isForced) flags = flags or C.SELECTION_FLAG_FORCED
+        if (isDefault) flags = flags or C.SELECTION_FLAG_DEFAULT
+        return flags
     }
 
     @OptIn(UnstableApi::class)
@@ -346,6 +379,7 @@ class DefaultPlayableMediaRepository @Inject constructor(
         subtitle: String?,
         artworkUrl: String,
         playbackReportContext: PlaybackReportContext?,
+        subtitleConfigurations: List<MediaItem.SubtitleConfiguration> = emptyList(),
     ): MediaItem {
         val metadataBuilder = MediaMetadata.Builder()
             .setTitle(title)
@@ -357,6 +391,11 @@ class DefaultPlayableMediaRepository @Inject constructor(
             .setMediaId(mediaId)
             .setMediaMetadata(metadataBuilder.build())
             .setTag(playbackReportContext)
+            .apply {
+                if (subtitleConfigurations.isNotEmpty()) {
+                    setSubtitleConfigurations(subtitleConfigurations)
+                }
+            }
             .build()
     }
 

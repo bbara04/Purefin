@@ -1,6 +1,7 @@
 package hu.bbara.purefin.core.data
 
 import hu.bbara.purefin.model.Episode
+import hu.bbara.purefin.model.ExternalSubtitle
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Season
 import hu.bbara.purefin.model.Series
@@ -21,6 +22,7 @@ data class MovieDownloadSource(
     val movie: Movie,
     val playbackUrl: String,
     val customCacheKey: String?,
+    val subtitles: List<ExternalSubtitle> = emptyList(),
 )
 
 data class EpisodeDownloadSource(
@@ -29,4 +31,5 @@ data class EpisodeDownloadSource(
     val season: Season,
     val playbackUrl: String,
     val customCacheKey: String?,
+    val subtitles: List<ExternalSubtitle> = emptyList(),
 )

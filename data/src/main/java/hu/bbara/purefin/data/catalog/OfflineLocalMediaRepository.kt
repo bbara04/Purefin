@@ -3,6 +3,7 @@ package hu.bbara.purefin.data.catalog
 import hu.bbara.purefin.core.data.LocalMediaRepository
 import hu.bbara.purefin.core.data.OfflineMediaManager
 import hu.bbara.purefin.data.offline.room.offline.OfflineRoomMediaLocalDataSource
+import hu.bbara.purefin.model.DownloadedSubtitle
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Season
@@ -125,5 +126,17 @@ class OfflineLocalMediaRepository @Inject constructor(
 
     override suspend fun getEpisodesBySeries(seriesId: UUID): List<Episode> {
         return localDataSource.getEpisodesBySeries(seriesId)
+    }
+
+    override suspend fun saveSubtitles(mediaId: UUID, subtitles: List<DownloadedSubtitle>) {
+        localDataSource.saveSubtitles(mediaId, subtitles)
+    }
+
+    override suspend fun getSubtitles(mediaId: UUID): List<DownloadedSubtitle> {
+        return localDataSource.getSubtitles(mediaId)
+    }
+
+    override suspend fun deleteSubtitles(mediaId: UUID) {
+        localDataSource.deleteSubtitles(mediaId)
     }
 }

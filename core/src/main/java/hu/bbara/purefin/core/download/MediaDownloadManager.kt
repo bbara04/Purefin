@@ -38,6 +38,7 @@ class MediaDownloadManager @Inject constructor(
     private val downloadMediaSourceResolver: DownloadMediaSourceResolver,
     private val offlineMediaManager: OfflineMediaManager,
     private val smartDownloadStore: SmartDownloadStore,
+    private val subtitleDownloader: SubtitleDownloader,
 ) : MediaDownloadController {
 
     private val stateFlows = ConcurrentHashMap<String, MutableStateFlow<DownloadState>>()
@@ -136,6 +137,7 @@ class MediaDownloadManager @Inject constructor(
                 )
                 PurefinDownloadService.sendAddDownload(context, request)
                 Timber.tag(TAG).d("Download request sent for $movieId")
+                subtitleDownloader.downloadAndStore(movieId, source.subtitles)
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Failed to start download for $movieId")
                 getOrCreateStateFlow(movieId.toString()).value = DownloadState.Failed
@@ -151,6 +153,7 @@ class MediaDownloadManager @Inject constructor(
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Failed to remove movie from offline DB")
             }
+            subtitleDownloader.deleteForMedia(movieId)
         }
     }
 
@@ -181,6 +184,7 @@ class MediaDownloadManager @Inject constructor(
                 )
                 PurefinDownloadService.sendAddDownload(context, request)
                 Timber.tag(TAG).d("Download request sent for episode $episodeId")
+                subtitleDownloader.downloadAndStore(episodeId, source.subtitles)
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Failed to start download for episode $episodeId")
                 getOrCreateStateFlow(episodeId.toString()).value = DownloadState.Failed
@@ -204,6 +208,7 @@ class MediaDownloadManager @Inject constructor(
             } catch (e: Exception) {
                 Timber.tag(TAG).e(e, "Failed to remove episode from offline DB")
             }
+            subtitleDownloader.deleteForMedia(episodeId)
         }
     }
 

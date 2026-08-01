@@ -5,10 +5,13 @@ import hu.bbara.purefin.data.offline.room.dao.EpisodeDao
 import hu.bbara.purefin.data.offline.room.dao.MovieDao
 import hu.bbara.purefin.data.offline.room.dao.SeasonDao
 import hu.bbara.purefin.data.offline.room.dao.SeriesDao
+import hu.bbara.purefin.data.offline.room.dao.SubtitleDao
 import hu.bbara.purefin.data.offline.room.entity.EpisodeEntity
 import hu.bbara.purefin.data.offline.room.entity.MovieEntity
 import hu.bbara.purefin.data.offline.room.entity.SeasonEntity
 import hu.bbara.purefin.data.offline.room.entity.SeriesEntity
+import hu.bbara.purefin.data.offline.room.entity.SubtitleEntity
+import hu.bbara.purefin.model.DownloadedSubtitle
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Season
@@ -27,6 +30,7 @@ class OfflineRoomMediaLocalDataSource(
     private val seriesDao: SeriesDao,
     private val seasonDao: SeasonDao,
     private val episodeDao: EpisodeDao,
+    private val subtitleDao: SubtitleDao,
 ) {
 
     val moviesFlow: Flow<Map<UUID, Movie>> = movieDao.observeAll()
@@ -244,6 +248,20 @@ class OfflineRoomMediaLocalDataSource(
         movieDao.deleteById(movieId)
     }
 
+    suspend fun saveSubtitles(mediaId: UUID, subtitles: List<DownloadedSubtitle>) {
+        database.withTransaction {
+            subtitleDao.upsertAll(subtitles.map { it.toEntity(mediaId) })
+        }
+    }
+
+    suspend fun getSubtitles(mediaId: UUID): List<DownloadedSubtitle> {
+        return subtitleDao.getByMediaId(mediaId).map { it.toDomain() }
+    }
+
+    suspend fun deleteSubtitles(mediaId: UUID) {
+        subtitleDao.deleteByMediaId(mediaId)
+    }
+
     private fun Movie.toEntity() = MovieEntity(
         id = id,
         libraryId = libraryId,
@@ -356,5 +374,26 @@ class OfflineRoomMediaLocalDataSource(
         format = format,
         imageUrlPrefix = imageUrlPrefix,
         cast = emptyList()
+    )
+
+    private fun DownloadedSubtitle.toEntity(mediaId: UUID) = SubtitleEntity(
+        mediaId = mediaId,
+        index = index,
+        language = language,
+        label = label,
+        mimeType = mimeType,
+        forced = forced,
+        defaultTrack = defaultTrack,
+        localFilePath = localFilePath,
+    )
+
+    private fun SubtitleEntity.toDomain() = DownloadedSubtitle(
+        index = index,
+        language = language,
+        label = label,
+        mimeType = mimeType,
+        forced = forced,
+        defaultTrack = defaultTrack,
+        localFilePath = localFilePath,
     )
 }

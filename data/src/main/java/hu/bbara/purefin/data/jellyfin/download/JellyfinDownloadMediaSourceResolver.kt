@@ -11,6 +11,7 @@ import hu.bbara.purefin.data.converter.toSeries
 import hu.bbara.purefin.data.jellyfin.client.JellyfinApiClient
 import hu.bbara.purefin.data.jellyfin.playback.JellyfinPlaybackResolver
 import hu.bbara.purefin.data.jellyfin.playback.PlaybackSource
+import hu.bbara.purefin.data.jellyfin.playback.SubtitleConfigurationMapper
 import hu.bbara.purefin.data.jellyfin.playback.playbackCustomCacheKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -24,6 +25,7 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
     private val jellyfinApiClient: JellyfinApiClient,
     private val userSessionRepository: UserSessionRepository,
     private val jellyfinPlaybackResolver: JellyfinPlaybackResolver,
+    private val subtitleConfigurationMapper: SubtitleConfigurationMapper,
 ) : DownloadMediaSourceResolver {
     override suspend fun resolveMovieDownload(movieId: UUID): MovieDownloadSource? = withContext(Dispatchers.IO) {
         val serverUrl = userSessionRepository.serverUrl.first().trim()
@@ -34,10 +36,16 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
         val playbackSource = jellyfinPlaybackResolver.getPlaybackSource(movieId) ?: return@withContext null
         val itemInfo = jellyfinApiClient.getItemInfo(movieId) ?: return@withContext null
 
+        val subtitles = subtitleConfigurationMapper.extractExternalSubtitles(
+            mediaSource = playbackSource.mediaSource,
+            serverUrl = serverUrl,
+        )
+
         MovieDownloadSource(
             movie = itemInfo.toMovie(serverUrl),
             playbackUrl = playbackSource.directPlayUrl,
             customCacheKey = playbackSource.downloadCustomCacheKey(movieId),
+            subtitles = subtitles,
         )
     }
 
@@ -53,12 +61,18 @@ class JellyfinDownloadMediaSourceResolver @Inject constructor(
         val series = jellyfinApiClient.getItemInfo(episode.seriesId)?.toSeries(serverUrl) ?: return@withContext null
         val season = jellyfinApiClient.getItemInfo(episode.seasonId)?.toSeason() ?: return@withContext null
 
+        val subtitles = subtitleConfigurationMapper.extractExternalSubtitles(
+            mediaSource = playbackSource.mediaSource,
+            serverUrl = serverUrl,
+        )
+
         EpisodeDownloadSource(
             episode = episode,
             series = series,
             season = season,
             playbackUrl = playbackSource.directPlayUrl,
             customCacheKey = playbackSource.downloadCustomCacheKey(episodeId),
+            subtitles = subtitles,
         )
     }
 

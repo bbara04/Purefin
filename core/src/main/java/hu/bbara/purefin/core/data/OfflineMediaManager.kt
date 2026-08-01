@@ -1,5 +1,6 @@
 package hu.bbara.purefin.core.data
 
+import hu.bbara.purefin.model.DownloadedSubtitle
 import hu.bbara.purefin.model.Episode
 import hu.bbara.purefin.model.Movie
 import hu.bbara.purefin.model.Season
@@ -16,4 +17,7 @@ interface OfflineMediaManager {
     suspend fun deleteMovie(movieId: UUID)
     suspend fun deleteEpisodeAndCleanup(episodeId: UUID)
     suspend fun getEpisodesBySeries(seriesId: UUID): List<Episode>
+    suspend fun saveSubtitles(mediaId: UUID, subtitles: List<DownloadedSubtitle>)
+    suspend fun getSubtitles(mediaId: UUID): List<DownloadedSubtitle>
+    suspend fun deleteSubtitles(mediaId: UUID)
 }
