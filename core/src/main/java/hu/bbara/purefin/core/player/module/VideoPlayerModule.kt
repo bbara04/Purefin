@@ -66,6 +66,7 @@ object VideoPlayerModule {
             .setLoadControl(loadControl)
             .setSeekParameters(SeekParameters.PREVIOUS_SYNC)
             .setAudioAttributes(audioAttributes, true)
+            .setHandleAudioBecomingNoisy(true)
             .build()
             .apply {
                 playWhenReady = true
