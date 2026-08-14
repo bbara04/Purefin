@@ -1,5 +1,6 @@
 package hu.bbara.purefin.player
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -27,8 +28,15 @@ class PlayerActivity : ComponentActivity() {
     @Inject
     lateinit var homeRepository: HomeRepository
 
+    companion object {
+        const val EXTRA_LAST_MEDIA_ID = "LAST_MEDIA_ID"
+    }
+
     override fun finish() {
         lifecycleScope.launch { homeRepository.refreshHomeData() }
+        viewModel.currentMediaId()?.let { id ->
+            setResult(RESULT_OK, Intent().putExtra(EXTRA_LAST_MEDIA_ID, id.toString()))
+        }
         super.finish()
     }
 

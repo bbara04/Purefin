@@ -17,11 +17,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,8 +47,16 @@ class EpisodeScreenViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.NotDownloaded)
-    val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val downloadState: StateFlow<DownloadState> = _episode
+        .flatMapLatest { episode ->
+            if (episode == null) {
+                flowOf(DownloadState.NotDownloaded)
+            } else {
+                mediaDownloadManager.observeDownloadState(episode.id.toString())
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DownloadState.NotDownloaded)
 
     fun onBack() {
         navigationManager.pop()
@@ -67,10 +76,21 @@ class EpisodeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             mediaCatalogReader(episode.offline).loadEpisode(episode.id)
         }
+    }
+
+    fun selectEpisode(episodeId: String?) {
+        val id = episodeId?.let { runCatching { UUID.fromString(it) }.getOrNull() } ?: return
+        val current = _episode.value ?: return
+        if (id == current.id) return
         viewModelScope.launch {
-            mediaDownloadManager.observeDownloadState(episode.id.toString()).collect {
-                _downloadState.value = it
-            }
+            val episode = mediaCatalogReader(current.offline).getEpisode(id).first()
+            if (episode == null || episode.seriesId != current.seriesId) return@launch
+            _episode.value = EpisodeDto(
+                id = episode.id,
+                seasonId = episode.seasonId,
+                seriesId = episode.seriesId,
+                offline = current.offline,
+            )
         }
     }
 
@@ -84,7 +104,7 @@ class EpisodeScreenViewModel @Inject constructor(
     fun onDownloadClick() {
         val episodeId = _episode.value?.id ?: return
         viewModelScope.launch {
-            when (_downloadState.value) {
+            when (downloadState.value) {
                 is DownloadState.NotDownloaded, is DownloadState.Failed -> {
                     mediaDownloadManager.downloadEpisode(episodeId)
                 }

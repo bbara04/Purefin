@@ -1,6 +1,9 @@
 package hu.bbara.purefin.ui.screen.episode
 
+import android.app.Activity
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,6 +61,15 @@ fun EpisodeScreen(
     val downloadState = viewModel.downloadState.collectAsStateWithLifecycle()
     val requestNotificationPermission = rememberNotificationPermissionGate()
 
+    val context = LocalContext.current
+    val playerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.selectEpisode(result.data?.getStringExtra(PlayerActivity.EXTRA_LAST_MEDIA_ID))
+        }
+    }
+
     val onDownloadClick = {
         if (downloadState.value is DownloadState.NotDownloaded) {
             requestNotificationPermission {
@@ -73,8 +85,16 @@ fun EpisodeScreen(
         return
     }
 
+    val currentEpisode = episode.value!!
     EpisodeScreenInternal(
-        episode = episode.value!!,
+        episode = currentEpisode,
+        onPlayClick = remember(currentEpisode.id) {
+            {
+                val intent = Intent(context, PlayerActivity::class.java)
+                intent.putExtra("MEDIA_ID", currentEpisode.id.toString())
+                playerLauncher.launch(intent)
+            }
+        },
         topBarShortcut = remember(previousRoute) {
             when (previousRoute) {
                 Route.Home -> EpisodeTopBarShortcut.Series(viewModel::onSeriesClick)
@@ -93,6 +113,7 @@ fun EpisodeScreen(
 @Composable
 private fun EpisodeScreenInternal(
     episode: Episode,
+    onPlayClick: () -> Unit,
     topBarShortcut: EpisodeTopBarShortcut?,
     downloadState: DownloadState,
     onBack: () -> Unit,
@@ -100,18 +121,9 @@ private fun EpisodeScreenInternal(
     onMarkAsWatched: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val playAction = remember(episode.id) {
-        {
-            val intent = Intent(context, PlayerActivity::class.java)
-            intent.putExtra("MEDIA_ID", episode.id.toString())
-            context.startActivity(intent)
-        }
-    }
-
     MediaDetailScaffold(
         uiModel = episode.toMediaDetailScaffoldUiModel(
-            onPlayClick = playAction,
+            onPlayClick = onPlayClick,
             downloadState = downloadState,
             onDownloadClick = onDownloadClick,
             onMarkAsWatched = onMarkAsWatched,
@@ -177,6 +189,7 @@ private fun EpisodeScreenPreview() {
     AppTheme {
         EpisodeScreenInternal(
             episode = previewEpisode(),
+            onPlayClick = {},
             topBarShortcut = EpisodeTopBarShortcut.Series(onClick = {}),
             downloadState = DownloadState.Downloading(progressPercent = 0.42f),
             onBack = {},

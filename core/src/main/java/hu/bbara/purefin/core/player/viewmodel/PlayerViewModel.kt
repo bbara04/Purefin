@@ -39,6 +39,8 @@ class PlayerViewModel @Inject constructor(
 
     val player get() = playerManager.player
 
+    fun currentMediaId(): UUID? = playerManager.currentMediaId.value
+
     private val mediaId: String? = savedStateHandle["MEDIA_ID"]
 
     private val _uiState = MutableStateFlow(PlayerUiState())

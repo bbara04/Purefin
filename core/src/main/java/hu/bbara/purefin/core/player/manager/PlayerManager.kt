@@ -69,6 +69,7 @@ class PlayerManager @Inject constructor(
     private val mediaSegmentManager = MediaSegmentManager(exoPlayer)
 
     private val _currentMediaId = MutableStateFlow<UUID?>(null)
+    val currentMediaId: StateFlow<UUID?> = _currentMediaId.asStateFlow()
     private val _playlist = MutableStateFlow(emptyList<PlayableMedia>())
     val playlist: StateFlow<List<PlayableMedia>> = _playlist.asStateFlow()
 
