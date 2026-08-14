@@ -5,6 +5,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
@@ -79,11 +80,13 @@ object DownloadModule {
     @Provides
     @Singleton
     fun providePlaybackDataSourceFactory(
+        @ApplicationContext context: Context,
         cache: SimpleCache,
         okHttpDataSourceFactory: OkHttpDataSource.Factory
     ): DataSource.Factory {
-        return DownloadModuleFactories
+        val cacheFactory = DownloadModuleFactories
             .newPhonePlaybackDataSourceFactory(okHttpDataSourceFactory)
             .setCache(cache)
+        return DefaultDataSource.Factory(context, cacheFactory)
     }
 }
