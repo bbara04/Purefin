@@ -99,7 +99,6 @@ fun PlayerScreen(
     val originalScreenBrightness by remember { mutableFloatStateOf(activity?.window?.attributes?.screenBrightness ?: -1f) }
     var showQueuePanel by remember { mutableStateOf(false) }
     var horizontalSeekFeedback by remember { mutableStateOf<Long?>(null) }
-    var horizontalSeekPreviewPositionMs by remember { mutableStateOf<Long?>(null) }
     val overlayController = rememberPersistentOverlayController()
 
     val subtitleBottomPaddingFraction =
@@ -231,20 +230,12 @@ fun PlayerScreen(
             onVerticalDragEnd = ::onBrightnessDragEnd,
             onVerticalDragLeft = ::onBrightnessDrag,
             onVerticalDragRight = ::onVolumeDrag,
-            onHorizontalDragPreview = { deltaMs, previewPositionMs ->
+            onHorizontalDragPreview = { deltaMs ->
                 horizontalSeekFeedback = deltaMs
-                horizontalSeekPreviewPositionMs = previewPositionMs?.let {
-                    if (uiState.durationMs > 0L) {
-                        it.coerceIn(0L, uiState.durationMs)
-                    } else {
-                        it.coerceAtLeast(0L)
-                    }
-                }
             },
-            onHorizontalDragSeekTo = {
-                viewModel.seekTo(it)
+            onHorizontalDragSeekBy = { deltaMs ->
+                viewModel.seekBy(deltaMs)
             },
-            currentPositionProvider = { uiState.positionMs },
         )
 
         EmptyValueTimedVisibility(
@@ -259,15 +250,15 @@ fun PlayerScreen(
         }
 
         EmptyValueTimedVisibility(
-            value = horizontalSeekPreviewPositionMs,
+            value = horizontalSeekFeedback,
             hideAfterMillis = 1_000,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 24.dp, vertical = 28.dp)
-        ) { previewPositionMs ->
+        ) {
             if (!controlsVisible) {
                 HiddenSeekTimeline(
-                    positionMs = previewPositionMs,
+                    positionMs = uiState.positionMs,
                     durationMs = uiState.durationMs,
                     bufferedMs = uiState.bufferedMs,
                     chapterMarkers = uiState.chapters,
