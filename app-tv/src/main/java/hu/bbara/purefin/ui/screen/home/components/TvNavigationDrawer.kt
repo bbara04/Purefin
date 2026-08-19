@@ -35,6 +35,7 @@ import androidx.tv.material3.DrawerValue
 import androidx.tv.material3.Icon
 import androidx.tv.material3.NavigationDrawer
 import androidx.tv.material3.NavigationDrawerItem
+import androidx.tv.material3.NavigationDrawerScope
 import androidx.tv.material3.Text
 import androidx.tv.material3.darkColorScheme
 import androidx.tv.material3.rememberDrawerState
@@ -139,7 +140,7 @@ fun TvDrawerHeader(
 }
 
 @Composable
-private fun androidx.tv.material3.NavigationDrawerScope.TvNavigationDrawerRail(
+private fun NavigationDrawerScope.TvNavigationDrawerRail(
     drawerState: DrawerState,
     destinations: List<TvDrawerDestinationItem>,
     selectedDestination: Route,
